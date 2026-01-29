@@ -84,6 +84,6 @@ POGO Tracker offers in-depth analytics on your Pokemon collection, catches, walk
 
 7. Open site
 
-```
-server open
-```
+    ```
+    server open
+    ```

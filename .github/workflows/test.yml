@@ -156,14 +156,21 @@ jobs:
               "Total Error: \(.totalError)",
               "Total Skipped: \(.totalSkipped)"
             '
-            
-            if [ -f "tests/results/test-results.html" ]; then
-              echo "HTML report generated at tests/results/test-results.html"
-            fi
           else
             echo "No test results found!"
             ls -la tests/results/ || echo "Results directory doesn't exist"
           fi
+
+      - name: Publish Test Reports
+        uses: mikepenz/action-junit-report@v6.0.0
+        if: always()
+        with:
+          report_paths: |
+            tests/results/**/*.xml
+          check_name: "TestBox Report"
+          include_passed: false
+          fail_on_failure: true
+          detailed_summary: true
 
       - name: Upload Test Results
         uses: actions/upload-artifact@v4
