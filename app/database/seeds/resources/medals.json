@@ -1,0 +1,578 @@
+{
+    "Rising Star Duo": {
+        "Silver": 100,
+        "Gold": 1000,
+        "order": 41,
+        "description": "Raids won with a friend",
+        "Platinum": 2000,
+        "Bronze": 10
+    },
+    "Bird Keeper": {
+        "silver": 50,
+        "gold": 200,
+        "order": 62,
+        "description": "Flying-type caught",
+        "platinum": 2500,
+        "bronze": 10
+    },
+    "Community Member": {
+        "Silver": 20,
+        "Gold": 50,
+        "order": 53,
+        "description": "Check-in with Community Ambassadors during events hosted on Campfire",
+        "Platinum": 100,
+        "Bronze": 1
+    },
+    "Alola": {
+        "Silver": 25,
+        "Gold": 50,
+        "order": 36,
+        "description": "Alola Pokédex entries registered",
+        "Platinum": 86,
+        "Bronze": 5
+    },
+    "Rocker": {
+        "silver": 50,
+        "gold": 200,
+        "order": 58,
+        "description": "Electric-type caught",
+        "platinum": 2500,
+        "bronze": 10
+    },
+    "Hoenn": {
+        "Silver": 40,
+        "Gold": 90,
+        "order": 19,
+        "description": "Hoenn Pokédex entries registered",
+        "Platinum": 135,
+        "Bronze": 5
+    },
+    "Hiker": {
+        "silver": 50,
+        "gold": 200,
+        "order": 70,
+        "description": "Rock-type caught",
+        "platinum": 2500,
+        "bronze": 10
+    },
+    "Life of the Party": {
+        "Silver": 50,
+        "Gold": 100,
+        "order": 54,
+        "description": "Complete Party Challenges",
+        "Platinum": 200,
+        "Bronze": 10
+    },
+    "Best Buddy": {
+        "Silver": 10,
+        "Gold": 100,
+        "order": 33,
+        "description": "Have Buddy Pokémon at Best Buddy level",
+        "Platinum": 200,
+        "Bronze": 1
+    },
+    "Ultra League Veteran": {
+        "Silver": 50,
+        "Gold": 200,
+        "order": 26,
+        "description": "Win Trainer Battles in the Ultra League",
+        "Platinum": 1000,
+        "Bronze": 5
+    },
+    "Dragon Tamer": {
+        "silver": 50,
+        "gold": 200,
+        "order": 57,
+        "description": "Dragon-type caught",
+        "platinum": 2500,
+        "bronze": 10
+    },
+    "Fisher": {
+        "Silver": 50,
+        "Gold": 300,
+        "order": 8,
+        "description": "Big (13.13 kg or heavier) Magikarp caught",
+        "Platinum": 1000,
+        "Bronze": 3
+    },
+    "Hex Maniac": {
+        "silver": 50,
+        "gold": 200,
+        "order": 63,
+        "description": "Ghost-type caught",
+        "platinum": 2500,
+        "bronze": 10
+    },
+    "Schoolkid": {
+        "silver": 50,
+        "gold": 200,
+        "order": 67,
+        "description": "Normal-type caught",
+        "platinum": 2500,
+        "bronze": 10
+    },
+    "Rising Star": {
+        "Silver": 10,
+        "Gold": 50,
+        "order": 40,
+        "description": "Unique Raid bosses defeated",
+        "Platinum": 150,
+        "Bronze": 2
+    },
+    "Hisui": {
+        "Silver": 3,
+        "Gold": 5,
+        "order": 38,
+        "description": "Hisui Pokédex entries registered",
+        "Platinum": 7,
+        "Bronze": 1
+    },
+    "Tiny Pokémon Collector": {
+        "Silver": 25,
+        "Gold": 100,
+        "order": 47,
+        "description": "Catch XXS (height) Pokémon",
+        "Platinum": 500,
+        "Bronze": 5
+    },
+    "Unova": {
+        "Silver": 50,
+        "Gold": 100,
+        "order": 29,
+        "description": "Unova Pokédex entries registered",
+        "Platinum": 156,
+        "Bronze": 5
+    },
+    "Kalos": {
+        "Silver": 25,
+        "Gold": 50,
+        "order": 35,
+        "description": "Kalos Pokédex entries registered",
+        "Platinum": 72,
+        "Bronze": 5
+    },
+    "Unown": {
+        "Silver": 10,
+        "Gold": 26,
+        "order": 13,
+        "description": "Unique Unown caught",
+        "Platinum": 28,
+        "Bronze": 3
+    },
+    "Jumbo Pokémon Collector": {
+        "Silver": 25,
+        "Gold": 100,
+        "order": 48,
+        "description": "Catch XXL (height) Pokémon",
+        "Platinum": 500,
+        "Bronze": 5
+    },
+    "Breeder": {
+        "Silver": 100,
+        "Gold": 500,
+        "order": 5,
+        "description": "Pokémon Eggs hatched",
+        "Platinum": 2500,
+        "Bronze": 10
+    },
+    "Kindler": {
+        "silver": 50,
+        "gold": 200,
+        "order": 61,
+        "description": "Fire-type caught",
+        "platinum": 2500,
+        "bronze": 10
+    },
+    "Skier": {
+        "silver": 50,
+        "gold": 200,
+        "order": 66,
+        "description": "Ice-type caught",
+        "platinum": 2500,
+        "bronze": 10
+    },
+    "Gardener": {
+        "silver": 50,
+        "gold": 200,
+        "order": 64,
+        "description": "Grass-type caught",
+        "platinum": 2500,
+        "bronze": 10
+    },
+    "Successor": {
+        "Silver": 50,
+        "Gold": 500,
+        "order": 43,
+        "description": "Mega Evolve Pokémon",
+        "Platinum": 1000,
+        "Bronze": 1
+    },
+    "Cameraman": {
+        "Silver": 50,
+        "Gold": 200,
+        "order": 28,
+        "description": "GO Snapshot photobombs",
+        "Platinum": 400,
+        "Bronze": 10
+    },
+    "Purifier": {
+        "Silver": 50,
+        "Gold": 500,
+        "order": 30,
+        "description": "Shadow Pokémon purified",
+        "Platinum": 1000,
+        "Bronze": 5
+    },
+    "Backpacker": {
+        "Silver": 1000,
+        "Gold": 2000,
+        "order": 6,
+        "description": "PokéStops visited",
+        "Platinum": 50000,
+        "Bronze": 100
+    },
+    "Psychic": {
+        "silver": 50,
+        "gold": 200,
+        "order": 69,
+        "description": "Psychic-type caught",
+        "platinum": 2500,
+        "bronze": 10
+    },
+    "Battle Girl": {
+        "Silver": 100,
+        "Gold": 1000,
+        "order": 9,
+        "description": "Gym Battles won",
+        "Platinum": 4000,
+        "Bronze": 10
+    },
+    "Gentleman": {
+        "Silver": 100,
+        "Gold": 1000,
+        "order": 22,
+        "description": "Pokémon trades",
+        "Platinum": 2500,
+        "Bronze": 10
+    },
+    "Showcase Star": {
+        "Silver": 10,
+        "Gold": 50,
+        "order": 52,
+        "description": "Win contests at PokéStop Showcase",
+        "Platinum": 100,
+        "Bronze": 1
+    },
+    "Mega Evolution Guru": {
+        "Silver": 24,
+        "Gold": 36,
+        "order": 44,
+        "description": "Mega Evolve unique Pokémon",
+        "Platinum": 46,
+        "Bronze": 1
+    },
+    "Johto": {
+        "Silver": 30,
+        "Gold": 70,
+        "order": 14,
+        "description": "Johto Pokédex entries registered",
+        "Platinum": 100,
+        "Bronze": 5
+    },
+    "Pikachu Fan": {
+        "Silver": 50,
+        "Gold": 300,
+        "order": 12,
+        "description": "Pikachu caught",
+        "Platinum": 1000,
+        "Bronze": 3
+    },
+    "Battle Legend": {
+        "Silver": 100,
+        "Gold": 1000,
+        "order": 16,
+        "description": "Legendary Raid Battles won (Ultra Beast counts)",
+        "Platinum": 2000,
+        "Bronze": 10
+    },
+    "Ultra Hero": {
+        "Silver": 5,
+        "Gold": 20,
+        "order": 32,
+        "description": "Defeat the Team GO Rocket Boss",
+        "Platinum": 50,
+        "Bronze": 1
+    },
+    "Fairy-Tale Girl": {
+        "silver": 50,
+        "gold": 200,
+        "order": 59,
+        "description": "Fairy-type caught",
+        "platinum": 2500,
+        "bronze": 10
+    },
+    "Master League Veteran": {
+        "Silver": 50,
+        "Gold": 200,
+        "order": 27,
+        "description": "Win Trainer Battles in the Master League",
+        "Platinum": 1000,
+        "Bronze": 5
+    },
+    "Swimmer": {
+        "silver": 50,
+        "gold": 200,
+        "order": 72,
+        "description": "Water-type caught",
+        "platinum": 2500,
+        "bronze": 10
+    },
+    "Delinquent": {
+        "silver": 50,
+        "gold": 200,
+        "order": 56,
+        "description": "Dark-type caught",
+        "platinum": 2500,
+        "bronze": 10
+    },
+    "Pokémon Ranger": {
+        "Silver": 100,
+        "Gold": 1000,
+        "order": 20,
+        "description": "Field Research tasks completed",
+        "Platinum": 2500,
+        "Bronze": 10
+    },
+    "Sinnoh": {
+        "Silver": 30,
+        "Gold": 80,
+        "order": 24,
+        "description": "Sinnoh Pokédex entries registered",
+        "Platinum": 107,
+        "Bronze": 5
+    },
+    "Galar": {
+        "Silver": 25,
+        "Gold": 50,
+        "order": 37,
+        "description": "Galar Pokédex entries registered",
+        "Platinum": 89,
+        "Bronze": 5
+    },
+    "Raid Expert": {
+        "Silver": 50,
+        "Gold": 200,
+        "order": 46,
+        "description": "Earn Raid Battle Trainer Achievements",
+        "Platinum": 500,
+        "Bronze": 1
+    },
+    "Friend Finder": {
+        "Silver": 10,
+        "Gold": 20,
+        "order": 45,
+        "description": "Refer other Trainers",
+        "Platinum": 50,
+        "Bronze": 1
+    },
+    "Great League Veteran": {
+        "Silver": 50,
+        "Gold": 200,
+        "order": 25,
+        "description": "Win Trainer Battles in the Great League",
+        "Platinum": 1000,
+        "Bronze": 5
+    },
+    "Hero": {
+        "Silver": 100,
+        "Gold": 1000,
+        "order": 31,
+        "description": "Defeat Team GO Rocket members",
+        "Platinum": 2000,
+        "Bronze": 10
+    },
+    "Champion": {
+        "Silver": 100,
+        "Gold": 1000,
+        "order": 15,
+        "description": "Non-legendary Raid Battles won",
+        "Platinum": 2000,
+        "Bronze": 10
+    },
+    "Rail Staff": {
+        "silver": 50,
+        "gold": 200,
+        "order": 71,
+        "description": "Steel-type caught",
+        "platinum": 2500,
+        "bronze": 10
+    },
+    "Berry Master": {
+        "Silver": 100,
+        "Gold": 1000,
+        "order": 17,
+        "description": "Berries fed at Gyms",
+        "Platinum": 15000,
+        "Bronze": 10
+    },
+    "Youngster": {
+        "Silver": 50,
+        "Gold": 300,
+        "order": 11,
+        "description": "Tiny (2.41 kg or lighter) Rattata caught",
+        "Platinum": 1000,
+        "Bronze": 3
+    },
+    "Bug Catcher": {
+        "silver": 50,
+        "gold": 200,
+        "order": 55,
+        "description": "Bug-type caught",
+        "platinum": 2500,
+        "bronze": 10
+    },
+    "Ruin Maniac": {
+        "silver": 50,
+        "gold": 200,
+        "order": 65,
+        "description": "Ground-type caught",
+        "platinum": 2500,
+        "bronze": 10
+    },
+    "Picnicker": {
+        "Silver": 25,
+        "Gold": 500,
+        "order": 42,
+        "description": "Pokémon caught by other Trainers at your PokéStop Lures",
+        "Platinum": 2500,
+        "Bronze": 5
+    },
+    "Punk Girl": {
+        "silver": 50,
+        "gold": 200,
+        "order": 68,
+        "description": "Poison-type caught",
+        "platinum": 2500,
+        "bronze": 10
+    },
+    "Gym Leader": {
+        "Silver": 100,
+        "Gold": 1000,
+        "order": 18,
+        "description": "Hours of defending Gyms",
+        "Platinum": 15000,
+        "Bronze": 10
+    },
+    "Collector": {
+        "Silver": 500,
+        "Gold": 2000,
+        "order": 3,
+        "description": "Pokémon caught",
+        "Platinum": 50000,
+        "Bronze": 30
+    },
+    "Vivillon Collector": {
+        "Silver": 5,
+        "Gold": 10,
+        "order": 49,
+        "description": "Unique Vivillon patterns caught (Vivillon pattern medals unlocked)",
+        "Platinum": 18,
+        "Bronze": 1
+    },
+    "Kanto": {
+        "Silver": 50,
+        "Gold": 100,
+        "order": 2,
+        "description": "Kanto Pokédex entries registered",
+        "Platinum": 151,
+        "Bronze": 5
+    },
+    "Idol": {
+        "Silver": 2,
+        "Gold": 3,
+        "order": 21,
+        "description": "Become Best Friends with Trainers",
+        "Platinum": 20,
+        "Bronze": 1
+    },
+    "Paldea": {
+        "Silver": 30,
+        "Gold": 80,
+        "order": 51,
+        "description": "Paldea Pokédex entries registered",
+        "Platinum": 103,
+        "Bronze": 5
+    },
+    "Wayfarer": {
+        "Silver": 500,
+        "Gold": 1000,
+        "order": 34,
+        "description": "Earn Wayfarer agreements",
+        "Platinum": 1500,
+        "Bronze": 50
+    },
+    "Ace Trainer": {
+        "Silver": 100,
+        "Gold": 1000,
+        "order": 10,
+        "description": "Team Leader Battles won",
+        "Platinum": 2000,
+        "Bronze": 10
+    },
+    "Expert Navigator": {
+        "Silver": 50,
+        "Gold": 200,
+        "order": 50,
+        "description": "Complete Routes",
+        "Platinum": 600,
+        "Bronze": 10
+    },
+    "Sightseer": {
+        "Silver": 100,
+        "Gold": 1000,
+        "order": 7,
+        "description": "Unique PokéStops visited",
+        "Platinum": 2000,
+        "Bronze": 10
+    },
+    "Scientist": {
+        "Silver": 20,
+        "Gold": 200,
+        "order": 4,
+        "description": "Pokémon evolved",
+        "Platinum": 2000,
+        "Bronze": 3
+    },
+    "Pilot": {
+        "Silver": 100000,
+        "Gold": 1000000,
+        "order": 23,
+        "description": "Earned km across the distance of all Pokémon trades",
+        "Platinum": 10000000,
+        "Bronze": 1000
+    },
+    "Triathlete": {
+        "Silver": 10,
+        "Gold": 50,
+        "order": 39,
+        "description": "Complete 7-day streaks",
+        "Platinum": 100,
+        "Bronze": 1
+    },
+    "Jogger": {
+        "Silver": 100,
+        "Gold": 1000,
+        "order": 1,
+        "description": "Kilometers walked",
+        "Platinum": 10000,
+        "Bronze": 10
+    },
+    "Black Belt": {
+        "silver": 50,
+        "gold": 200,
+        "order": 60,
+        "description": "Fighting-type caught",
+        "platinum": 2500,
+        "bronze": 10
+    }
+}

@@ -1,0 +1,11 @@
+{
+    "compress": {
+        "unsafe": true,
+        "dead_code": true,
+        "drop_console": true
+    },
+    "mangle": true,
+    "keep_fnames": true,
+    "keep_classnames": true,
+    "module": true
+}

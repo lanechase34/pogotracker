@@ -1,0 +1,54 @@
+{
+    "app":{
+        "cfengine":"lucee@7.0.1+100",
+        "sessionCookieSameSite":"Lax",
+        "sessionCookieSecure":"true",
+        "sessionCookieHTTPOnly":"true"
+    },
+    "cfconfigfile":".cfconfig.json",
+    "env":{
+        "LUCEE_EXTENSIONS":"671B01B8-B3B3-42B9-AC055A356BED5281;version=${DB_BUNDLEVERSION:42.7.7},D062D72F-F8A2-46F0-8CBC91325B2F067B;version=6.5.3",
+        "LUCEE_APPLICATION_LISTENER":"modern",
+        "LUCEE_APPLICATION_MODE":"curr2root",
+        "LUCEE_APPLICATION_PATH_CACHE_TIMEOUT":300,
+        "LUCEE_QUEUE_MAX":10
+    },
+    "jvm":{
+        "heapSize":"${JAVAHEAP}",
+        "minHeapSize":"${JAVAMINHEAP}",
+        "javaVersion":"openjdk21_jre_x64_${OS}_hotspot_jdk-21.0.9+10"
+    },
+    "name":"POGO Tracker",
+    "openbrowser":"false",
+    "openBrowserUrl":"http://localhost:8081",
+    "trayEnable":"false",
+    "web":{
+        "host":"127.0.0.1",
+        "rewrites":{
+            "enable":"true"
+        },
+        "http":{
+            "enable":"true",
+            "port":"8081"
+        },
+        "rules":[
+            "warm-up-server(urls={'/main/warmup'}, requestStrategy=queue, async=false, timeoutSeconds=${WARMUPTIMEOUT})",
+            "path-prefix-nocase(/lucee/) or path-prefix-nocase(/tests/) -> ip-access-control[default-allow=false, acl={'127.0.0.* allow', '::1 allow'}, failure-status=404]",
+            "path(/WebSocket.cfc) -> done",
+            "path(/robots.txt) -> rewrite('/includes/robots.txt')",
+            "path(/sitemap.xml) -> rewrite('/includes/sitemap.xml')",
+            "regex-nocase('.*(box\\.json|Dockerfile|cfconfig\\.json|server\\.json)') or path-suffix-nocase(.env) or path-suffix-nocase(.md) or path-prefix-nocase(/includes/assets/) or path-suffix-nocase(.cfc) or path-prefix-nocase(/.well-known/) or path-prefix-nocase('/app') -> set-error(404)",
+            "regex-nocase('.*\\.(webp|css|js|ico|txt)$') or regex-nocase('.*\\?v=[a-zA-Z0-9]{10}$') -> set(attribute='%{o,Cache-Control}', value='public, max-age=25552000')",
+            "set(attribute='%{o,Content-Security-Policy}', value=\"default-src 'none'; script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://cdn.datatables.net https://www.google.com https://www.gstatic.com https://ga.jspm.io; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdn.datatables.net; img-src 'self' data: https://www.w3.org http://www.w3.org; form-action 'self'; base-uri 'self'; connect-src 'self' ws: wss: https://static.cloudflareinsights.com https://cloudflareinsights.com https://cdn.jsdelivr.net https://www.google.com https://ga.jspm.io; font-src 'self' https://cdn.jsdelivr.net; frame-src 'self' https://www.google.com; object-src 'self'; media-src 'self'; child-src 'self'; frame-ancestors 'none'\")",
+            "set(attribute='%{o,X-Frame-Options}', value='DENY')",
+            "samesite-cookie(mode=Lax)",
+            "set(attribute='%{o,Strict-Transport-Security}', value='max-age=31536000; includeSubDomains')"
+        ],
+        "maxRequests":"50",
+        "webroot":"",
+        "useProxyForwardedIP":"true",
+        "websocket":{
+            "enable":"true"
+        }
+    }
+}

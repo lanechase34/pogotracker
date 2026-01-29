@@ -1,0 +1,12 @@
+{
+    "recommendations": [
+        "kamasamak.vscode-cfml",
+        "eamodio.gitlens",
+        "mhutchie.git-graph",
+        "ms-vscode-remote.remote-wsl",
+        "esbenp.prettier-vscode",
+        "redhat.vscode-yaml",
+        "dbaeumer.vscode-eslint",
+        "redhat.vscode-xml"
+    ]
+}

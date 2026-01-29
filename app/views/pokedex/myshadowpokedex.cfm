@@ -1,0 +1,10 @@
+<cfoutput>
+<div 
+    id="shadowPokedexTable" 
+    class="" 
+    data-trainerid="#prc.trainerid#" 
+    data-shadow="true"
+    data-shiny="#encodeForHTML(rc.shiny)#"
+>
+</div>  
+</cfoutput>

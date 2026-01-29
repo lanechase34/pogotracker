@@ -1,0 +1,44 @@
+# General Ignores + IDE
+.DS_Store
+settings.xml
+WEB-INF
+
+# Engines + Database + CBFS + Secrets
+.env
+.secrets
+env/
+.engine/**
+.cbfs/**
+build/.db/**
+
+# logs + tests
+logs/**
+tests/results/**
+
+# npm
+**/node_modules/*
+npm-debug.log
+yarn-error.log
+
+## Ignored Dependencies
+app/coldbox/**
+app/testbox/**
+app/modules/**
+app/modules/
+app/coldbox/
+
+includes/uploads/**
+includes/uploads/
+
+_testemails
+
+includes/assets/envpokedexoverrides.json
+includes/assets/pokedex.json
+includes/assets/moves.json
+includes/assets/medals.json
+
+/node_modules
+tests/test.xml
+
+tests/results/**
+tests/results/

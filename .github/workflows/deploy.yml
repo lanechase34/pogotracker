@@ -1,0 +1,63 @@
+name: Deploy
+
+on:
+  workflow_dispatch: # Manual triggering
+
+jobs:
+  deploy:
+    if: github.actor == github.repository_owner
+    runs-on: ubuntu-24.04
+    environment: Production
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Update backend code
+        uses: burnett01/rsync-deployments@v8
+        # a - archive preserve permissions, ownership, and symbolic links, v - verbose, z - compress
+        with:
+          switches: -avz --rsync-path="sudo rsync"
+            --exclude='.env'
+            --exclude='includes/uploads/'
+            --exclude='includes/.terser.json'
+            --exclude='includes/eslint.config.js'
+            --exclude='includes/package-lock.json'
+            --exclude='includes/package.json'
+            --exclude='includes/css/'
+            --exclude='includes/js/'
+            --exclude='includes/node_modules/'
+            --exclude='includes/assets/envpokedexoverrides.json'
+            --exclude='app/coldbox/'
+            --exclude='app/modules/'
+            --exclude='app/database/seeds/'
+            --include='Application.cfc'
+            --include='WebSocket.cfc'
+            --include='app/***'
+            --include='includes/***'
+            --include='box.json'
+            --include='server.json'
+            --include='.cfconfig.json'
+            --include='.cfmigrations.json'
+            --include='.env.example'
+            --include='index.cfm'
+            --exclude='*'
+          path: ./
+          remote_path: /var/www/wwwroot/pogotracker/
+          remote_host: ${{ secrets.LIGHTSAIL_IP }}
+          remote_user: ${{ secrets.LIGHTSAIL_USERNAME }}
+          remote_key: ${{ secrets.LIGHTSAIL_SSH_KEY }}
+
+      - name: Restart and update backend db, dependencies
+        uses: appleboy/ssh-action@v1.2.2
+        with:
+          host: ${{ secrets.LIGHTSAIL_IP }}
+          username: ${{ secrets.LIGHTSAIL_USERNAME }}
+          key: "${{ secrets.LIGHTSAIL_SSH_KEY }}"
+          script: |
+            cd /var/www/wwwroot/pogotracker/
+            sudo box server stop
+            sudo sh -c 'echo "$(date)" > /var/www/wwwroot/pogotracker/version.html'
+            sudo box update --force
+            sudo box install --production
+            sudo box migrate up
+            sudo box server start

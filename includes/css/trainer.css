@@ -1,0 +1,13 @@
+.avatarIcon {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+}
+
+.trainerRow {
+    cursor: pointer;
+}
+
+.progress {
+    height: 5px;
+}

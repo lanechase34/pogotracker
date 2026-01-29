@@ -1,0 +1,81 @@
+{
+    "admin": {
+        "*": 50
+    },
+    "blog": {
+        "get": 0,
+        "read": 0,
+        "addComment": 10,
+        "writeForm": 50,
+        "write": 50,
+        "addImage": 50,
+        "editForm": 50,
+        "edit": 50,
+        "getEvents": 0,
+        "getNews": 0
+    },
+    "error": {
+        "*": 0
+    },
+    "home": {
+        "index": 0,
+        "home": 0,
+        "contactForm": 10,
+        "contact": 10
+    },
+    "login": {
+        "*": 0
+    },
+    "main": {
+        "*": 0
+    },
+    "pokedex": {
+        "getPokedex": 10,
+        "getCustomPokedex": 10,
+        "register": 10,
+        "registerAll": 10,
+        "myPokedex": 10,
+        "myCustomPokedex": 10,
+        "customPokedexList": 10,
+        "addcustomPokedexForm": 10,
+        "addCustomPokedex": 10,
+        "editcustomPokedexForm": 10,
+        "editCustomPokedex": 10,
+        "myShadowPokedex": 10,
+        "deleteCustomPokedex": 10,
+        "searchCustomPokedexList": 10
+    },
+    "pokemon": {
+        "detail": 0,
+        "updateDetail": 50
+    },
+    "stats": {
+        "overview": 10,
+        "leaderboard": 0,
+        "trackForm": 10,
+        "track": 10,
+        "getPokedexStats": 10,
+        "getMedalProgress": 10,
+        "trackMedalProgress": 10,
+        "getMedalSummary": 10
+    },
+    "trade": {
+        "tradePlanForm": 10,
+        "tradePlan": 10
+    },
+    "trainer": {
+        "viewProfile": 10,
+        "editProfile": 10,
+        "updateProfile": 10
+    },
+    "friend": {
+        "decideFriendRequest": 10,
+        "getFriendsList": 10,
+        "getFriendsToAdd": 10,
+        "getFriendRequests": 10,
+        "getFriendRequestToast": 10,
+        "sendFriendRequest": 10,
+        "searchFriendsToAdd": 10,
+        "searchFriendsList": 10
+    }
+}

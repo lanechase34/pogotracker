@@ -1,0 +1,84 @@
+{
+  "applicationTimeout": "60,0,0,0",
+  "cacheDefaultObject": "coldbox",
+  "caches": {
+    "coldbox": {
+      "storage": "true",
+      "type": "RAM",
+      "custom": {
+        "timeToIdleSeconds": "1800",
+        "timeToLiveSeconds": "3600"
+      },
+      "class": "lucee.runtime.cache.ram.RamCache",
+      "readOnly": "false"
+    }
+  },
+  "clientCookies": "false",
+  "clientManagement": "false",
+  "datasources": {
+    "pogotracker": {
+      "allowAlter": "false",
+      "allowCreate": "false",
+      "allowDelete": "true",
+      "allowDrop": "false",
+      "allowGrant": "false",
+      "allowInsert": "true",
+      "allowRevoke": "false",
+      "allowSelect": "true",
+      "allowUpdate": "true",
+      "blob": "false",
+      "bundleName": "org.postgresql.jdbc",
+      "bundleVersion": "42.7.7",
+      "class": "org.postgresql.Driver",
+      "clob": "false",
+      "connectionLimit": "-1",
+      "connectionTimeout": "5",
+      "custom": "",
+      "database": "${DB_NAME}",
+      "dbdriver": "postgresql",
+      "dsn": "jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_NAME}",
+      "host": "${DB_HOST}",
+      "password": "${DB_PASSWORD}",
+      "port": "${DB_PORT}",
+      "storage": "false",
+      "username": "${DB_USERNAME}"
+    }
+  },
+  "debuggingEnabled": "false",
+  "debuggingReportExecutionTimes": "false",
+  "disableInternalCFJavaComponents": "false",
+  "domainCookies": "true",
+  "dotNotationUpperCase": "false",
+  "inspectTemplate": "${INSPECTTEMPLATE:never}",
+  "mailConnectionTimeout": "30",
+  "mailDefaultEncoding": "UTF-8",
+  "mailServers": [
+    {
+      "smtp": "${EMAIL_SERVER}",
+      "username": "${EMAIL_USERNAME}",
+      "password": "${EMAIL_PASSWORD}",
+      "port": "${EMAIL_PORT}",
+      "tls": "${EMAIL_TLS}",
+      "ssl": "${EMAIL_SSL}",
+      "reuseConnection": "true",
+      "idleTimeout": "9000",
+      "lifeTimeout": "59000"
+    }
+  ],
+  "mailSpoolEnable": "${EMAIL_SPOOL}",
+  "mailSpoolInterval": "5",
+  "requestQueueEnable": "true",
+  "requestQueueTimeout": "600000",
+  "requestTimeoutEnabled": "true",
+  "requestTimeout": "0,0,0,${REQUESTTIMEOUT:60}",
+  "requestTimeInURL": "false",
+  "resourceCharset": "UTF-8",
+  "robustExceptionEnabled": "true",
+  "scopeCascading": "strict",
+  "sessionManagement": "true",
+  "sessionTimeout": "0,0,${SESSIONTIMEOUT:30},0",
+  "sessionType": "j2ee",
+  "templateCharset": "UTF-8",
+  "webCharset": "UTF-8",
+  "whitespaceManagement": "white-space-pref"
+}

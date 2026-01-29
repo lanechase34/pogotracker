@@ -1,0 +1,353 @@
+.profileIcon {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+}
+
+.select2-results__message {
+    display: none;
+}
+
+.select2-results__option--selectable:hover {
+    text-decoration: underline;
+}
+
+.logo {
+    width: 32px;
+    height: 32px;
+}
+
+.searchIcon {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+}
+
+#sideNavbar {
+    --bs-offcanvas-width: min(100vw, 300px);
+}
+
+.offcanvas-nav-wrapper {
+    padding: 0;
+}
+
+.parent {
+    position: relative;
+    top: 0;
+    left: 0;
+}
+
+.shadowimg {
+    position: relative;
+    top: 0;
+    left: 0;
+}
+
+.shadowIcon {
+    position: absolute;
+    width: 40px;
+    height: 40px;
+    top: 58%;
+    left: 55%;
+}
+
+.siteIcon {
+    width: 50px;
+    height: 50px;
+}
+
+.tableDiv {
+    overflow-x: auto;
+    scrollbar-width: thin;
+}
+
+html {
+    scrollbar-width: thin;
+}
+
+#profileGroup {
+    cursor: pointer;
+}
+
+.copyIcon {
+    cursor: pointer;
+}
+
+.pokemonIcon {
+    width: 128px;
+    height: 128px;
+}
+
+.pokemonSearchIcon {
+    width: 64px;
+    height: 64px;
+}
+
+.typeIcon {
+    width: 32px;
+    height: 32px;
+}
+
+.medalIcon {
+    background-color: grey;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+}
+
+.bronzeMedal {
+    background-color: #ce8946 !important;
+}
+
+.silverMedal {
+    background-color: #c0c0c0 !important;
+}
+
+.goldMedal {
+    background-color: #ffd700 !important;
+}
+
+.platinumMedal {
+    background-color: #a0b2c6 !important;
+}
+
+.medalProgressBar {
+    height: 5px;
+}
+
+.pokemonStatBar {
+    height: 10px;
+}
+
+.showFeedback {
+    display: block !important;
+}
+
+.row-cols-7 {
+    flex: 0 0 auto;
+    width: 14.2857143%;
+}
+
+.hfs-5 {
+    font-size: 1rem;
+}
+
+.vh-lg-100 {
+    height: 100%;
+}
+
+.btn-adjust {
+    --bs-btn-padding-y: 0.25rem;
+    --bs-btn-padding-x: 0.5rem;
+    --bs-btn-font-size: 0.875rem;
+    --bs-btn-border-radius: var(--bs-border-radius-sm);
+}
+
+.hamburgerIcon {
+    font-size: 1.9rem;
+}
+
+.hamburgerButton {
+    background-color: rgba(var(--bs-dark-rgb), var(--bs-bg-opacity));
+    border: none;
+    color: #fff;
+}
+
+.iconHover:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 15px;
+}
+
+.iconHover {
+    border-radius: 15px;
+}
+
+pre:has(code) {
+    background: #f1f1f1;
+    padding: 1.33em;
+    border-radius: 0.33em;
+}
+
+.extraBlogImage {
+    max-width: 100%;
+}
+
+#navHeader {
+    display: none;
+}
+
+#bodyHeader {
+    display: block;
+    margin-top: 1rem !important;
+}
+
+@media (min-width: 576px) {
+    .row-cols-sm-7 {
+        flex: 0 0 auto;
+        width: 14.2857143%;
+    }
+
+    .blogLink {
+        display: flex !important;
+    }
+}
+@media (min-width: 768px) {
+    .row-cols-md-7 {
+        flex: 0 0 auto;
+        width: 14.2857143%;
+    }
+
+    .blogLink {
+        display: none !important;
+    }
+}
+@media (min-width: 992px) {
+    .row-cols-lg-7 {
+        flex: 0 0 auto;
+        width: 14.2857143%;
+    }
+    .hfs-5 {
+        font-size: 1.25rem;
+    }
+    .vh-lg-100 {
+        height: 100vh !important;
+    }
+    .btn-adjust {
+        --bs-btn-padding-x: 0.75rem;
+        --bs-btn-padding-y: 0.375rem;
+        --bs-btn-font-size: 1rem;
+        --bs-btn-border-radius: var(--bs-border-radius);
+    }
+}
+@media (min-width: 1200px) {
+    .row-cols-xl-7 {
+        flex: 0 0 auto;
+        width: 14.2857143%;
+    }
+    .offcanvas {
+        visibility: visible !important;
+        transform: none !important;
+        transition: none;
+    }
+    #mainbody {
+        margin-left: 249px;
+        width: 100vw - 249px !important;
+    }
+    #sideNavbar {
+        --bs-offcanvas-width: 250px;
+        border-right-width: 0;
+    }
+    .hamburgerIcon,
+    .hamburgerButton {
+        display: none !important;
+    }
+    .navbar-toggler {
+        border-width: 0;
+    }
+    #closeSideNavbar {
+        display: none;
+    }
+    #navHeader {
+        display: block;
+    }
+    #bodyHeader {
+        display: none;
+        margin-top: 0 !important;
+    }
+}
+@media (min-width: 1400px) {
+    .row-cols-xxl-7 {
+        flex: 0 0 auto;
+        width: 14.2857143%;
+    }
+}
+
+@media (min-width: 1750px) {
+    .col-xxxl-3 {
+        flex: 0 0 auto;
+        width: 25%;
+    }
+    .col-xxxl-4 {
+        flex: 0 0 auto;
+        width: 33.3333333%;
+    }
+    .col-xxxl-8 {
+        flex: 0 0 auto;
+        width: 66.6666666%;
+    }
+}
+
+#sidebarnav {
+    font-size: 0;
+    display: block;
+}
+
+@media (min-width: 1200px) {
+    #sidebarnav {
+        display: block;
+    }
+}
+
+.blogImage {
+    display: block;
+    height: 250px;
+    width: 100%;
+    object-fit: cover;
+}
+
+.blogCard {
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.blogCard:hover {
+    box-shadow: 5px 6px 6px 2px #e9ecef;
+    transform: scale(1.05);
+}
+
+.newsLink {
+    font-size: 1.1rem;
+}
+
+.navbar-nav .dropdown-menu {
+    position: absolute !important;
+    width: 100%;
+}
+
+.navIcon {
+    font-size: 1.75rem;
+}
+
+body {
+    overflow-y: scroll;
+}
+
+.dropdown-menu-start[data-bs-popper] {
+    right: 0;
+    left: inherit !important;
+}
+
+.dt-scroll-body {
+    scrollbar-width: thin;
+}
+
+.cbd-debugger {
+    z-index: 1500 !important;
+}
+
+.long-cell {
+    width: 200px;
+    word-break: break-all;
+}
+
+.inlineBlock {
+    display: inline-block;
+}
+
+.errorDiv {
+    min-height: 60vh;
+}
+
+.errorIcon {
+    font-size: 4rem;
+}

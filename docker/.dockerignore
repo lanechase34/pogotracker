@@ -1,0 +1,16 @@
+testbox
+.dockerignore
+.github
+tests
+.vscode
+.gitignore
+.cflintrc
+.cfformat.json
+deploy.md
+readme.md
+config/
+**/node_modules
+**/modules
+**/tests
+**/coldbox
+docs/

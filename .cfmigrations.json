@@ -1,0 +1,22 @@
+{
+    "default": {
+        "manager": "cfmigrations.models.QBMigrationManager",
+        "migrationsDirectory": "app/database/migrations/",
+        "seedsDirectory": "app/database/seeds/",
+        "properties": {
+            "defaultGrammar": "PostgresGrammar@qb",
+            "schema": "${DB_SCHEMA}",
+            "migrationsTable": "cfmigrations",
+            "convertEmptyStringsToNull": false,
+            "connectionInfo": {
+                "password": "${DB_PASSWORD}",
+                "connectionString": "jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_NAME}",
+                "database": "${DB_NAME}",
+                "class": "org.postgresql.Driver",
+                "username": "${DB_USERNAME}",
+                "bundleName": "org.postgresql.jdbc",
+                "bundleVersion": "${DB_BUNDLEVERSION:42.7.7}"
+            }
+        }
+    }
+}

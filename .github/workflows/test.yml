@@ -1,0 +1,182 @@
+name: Test Suite
+
+on:
+  push:
+    branches:
+      - development
+  pull_request:
+    branches:
+      - development
+      - main
+  workflow_dispatch: # Allow manual triggering
+
+jobs:
+  tests:
+    name: Run Tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: runner
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: test_pogotracker
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "21"
+
+      - name: Setup CommandBox CLI
+        uses: Ortus-Solutions/setup-commandbox@v2.0.1
+        with:
+          version: latest
+
+      - name: Create .env file
+        run: |
+          cat > .env << 'EOL'
+          ENVIRONMENT=test
+          CFCONFIG_ADMINPASSWORD=commandbox
+          LUCEE_ADMIN_ENABLED=false
+          INSPECTTEMPLATE=never
+          IMAGEMAGICKPATH=/usr/bin
+          REQUESTTIMEOUT=600
+          SESSIONTIMEOUT=30
+          OS=linux
+          JAVAHEAP=2048
+          JAVAMINHEAP=512
+          DB_SCHEMA=public
+          DB_NAME=test_pogotracker
+          DB_HOST=localhost
+          DB_PORT=5432
+          DB_USERNAME=runner
+          DB_PASSWORD=postgres
+          DB_BUNDLEVERSION=42.7.7
+          EMAIL_SERVER=localhost
+          EMAIL_PORT=587
+          EMAIL_USERNAME=noreply@pogotracker.app
+          EMAIL_PASSWORD=test
+          EMAIL_TLS=false
+          EMAIL_SSL=false
+          EMAIL_SPOOL=false
+          ALGORITHM=SHA-512
+          ITERATIONS=2
+          PEPPER=AAAAAAAAAAAAAAAAAAAAAAAAAAAA
+          REINITKEY=
+          RECAPTCHASITEKEY=${{ secrets.RECAPTCHASITEKEY }}
+          RECAPTCHASECRETKEY=${{ secrets.RECAPTCHASECRETKEY }}
+          WARMUPTIMEOUT=600
+          EOL
+
+      - name: Install Dependencies
+        run: |
+          box install
+
+      - name: Verify Database Connection
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
+          until pg_isready -h localhost -p 5432 -U runner; do
+            echo "Waiting for PostgreSQL..."
+            sleep 2
+          done
+          psql -h localhost -p 5432 -U runner -d test_pogotracker -c "SELECT version();"
+        env:
+          PGPASSWORD: postgres
+
+      - name: Run Database Migrations
+        run: |
+          box migrate install --verbose
+          box migrate up --verbose
+        continue-on-error: false
+
+      - name: Seed Database
+        run: |
+          box migrate seed run --verbose
+        continue-on-error: false
+
+      - name: Start CommandBox Server
+        run: |
+          box server start
+        timeout-minutes: 5
+
+      - name: Wait for Server to be Ready
+        run: |
+          echo "Waiting for server to start..."
+          for i in {1..30}; do
+            if curl -sf http://localhost:8081 > /dev/null 2>&1; then
+              echo "Server is ready!"
+              exit 0
+            fi
+            echo "Attempt $i: Server not ready yet..."
+            sleep 2
+          done
+          echo "Server failed to start"
+          box server log
+          exit 1
+
+      - name: Verify Server is Running
+        run: |
+          curl -v http://localhost:8081
+          box server status
+
+      - name: Run TestBox Tests
+        id: run_tests
+        run: |
+          mkdir -p tests/results
+          box testbox run --verbose outputFile="tests/results/test-results" outputFormats="json,antjunit" \
+            || echo "TESTS_FAILED=true" >> $GITHUB_ENV
+        continue-on-error: true
+
+      - name: Display Test Results
+        if: always()
+        run: |
+          if [ -f "tests/results/test-results.json" ]; then
+            echo "=== Test Results Summary ==="
+            cat tests/results/test-results.json | jq -r '
+              "Total Bundles: \(.totalBundles)",
+              "Total Suites: \(.totalSuites)", 
+              "Total Specs: \(.totalSpecs)",
+              "Total Pass: \(.totalPass)",
+              "Total Fail: \(.totalFail)",
+              "Total Error: \(.totalError)",
+              "Total Skipped: \(.totalSkipped)"
+            '
+            
+            if [ -f "tests/results/test-results.html" ]; then
+              echo "HTML report generated at tests/results/test-results.html"
+            fi
+          else
+            echo "No test results found!"
+            ls -la tests/results/ || echo "Results directory doesn't exist"
+          fi
+
+      - name: Upload Test Results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results
+          path: |
+            tests/results/
+            tests/results/*.json
+            tests/results/*.xml
+          retention-days: 30
+
+      - name: Stop Server
+        if: always()
+        run: |
+          box server stop

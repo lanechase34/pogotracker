@@ -1,0 +1,28 @@
+.pokemonCell {
+    background-color: lightgray;
+    border: 1px solid white;
+}
+
+.caught {
+    background-color: lightgreen;
+}
+
+.basic {
+    color: white;
+}
+
+.bronze {
+    color: #CD7F32 !important;
+}
+
+.silver {
+    color: #C0C0C0 !important;
+}
+
+.gold {
+    color: #FFD700 !important;
+}
+
+.diamond {
+    color: #4EE2EC !important;
+}

@@ -1,0 +1,62 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Format CF",
+            "type": "shell",
+            "command": "box run-script format",
+            "group": {
+                "kind": "build"
+            },
+            "detail": "Format CF code using CF Formatter"
+        },
+        {
+            "label": "Lint JS",
+            "type": "shell",
+            "command": "npm run-script lint",
+            "group": {
+                "kind": "build"
+            },
+            "detail": "Lint all JS files"
+        },
+        {
+            "label": "Bulid JS",
+            "type": "shell",
+            "command": "npm run-script minJS",
+            "group": {
+                "kind": "build"
+            },
+            "detail": "Minify JS and build output files to /includes/build"
+        },
+        {
+            "label": "Bulid CSS",
+            "type": "shell",
+            "command": "npm run-script minCSS",
+            "group": {
+                "kind": "build"
+            },
+            "detail": "Minify CSS and build output files to /includes/build"
+        },
+        {
+            "label": "Github Actions Test",
+            "type": "shell",
+            "command": "act -W '.github/workflows/test.yml' -P ubuntu-24.04=ghcr.io/catthehacker/ubuntu:act-24.04",
+            "group": {
+                "kind": "test"
+            },
+            "detail": "Runs the ./github/workflows/test.yml locally",
+            "isBackground": true
+        },
+        {
+            "label": "Github Actions Deploy",
+            "type": "shell",
+            "command": "act -W '.github/workflows/deploy.yml' -P ubuntu-24.04=ghcr.io/catthehacker/ubuntu:act-24.04 --secret-file .secrets --actor lanechase34",
+            "group": {
+                "kind": "none"
+            },
+            "detail": "Runs the ./github/workflows/deploy.yml locally",
+            "isBackground": true,
+            "problemMatcher": []
+        }
+    ]
+}
