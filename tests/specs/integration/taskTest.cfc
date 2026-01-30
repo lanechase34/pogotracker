@@ -42,7 +42,7 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                 task.run(true);
                 stats = task.getStats();
                 expect(stats).toBeStruct();
-                expect(dateDiff('s', stats.lastRun, now())).toBeLTE(10);
+                expect(dateDiff('s', parseDateTime(stats.lastRun), now())).toBeLTE(10);
 
                 auditCountAfter = ormExecuteQuery('select count(id) from audit')[1];
                 expect(auditCountAfter - auditCountBefore).toBe(1);
@@ -63,7 +63,7 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                 task.run(true);
                 stats = task.getStats();
                 expect(stats).toBeStruct();
-                expect(dateDiff('s', stats.lastRun, now())).toBeLTE(10);
+                expect(dateDiff('s', parseDateTime(stats.lastRun), now())).toBeLTE(10);
 
                 auditCountAfter = ormExecuteQuery('select count(id) from audit')[1];
                 bugCountAfter   = ormExecuteQuery('select count(id) from bug')[1];

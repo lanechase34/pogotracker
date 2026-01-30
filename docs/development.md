@@ -74,7 +74,7 @@ There are many tasks available that cover these topics below. Run tasks in vscod
 
 ## Running in WSL
 
-- Access with localhost:${port}
+- Access with `localhost:${HTTP_PORT}`
 - Add winhost mapping to ~/.bashrc for database connection
 
     ```

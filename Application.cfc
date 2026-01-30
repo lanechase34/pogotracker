@@ -1,7 +1,6 @@
 component {
 
-    this.name     = 'POGO Tracker';
-    this.timezone = 'America/New_York';
+    this.name = 'POGO Tracker';
 
     _root = replace(
         getDirectoryFromPath(getCurrentTemplatePath()),

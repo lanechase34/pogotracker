@@ -16,7 +16,8 @@
     "jvm":{
         "heapSize":"${JAVAHEAP}",
         "minHeapSize":"${JAVAMINHEAP}",
-        "javaVersion":"openjdk21_jre_x64_${OS}_hotspot_jdk-21.0.9+10"
+        "javaVersion":"openjdk21_jre_x64_${OS}_hotspot_jdk-21.0.9+10",
+        "args":"-Duser.timezone=UTC"
     },
     "name":"POGO Tracker",
     "openbrowser":"false",

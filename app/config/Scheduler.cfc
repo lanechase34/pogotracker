@@ -14,8 +14,6 @@ component {
 		 * - setExecutor( executorObject ) : change the executor if needed
 		 */
 
-        setTimezone('America/New_York');
-
         /**
 		 * --------------------------------------------------------------------------
 		 * Register Scheduled Tasks
@@ -38,7 +36,7 @@ component {
                     agent   = 'Scheduled Task User'
                 );
             })
-            .everyDayAt('06:00');
+            .everyDayAt('07:00');
 
         // Update the move data nightly
         task('nightlyUpdateMoveData')
@@ -52,7 +50,7 @@ component {
                     agent   = 'Scheduled Task User'
                 );
             })
-            .everyDayAt('05:00');
+            .everyDayAt('06:00');
 
         // Update medal data every week
         task('weeklyUpdateMedalData')
@@ -66,7 +64,7 @@ component {
                     agent   = 'Scheduled Task User'
                 );
             })
-            .onMondays('05:30');
+            .onMondays('06:30');
 
         // Create custom pokedexs based on upcoming events
         task('nightlyCreateEvents')
@@ -80,7 +78,7 @@ component {
                     agent   = 'Scheduled Task User'
                 );
             })
-            .everyDayAt('06:30');
+            .everyDayAt('07:30');
 
         // Post metrics information to any websocket subscribers
         task('metricsSubscription')
