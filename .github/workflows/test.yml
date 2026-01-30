@@ -1,5 +1,10 @@
 name: Test Suite
 
+permissions:
+  contents: read
+  checks: write
+  id-token: write
+
 on:
   push:
     branches:
@@ -15,6 +20,9 @@ jobs:
     name: Run Tests
     runs-on: ubuntu-24.04
     timeout-minutes: 30
+
+    env:
+      HTTP_PORT: 8083
 
     services:
       postgres:
@@ -54,6 +62,8 @@ jobs:
           LUCEE_ADMIN_ENABLED=false
           INSPECTTEMPLATE=never
           IMAGEMAGICKPATH=/usr/bin
+          HTTP_PORT=8083
+          HTTP_HOST=127.0.0.1
           REQUESTTIMEOUT=600
           SESSIONTIMEOUT=30
           OS=linux
@@ -79,7 +89,7 @@ jobs:
           REINITKEY=
           RECAPTCHASITEKEY=${{ secrets.RECAPTCHASITEKEY }}
           RECAPTCHASECRETKEY=${{ secrets.RECAPTCHASECRETKEY }}
-          WARMUPTIMEOUT=600
+          WARMUPTIMEOUT=0
           EOL
 
       - name: Install Dependencies
@@ -117,8 +127,8 @@ jobs:
       - name: Wait for Server to be Ready
         run: |
           echo "Waiting for server to start..."
-          for i in {1..30}; do
-            if curl -sf http://localhost:8081 > /dev/null 2>&1; then
+          for i in {1..60}; do
+            if curl -sf http://127.0.0.1:${{ env.HTTP_PORT }} > /dev/null 2>&1; then
               echo "Server is ready!"
               exit 0
             fi
@@ -131,7 +141,7 @@ jobs:
 
       - name: Verify Server is Running
         run: |
-          curl -v http://localhost:8081
+          curl -v http://127.0.0.1:${{ env.HTTP_PORT }}
           box server status
 
       - name: Run TestBox Tests

@@ -47,7 +47,7 @@ jobs:
           remote_user: ${{ secrets.LIGHTSAIL_USERNAME }}
           remote_key: ${{ secrets.LIGHTSAIL_SSH_KEY }}
 
-      - name: Restart and update backend db, dependencies
+      - name: Restart, update backend db, and depdendencies
         uses: appleboy/ssh-action@v1.2.2
         with:
           host: ${{ secrets.LIGHTSAIL_IP }}

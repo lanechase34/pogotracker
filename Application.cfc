@@ -1,6 +1,6 @@
 component {
 
-    this.name = 'POGO Tracker';
+    this.name     = 'POGO Tracker';
     this.timezone = 'America/New_York';
 
     _root = replace(

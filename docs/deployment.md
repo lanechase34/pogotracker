@@ -72,7 +72,7 @@ Stack:
     sudo ufw allow 'Nginx HTTPS'
     ```
 
-    Block port running on commandbox, this uses 8081
+    Block port running on commandbox, this uses `8081`
 
     ```
     sudo ufw deny 8081
@@ -81,7 +81,7 @@ Stack:
 3.  Nginx Set up
 
     Listen to both http, https traffic. Redirect all http traffic to https.
-    Listen for server name pogotracker.app, on match, reverse proxy to commandbox using port 8081.
+    Listen for server name pogotracker.app, on match, reverse proxy to commandbox using port `8081`.
     Cloudflare origin cert and private key are stored in /etc/nginx/ssl/pogotracker
 
     Set up the following config for pogotracker `/etc/nginx/sites-available/pogotracker.app`

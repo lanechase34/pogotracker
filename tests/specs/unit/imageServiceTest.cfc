@@ -20,10 +20,16 @@ component extends="tests.resources.baseTest" {
                 expect(imageService).toBeComponent();
             });
 
-            // it('Can verify image magickis functioning', () => {
-            //     var verify = imageService.verifyImageMagick();
-            //     expect(verify).toBe(true);
-            // });
+            // Skip check in test env
+            it(
+                'Can verify image magickis functioning',
+                () => {
+                    var verify = imageService.verifyImageMagick();
+                    expect(verify).toBe(true);
+                },
+                '',
+                application.cbController.getSetting('environment') == 'test'
+            );
         });
     }
 

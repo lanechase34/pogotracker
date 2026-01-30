@@ -1,6 +1,6 @@
 component {
 
-    this.name = 'POGO Tracker Testing';
+    this.name     = 'POGO Tracker Testing';
     this.timezone = 'America/New_York';
 
     _testsRoot = replace(

@@ -20,16 +20,16 @@
     },
     "name":"POGO Tracker",
     "openbrowser":"false",
-    "openBrowserUrl":"http://localhost:8081",
+    "openBrowserUrl":"http://${HTTP_HOST}:${HTTP_PORT}",
     "trayEnable":"false",
     "web":{
-        "host":"127.0.0.1",
+        "host":"${HTTP_HOST}",
         "rewrites":{
             "enable":"true"
         },
         "http":{
             "enable":"true",
-            "port":"8081"
+            "port":"${HTTP_PORT}"
         },
         "rules":[
             "warm-up-server(urls={'/main/warmup'}, requestStrategy=queue, async=false, timeoutSeconds=${WARMUPTIMEOUT})",

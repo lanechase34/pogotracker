@@ -104,6 +104,7 @@ component {
             fromEmail      : 'noreply@pogotracker.app',
             getShadowData  : false, // get shadow data from wikipedia
             healthCheck    : true,
+            httpPort       : getSystemSetting('HTTP_PORT'),
             imageExtension : '.webp',
             imageMagickPath: getSystemSetting('IMAGEMAGICKPATH'),
             impersonation  : false,

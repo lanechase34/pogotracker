@@ -17,6 +17,9 @@
             "group": {
                 "kind": "build"
             },
+            "options": {
+                "cwd": "${workspaceFolder}/includes"
+            },
             "detail": "Lint all JS files"
         },
         {
@@ -26,6 +29,9 @@
             "group": {
                 "kind": "build"
             },
+            "options": {
+                "cwd": "${workspaceFolder}/includes"
+            },
             "detail": "Minify JS and build output files to /includes/build"
         },
         {
@@ -34,6 +40,9 @@
             "command": "npm run-script minCSS",
             "group": {
                 "kind": "build"
+            },
+            "options": {
+                "cwd": "${workspaceFolder}/includes"
             },
             "detail": "Minify CSS and build output files to /includes/build"
         },

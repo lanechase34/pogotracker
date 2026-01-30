@@ -2,6 +2,8 @@
 
 This document covers developer workflows including dependency updates, formatting, and testing.
 
+There are many tasks available that cover these topics below. Run tasks in vscode using `ctrl + shift + p` then typing `Run Task`
+
 ## Updates
 
 ### Box Updates
@@ -67,7 +69,7 @@ This document covers developer workflows including dependency updates, formattin
 
 1. Run Testbox Suite via browser
     ```
-    http://localhost:8081/tests/runner.cfm
+    http://localhost:${HTTP_PORT}/tests/runner.cfm
     ```
 
 ## Running in WSL
@@ -77,20 +79,43 @@ This document covers developer workflows including dependency updates, formattin
 
     ```
     # Add DNS entry for Windows host
+    if ! grep -q 'winhost' /etc/hosts; then
+        echo 'Adding DNS entry for Windows host in /etc/hosts'
+        # Get the Windows host IP from the default gateway or ip route
+        WIN_HOST_IP=$(ip route show default | awk '{print $3}')
 
-    if ! $(cat /etc/hosts | grep -q 'winhost'); then
-    echo 'Adding DNS entry for Windows host in /etc/hosts'
-    echo '\n# Windows host - added via ~/.bashhrc' | sudo tee -a /etc/hosts
-    echo -e "$(grep nameserver /etc/resolv.conf | awk '{print $2, "   winhost"}')" | sudo tee -a /etc/hosts
+        if [ -n "$WIN_HOST_IP" ]; then
+            echo '' | sudo tee -a /etc/hosts
+            echo '# Windows host - added via ~/.bashrc' | sudo tee -a /etc/hosts
+            echo "$WIN_HOST_IP    winhost" | sudo tee -a /etc/hosts
+            echo "Added winhost entry: $WIN_HOST_IP"
+        else
+            echo "Warning: Could not determine Windows host IP"
+        fi
     fi
     ```
 
 - Connect to database using the following
 
+    Install PostgreSQL client if needed
+
+    ```
+    sudo apt install postgresql-client-common
+    sudo apt install postgresql-client-16
+    ```
+
+    Check connection
+
     ```
     psql -h winhost -p 5432 -U postgres
+    ```
 
-    .env
+- Make sure you set the following `.env` keys for WSL
+
+    ```
+    HTTP_HOST=0.0.0.0 # allows access from windows
+    OS=linux
+
     DB_HOST=winhost
     DB_PORT=5432
     ```

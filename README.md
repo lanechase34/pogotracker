@@ -53,7 +53,8 @@ POGO Tracker offers in-depth analytics on your Pokemon collection, catches, walk
     ```
 
 5. Create the database tables and seed with dev data
-   Uses CFMigrations and interfaces through the commandbox-cfmigrations module
+
+    Uses CFMigrations and interfaces through the commandbox-cfmigrations module
 
     ```
     # Install the CFMigrations table

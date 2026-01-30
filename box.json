@@ -46,7 +46,7 @@
         "blankEnv":"cp .env.example .env"
     },
     "testbox":{
-        "runner":"http://localhost:8081/tests/runner.cfm"
+        "runner":"http://${HTTP_HOST}:${HTTP_PORT}/tests/runner.cfm"
     },
     "language":"cfml",
     "githooks":{

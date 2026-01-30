@@ -172,7 +172,7 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                     email = globalFunctions.readEmail();
                     link  = email.select('##resetLink').attr('href');
 
-                    uri  = right(link, link.len() - link.find('8081') - 3);
+                    uri  = right(link, link.len() - link.find(application.cbController.getSetting('httpPort')) - 3);
                     code = right(uri, uri.len() - 7);
 
                     // Get the reset password form using the link emailed
