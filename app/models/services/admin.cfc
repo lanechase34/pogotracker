@@ -1285,9 +1285,6 @@ component singleton accessors="true" {
      */
     public array function getTaskInfo() {
         var tasks = [];
-        if(isNull(schedulerService)) {
-            setSchedulerService(getInstance('coldbox:schedulerService'));
-        }
 
         schedulerService
             .getSchedulers()

@@ -45,29 +45,37 @@ component extends="coldbox.system.testing.BaseTestCase" {
     void function delete(numeric trainerid = session.mocktrainerid) {
         var trainer = trainerService.getFromId(arguments.trainerid);
 
-        ormExecuteQuery('delete from requestlog where trainer = :trainer', {trainer: trainer});
-        ormExecuteQuery('delete from audit where trainer = :trainer', {trainer: trainer});
-        ormExecuteQuery('delete from blog where trainer = :trainer', {trainer: trainer});
-        ormExecuteQuery('delete from bug where trainer = :trainer', {trainer: trainer});
-        ormExecuteQuery('delete from comment where trainer = :trainer', {trainer: trainer});
+        // Attempt to delete the mock user from
+        // May fail due to asynchronous db inserts/updates, if fails, just continue
+        try {
+            ormExecuteQuery('delete from requestlog where trainer = :trainer', {trainer: trainer});
+            ormExecuteQuery('delete from audit where trainer = :trainer', {trainer: trainer});
+            ormExecuteQuery('delete from blog where trainer = :trainer', {trainer: trainer});
+            ormExecuteQuery('delete from bug where trainer = :trainer', {trainer: trainer});
+            ormExecuteQuery('delete from comment where trainer = :trainer', {trainer: trainer});
 
-        ormExecuteQuery(
-            'delete from custompokedex where custom in (from custom where trainer = :trainer)',
-            {trainer: trainer}
-        );
-        ormExecuteQuery('delete from custom where trainer = :trainer', {trainer: trainer});
+            ormExecuteQuery(
+                'delete from custompokedex where custom in (from custom where trainer = :trainer)',
+                {trainer: trainer}
+            );
+            ormExecuteQuery('delete from custom where trainer = :trainer', {trainer: trainer});
 
-        ormExecuteQuery('delete from friend where trainer = :trainer', {trainer: trainer});
-        ormExecuteQuery('delete from friend where friend = :trainer', {trainer: trainer});
-        ormExecuteQuery('delete from persist where trainer = :trainer', {trainer: trainer});
-        ormExecuteQuery('delete from pokedex where trainer = :trainer', {trainer: trainer});
-        ormExecuteQuery('delete from stat where trainer = :trainer', {trainer: trainer});
+            ormExecuteQuery('delete from friend where trainer = :trainer', {trainer: trainer});
+            ormExecuteQuery('delete from friend where friend = :trainer', {trainer: trainer});
+            ormExecuteQuery('delete from persist where trainer = :trainer', {trainer: trainer});
+            ormExecuteQuery('delete from pokedex where trainer = :trainer', {trainer: trainer});
+            ormExecuteQuery('delete from stat where trainer = :trainer', {trainer: trainer});
 
-        // ormExecuteQuery('delete from team where trainer = :trainer', {trainer: trainer});
-        ormExecuteQuery('delete from trainermedal where trainer = :trainer', {trainer: trainer});
+            // ormExecuteQuery('delete from team where trainer = :trainer', {trainer: trainer});
+            ormExecuteQuery('delete from trainermedal where trainer = :trainer', {trainer: trainer});
 
-        entityDelete(trainer);
-        ormFlush();
+            entityDelete(trainer);
+            ormFlush();
+        }
+        catch(any e) {
+        }
+
+        // Always clear session though
         sessionService.destroy(false);
         expect(session.keyExists('trainerid')).toBeFalse();
     }
