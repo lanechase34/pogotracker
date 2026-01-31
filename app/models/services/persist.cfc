@@ -27,14 +27,17 @@ component singleton accessors="true" {
      * Creates and sets the browser unhashed persist cookie and returns the hashed cookie
      */
     private string function createCookie() {
-        var persistCookie = hash(
-            generateSecretKey('AES', 256) & createUUID() & now(),
-            this.algorithm,
-            this.encoding,
-            this.iterations
+        var persistCookie = left(
+            hash(
+                generateSecretKey('AES', 256) & createUUID() & now(),
+                this.algorithm,
+                this.encoding,
+                this.iterations
+            ),
+            128
         );
 
-        setPersistCookie(persistCookie);
+        setPersistCookie(persistCookie = persistCookie, maxAge = this.cookieDuration);
 
         if(application.cbController.getSetting('environment') != 'production') {
             cookie[this.cookieName] = persistCookie;
@@ -57,12 +60,13 @@ component singleton accessors="true" {
      * @persistCookie value to set
      * @maxAge        age in days
      */
-    private void function setPersistCookie(required string persistCookie, numeric maxAge = getCookieDuration()) {
+    private void function setPersistCookie(required string persistCookie, required numeric maxAge) {
         // Set the cookie in the browser. HTTP Only and Secure. Expires in persistDuration days.
         // SameSite=strict browser will only send cookie in requests that originate from the same domain
+        var duration = arguments.maxAge * 24 * 60 * 60;
         cfheader(
             name  = "Set-Cookie",
-            value = "#getCookieName()#=#arguments.persistCookie#; Path=/; Max-Age=#arguments.maxAge * 24 * 60 * 60#; Secure; HttpOnly; SameSite=Strict"
+            value = "#this.cookieName#=#arguments.persistCookie#; Path=/; Max-Age=#duration#; Secure; HttpOnly; SameSite=Strict"
         );
     }
 

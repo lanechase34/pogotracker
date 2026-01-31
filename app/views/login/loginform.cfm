@@ -78,7 +78,7 @@
                     });
 
                     document.getElementById('populateFields2').addEventListener('click', () => {
-                        $email.value = 'chaz14x@gmail.com';
+                        $email.value = 'test_1@gmail.com';
                         $pass.value = 'asedasdfasdfasdfasdf';
                     });
                 </script>
