@@ -503,8 +503,8 @@ component singleton accessors="true" {
     /**
      * Check the validity of this reset code by attempting to load the trainer it's attached to
      *
-     * @resetCode 
-     * @delete             
+     * @resetCode user entered code 
+     * @delete    t/f will delete code associated to user if true
      */
     public string function checkResetCode(required string resetCode, boolean delete = false) {
         var trainer = entityLoad(
