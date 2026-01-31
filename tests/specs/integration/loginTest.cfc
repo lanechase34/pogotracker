@@ -21,7 +21,7 @@ component extends="tests.resources.baseTest" asyncAll="false" {
             });
 
             it('Authenticate with a valid email/password and receive a session', () => {
-                email    = 'lanechase34@outlook.com';
+                email    = 'test_0@gmail.com';
                 password = createUUID();
 
                 login = securityService.login(email, password);
@@ -57,6 +57,8 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                 });
 
                 it('Can register a new user', () => {
+                    before = globalFunctions.countTestEmails();
+
                     // Force valid recaptcha
                     session.recaptcha = {
                         token    : 'a',
@@ -84,6 +86,7 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                     );
 
                     expect(event.getResponse().getStatusCode()).toBe(200);
+                    // Redirect directly to verify form
                     expect(event.getValue('relocate_URI')).toBe('/verify');
 
                     // Force the session rotate to work
@@ -93,16 +96,15 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                     expect(session.securityLevel).toBe(5); // unverified trainer
                     expect(session.authenticated).toBeTrue();
                     expect(session.verified).toBeFalse();
+
+                    // verification email sends on successful register
+                    expect(globalFunctions.countTestEmails()).toBe(before + 1);
                 });
 
                 it('Can verify a new user', () => {
-                    before = globalFunctions.countTestEmails();
-
                     // Send verification code
                     event = get(route = '/verify', renderResults = true);
                     expect(event.getResponse().getStatusCode()).toBe(200);
-
-                    expect(globalFunctions.countTestEmails()).toBe(before + 1);
 
                     // Read most recent email to get the code
                     email = globalFunctions.readEmail();

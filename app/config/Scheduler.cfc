@@ -83,7 +83,7 @@ component {
         // Post metrics information to any websocket subscribers
         task('metricsSubscription')
             .call(() => {
-                var ws           = new WebSocket();
+                var ws           = new app.WebSocket();
                 var adminService = getInstance('services.admin');
 
                 /**
@@ -152,7 +152,7 @@ component {
             ip      = 'localhost',
             event   = '#task.getName()#',
             message = left(exception?.message ?: 'Unknown Error Message', 250),
-            stack   = left(exception?.stackTrace ?: 'Unknown Stack Trace', 1000)
+            stack   = exception?.stackTrace ?: 'Unknown Stack Trace'
         );
 
         getInstance('services.email').sendBug(

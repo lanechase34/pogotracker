@@ -19,11 +19,15 @@ component singleton accessors="true" {
     property name="regionalForms"   type="array";
 
     public void function init() {
-        // Map leekduck name to name used in pogo tracker
+        // Maps leekduck name to name used in pogo tracker
         setLeekduckNameMap(deserializeJSON(fileRead('/includes/assets/leekducknamemap.json')));
         setRegionalForms(['Alolan', 'Galarian', 'Hisuian', 'Paldean']);
     }
 
+    /**
+     * Builds the pokedex.json database
+     * Builds pokemon details, evolutions, moves
+     */
     public void function buildPokemonData() {
         var pokedex      = [];
         var pokedexDoc   = scraperService.getData('https://pokemondb.net/go/pokedex');
@@ -747,8 +751,9 @@ component singleton accessors="true" {
         return currData;
     }
 
-
-
+    /**
+     * Updates the database using json pokedex
+     */
     public void function updatePokemonData(required struct jsonPokedex) {
         // Create missing generations
         generationService.createAll();
@@ -803,9 +808,6 @@ component singleton accessors="true" {
         // Cache the pokemon data
         var allPokemon = pokemonService.getAll();
         pokemonService.getMaxStats();
-        // allPokemon.each((pokemon) => {
-        //     pokemonService.getDetail(pokemon.getId());
-        // });
         pokemonService.getSearch();
         return;
     }
@@ -944,6 +946,9 @@ component singleton accessors="true" {
         return;
     }
 
+    /**
+     * Updates the database using the medals.json
+     */
     public void function updateMedalData(required struct jsonMedals) {
         // Update medals / create if new medal
         jsonMedals.each((name, medal) => {
@@ -1002,6 +1007,9 @@ component singleton accessors="true" {
         return;
     }
 
+    /**
+     * Maps raw json returned to usable fields
+     */
     private array function refineMoveData(required array jsonMoves) {
         return jsonMoves.map((move) => {
             var curr = {
@@ -1277,6 +1285,9 @@ component singleton accessors="true" {
      */
     public array function getTaskInfo() {
         var tasks = [];
+        if(isNull(schedulerService)) {
+            setSchedulerService(getInstance('coldbox:schedulerService'));
+        }
 
         schedulerService
             .getSchedulers()
@@ -1463,7 +1474,7 @@ component singleton accessors="true" {
                 '',
                 'all'
             ),
-            live       : statsTable[6].select('td').text() == 'Yes',
+            live       : true,
             shiny      : statsTable[7].select('td').text() == 'Yes',
             generation : 0,
             shadowshiny: false,
@@ -1572,6 +1583,15 @@ component singleton accessors="true" {
             'UTF-8'
         );
 
+        // Parse the moves to add
+        pokemon.moves = pokemon.moves.map((move) => {
+            return {
+                nameid: move,
+                shadow: false,
+                legacy: false
+            }
+        });
+
         updatePokemonData({'#pokemon.name#': pokemon});
         return;
     }
@@ -1611,6 +1631,9 @@ component singleton accessors="true" {
         );
     }
 
+    /**
+     * Read a log file and save contents
+     */
     public string function readLog(
         required string filename,
         required numeric start,

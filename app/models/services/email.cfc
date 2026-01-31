@@ -57,17 +57,30 @@ component singleton accessors="true" {
             .queue();
     }
 
-    public void function sendResetCode(required string email, required string resetLink) {
+    public void function sendResetCode(
+        required string email,
+        required string resetLink,
+        required date expires,
+        required numeric lifespan
+    ) {
         mailService
             .newMail(to: arguments.email, subject: 'Reset POGO Tracker Password')
-            .setView(view: 'email/resetpassword', args: {resetLink: arguments.resetLink})
+            .setView(
+                view: 'email/resetpassword',
+                args: {
+                    resetLink: arguments.resetLink,
+                    expires  : arguments.expires,
+                    lifespan : arguments.lifespan
+                }
+            )
             .send();
     }
 
     public void function sendVerificationCode(
         required string email,
         required string verificationCode,
-        required date expires
+        required date expires,
+        required numeric lifespan
     ) {
         mailService
             .newMail(to: arguments.email, subject: 'POGO Tracker Verification Code')
@@ -76,7 +89,8 @@ component singleton accessors="true" {
                 args: {
                     email           : arguments.email,
                     verificationCode: arguments.verificationCode,
-                    expires         : arguments.expires
+                    expires         : arguments.expires,
+                    lifespan        : arguments.lifespan
                 }
             )
             .send();

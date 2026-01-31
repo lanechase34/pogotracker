@@ -35,10 +35,11 @@ component {
                     type    : 'string'
                 },
                 friendcode: {
-                    required: true,
-                    size    : 12,
-                    regex   : '^[0-9]+$',
-                    type    : 'numeric'
+                    required           : true,
+                    size               : 12,
+                    regex              : '^[0-9]+$',
+                    type               : 'numeric',
+                    uniqueDatabaseField: {table: 'trainer', column: 'friendcode'}
                 },
                 icon: {
                     required       : true,
@@ -52,7 +53,7 @@ component {
             verifyForm: {
                 code: {
                     required: true,
-                    size    : 10,
+                    size    : 8,
                     type    : 'string'
                 }
             },
@@ -598,11 +599,7 @@ component {
                     type    : 'string',
                     size    : '1..250'
                 },
-                stack: {
-                    required: true,
-                    type    : 'string',
-                    size    : '1..1000'
-                },
+                stack    : {required: true, type: 'string'},
                 trainerid: {required: true, type: 'numeric'}
             }
         };

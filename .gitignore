@@ -40,5 +40,5 @@ includes/assets/medals.json
 /node_modules
 tests/test.xml
 
-tests/results/**
-tests/results/
+tests/results/*
+!/tests/results/.gitkeep

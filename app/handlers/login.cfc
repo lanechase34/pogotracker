@@ -176,7 +176,7 @@ component extends="base" {
                 'danger',
                 true,
                 'bi-exclamation-diamond-fill',
-                'Invalid registration. Username/email already taken, please try again.'
+                'Invalid registration. Username/email/friendcode already taken, please try again.'
             );
             relocate(event = 'register');
         }
@@ -203,6 +203,8 @@ component extends="base" {
             auditInfo = prc.auditInfo
         );
 
+        securityService.sendVerificationCode(session.email, false);
+
         relocate(uri = '/verify');
     }
 
@@ -212,11 +214,14 @@ component extends="base" {
 
         param name="rc.resend" type="boolean" default="false";
 
-        securityService.sendVerificationCode(session.email, rc.resend);
+        if(isBoolean(rc.resend) && booleanFormat(rc.resend)) {
+            securityService.sendVerificationCode(session.email, rc.resend);
+        }
     }
 
     function verify(event, rc, prc) {
         if(session.verified) relocate(uri = '/');
+        if(!session.authenticated) relocate(uri = '/login');
 
         param name="rc.code" default="";
 
@@ -230,7 +235,7 @@ component extends="base" {
                 'bi-exclamation-diamond-fill',
                 'Invalid verification code. Please try again.'
             );
-            relocate(uri = '/login');
+            relocate(uri = '/verify');
         }
 
         rc.code = trim(rc.code);

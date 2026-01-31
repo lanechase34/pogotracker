@@ -3718,5 +3718,30 @@
         "ses": "970",
         "moves": ["ROCK_THROW", "SMACK_DOWN", "POWER_GEM", "DAZZLING_GLEAM", "SLUDGE_WAVE", "METEOR_BEAM"],
         "defense": "177"
+    },
+    "Flamigo": {
+        "live": true,
+        "flee": 0,
+        "catch": 20,
+        "shadowshiny": false,
+        "giga": false,
+        "number": "973",
+        "evolutions": [],
+        "form": false,
+        "mega": false,
+        "attack": "227",
+        "hp": "193",
+        "shadow": false,
+        "gender": "",
+        "shiny": false,
+        "name": "Flamigo",
+        "tradable": true,
+        "type": ["Flying", "Fighting"],
+        "sprite": "973",
+        "formtype": "",
+        "generation": 9,
+        "ses": "973",
+        "moves": ["WING_ATTACK", "DOUBLE_KICK", "AERIAL_ACE", "CLOSE_COMBAT", "BRAVE_BIRD"],
+        "defense": "145"
     }
 }

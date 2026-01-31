@@ -73,6 +73,13 @@ component singleton accessors="true" {
         return medalProgress;
     }
 
+    /**
+     * Track trainer's progress on a medal
+     *
+     * @trainer trainer cfc
+     * @medal   medal cfc
+     * @current current progress
+     */
     public void function trackProgress(
         required component trainer,
         required component medal,

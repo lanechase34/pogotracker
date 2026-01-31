@@ -31,7 +31,7 @@ jobs:
             --exclude='app/modules/'
             --exclude='app/database/seeds/'
             --include='Application.cfc'
-            --include='WebSocket.cfc'
+            --include='app/WebSocket.cfc'
             --include='app/***'
             --include='includes/***'
             --include='box.json'
@@ -47,7 +47,7 @@ jobs:
           remote_user: ${{ secrets.LIGHTSAIL_USERNAME }}
           remote_key: ${{ secrets.LIGHTSAIL_SSH_KEY }}
 
-      - name: Restart, update backend db, and depdendencies
+      - name: Restart, update backend db, and dependencies
         uses: appleboy/ssh-action@v1.2.2
         with:
           host: ${{ secrets.LIGHTSAIL_IP }}

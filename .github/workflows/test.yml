@@ -21,9 +21,6 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 30
 
-    env:
-      HTTP_PORT: 8083
-
     services:
       postgres:
         image: postgres:16
@@ -62,7 +59,7 @@ jobs:
           LUCEE_ADMIN_ENABLED=false
           INSPECTTEMPLATE=never
           IMAGEMAGICKPATH=/usr/bin
-          HTTP_PORT=8083
+          HTTP_PORT=8084
           HTTP_HOST=127.0.0.1
           REQUESTTIMEOUT=600
           SESSIONTIMEOUT=30
@@ -128,7 +125,7 @@ jobs:
         run: |
           echo "Waiting for server to start..."
           for i in {1..60}; do
-            if curl -sf http://127.0.0.1:${{ env.HTTP_PORT }} > /dev/null 2>&1; then
+            if curl -sf http://127.0.0.1:8084 > /dev/null 2>&1; then
               echo "Server is ready!"
               exit 0
             fi

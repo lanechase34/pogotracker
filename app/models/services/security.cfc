@@ -321,8 +321,13 @@ component singleton accessors="true" {
         return cgi?.http_referer ?: '';
     }
 
+    /**
+     * Create a verification code and assign to session, trainer record
+     */
     private struct function createVerificationCode(required component trainer) {
-        var verificationCode     = generateSecretKey('AES', 256).left(10);
+        // Generate 8-character verification code
+        var verificationCode = left(replace(createUUID(), '-', '', 'all'), 8).uCase();
+
         session.verificationCode = verificationCode;
 
         arguments.trainer.setVerificationCode(
@@ -342,6 +347,12 @@ component singleton accessors="true" {
         return {code: verificationCode, sent: now()};
     }
 
+    /**
+     * Send a verification code to the supplied email
+     *
+     * @email  email to send to
+     * @resend If true, attempt to resend this code (may fail based on when last code was requested)
+     */
     public void function sendVerificationCode(required string email, required boolean resend = false) {
         var trainer = getTrainer(arguments.email)[1];
 
@@ -350,7 +361,7 @@ component singleton accessors="true" {
                 'danger',
                 true,
                 'bi-exclamation-diamond-fill',
-                'Please wait 15 minutes before resending the verification code.'
+                'Please wait #int(application.cbController.getSetting('verificationCooldown') / 60)# minutes before resending the verification code.'
             );
         }
 
@@ -361,18 +372,22 @@ component singleton accessors="true" {
             isNull(trainer.getVerificationSentDate()) ||
             isNull(trainer.getVerificationCode()) ||
             dateDiff('n', trainer.getVerificationSentDate(), now()) > application.cbController.getSetting('verificationLifespan') ||
-            (arguments.resend && dateDiff('s', trainer.getVerificationSentDate(), now()) > 900)
+            (
+                arguments.resend && dateDiff('s', trainer.getVerificationSentDate(), now()) > application.cbController.getSetting('verificationCooldown')
+            )
         ) {
             var verificationInfo = createVerificationCode(trainer);
 
-            var expires = dateAdd(
-                'n',
-                application.cbController.getSetting('verificationLifespan'),
-                verificationInfo.sent
-            );
+            var lifespan         = application.cbController.getSetting('verificationLifespan');
+            var expires          = dateAdd('n', lifespan, verificationInfo.sent);
             var verificationCode = verificationInfo.code;
 
-            emailService.sendVerificationCode(arguments.email, verificationCode, expires);
+            emailService.sendVerificationCode(
+                arguments.email,
+                verificationCode,
+                expires,
+                lifespan
+            );
 
             if(arguments.resend) {
                 sessionService.setAlert(
@@ -387,6 +402,12 @@ component singleton accessors="true" {
         return;
     }
 
+    /**
+     * Check the supplied verification code against the trainer (loaded by email)
+     *
+     * @email trainer's email
+     * @code  user entered verification code
+     */
     public boolean function checkVerificationCode(required string email, required string code) {
         // 1. Check this is a valid session
         if(!session.keyExists('verificationCode') || session.verificationCode != arguments.code) {
@@ -424,7 +445,11 @@ component singleton accessors="true" {
         return true;
     }
 
-    private string function createResetLink(required component trainer) {
+    /**
+     * Create a unique link that is tied to a trainer that will allow them to access the
+     * reset password form
+     */
+    private struct function createResetLink(required component trainer) {
         var resetCode = encodeForURL(generateSecretKey('AES', 256).replace('/', '', 'all').left(25)).replace(
             '%',
             '',
@@ -445,24 +470,42 @@ component singleton accessors="true" {
         entitySave(arguments.trainer);
         ormFlush();
 
-        return '#cgi.https == 'on' ? 'https://' : 'http://'##cgi.http_host#/reset/#resetCode#';
+        return {link: '#cgi.https == 'on' ? 'https://' : 'http://'##cgi.http_host#/reset/#resetCode#', sent: now()};
     }
 
+    /**
+     * Allow the trainer to create a new reset password link
+     * and send it to their email
+     *
+     * @email trainer's email
+     */
     public void function sendResetCode(required string email) {
         var trainer = getTrainer(arguments.email)[1];
 
         if(
             isNull(trainer.getResetSentDate()) ||
             isNull(trainer.getResetCode()) ||
-            dateDiff('n', trainer.getResetSentDate(), now()) > 5
+            dateDiff('n', trainer.getResetSentDate(), now()) > application.cbController.getSetting('resetPasswordLifespan') ||
+            dateDiff('s', trainer.getResetSentDate(), now()) > application.cbController.getSetting('resetPasswordCooldown')
         ) {
-            var resetLink = createResetLink(trainer);
-            emailService.sendResetCode(arguments.email, resetLink);
+            var resetLinkInfo = createResetLink(trainer);
+
+            var lifespan  = application.cbController.getSetting('resetPasswordLifespan');
+            var expires   = dateAdd('n', lifespan, resetLinkInfo.sent);
+            var resetLink = resetLinkInfo.link;
+
+            emailService.sendResetCode(arguments.email, resetLink, expires, lifespan);
         }
 
         return;
     }
 
+    /**
+     * Check the validity of this reset code by attempting to load the trainer it's attached to
+     *
+     * @resetCode 
+     * @delete             
+     */
     public string function checkResetCode(required string resetCode, boolean delete = false) {
         var trainer = entityLoad(
             'trainer',
@@ -483,8 +526,10 @@ component singleton accessors="true" {
 
         trainer = trainer[1];
 
-        // Expire links after 30 minutes
-        if(dateDiff('n', trainer.getResetSentDate(), now()) > 30) {
+        // Link was expired
+        if(
+            dateDiff('n', trainer.getResetSentDate(), now()) > application.cbController.getSetting('resetPasswordLifespan')
+        ) {
             sessionService.setAlert(
                 'danger',
                 true,

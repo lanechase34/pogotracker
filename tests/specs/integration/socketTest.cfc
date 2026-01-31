@@ -16,18 +16,18 @@ component extends="tests.resources.baseTest" {
             });
 
             it('Socket can be created', () => {
-                var ws = new WebSocket();
+                var ws = new app.WebSocket();
                 expect(ws).toBeComponent();
             });
 
             it('Can configure correctly and register metrics topic', () => {
-                var ws     = new WebSocket();
+                var ws     = new app.WebSocket();
                 var config = ws.getConfig();
                 expect(config.exchanges.topic.bindings).toHaveKey('metrics');
             });
 
             it('Can authenticate via session successfully', () => {
-                var ws = new WebSocket();
+                var ws = new app.WebSocket();
 
                 var trainer = mockTrainer.make();
 
@@ -42,7 +42,7 @@ component extends="tests.resources.baseTest" {
             });
 
             it('Can fail session authentication', () => {
-                var ws = new WebSocket();
+                var ws = new app.WebSocket();
 
                 // Attempt with no valid session
                 var authenticateResult = ws.authenticate(
@@ -56,7 +56,7 @@ component extends="tests.resources.baseTest" {
             });
 
             it('Can authorize ADMIN user to metrics topic', () => {
-                var ws = new WebSocket();
+                var ws = new app.WebSocket();
 
                 // Admin user
                 var trainer = mockTrainer.make(securityLevel = 50);
@@ -97,7 +97,7 @@ component extends="tests.resources.baseTest" {
             });
 
             it('Can fail authorization with non ADMIN user to metrics topic', () => {
-                var ws = new WebSocket();
+                var ws = new app.WebSocket();
 
                 var trainer = mockTrainer.make(securityLevel = 10);
 
@@ -140,7 +140,7 @@ component extends="tests.resources.baseTest" {
             });
 
             it('Can broadcast a message to metrics', () => {
-                var ws = new WebSocket();
+                var ws = new app.WebSocket();
 
                 expect(() => {
                     ws.send('topic/metrics', {time: now()});

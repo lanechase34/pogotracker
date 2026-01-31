@@ -73,7 +73,7 @@
                     const $pass = document.getElementById('inputPassword');
 
                     document.getElementById('populateFields').addEventListener('click', () => {
-                        $email.value = 'lanechase34@outlook.com';
+                        $email.value = 'test_0@gmail.com';
                         $pass.value = 'asedasdfasdfasdfasdf';
                     });
 

@@ -34,12 +34,7 @@ component singleton accessors="true" {
             this.iterations
         );
 
-        // Set the cookie in the browser. HTTP Only and Secure. Expires in persistDuration days.
-        // SameSite=strict browser will only send cookie in requests that originate from the same domain
-        cfheader(
-            name  = "Set-Cookie",
-            value = "#this.cookieName#=#persistCookie#; Path=/; Max-Age=#this.cookieDuration * 24 * 60 * 60#; Secure; HttpOnly; SameSite=Strict"
-        );
+        setPersistCookie(persistCookie);
 
         if(application.cbController.getSetting('environment') != 'production') {
             cookie[this.cookieName] = persistCookie;
@@ -54,6 +49,21 @@ component singleton accessors="true" {
         );
 
         return hashedPersistCookie;
+    }
+
+    /**
+     * Use cfheader to set the cookie back to browser
+     *
+     * @persistCookie value to set
+     * @maxAge        age in days
+     */
+    private void function setPersistCookie(required string persistCookie, numeric maxAge = getCookieDuration()) {
+        // Set the cookie in the browser. HTTP Only and Secure. Expires in persistDuration days.
+        // SameSite=strict browser will only send cookie in requests that originate from the same domain
+        cfheader(
+            name  = "Set-Cookie",
+            value = "#getCookieName()#=#arguments.persistCookie#; Path=/; Max-Age=#arguments.maxAge * 24 * 60 * 60#; Secure; HttpOnly; SameSite=Strict"
+        );
     }
 
     /**
@@ -148,6 +158,8 @@ component singleton accessors="true" {
         if(checkCookie()) {
             cookie.delete(this.cookieName);
         }
+        // Set maxage to 0 will tell browser to delete cookie
+        setPersistCookie(persistCookie = 'delete', maxAge = 0);
     }
 
     /**

@@ -134,6 +134,26 @@ Tasks: Run Task -> Github Actions Test
 This runs the yaml file using nektos/act to utilize docker instances
 simulating the real steps Github takes when executing this action
 
+- Debugging (commands assume powershell)
+    - Clean up contains that may have not been properly removed after each run
+
+    ```
+    # Stop all act containers
+    docker ps -a --filter "name=act-" -q | ForEach-Object { docker stop $_ }
+
+    # Remove all act containers
+    docker ps -a --filter "name=act-" -q | ForEach-Object { docker rm $_ }
+
+    # Remove all act networks
+    docker network ls --filter "name=act-" -q | ForEach-Object { docker network rm $_ }
+    ```
+
+    - Clean everything docker related (warning, destructive operation!)
+
+    ```
+    docker system prune -af --volumes
+    ```
+
 ## CSS and JS Minifier
 
 Uses clean-css and terser for CSS and Javascript minification respectively.

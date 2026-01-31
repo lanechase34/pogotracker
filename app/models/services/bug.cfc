@@ -16,6 +16,9 @@ component singleton accessors="true" {
         ]);
     }
 
+    /**
+     * Log a new bug including exception stack trace
+     */
     public void function logBug(
         required string ip,
         required string event,
@@ -43,6 +46,9 @@ component singleton accessors="true" {
         return;
     }
 
+    /**
+     * Datatable GET for bug log table
+     */
     public struct function get(
         required numeric records,
         required numeric offset,
@@ -105,6 +111,9 @@ component singleton accessors="true" {
         };
     }
 
+    /**
+     * Get total count of records in bug table
+     */
     public numeric function getTotalRecords() {
         var cacheKey = 'bug.getTotalRecords';
         var count    = cacheService.get(cacheKey);

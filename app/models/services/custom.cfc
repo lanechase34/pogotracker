@@ -188,6 +188,14 @@ component singleton accessors="true" {
         return;
     }
 
+    /**
+     * Paginated search of the trainer's custom pokedex list
+     *
+     * @trainer  trainer cfc searching
+     * @search   search term, can be empty
+     * @page     current page
+     * @pageSize page size
+     */
     public any function searchMyCustom(
         required component trainer,
         required string search,

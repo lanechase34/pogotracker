@@ -25,7 +25,7 @@ component {
             // Implicit Events
             defaultEvent            : 'error.notFound',
             requestStartHandler     : 'main.onRequestStart',
-            requestEndHandler       : 'main.onRequestEnd',
+            requestEndHandler       : '',
             applicationStartHandler : '',
             applicationEndHandler   : '',
             sessionStartHandler     : 'main.onSessionStart',
@@ -159,19 +159,22 @@ component {
                 slowRequestThreshold: 1000, // ms
                 maxSlowRequests     : 25
             },
-            sessionTimeout      : getSystemSetting('SESSIONTIMEOUT'),
-            signups             : true, // whether signups are enabled
-            sitemap             : 'sitemap.xml',
-            testEmailPath       : '#replace(expandPath('/'), '\', '/', 'all')#/_testemails',
-            uploadPath          : '#replace(expandPath('/'), '\', '/', 'all')#/includes/uploads',
-            title               : 'POGO Tracker',
-            useCache            : true,
-            useRecaptcha        : true,
-            verificationLifespan: 15,
+            resetPasswordCooldown: 900, // time in seconds to wait for a new reset code
+            resetPasswordLifespan: 30, // time in minutes the reset link is valid for
+            sessionTimeout       : getSystemSetting('SESSIONTIMEOUT'),
+            signups              : true, // whether signups are enabled
+            sitemap              : 'sitemap.xml',
+            testEmailPath        : '#replace(expandPath('/'), '\', '/', 'all')#/_testemails',
+            uploadPath           : '#replace(expandPath('/'), '\', '/', 'all')#/includes/uploads',
+            title                : 'POGO Tracker',
+            useCache             : true,
+            useRecaptcha         : true,
+            verificationLifespan : 15, // time in minutes the verification link is valid for
+            verificationCooldown : 900, // time in seconds to wait for a new verification code
             // Ordered struct, maps value -> display
-            viewMap             : ['normal': 'Normal', 'shiny': 'Shiny'],
-            warmedUp            : false, // updates to true after server has finished warming up
-            writeJson           : false
+            viewMap              : ['normal': 'Normal', 'shiny': 'Shiny'],
+            warmedUp             : false, // updates to true after server has finished warming up
+            writeJson            : false
         };
 
         /**
@@ -224,7 +227,7 @@ component {
 		 */
         interceptors = [
             {
-                class     : 'interceptors.appLifeCycle',
+                class     : 'interceptors.applifecycle',
                 name      : 'appLifeCycleInterceptor',
                 properties: {}
             },
@@ -236,6 +239,11 @@ component {
             {
                 class     : 'interceptors.response',
                 name      : 'responseInterceptor',
+                properties: {}
+            },
+            {
+                class     : 'interceptors.flashalert',
+                name      : 'flashAlertInterceptor',
                 properties: {}
             },
             {

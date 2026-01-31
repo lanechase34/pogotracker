@@ -36,7 +36,7 @@
             <div class="mt-3 mb-3 row">
                 <label for="code" class="col-sm-4 col-form-label">Verification Code</label>
                 <div class="col-sm-8">
-                    <input name="code" type="text" class="form-control" id="inputCode" value="" minlength="10" maxlength="10" required>
+                    <input name="code" type="text" class="form-control" id="inputCode" value="" minlength="8" maxlength="8" required>
                     <div class="invalid-feedback">
                         Please enter the verification code sent to your email.
                     </div> 

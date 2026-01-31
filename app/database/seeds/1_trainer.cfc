@@ -8,18 +8,18 @@ component {
                 'password'     : createUUID(),
                 'salt'         : createUUID(),
                 'securitylevel': 60,
-                'friendcode'   : '123412341234',
-                'icon'         : 'mudkip',
+                'friendcode'   : '123412341235',
+                'icon'         : 'treecko',
                 'verified'     : true
             },
             {
-                'username'     : 'chazlann34',
-                'email'        : 'chaz14x@gmail.com',
+                'username'     : 'test_0',
+                'email'        : 'test_0@gmail.com',
                 'password'     : createUUID(),
                 'salt'         : createUUID(),
-                'securitylevel': 10,
-                'friendcode'   : '223412341234',
-                'icon'         : 'treecko',
+                'securitylevel': 60,
+                'friendcode'   : '123412341234',
+                'icon'         : 'mudkip',
                 'verified'     : true
             }
         ];
@@ -33,7 +33,7 @@ component {
                 'salt'         : createUUID(),
                 'securitylevel': 10,
                 'friendcode'   : makeFriendCode(),
-                'icon'         : 'treecko',
+                'icon'         : 'torchic',
                 'verified'     : true
             });
         }

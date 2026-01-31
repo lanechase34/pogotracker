@@ -28,6 +28,11 @@ component extends="base" {
     }
 
     function warmup(event, rc, prc) {
+        // Skips warmup in test environment
+        if(application.cbController.getSetting('environment') == 'test') {
+            setSetting('warmedUp', true);
+        }
+
         // Fires on server start
         if(
             !getSetting('warmedUp')
@@ -80,7 +85,6 @@ component extends="base" {
                 )
                 .get();
 
-            setSetting('warmedUp', true);
             prc.auditInfo.event  = 'main.warmup';
             prc.auditInfo.detail = 'Successfully warmed up server in #getTickCount() - start#ms.';
             async.newFuture(() => {
@@ -100,12 +104,6 @@ component extends="base" {
         // Handle session creation
         if(!session.keyExists('trainerid')) {
             onSessionStart();
-        }
-
-        // Handle alerts
-        if(session.keyExists('alert')) {
-            request.alert = session.alert;
-            sessionService.clearAlert();
         }
 
         // Request variables
@@ -128,6 +126,17 @@ component extends="base" {
             return;
         }
 
+        // If the user is authenticated but not verified, allow access to verification page(s) only
+        if(
+            session.authenticated &&
+            !session.verified && (
+                prc.currEvent != 'login.verify' &&
+                prc.currEvent != 'login.verifyform'
+            )
+        ) {
+            relocate(uri = '/verify');
+        }
+
         // Check whether this user is allowed to view this handler->action
         if(
             !securityService.checkUserSecurity(
@@ -142,11 +151,8 @@ component extends="base" {
                 if('mypokedex,myshadowpokedex,custompokedexlist,buildtradeplan,overview'.contains(prc.currAction)) {
                     session.linkedEvent = '/#prc.currAction#';
                 }
+
                 relocate(uri = '/login', persistStruct = {statusCode: 401});
-            }
-            // If the user is authenticated but not verified, lead them to verification page
-            else if(!session.verified) {
-                relocate(uri = '/verify');
             }
             // Immediately stop the current event and process the unauthorized page
             else {
@@ -156,10 +162,6 @@ component extends="base" {
                 return;
             }
         }
-    }
-
-    function onRequestEnd(event, rc, prc) {
-        request.delete('alert');
     }
 
     function onSessionStart() {

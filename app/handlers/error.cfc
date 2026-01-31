@@ -74,7 +74,7 @@ component extends="base" {
             ip       : securityService.getRequestIP(),
             event    : left(prc?.currentRoutedURL ?: event.getFullPath(), 250),
             message  : left(prc.exception.getMessage(), 250),
-            stack    : left(prc.exception.getStackTrace(), 1000),
+            stack    : prc.exception.getStackTrace(),
             trainerid: session?.trainerid ?: -1
         };
 
