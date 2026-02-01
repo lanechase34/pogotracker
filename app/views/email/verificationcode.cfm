@@ -71,7 +71,7 @@
                                 <tr>
                                     <td style="padding: 20px; background-color: ##fff5f5; border-left: 4px solid ##fc8181; border-radius: 4px;">
                                         <p style="margin: 0; color: ##742a2a; font-size: 14px;">
-                                            This code will expire in <strong>#int(args.lifespan)#</strong> at <strong>#dateTimeFormat(args.expires, "mmm dd, yyyy h:nn tt")# UTC</strong>.
+                                            This code will expire in <strong>#int(args.lifespan)# minutes</strong> at <strong>#dateTimeFormat(args.expires, "mmm dd, yyyy h:nn tt")# UTC</strong>.
                                         </p>
                                     </td>
                                 </tr>
