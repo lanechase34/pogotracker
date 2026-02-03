@@ -2,7 +2,12 @@ component {
 
     function run(qb, mockdata) {
         var data        = [];
-        var pokemonData = deserializeJSON(fileRead('resources/pokedex.json'));
+        var pokedexFile = fileOpen(
+            file    = 'resources/pokedex.json',
+            mode    = 'read',
+            charset = 'UTF-8'
+        );
+        var pokemonData = deserializeJSON(fileRead(pokedexFile));
         pokemonData.each(
             (name, pokemon) => {
                 var freshQB = qb.newQuery();
@@ -10,7 +15,7 @@ component {
                     .table('pokemon')
                     .insert({
                         'number'     : {value: pokemon.number, cfsqltype: 'numeric'},
-                        'name'       : pokemon.name,
+                        'name'       : {value: toUTF8(pokemon.name), cfsqltype: 'varchar'},
                         'generation' : {value: pokemon.generation, cfsqltype: 'numeric'},
                         'gender'     : {value: pokemon.gender, cfsqltype: 'varchar'},
                         'live'       : pokemon.live,
@@ -36,6 +41,18 @@ component {
             true,
             50
         );
+    }
+
+    // Detect if we are in windows environment (not UTF-8) and convert
+    // Whatever encoding it is to UTF-8
+    function toUTF8(string str) {
+        if(createObject('java', 'java.lang.System').getProperty('file.encoding') != 'UTF-8') {
+            var bytes = createObject('java', 'java.lang.String')
+                .init(str)
+                .getBytes(createObject('java', 'java.lang.System').getProperty('file.encoding'));
+            return createObject('java', 'java.lang.String').init(bytes, 'UTF-8');
+        }
+        return str;
     }
 
 }

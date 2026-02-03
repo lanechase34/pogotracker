@@ -1335,13 +1335,24 @@ component singleton accessors="true" {
         return tasks;
     }
 
+    /**
+     * Attempt to format the incoming string to date object
+     * Falls back to now() if fails
+     *
+     * @toFormat string that may contain a valid date
+     */
     private date function formatStringToDate(required string toFormat) {
-        // Remove trailing comma
-        if(toFormat[toFormat.len()] == ',') {
-            toFormat = toFormat.left(toFormat.len() - 1);
-        }
+        try {
+            // Remove trailing comma
+            if(toFormat[toFormat.len()] == ',') {
+                toFormat = toFormat.left(toFormat.len() - 1);
+            }
 
-        return dateTimeFormat(toFormat);
+            return dateTimeFormat(toFormat);
+        }
+        catch(any e) {
+            return now();
+        }
     }
 
     /**

@@ -15,7 +15,7 @@
                 "class": "org.postgresql.Driver",
                 "username": "${DB_USERNAME}",
                 "bundleName": "org.postgresql.jdbc",
-                "bundleVersion": "${DB_BUNDLEVERSION:42.7.7}"
+                "bundleVersion": "${DB_BUNDLEVERSION}"
             }
         }
     }

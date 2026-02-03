@@ -42,7 +42,7 @@
         <div class="mx-lg-3 py-2 py-md-1">
             <div class="row">
                 <!--- offcanvas hamburger --->
-                <div class="col-2 col-lg-4 d-flex align-items-center">
+                <div class="col-2 col-xl-4 d-flex align-items-center">
                     <button 
                         class="my-auto d-flex align-items-center hamburgerButton iconHover" 
                         type="button" 
@@ -57,10 +57,11 @@
                         #prc?.header ?: ''#
                     </h2>
                 </div>
+
                 <!--- custom header buttons section --->
-                <div class="col-10 col-lg-8 d-flex align-items-center justify-content-end">
+                <div class="col-10 col-xl-8 d-flex align-items-center justify-content-end">
                     <cfif "pokedex.mycustompokedex,pokedex.mypokedex,pokedex.myshadowpokedex".contains(prc.currEvent)>
-                        <div id="monsRegistered" class="ms-auto basic me-3 my-auto hfs-5">-- Registered</div>
+                        <div id="monsRegistered" class="ms-auto basic me-3 my-auto hfs-6">-- Registered</div>
 
                         <!--- btn dropdown for small screens --->
                         <div class="d-block d-md-none btn-group" role="group">
@@ -112,7 +113,7 @@
                         </div>
 
                         <!--- btn group for large screens --->
-                        <div id="pokedexBtnGroup" class="d-none d-md-flex btn-group flex-wrap" role="group">
+                        <div id="pokedexBtnGroup" class="d-none d-md-flex btn-group" role="group">
                             <button class="copySearchString btn btn-adjust btn-primary" type="button">
                                 <i class="bi bi-copy me-2"></i>String
                             </button>
@@ -125,7 +126,7 @@
                                 </button>
                             </cfif>
                             <cfif prc.currEvent EQ "pokedex.mycustompokedex" AND !isNull(prc.custom.getLink()) AND prc.custom.getLink().len()>
-                                <a href="#prc.custom.getLink()#" target="_blank" class="btn btn-primary" role="button">
+                                <a href="#prc.custom.getLink()#" target="_blank" class="btn btn-adjust btn-primary" role="button">
                                     <i class="bi bi-link-45deg me-2"></i>Leekduck
                                 </a>
                             </cfif>

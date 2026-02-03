@@ -95,6 +95,15 @@ html {
     border-radius: 50%;
 }
 
+#pokedexBtnGroup {
+    max-width: fit-content;
+    flex-wrap: wrap;
+}
+
+#pokedexBtnGroup .btn {
+    flex: 0 0 auto;
+}
+
 .bronzeMedal {
     background-color: #ce8946 !important;
 }

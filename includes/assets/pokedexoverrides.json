@@ -61,7 +61,19 @@
     "Pumpkaboo Average Size": {
         "name": "Pumpkaboo",
         "form": false,
-        "sprite": "710"
+        "sprite": "710",
+        "evolutions": [
+            {
+                "condition": "0 Candy if traded",
+                "number": 711,
+                "cost": 200,
+                "gender": "",
+                "name": "Gourgeist",
+                "region": "",
+                "stage": 2,
+                "special": false
+            }
+        ]
     },
     "Gourgeist Average Size": {
         "name": "Gourgeist",
@@ -311,7 +323,31 @@
         "shadowshiny": true
     },
     "Victreebel": {
-        "shadowshiny": true
+        "shadowshiny": true,
+        "evolutions": [
+            {
+                "condition": "Mega Evolution",
+                "number": 71,
+                "gender": "",
+                "cost": "",
+                "name": "Mega Victreebel",
+                "special": true,
+                "stage": 0
+            }
+        ]
+    },
+    "Malamar": {
+        "evolutions": [
+            {
+                "condition": "Mega Evolution",
+                "number": 687,
+                "gender": "",
+                "cost": "",
+                "name": "Mega Malamar",
+                "special": true,
+                "stage": 0
+            }
+        ]
     },
     "Graveler": {
         "shadowshiny": true
@@ -359,7 +395,18 @@
         "shadowshiny": true
     },
     "Dragonite": {
-        "shadowshiny": true
+        "shadowshiny": true,
+        "evolutions": [
+            {
+                "condition": "Mega Evolution",
+                "number": 149,
+                "gender": "",
+                "cost": "",
+                "name": "Mega Dragonite",
+                "special": true,
+                "stage": 0
+            }
+        ]
     },
     "Forretress": {
         "shadowshiny": true
@@ -3743,5 +3790,101 @@
         "ses": "973",
         "moves": ["WING_ATTACK", "DOUBLE_KICK", "AERIAL_ACE", "CLOSE_COMBAT", "BRAVE_BIRD"],
         "defense": "145"
+    },
+    "Mega Victreebel": {
+        "live": true,
+        "flee": 0,
+        "catch": 20,
+        "shadowshiny": false,
+        "giga": false,
+        "number": "71",
+        "evolutions": [],
+        "form": true,
+        "mega": true,
+        "attack": "265",
+        "hp": "190",
+        "shadow": false,
+        "gender": "",
+        "shiny": true,
+        "name": "Mega Victreebel",
+        "tradable": false,
+        "type": ["Grass", "Poison"],
+        "sprite": "71-Mega Victreebel",
+        "formtype": "Mega",
+        "generation": 1,
+        "ses": "71-Mega",
+        "moves": [
+            "RAZOR_LEAF",
+            "ACID",
+            "MAGICAL_LEAF *",
+            "SLUDGE_BOMB",
+            "SOLAR_BEAM",
+            "LEAF_BLADE",
+            "ACID_SPRAY",
+            "LEAF_TORNADO"
+        ],
+        "defense": "181"
+    },
+    "Mega Malamar": {
+        "live": true,
+        "flee": 0,
+        "catch": 20,
+        "shadowshiny": false,
+        "giga": false,
+        "number": "687",
+        "evolutions": [],
+        "form": true,
+        "mega": true,
+        "attack": "208",
+        "hp": "200",
+        "shadow": false,
+        "gender": "",
+        "shiny": true,
+        "name": "Mega Malamar",
+        "tradable": false,
+        "type": ["Dark", "Psychic"],
+        "sprite": "687-Mega Malamar",
+        "formtype": "Mega",
+        "generation": 6,
+        "ses": "687-Mega",
+        "moves": ["PECK", "PSYCHO_CUT", "PSYWAVE", "HYPER_BEAM", "PSYBEAM", "FOUL_PLAY", "SUPERPOWER"],
+        "defense": "222"
+    },
+    "Mega Dragonite": {
+        "live": true,
+        "flee": 0,
+        "catch": 20,
+        "shadowshiny": false,
+        "giga": false,
+        "number": "149",
+        "evolutions": [],
+        "form": true,
+        "mega": true,
+        "attack": "299",
+        "hp": "209",
+        "shadow": false,
+        "gender": "",
+        "shiny": true,
+        "name": "Mega Dragonite",
+        "tradable": false,
+        "type": ["Dragon", "Flying"],
+        "sprite": "149-Mega Dragonite",
+        "formtype": "Mega",
+        "generation": 1,
+        "ses": "149-Mega",
+        "moves": [
+            "DRAGON_BREATH",
+            "STEEL_WING",
+            "DRAGON_TAIL",
+            "HYPER_BEAM",
+            "THUNDER_PUNCH",
+            "DRAGON_PULSE *",
+            "DRAGON_CLAW",
+            "HURRICANE",
+            "OUTRAGE",
+            "DRACO_METEOR *",
+            "SUPERPOWER"
+        ],
+        "defense": "255"
     }
 }
