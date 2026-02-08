@@ -1,12 +1,12 @@
-component {
+component extends="base" {
 
     function run(qb, mockdata) {
         var data      = [];
         var medalData = deserializeJSON(fileRead('resources/medals.json'));
         medalData.each((name, medal) => {
             data.append({
-                'name'        : name,
-                'description' : medal.description,
+                'name'        : toUTF8(name),
+                'description' : toUTF8(medal.description),
                 'bronze'      : medal.bronze,
                 'silver'      : medal.silver,
                 'gold'        : medal.gold,

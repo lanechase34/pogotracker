@@ -1,4 +1,4 @@
-component {
+component extends="base" {
 
     function run(qb, mockdata) {
         var data  = [];

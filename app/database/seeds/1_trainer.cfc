@@ -1,4 +1,4 @@
-component {
+component extends="base" {
 
     function run(qb, mockdata) {
         var data = [
@@ -40,7 +40,6 @@ component {
 
         qb.table('trainer').insert(data);
     }
-
 
     string function makeFriendCode() {
         var out    = '';

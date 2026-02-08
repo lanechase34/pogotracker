@@ -1,4 +1,4 @@
-component {
+component extends="base" {
 
     function run(qb, mockdata) {
         var data        = [];
@@ -11,7 +11,7 @@ component {
                     var pokemonRecord = pokemonQb
                         .from('pokemon')
                         .where('number', {value: pokemon.number, cfsqltype: 'numeric'})
-                        .andWhere('name', {value: pokemon.name, cfsqltype: 'varchar'})
+                        .andWhere('name', {value: toUTF8(pokemon.name), cfsqltype: 'varchar'})
                         .andWhere('gender', {value: pokemon.gender, cfsqltype: 'varchar'})
                         .first();
 
@@ -22,7 +22,7 @@ component {
                     var evo   = evoQb
                         .from('pokemon')
                         .where('number', {value: evolution.number, cfsqltype: 'numeric'})
-                        .andWhere('name', {value: evolution.name, cfsqltype: 'varchar'})
+                        .andWhere('name', {value: toUTF8(evolution.name), cfsqltype: 'varchar'})
                         .andWhere('gender', {value: evolution.gender, cfsqltype: 'varchar'})
                         .first();
 

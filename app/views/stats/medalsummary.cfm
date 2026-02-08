@@ -7,9 +7,9 @@
                 Medals
             </h5>
         </div>
-        <div class="row row-cols-auto d-flex justify-content-center">
+        <div class="row row-cols-auto gap-1 d-flex justify-content-center">
             <cfloop index="i" item="currMedal" array="#args.medalProgress#">
-                <cfif fileExists("/includes/images/medals/#currMedal[1].getName()##getSetting('imageExtension')#")>
+                <div class="m-0 p-0">
                     <img 
                         id="#currMedal[1].getId()#icon"
                         alt="#currMedal[1].getAltText()#"
@@ -17,7 +17,7 @@
                         loading="lazy" 
                         class="medalIcon <cfif!isNull(currMedal[2])>#currMedal[2].getCurrentMedal()#Medal</cfif>"
                     />
-                </cfif>
+                </div>
             </cfloop>
         </div>
     </div>
