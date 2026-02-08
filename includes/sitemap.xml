@@ -19,7 +19,7 @@
   </url>
   <url>
     <loc>https://pogotracker.app/custompokedexlist</loc>
-    <lastmod />
+    <lastmod>2026-02-08</lastmod>
   </url>
   <url>
     <loc>https://pogotracker.app/buildtradeplan</loc>
@@ -4752,6 +4752,10 @@
   </url>
   <url>
     <loc>https://pogotracker.app/pokemon/826-Gigantamax</loc>
+    <lastmod>2026-02-08</lastmod>
+  </url>
+  <url>
+    <loc>https://pogotracker.app/readblog/test-1</loc>
     <lastmod>2026-02-08</lastmod>
   </url>
 </urlset>
