@@ -5,6 +5,9 @@ component singleton accessors="true" {
     property name="cacheService" inject="services.cache";
     property name="moveService"  inject="services.move";
 
+    property name="rootPath"       inject="coldbox:setting:rootPath";
+    property name="imageExtension" inject="coldbox:setting:imageExtension";
+
     property name="catchModifiersMap" type="struct";
     property name="cpMultiplierMap"   type="struct";
     property name="datatableCols"     type="array";
@@ -143,6 +146,9 @@ component singleton accessors="true" {
         return entityLoad('evolution', params);
     }
 
+    /**
+     * Create the array of evolutions for the supplied pokemon
+     */
     private void function createEvolutions(required component pokemon, required array evolutions) {
         evolutions.each((evolution) => {
             // Attempt to load the evolution pokemon trying to be made
@@ -176,6 +182,9 @@ component singleton accessors="true" {
         });
     }
 
+    /**
+     * Determine the max attack, defense, and hp of all live pokemon
+     */
     public struct function getMaxStats() {
         var cacheKey = 'pokemon.getMaxStats';
         var max      = cacheService.get(cacheKey);
@@ -198,7 +207,9 @@ component singleton accessors="true" {
         return max;
     }
 
-    // Get the pokemon that evolve into the argument pokemon
+    /**
+     * Get the pokemon that evolve into the argument pokemon
+     */
     private array function getEvolvers(required component pokemon) {
         return ormExecuteQuery(
             '
@@ -354,6 +365,9 @@ component singleton accessors="true" {
         return detail;
     }
 
+    /**
+     * Manually update the flags of a pokemon, saves these to env specific config
+     */
     public void function updateDetail(
         required component pokemon,
         required boolean live,
@@ -374,7 +388,7 @@ component singleton accessors="true" {
         };
 
         fileWrite(
-            '/includes/assets/envpokedexoverrides.json',
+            '#getRootPath()#/includes/assets/envpokedexoverrides.json',
             serializeJSON(overrides),
             'UTF-8'
         );
@@ -404,7 +418,7 @@ component singleton accessors="true" {
                 return {
                     id   : pokemon.getId(),
                     text : '#pokemon.getGender().len() ? pokemon.getGender() & ' ' : ''##pokemon.getName()#',
-                    image: '#pokemon.getSprite()##application.cbController.getSetting('imageExtension')#',
+                    image: '#pokemon.getSprite()##getImageExtension()#',
                     alt  : 'Pokemon #pokemon.getNumber()# - #pokemon.getGender().len() ? '-#pokemon.getGender()# ' : ''##pokemon.getName()#',
                     ses  : '#pokemon.getSes()#'
                 };
@@ -416,6 +430,9 @@ component singleton accessors="true" {
         return search;
     }
 
+    /**
+     * Paginated table for pokemon
+     */
     public struct function getTable(
         required numeric records,
         required numeric offset,
@@ -483,14 +500,14 @@ component singleton accessors="true" {
                 number       : currPokemon.getNumber(),
                 gender       : currPokemon.getGender(),
                 name         : currPokemon.getName(),
-                sprite       : '/includes/images/sprites/#currPokemon.getSprite()##application.cbController.getSetting('imageExtension')#',
-                shiny        : currPokemon.getShiny() ? '/includes/images/shinysprites/#currPokemon.getSprite()##application.cbController.getSetting('imageExtension')#' : '',
+                sprite       : '/includes/images/sprites/#currPokemon.getSprite()##getImageExtension()#',
+                shiny        : currPokemon.getShiny() ? '/includes/images/shinysprites/#currPokemon.getSprite()##getImageExtension()#' : '',
                 shadow       : currPokemon.getShadow(),
                 shadowshiny  : currPokemon.getShadowShiny(),
                 fastmoves    : currPokemon.getMovesText('fast', 'all'),
                 chargemoves  : currPokemon.getMovesText('charge', 'all'),
                 evolutiontext: currPokemon.getEvolutionText(),
-                shadowicon   : '/includes/images/shadow-pokemon#application.cbController.getSetting('imageExtension')#',
+                shadowicon   : '/includes/images/shadow-pokemon#getImageExtension()#',
                 ses          : currPokemon.getSes()
             });
         });

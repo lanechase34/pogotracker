@@ -384,7 +384,7 @@ component {
     }
 
     function updateSiteMap(event, rc, prc) {
-        var filePath = '#getSetting('basePath')#sitemap.xml';
+        var filePath = '#getSetting('rootPath')#/includes/sitemap.xml';
         var sitemap  = xmlParse(filePath);
 
         var nowFormatted = dateFormat(now(), 'yyyy-mm-dd');

@@ -1,14 +1,14 @@
 component singleton accessors="true" {
 
-    property name="securityService" inject="services.security";
+    property name="securityService"   inject="services.security";
+    property name="persistCookieName" inject="coldbox:setting:persistCookieName";
+    property name="persistDuration"   inject="coldbox:setting:persistDuration";
+    property name="persistUse"        inject="coldbox:setting:persistUse";
 
-    property name="algorithm"      type="string"  setter="false";
-    property name="encoding"       type="string"  setter="false";
-    property name="iterations"     type="number"  setter="false";
-    property name="pepper"         type="string"  setter="false";
-    property name="cookieName"     type="string"  setter="false";
-    property name="cookieDuration" type="numeric" setter="false";
-    property name="cookieUse"      type="numeric" setter="false";
+    property name="algorithm"  type="string" setter="false";
+    property name="encoding"   type="string" setter="false";
+    property name="iterations" type="number" setter="false";
+    property name="pepper"     type="string" setter="false";
 
     public void function init() {
         var env = new coldbox.system.core.delegates.Env();
@@ -17,10 +17,6 @@ component singleton accessors="true" {
         this.encoding   = 'UTF-8';
         this.iterations = env.getEnv('ITERATIONS');
         this.pepper     = env.getEnv('PEPPER');
-
-        this.cookieName     = application.cbController.getSetting('persistCookieName');
-        this.cookieDuration = application.cbController.getSetting('persistDuration');
-        this.cookieUse      = application.cbController.getSetting('persistUse');
     }
 
     /**
@@ -37,10 +33,10 @@ component singleton accessors="true" {
             128
         );
 
-        setPersistCookie(persistCookie = persistCookie, maxAge = this.cookieDuration);
+        setPersistCookie(persistCookie = persistCookie, maxAge = getPersistDuration());
 
         if(application.cbController.getSetting('environment') != 'production') {
-            cookie[this.cookieName] = persistCookie;
+            cookie[getPersistCookieName()] = persistCookie;
         }
 
         // Hash and store in database
@@ -66,7 +62,7 @@ component singleton accessors="true" {
         var duration = arguments.maxAge * 24 * 60 * 60;
         cfheader(
             name  = "Set-Cookie",
-            value = "#this.cookieName#=#arguments.persistCookie#; Path=/; Max-Age=#duration#; Secure; HttpOnly; SameSite=Strict"
+            value = "#getPersistCookieName()#=#arguments.persistCookie#; Path=/; Max-Age=#duration#; Secure; HttpOnly; SameSite=Strict"
         );
     }
 
@@ -151,16 +147,16 @@ component singleton accessors="true" {
      * Check if the user has the persist cookie
      */
     public boolean function checkCookie() {
-        return cookie.keyExists(this.cookieName);
+        return cookie.keyExists(getPersistCookieName());
     }
 
     public string function getCookie() {
-        return cookie[this.cookieName];
+        return cookie[getPersistCookieName()];
     }
 
     public void function deleteCookie() {
         if(checkCookie()) {
-            cookie.delete(this.cookieName);
+            cookie.delete(getPersistCookieName());
         }
         // Set maxage to 0 will tell browser to delete cookie
         setPersistCookie(persistCookie = 'delete', maxAge = 0);
@@ -176,7 +172,7 @@ component singleton accessors="true" {
             delete from persist
             where created <= :dateCheck
         ',
-            {dateCheck: {value: dateAdd('d', -1 * this.cookieDuration, now()), cfsqltype: 'timestamp'}}
+            {dateCheck: {value: dateAdd('d', -1 * getPersistDuration(), now()), cfsqltype: 'timestamp'}}
         );
 
         // Delete cookies that have not been used in cookieUse days
@@ -185,7 +181,7 @@ component singleton accessors="true" {
             delete from persist
             where lastused <= :dateCheck
         ',
-            {dateCheck: {value: dateAdd('d', -1 * this.cookieUse, now()), cfsqltype: 'timestamp'}}
+            {dateCheck: {value: dateAdd('d', -1 * getPersistUse(), now()), cfsqltype: 'timestamp'}}
         );
 
         return;

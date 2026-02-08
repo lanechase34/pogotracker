@@ -48,10 +48,21 @@ component singleton accessors="true" {
         return entityLoadByPK('medal', arguments.id);
     }
 
+    /**
+     * Load specific relation record for trainer to medal
+     *
+     * @trainer trainer cfc
+     * @medal   medal cfc
+     */
     public array function getTrainerMedal(required component trainer, required component medal) {
         return entityLoad('trainermedal', {'trainer': arguments.trainer, 'medal': arguments.medal});
     }
 
+    /**
+     * Get the supplied trainers progress on all medals
+     *
+     * @trainer trainer cfc
+     */
     public array function getProgress(required component trainer) {
         var cacheKey      = '#arguments.trainer.getId()#|medal.getProgress';
         var medalProgress = cacheService.get(cacheKey);

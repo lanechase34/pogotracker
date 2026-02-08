@@ -14,7 +14,7 @@ component singleton accessors="true" {
     /**
      * Returns timestamp of date at 23:59:59
      *
-     * @high 
+     * @high date
      */
     private date function makeHighDate(required date high) {
         return dateAdd(

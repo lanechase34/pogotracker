@@ -14,6 +14,7 @@ component singleton accessors="true" {
 
     property name="maxThreads"  inject="coldbox:setting:maxThreads";
     property name="concurrency" inject="coldbox:setting:concurrency";
+    property name="rootPath"    inject="coldbox:setting:rootPath";
 
     property name="leekduckNameMap" type="struct";
     property name="regionalForms"   type="array";
@@ -244,7 +245,7 @@ component singleton accessors="true" {
                 }
             });
             fileWrite(
-                '/includes/assets/shadowdata.json',
+                '#getRootPath()#/includes/assets/shadowdata.json',
                 serializeJSON(shadowdata),
                 'UTF-8'
             );
@@ -480,15 +481,10 @@ component singleton accessors="true" {
         );
 
         // Read in env overrides
-        if(!fileExists('#application.cbController.getSetting('rootPath')#/includes/assets/envpokedexoverrides.json')) {
-            fileWrite(
-                '#application.cbController.getSetting('rootPath')#/includes/assets/envpokedexoverrides.json',
-                serializeJSON({})
-            );
+        if(!fileExists('#getRootPath()#/includes/assets/envpokedexoverrides.json')) {
+            fileWrite('#getRootPath()#/includes/assets/envpokedexoverrides.json', serializeJSON({}));
         }
-        var envOverrides = deserializeJSON(
-            fileRead('#application.cbController.getSetting('rootPath')#/includes/assets/envpokedexoverrides.json')
-        );
+        var envOverrides = deserializeJSON(fileRead('/includes/assets/envpokedexoverrides.json'));
         envOverrides.each(
             (pokemon, custom) => {
                 custom.each((key, value) => {
@@ -546,7 +542,7 @@ component singleton accessors="true" {
 
         if(application.cbController.getSetting('writeJson')) {
             fileWrite(
-                '/includes/assets/pokedex.json',
+                '#getRootPath()#/includes/assets/pokedex.json',
                 serializeJSON(jsonPokedex),
                 'UTF-8'
             );
@@ -935,7 +931,7 @@ component singleton accessors="true" {
 
         if(application.cbController.getSetting('writeJson')) {
             fileWrite(
-                '/includes/assets/medals.json',
+                '#getRootPath()#/includes/assets/medals.json',
                 serializeJSON(jsonMedals),
                 'UTF-8'
             );
@@ -996,7 +992,7 @@ component singleton accessors="true" {
         jsonMoves = refineMoveData(jsonMoves);
         if(application.cbController.getSetting('writeJson')) {
             fileWrite(
-                '/includes/assets/moves.json',
+                '#getRootPath()#/includes/assets/moves.json',
                 serializeJSON(jsonMoves),
                 'UTF-8'
             );
@@ -1586,7 +1582,7 @@ component singleton accessors="true" {
 
         envOverrides.insert(pokemon.name, pokemon);
         fileWrite(
-            '/includes/assets/envpokedexoverrides.json',
+            '#getRootPath()#/includes/assets/envpokedexoverrides.json',
             serializeJSON(envOverrides),
             'UTF-8'
         );

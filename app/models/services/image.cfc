@@ -1,7 +1,7 @@
 component singleton accessors="true" {
 
-    property name="imageMagick" inject="coldbox:setting:imageMagickPath";
-    property name="uploadPath"  inject="coldbox:setting:uploadPath";
+    property name="imageMagickPath" inject="coldbox:setting:imageMagickPath";
+    property name="uploadPath"      inject="coldbox:setting:uploadPath";
 
     /**
      * Verify image magick is running
@@ -9,7 +9,7 @@ component singleton accessors="true" {
     public boolean function verifyImageMagick() {
         try {
             cfexecute(
-                name      = "#imageMagick#",
+                name      = "#getImageMagickPath()#",
                 arguments = "identify --version",
                 variable  = "result",
                 timeout   = 30
@@ -29,7 +29,7 @@ component singleton accessors="true" {
     public boolean function validIdentify(required string path) {
         try {
             cfexecute(
-                name      = "#imageMagick#",
+                name      = "#getImageMagickPath()#",
                 arguments = "identify ""#arguments.path#""",
                 variable  = "result",
                 timeout   = 30
@@ -49,7 +49,7 @@ component singleton accessors="true" {
     public boolean function convertToWebp(required string path, numeric quality = 50) {
         try {
             cfexecute(
-                name      = "#imageMagick#",
+                name      = "#getImageMagickPath()#",
                 arguments = "mogrify -format webp -strip -quality #arguments.quality# ""#arguments.path#""",
                 variable  = "result",
                 timeout   = 30

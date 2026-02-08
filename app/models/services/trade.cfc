@@ -1,6 +1,14 @@
 component singleton accessors="true" {
 
-    // Find the exclusive pokemon that only left trainer has and right trainer does not
+    /**
+     * Find the exclusive pokemon that only left trainer has and right trainer does not
+     *
+     * @leftTrainer  trainer cfc
+     * @rightTrainer trainer cfc
+     * @shiny        t/f
+     * @generation   generation cfc 
+     * @custom       custom cfc
+     */
     public array function findExclusive(
         required component leftTrainer,
         required component rightTrainer,

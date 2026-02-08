@@ -24,6 +24,9 @@ component singleton accessors="true" {
         return;
     }
 
+    /**
+     * Rotates the jsessionid
+     */
     public void function rotate() {
         // https://www.petefreitag.com/blog/sessionrotate-solution-jee/
         session.sessionid = getPageContext().getRequest().changeSessionId();
@@ -31,6 +34,13 @@ component singleton accessors="true" {
         return;
     }
 
+    /**
+     * Creates a new session
+     *
+     * @email     email of trainer
+     * @persist   t/f 
+     * @auditInfo audit info struct
+     */
     public void function create(
         required string email,
         required boolean persist,

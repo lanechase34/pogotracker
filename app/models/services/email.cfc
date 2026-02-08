@@ -1,6 +1,7 @@
 component singleton accessors="true" {
 
-    property name="mailService" inject="MailService@cbmailservices";
+    property name="contactEmail" inject="coldbox:setting:contactEmail";
+    property name="mailService"  inject="MailService@cbmailservices";
 
     /**
      * Verify successful connection to the mail server - same functionality as admin page
@@ -30,7 +31,7 @@ component singleton accessors="true" {
         required string message
     ) {
         mailService
-            .newMail(to: application.cbController.getSetting('contactEmail'), subject: 'User Submitted Feedback')
+            .newMail(to: getContactEmail(), subject: 'User Submitted Feedback')
             .setView(
                 view: 'email/contact',
                 args: {
@@ -44,7 +45,7 @@ component singleton accessors="true" {
 
     public void function sendBug(required struct error, required struct requestContext) {
         mailService
-            .newMail(to: application.cbController.getSetting('contactEmail'), subject: 'BUG Found')
+            .newMail(to: getContactEmail(), subject: 'BUG Found')
             .setView(
                 view: 'email/bug',
                 args: {
@@ -98,7 +99,7 @@ component singleton accessors="true" {
 
     public void function sendTestEmail() {
         mailService
-            .newMail(to: application.cbController.getSetting('contactEmail'), subject: 'Sending a test email!')
+            .newMail(to: getContactEmail(), subject: 'Sending a test email!')
             .setBody('
                 Sending an email from the testing server! #now()# #createUUID()#
             ')
