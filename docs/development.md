@@ -176,3 +176,66 @@ Minified files go to `/include/build`
     ctrl + shift + p
     Tasks: Run Build Task
     ```
+
+## Dev Setup (No Docker)
+
+### Prerequisites
+
+- Node.js and npm
+- CommandBox CLI
+- PostgreSQL
+
+### Setup
+
+1. Install and run commandbox with `box`
+
+2. Install modules using
+
+    ```
+    install
+    ```
+
+3. Create PostgreSQL database with user
+
+4. Generate and populate a development `.env` file
+
+    ```
+    run-script blankEnv
+    ```
+
+5. Create the database tables and seed with dev data
+
+    Uses CFMigrations and interfaces through the commandbox-cfmigrations module
+
+    ```
+    # Install the CFMigrations table
+    migrate install
+
+    # Run Changesets
+    migrate up
+
+    # Seeds dev db
+    migrate seed run
+    ```
+
+    For future changesets, run them using the following commands
+
+    ```
+    # Run changeset
+    migrate up
+
+    # Rollback changeset
+    migrate down
+    ```
+
+6. Start server
+
+    ```
+    server start
+    ```
+
+7. Open site
+
+    ```
+    server open
+    ```

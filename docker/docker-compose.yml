@@ -1,0 +1,48 @@
+name: pogotracker
+services:
+  # PostgreSQL DB
+  pogotracker_db:
+    image: postgres:16
+    container_name: pogotracker_db
+    environment:
+      POSTGRES_PASSWORD: "docker1234"
+      POSTGRES_USER: "pogotracker_docker"
+      POSTGRES_DB: "pogotracker_db"
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pogotracker_docker -d pogotracker_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - pogotracker_network
+
+  # Commandbox App
+  pogotracker_app:
+    container_name: pogotracker_app
+    depends_on:
+      pogotracker_db:
+        condition: service_healthy
+    image: ortussolutions/commandbox:jdk21
+    environment:
+      APP_DIR: /workspace # mount to /workspace
+    ports:
+      - "8081:8080"
+    volumes:
+      - ../:/workspace # Mount project root to /workspace
+      - ./entrypoint-wrapper.sh:/entrypoint-wrapper.sh:ro
+    working_dir: /workspace
+    entrypoint: ["/bin/bash", "/entrypoint-wrapper.sh"]
+    networks:
+      - pogotracker_network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+
+networks:
+  pogotracker_network:
+    driver: bridge

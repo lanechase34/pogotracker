@@ -16,7 +16,9 @@
 
     <!--- CSS Lib --->
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="preload" as="style" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"></noscript>
+    
     <link rel="stylesheet" type="text/css" href="/includes/build/css/lib/multiselect.min.css" media="print" onload="this.media='all'; this.onload=null;"/>
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" crossorigin="anonymous" media="print" onload="this.media='all'; this.onload=null;"/>
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/bs5/dt-2.1.8/b-3.2.0/fh-4.0.1/r-3.0.3/datatables.min.css" crossorigin="anonymous" media="print" onload="this.media='all'; this.onload=null;"/>

@@ -28,63 +28,77 @@ POGO Tracker offers in-depth analytics on your Pokemon collection, catches, walk
 - Deployment: `docs/deployment.md`
 - Development workflows: `docs/development.md`
 
-## Dev Setup
+## Dev Docker Setup
+
+See `docs/development.md` on how to run without using Docker.
+
+Follow these steps to run the App + PostgreSQL database locally in Docker.
+
+The database container will automatically be seeded with dev data.
 
 ### Prerequisites
 
-- Node.js and npm
-- CommandBox CLI
-- PostgreSQL
+- Docker Desktop
 
-1. Install and run commandbox with `box`
+### Setup
 
-2. Install modules using
+1. Using `docker/env.docker.example` as a template, populate .env in the webroot
 
-    ```
-    install
-    ```
-
-3. Create PostgreSQL database with user
-
-4. Generate and populate a development `.env` file
+2. Navigate to Docker dir
 
     ```
-    run-script blankEnv
+    cd docker
     ```
 
-5. Create the database tables and seed with dev data
-
-    Uses CFMigrations and interfaces through the commandbox-cfmigrations module
+3. Start docker
 
     ```
-    # Install the CFMigrations table
-    migrate install
-
-    # Run Changesets
-    migrate up
-
-    # Seeds dev db
-    migrate seed run
+    docker compose up -d
     ```
 
-    For future changesets, run them using the following commands
+4. Verify app is running (this may be a few minutes on first start)
+    - **Health Check**: http://localhost:8081/healthcheck
+    - **App**: http://localhost:8081
 
+5. Stop containers by running
     ```
-    # Run changeset
-    migrate up
-
-    # Rollback changeset
-    migrate down
-    ```
-
-6. Start server
-
-    ```
-    server start
+    docker compose down
     ```
 
-7. Open site
+### Commands
+
+- Stop containers and clear all data
 
     ```
-    server open
+    docker compose down -v
     ```
+
+- Restart the containers
+
+    ```
+    docker compose restart
+    ```
+
+- View logs from all services
+
+    ```
+    docker compose logs -f
+    ```
+
+- View logs from specific service
+
+    ```
+    docker compose logs -f pogotracker_app
+    docker compose logs -f pogotracker_db
+    ```
+
+### Connecting to database
+
+| Setting      | Value                |
+| ------------ | -------------------- |
+| **Host**     | `localhost`          |
+| **Port**     | `5432`               |
+| **Database** | `pogotracker_db`     |
+| **Username** | `pogotracker_docker` |
+| **Password** | `docker1234`         |
+| **Schema**   | `public`             |

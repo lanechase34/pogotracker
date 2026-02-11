@@ -15,7 +15,13 @@
         <a href="/readblog/#replace(currBlog.getHeader(), " ", "-", "all")#" class="h-100 w-100 link-underline link-underline-opacity-0">
         <div class="card h-100 w-100 blogCard shadow-sm" data-linkto="/readblog/#currBlog.getId()#">
             <cfif args.showImage>
-                <img src="/includes/uploads/cards/#currBlog.getImage()#" alt="#currBlog.getAltText()#" <cfif args.offset NEQ 0 OR i GT 3>loading="lazy"</cfif> class="blogImage rounded">
+                <img 
+                    src="/includes/uploads/cards/#currBlog.getImage()#" 
+                    alt="#currBlog.getAltText()#" 
+                    <cfif args.offset EQ 0 AND i EQ 0>fetchpriority="high"</cfif>
+                    <cfif args.offset NEQ 0 OR i GT 3>loading="lazy"</cfif> 
+                    class="blogImage rounded"
+                >
             </cfif>
             <article class="d-flex flex-column card-body">
                 <p class="card-text text-secondary mb-1">

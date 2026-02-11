@@ -11,7 +11,7 @@ const port = document.getElementById('currentEvent').dataset.port;
 export function startMetricsSocket() {
     if (metricClient?.active) return;
 
-    const BROKER_URL = env == 'production' ? 'wss://pogotracker.app/ws' : `ws://127.0.0.1:${port}/ws`;
+    const BROKER_URL = env == 'production' ? 'wss://pogotracker.app/ws' : `ws://localhost:${port}/ws`;
 
     metricClient = new Client({
         brokerURL: BROKER_URL,
