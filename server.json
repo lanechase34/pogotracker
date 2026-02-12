@@ -35,7 +35,7 @@
         },
         "rules":[
             "warm-up-server(urls={'/main/warmup'}, requestStrategy=queue, async=false, timeoutSeconds=${WARMUPTIMEOUT})",
-            "path-prefix-nocase(/lucee/) or path-prefix-nocase(/tests/) -> ip-access-control[default-allow=false, acl={'127.0.0.* allow', '::1 allow'}, failure-status=404]",
+            "path-prefix-nocase(/lucee/) -> ip-access-control[default-allow=false, acl={'127.0.0.* allow', '::1 allow'}, failure-status=404]",
             "path(/app/WebSocket.cfc) -> done",
             "path(/robots.txt) -> rewrite('/includes/robots.txt')",
             "path(/sitemap.xml) -> rewrite('/includes/sitemap.xml')",
