@@ -110,12 +110,13 @@ component {
             jsPath         : '/includes/build/js',
             logPath        : getPageContext().getServletContext().getRealPath('/WEB-INF/'),
             logRequests    : false,
-            maxThreads     : 25,
+            maxThreads     : server.system.environment.number_of_processors,
             metaDescription: 'POGO Tracker offers in-depth analytics on your Pokémon collection, daily catches, walking distance, medal achievements, and much more',
             metaKeywords   : 'Pokémon GO, pogotracker, POGO Tracker, Pokémon GO Pokédex, Pokémon GO stats, Pokémon GO statistics, Pokémon GO daily XP, POGO xp tracker, Pokémon GO Track Pokédex, shiny Pokémon tracker',
             // Minified CSS, JS settings
             minifiedCSS    : '.min',
             minifiedJS     : '.min',
+            osType         : getSystemSetting('OS'),
             // Ordered struct, maps value -> display
             pageMap        : [
                 '/'                 : 'Home',

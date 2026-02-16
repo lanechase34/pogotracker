@@ -2,6 +2,7 @@ component singleton accessors="true" {
 
     property name="cacheService"      inject="services.cache";
     property name="generationService" inject="services.generation";
+    property name="maxThreads"        inject="coldbox:setting:maxThreads";
     property name="pokemonService"    inject="services.pokemon";
 
     /**
@@ -148,7 +149,7 @@ component singleton accessors="true" {
                 }
             },
             true,
-            application.cbController.getSetting('maxThreads')
+            maxThreads
         );
 
         return;

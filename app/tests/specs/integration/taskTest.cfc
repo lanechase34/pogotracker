@@ -52,8 +52,9 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                 task = scheduler.getTaskRecord(testTaskName).task;
                 expect(task).toBeComponent();
 
-                // Verify the task successfully logs bug
-                bugCountBefore = ormExecuteQuery('select count(id) from bug')[1];
+                // Verify the task successfully logs bug and audits
+                auditCountBefore = ormExecuteQuery('select count(id) from audit')[1];
+                bugCountBefore   = ormExecuteQuery('select count(id) from bug')[1];
 
                 // Set the task to fail
                 application.cbController.setSetting('healthCheck', false);
@@ -64,6 +65,8 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                 expect(stats).toBeStruct();
                 expect(dateDiff('s', parseDateTime(stats.lastRun), now())).toBeLTE(10);
 
+                auditCountAfter = ormExecuteQuery('select count(id) from audit')[1];
+                expect(auditCountAfter - auditCountBefore).toBe(1);
                 bugCountAfter = ormExecuteQuery('select count(id) from bug')[1];
                 expect(bugCountAfter - bugCountBefore).toBe(1);
             });

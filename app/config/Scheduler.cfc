@@ -153,6 +153,9 @@ component {
     }
 
     function callbackOnFailure(required struct task, struct exception = {}) {
+        task.overviewStruct.detail = 'Task Failure';
+        getInstance('services.audit').audit(argumentCollection = task.overviewStruct);
+
         task.overviewStruct.message = left(exception?.message ?: 'Unknown Error Message', 250);
         task.overviewStruct.stack   = exception?.stackTrace ?: 'Unknown Stack Trace';
         getInstance('services.bug').logBug(argumentCollection = task.overviewStruct);

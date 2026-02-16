@@ -40,7 +40,7 @@ component extends="base" {
             && find('Java', cgi.http_user_agent) > 0
         ) {
             setting requestTimeout=300;
-            
+
             cacheService.clearAll();
             var start = getTickCount();
 

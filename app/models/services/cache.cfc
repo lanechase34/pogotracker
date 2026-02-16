@@ -1,6 +1,7 @@
 component singleton accessors="true" {
 
     property name="defaultCache" type="component" getter="true";
+    property name="maxThreads" inject="coldbox:setting:maxThreads";
 
     public void function init() {
         setDefaultCache(application.cbController.getCacheBox().getDefaultCache());
@@ -52,14 +53,14 @@ component singleton accessors="true" {
                 return key.findNoCase(filter);
             },
             true,
-            application.cbController.getSetting('maxThreads')
+            maxThreads
         );
         filteredKeys.each(
             (key) => {
                 remove(key);
             },
             true,
-            application.cbController.getSetting('maxThreads')
+            maxThreads
         );
     }
 

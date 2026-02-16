@@ -970,12 +970,9 @@ component singleton accessors="true" {
      */
     public void function buildMoveData() {
         var pvppokeData = 'https://pvpoke.com/data/gamemaster.min.json';
-        cfhttp(
-            url    = pvppokeData,
-            result = "result",
-            method = "GET"
-        );
-        var jsonMoves = deserializeJSON(result.filecontent).moves;
+        var jsonData    = scraperService.getData(url = pvppokeData, returnJSON = true);
+        var jsonMoves   = deserializeJSON(jsonData).moves;
+
 
         // extra moves
         jsonMoves.append({
