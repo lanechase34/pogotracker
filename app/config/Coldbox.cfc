@@ -110,7 +110,7 @@ component {
             jsPath         : '/includes/build/js',
             logPath        : getPageContext().getServletContext().getRealPath('/WEB-INF/'),
             logRequests    : false,
-            maxThreads     : server.system.environment.number_of_processors,
+            maxThreads     : createObject('java', 'java.lang.Runtime').getRuntime().availableProcessors(),
             metaDescription: 'POGO Tracker offers in-depth analytics on your Pokémon collection, daily catches, walking distance, medal achievements, and much more',
             metaKeywords   : 'Pokémon GO, pogotracker, POGO Tracker, Pokémon GO Pokédex, Pokémon GO stats, Pokémon GO statistics, Pokémon GO daily XP, POGO xp tracker, Pokémon GO Track Pokédex, shiny Pokémon tracker',
             // Minified CSS, JS settings
