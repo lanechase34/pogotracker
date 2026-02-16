@@ -110,6 +110,20 @@ There are many tasks available that cover these topics below. Run tasks in vscod
     psql -h winhost -p 5432 -U postgres
     ```
 
+    You may need to create a new rule in windows firewall
+
+    ```
+    New-NetFirewallRule -DisplayName "PostgreSQL WSL" -Direction Inbound -LocalPort 5432 -Protocol TCP -Action Allow
+    ```
+
+    And, update the postgres conf to allow wsl connections
+    The file is location in `PostgreSQL/${version}/data/pg_hba.conf`
+
+    ```
+    # Allow connections from WSL
+    host    all             all             172.16.0.0/12           scram-sha-256
+    ```
+
 - Make sure you set the following `.env` keys for WSL
 
     ```
