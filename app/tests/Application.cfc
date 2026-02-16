@@ -2,24 +2,15 @@ component {
 
     this.name = 'POGO Tracker Testing';
 
-    _testsRoot = replace(
-        getDirectoryFromPath(getCurrentTemplatePath()),
-        '\',
-        '/',
-        'all'
-    );
-    _root = reReplaceNoCase(_testsRoot, '(/|\\)tests', '');
+    this.mappings['/tests'] = getDirectoryFromPath(getCurrentTemplatePath());
+    rootPath                = reReplaceNoCase(this.mappings['/tests'], 'tests(\\|/)', '');
 
-    this.mappings['/tests']        = _testsRoot;
-    this.mappings['/app']          = _root & 'app';
-    this.mappings['/coldbox']      = this.mappings['/app'] & '/coldbox';
-    this.mappings['/interceptors'] = this.mappings['/app'] & '/interceptors';
-    this.mappings['/models']       = this.mappings['/app'] & '/models';
-    this.mappings['/modules']      = this.mappings['/app'] & '/modules';
-    this.mappings['/interceptors'] = this.mappings['/app'] & '/interceptors';
-    this.mappings['/layouts']      = this.mappings['/app'] & '/layouts';
-    this.mappings['/views']        = this.mappings['/app'] & '/views';
-    this.mappings['/testbox']      = this.mappings['/modules'] & '/testbox';
+    this.mappings['/root']         = rootPath;
+    this.mappings['/coldbox']      = rootPath & 'coldbox';
+    this.mappings['/interceptors'] = rootPath & 'interceptors';
+    this.mappings['/testbox']      = rootPath & 'modules/testbox';
+    this.mappings['/models']       = rootPath & 'models';
+    this.mappings['/services']     = rootPath & '/services';
 
     this.datasource  = 'pogotracker';
     this.ormEnabled  = true;
@@ -42,7 +33,7 @@ component {
     public boolean function onRequestStart(targetPage) {
         setting requestTimeout="9999";
 
-        request.coldBoxVirtualApp = new coldbox.system.testing.VirtualApp(appMapping = '/app');
+        request.coldBoxVirtualApp = new coldbox.system.testing.VirtualApp(appMapping = '/root');
         request.coldBoxVirtualApp.startup(true);
 
         if(url.keyExists('fwreinit')) {

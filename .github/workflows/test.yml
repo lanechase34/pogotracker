@@ -9,6 +9,7 @@ on:
   push:
     branches:
       - development
+      - main
   pull_request:
     branches:
       - development
@@ -21,6 +22,11 @@ jobs:
     runs-on: ubuntu-24.04
     environment: Test
     timeout-minutes: 30
+
+    # Set default working directory for all run steps
+    defaults:
+      run:
+        working-directory: ./app
 
     services:
       postgres:
@@ -95,6 +101,7 @@ jobs:
           box install
 
       - name: Verify Database Connection
+        working-directory: . # Override for this step since it doesn't need to be in /app
         run: |
           sudo apt-get update
           sudo apt-get install -y postgresql-client
@@ -169,7 +176,7 @@ jobs:
         if: always()
         with:
           report_paths: |
-            tests/results/**/*.xml
+            app/tests/results/**/*.xml
           check_name: "TestBox Report"
           include_passed: false
           fail_on_failure: true
@@ -181,9 +188,9 @@ jobs:
         with:
           name: test-results
           path: |
-            tests/results/
-            tests/results/*.json
-            tests/results/*.xml
+            app/tests/results/
+            app/tests/results/*.json
+            app/tests/results/*.xml
           retention-days: 30
 
       - name: Stop Server

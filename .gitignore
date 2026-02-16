@@ -5,6 +5,7 @@ WEB-INF
 
 # Engines + Database + CBFS + Secrets
 .env
+.env.docker
 .secrets
 env/
 .engine/**
@@ -21,11 +22,11 @@ npm-debug.log
 yarn-error.log
 
 ## Ignored Dependencies
-app/coldbox/**
-app/testbox/**
-app/modules/**
-app/modules/
-app/coldbox/
+coldbox/**
+testbox/**
+modules/**
+modules/
+coldbox/
 
 includes/uploads/**
 includes/uploads/

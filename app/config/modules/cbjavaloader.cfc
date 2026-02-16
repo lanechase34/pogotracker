@@ -2,7 +2,7 @@ component {
 
     function configure() {
         return {
-            loadPaths              : ['#controller.getSetting('basePath')#/lib/jsoup-1.21.2.jar'], // A single path, and array of paths or a single Jar
+            loadPaths              : ['#controller.getSetting('rootPath')#/lib/jsoup-1.21.2.jar'], // A single path, and array of paths or a single Jar
             loadColdFusionClassPath: false, // Load ColdFusion classes with loader
             parentClassLoader      : '', // Attach a custom class loader as a parent
             sourceDirectories      : [], // Directories that contain Java source code that are to be dynamically compiled

@@ -29,7 +29,7 @@
                 <hr>
                 <p class="card-text">
                     <cfif !prc.blog.getComment().len()>
-                        No comments - starting writing one!
+                        No comments - start writing one!
                     <cfelse>
                         <cfloop item="currComment" index="i" array="#prc.blog.getComment()#">
                             <div class="mb-3">

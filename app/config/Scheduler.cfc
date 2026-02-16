@@ -25,65 +25,75 @@ component {
 
         // Update the pokemon data nightly
         task('nightlyUpdatePokemonData')
-            .call(() => {
-                // Update Data
-                getInstance('services.admin').buildPokemonData();
-                getInstance('services.audit').audit(
-                    ip      = 'localhost',
-                    event   = 'nightlyUpdatePokemonData',
-                    referer = '',
-                    detail  = 'Task Success (Callback)',
-                    agent   = 'Scheduled Task User'
-                );
+            .before((task) => {
+                task.overviewStruct.event = 'nightlyUpdatePokemonData';
             })
-            .everyDayAt('07:00');
+            .call(() => {
+                getInstance('services.admin').buildPokemonData();
+            })
+            .onFailure((task, exception) => {
+                callbackOnFailure(task, exception);
+            })
+            .onSuccess((task, results) => {
+                callbackOnSuccess(task);
+            })
+            .every(5, 'seconds');
 
         // Update the move data nightly
         task('nightlyUpdateMoveData')
+            .before((task) => {
+                task.overviewStruct.event = 'nightlyUpdateMoveData';
+            })
             .call(() => {
                 getInstance('services.admin').buildMoveData();
-                getInstance('services.audit').audit(
-                    ip      = 'localhost',
-                    event   = 'nightlyUpdateMoveData',
-                    referer = '',
-                    detail  = 'Task Success (Callback)',
-                    agent   = 'Scheduled Task User'
-                );
             })
-            .everyDayAt('06:00');
+            .onFailure((task, exception) => {
+                callbackOnFailure(task, exception);
+            })
+            .onSuccess((task, results) => {
+                callbackOnSuccess(task);
+            })
+            .everyDayAt('21:00');
 
         // Update medal data every week
         task('weeklyUpdateMedalData')
+            .before((task) => {
+                task.overviewStruct.event = 'weeklyUpdateMedalData';
+            })
             .call(() => {
                 getInstance('services.admin').buildMedalData();
-                getInstance('services.audit').audit(
-                    ip      = 'localhost',
-                    event   = 'weeklyUpdateMedalData',
-                    referer = '',
-                    detail  = 'Task Success (Callback)',
-                    agent   = 'Scheduled Task User'
-                );
+            })
+            .onFailure((task, exception) => {
+                callbackOnFailure(task, exception);
+            })
+            .onSuccess((task, results) => {
+                callbackOnSuccess(task);
             })
             .onMondays('06:30');
 
         // Create custom pokedexs based on upcoming events
         task('nightlyCreateEvents')
+            .before((task) => {
+                task.overviewStruct.event = 'nightlyCreateEvents';
+            })
             .call(() => {
                 getInstance('services.admin').createEvents();
-                getInstance('services.audit').audit(
-                    ip      = 'localhost',
-                    event   = 'nightlyCreateEvents',
-                    referer = '',
-                    detail  = 'Task Success (Callback)',
-                    agent   = 'Scheduled Task User'
-                );
+            })
+            .onFailure((task, exception) => {
+                callbackOnFailure(task, exception);
+            })
+            .onSuccess((task, results) => {
+                callbackOnSuccess(task);
             })
             .everyDayAt('07:30');
 
         // Post metrics information to any websocket subscribers
         task('metricsSubscription')
+            .before((task) => {
+                task.overviewStruct.event = 'metricsSubscription';
+            })
             .call(() => {
-                var ws           = new app.WebSocket();
+                var ws           = application.ws;
                 var adminService = getInstance('services.admin');
 
                 /**
@@ -103,22 +113,54 @@ component {
                  */
                 adminService.resetActiveRequests();
             })
+            .onFailure((task, exception) => {
+                callbackOnFailure(task, exception);
+            })
             .every(5, 'seconds');
 
         // Cleanup persist cookies every hour
         task('cleanupCookies')
+            .before((task) => {
+                task.overviewStruct.event = 'cleanupCookies';
+            })
             .call(() => {
                 getInstance('services.persist').cleanupCookies();
             })
+            .onFailure((task, exception) => {
+                callbackOnFailure(task, exception);
+            })
             .everyHour();
 
+        // Healthcheck
         task('healthcheck')
             .call(() => {
                 runRoute('/healthCheck');
             })
+            .onFailure((task, exception) => {
+                callbackOnFailure(task, exception);
+            })
+            .onSuccess((task, results) => {
+                callbackOnSuccess(task);
+            })
             .delay(60, 'minutes')
             .every(60, 'minutes')
             .onEnvironment('development');
+    }
+
+    function callbackOnFailure(required struct task, struct exception = {}) {
+        task.overviewStruct.message = left(exception?.message ?: 'Unknown Error Message', 250);
+        task.overviewStruct.stack   = exception?.stackTrace ?: 'Unknown Stack Trace';
+        getInstance('services.bug').logBug(argumentCollection = task.overviewStruct);
+
+        getInstance('services.email').sendBug(
+            error          = exception,
+            requestContext = {task: task.overviewStruct, detail: 'Task Failure'}
+        );
+    }
+
+    function callbackOnSuccess(required struct task) {
+        task.overviewStruct.detail = 'Task Success';
+        getInstance('services.audit').audit(argumentCollection = task.overviewStruct);
     }
 
     /**
@@ -140,25 +182,6 @@ component {
 	 * @exception The ColdFusion exception object
 	 */
     function onAnyTaskError(required task, required exception) {
-        getInstance('services.audit').audit(
-            ip      = 'localhost',
-            event   = '#task.getName()#',
-            referer = '',
-            detail  = 'Task Failure',
-            agent   = 'Scheduled Task User'
-        );
-
-        getInstance('services.bug').logBug(
-            ip      = 'localhost',
-            event   = '#task.getName()#',
-            message = left(exception?.message ?: 'Unknown Error Message', 250),
-            stack   = exception?.stackTrace ?: 'Unknown Stack Trace'
-        );
-
-        getInstance('services.email').sendBug(
-            error          = exception,
-            requestContext = {task: '#task.getName()#', detail: 'Task Failure'}
-        );
     }
 
     /**
@@ -168,18 +191,6 @@ component {
 	 * @result The result (if any) that the task produced
 	 */
     function onAnyTaskSuccess(required task, result) {
-        var taskName = task.getName();
-        if(taskName == 'cleanupCookies' || taskName == 'metricsSubscription') {
-            return;
-        }
-
-        getInstance('services.audit').audit(
-            ip      = 'localhost',
-            event   = '#task.getName()#',
-            referer = '',
-            detail  = 'Task Success',
-            agent   = 'Scheduled Task User'
-        );
     }
 
     /**
@@ -188,6 +199,13 @@ component {
 	 * @task The task about to be executed
 	 */
     function beforeAnyTask(required task) {
+        task.overviewStruct = {
+            ip     : 'localhost',
+            event  : '',
+            referer: '',
+            detail : '',
+            agent  : 'Scheduled Task User'
+        };
     }
 
     /**

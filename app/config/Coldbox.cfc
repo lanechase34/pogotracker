@@ -61,7 +61,6 @@ component {
 		 * --------------------------------------------------------------------------
 		 */
         settings = {
-            basePath        : replace(expandPath('/'), '\', '/', 'all') & '/app',
             rootPath        : replace(expandPath('/'), '\', '/', 'all'),
             cacheBuster     : '?v=#right(hash(createUUID()), 10)#',
             cacheIdleTimeout: 30,

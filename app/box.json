@@ -3,17 +3,17 @@
     "version":"1.0.0",
     "author":"lanechase34",
     "installPaths":{
-        "coldbox":"app/coldbox/",
-        "testbox":"app/modules/testbox/",
-        "cbvalidation":"app/modules/cbvalidation/",
-        "cbjavaloader":"app/modules/cbjavaloader/",
-        "cbmailservices":"app/modules/cbmailservices/",
-        "route-visualizer":"app/modules/route-visualizer/",
-        "cbdebugger":"app/modules/cbdebugger/",
-        "cfmigrations":"app/modules/cfmigrations/",
-        "qb":"app/modules/qb/",
-        "socketbox":"app/modules/socketbox/",
-        "lucee-password-util":"app/modules/lucee-password-util/"
+        "coldbox":"coldbox/",
+        "testbox":"modules/testbox/",
+        "cbvalidation":"modules/cbvalidation/",
+        "cbjavaloader":"modules/cbjavaloader/",
+        "cbmailservices":"modules/cbmailservices/",
+        "route-visualizer":"modules/route-visualizer/",
+        "cbdebugger":"modules/cbdebugger/",
+        "cfmigrations":"modules/cfmigrations/",
+        "qb":"modules/qb/",
+        "socketbox":"modules/socketbox/",
+        "lucee-password-util":"modules/lucee-password-util/"
     },
     "devDependencies":{
         "testbox":"6.4.0+17",
@@ -38,9 +38,9 @@
         "socketbox":"2.0.12"
     },
     "scripts":{
-        "format":"cfformat run Application.cfc,WebSocket.cfc,app/config/,app/handlers/,app/interceptors/,app/models/,tests/,app/database/ ./.cfformat.json --overwrite",
-        "format:check":"cfformat check Application.cfc,WebSocket.cfc,app/config/,app/handlers/,app/interceptors/,app/models/,tests/,app/database/ ./.cfformat.json",
-        "format:watch":"cfformat watch path='Application.cfc,WebSocket.cfc,app/config/,app/handlers/,app/interceptors/,app/models/,tests/,app/database/' settingsPath='.cfformat.json'",
+        "format":"cfformat run Application.cfc,WebSocket.cfc,config/,handlers/,interceptors/,models/,tests/,database/ ./.cfformat.json --overwrite",
+        "format:check":"cfformat check Application.cfc,WebSocket.cfc,config/,handlers/,interceptors/,models/,tests/,database/ ./.cfformat.json",
+        "format:watch":"cfformat watch path='Application.cfc,WebSocket.cfc,config/,handlers/,interceptors/,models/,tests/,database/' settingsPath='.cfformat.json'",
         "docker:build":"!docker build --no-cache -t pogotracker -f ./Dockerfile ./",
         "setEnv":"cp env/${1}.dev.env .env",
         "blankEnv":"cp .env.example .env"

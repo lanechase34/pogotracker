@@ -1,8 +1,8 @@
 {
     "default": {
         "manager": "cfmigrations.models.QBMigrationManager",
-        "migrationsDirectory": "app/database/migrations/",
-        "seedsDirectory": "app/database/seeds/",
+        "migrationsDirectory": "database/migrations/",
+        "seedsDirectory": "database/seeds/",
         "properties": {
             "defaultGrammar": "PostgresGrammar@qb",
             "schema": "${DB_SCHEMA}",

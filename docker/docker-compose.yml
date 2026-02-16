@@ -28,13 +28,13 @@ services:
         condition: service_healthy
     image: ortussolutions/commandbox:jdk21
     environment:
-      APP_DIR: /workspace # mount to /workspace
+      APP_DIR: /workspace/app # mount to /workspace/app
     ports:
       - "8081:8080"
     volumes:
       - ../:/workspace # Mount project root to /workspace
       - ./entrypoint-wrapper.sh:/entrypoint-wrapper.sh:ro
-    working_dir: /workspace
+    working_dir: /workspace/app # Changed to /workspace/app
     entrypoint: ["/bin/bash", "/entrypoint-wrapper.sh"]
     networks:
       - pogotracker_network

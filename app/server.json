@@ -36,7 +36,7 @@
         "rules":[
             "warm-up-server(urls={'/main/warmup'}, requestStrategy=queue, async=false, timeoutSeconds=${WARMUPTIMEOUT})",
             "path-prefix-nocase(/lucee/) -> ip-access-control[default-allow=false, acl={'127.0.0.* allow', '::1 allow'}, failure-status=404]",
-            "path(/app/WebSocket.cfc) -> done",
+            "path(/WebSocket.cfc) -> done",
             "path(/robots.txt) -> rewrite('/includes/robots.txt')",
             "path(/sitemap.xml) -> rewrite('/includes/sitemap.xml')",
             "regex-nocase('.*(box\\.json|Dockerfile|cfconfig\\.json|server\\.json)') or path-suffix-nocase(.env) or path-suffix-nocase(.md) or path-prefix-nocase(/includes/assets/) or path-suffix-nocase(.cfc) or path-prefix-nocase(/.well-known/) or path-prefix-nocase('/app') -> set-error(404)",
@@ -51,7 +51,7 @@
         "useProxyForwardedIP":"true",
         "websocket":{
             "enable":"true",
-            "listener":"/app/WebSocket.cfc"
+            "listener":"WebSocket.cfc"
         }
     }
 }

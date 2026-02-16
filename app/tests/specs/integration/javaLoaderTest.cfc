@@ -27,7 +27,7 @@ component extends="tests.resources.baseTest" asyncAll="false" {
 
                 // Jsoup is not primarily for json responses - just check that the needle exists
                 var jsoupTest = jsoup
-                    .connect(event.route('/healthcheck').replace('/app', ''))
+                    .connect(event.route('/healthcheck').replace('/root', ''))
                     .ignoreContentType(true)
                     .get();
                 expect(jsoupTest.text()).toInclude('Ok!');

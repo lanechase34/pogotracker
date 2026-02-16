@@ -30,10 +30,11 @@
         "**/.secrets": true,
         "**/.env": true,
         "*.min.js": true,
-        "package.json": true,
-        "package-lock.json": true,
-        "coldbox/": true,
-        "modules/": true
+        "app/includes/package.json": true,
+        "app/includes/package-lock.json": true,
+        "app/coldbox/": true,
+        "app/modules/**": true,
+        "!app/modules/config/**": true
     },
     "workbench.tree.enableStickyScroll": false,
     "editor.stickyScroll.enabled": false,
@@ -42,5 +43,6 @@
     "eslint.options": {
         "overrideConfigFile": "eslint.config.js"
     },
-    "prettier.trailingComma": "es5"
+    "prettier.trailingComma": "es5",
+    "files.eol": "\n"
 }

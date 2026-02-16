@@ -187,23 +187,25 @@ Minified files go to `/include/build`
 
 ### Setup
 
+1. cd into /app with `cd /app`
+
 1. Install and run commandbox with `box`
 
-2. Install modules using
+1. Install modules using
 
     ```
     install
     ```
 
-3. Create PostgreSQL database with user
+1. Create PostgreSQL database with user
 
-4. Generate and populate a development `.env` file
+1. Generate and populate a development `.env` file
 
     ```
     run-script blankEnv
     ```
 
-5. Create the database tables and seed with dev data
+1. Create the database tables and seed with dev data
 
     Uses CFMigrations and interfaces through the commandbox-cfmigrations module
 
@@ -228,13 +230,13 @@ Minified files go to `/include/build`
     migrate down
     ```
 
-6. Start server
+1. Start server
 
     ```
     server start
     ```
 
-7. Open site
+1. Open site
 
     ```
     server open

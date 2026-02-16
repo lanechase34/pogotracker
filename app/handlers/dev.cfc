@@ -418,7 +418,10 @@ component {
             ).lastmod,
             'yyyy-mm-dd'
         );
-        locModMap['https://pogotracker.app/custompokedexlist'] = lastCustom.len() ? lastCustom : dateFormat(now(), 'yyyy-mm-dd');
+        locModMap['https://pogotracker.app/custompokedexlist'] = lastCustom.len() ? lastCustom : dateFormat(
+            now(),
+            'yyyy-mm-dd'
+        );
 
         // Update sitemap for each pokemon's page
         var pokemonDetails = queryExecute('

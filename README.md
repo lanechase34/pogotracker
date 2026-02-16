@@ -42,7 +42,7 @@ The database container will automatically be seeded with dev data.
 
 ### Setup
 
-1. Using `docker/env.docker.example` as a template, populate .env in the webroot
+1. Using `docker/env.docker.example` as a template, populate `app/.env`
 
 2. Navigate to Docker dir
 

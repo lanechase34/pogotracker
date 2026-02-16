@@ -14,6 +14,20 @@
             </div>
         </div>
     </div>
+    <div class="accordion" id="applicationAccordion">
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="##applicationCollapse" aria-expanded="false">
+                    Application
+                </button>
+            </h2>
+        </div>
+        <div id="applicationCollapse" class="accordion-collapse collapse" data-bs-parent="##applicationAccordion">
+            <div class="accordion-body">
+                <cfdump var="#application#" top="1"/>
+            </div>
+        </div>
+    </div>
     <div class="accordion" id="serverAccordion">
         <div class="accordion-item">
             <h2 class="accordion-header">
@@ -42,7 +56,7 @@
             </div>
         </div>
     </div>
-    <div class="accordion" id="sessionAccordion">
+    <div class="accordion" id="requestAccordion">
         <div class="accordion-item">
             <h2 class="accordion-header">
                 <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="##requestCollapse" aria-expanded="false">
