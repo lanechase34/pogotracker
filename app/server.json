@@ -34,7 +34,7 @@
             "port":"${HTTP_PORT}"
         },
         "rules":[
-            "warm-up-server(urls={'/main/warmup'}, requestStrategy=queue, async=false, timeoutSeconds=${WARMUPTIMEOUT})",
+            "warm-up-server(urls={'/main/warmup'}, requestStrategy=queue, async=false, timeoutSeconds=300)",
             "path-prefix-nocase(/lucee/) -> ip-access-control[default-allow=false, acl={'127.0.0.* allow', '::1 allow'}, failure-status=404]",
             "path(/WebSocket.cfc) -> done",
             "path(/robots.txt) -> rewrite('/includes/robots.txt')",

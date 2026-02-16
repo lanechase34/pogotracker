@@ -36,9 +36,11 @@ component extends="base" {
         // Fires on server start
         if(
             !getSetting('warmedUp')
-            && securityService.getRequestIP() == '127.0.0.1'
-            && find('Java', securityService.getUserAgent() ?: '') > 0
+            && ['0:0:0:0:0:0:0:1', '127.0.0.1'].contains(securityService.getRequestIP())
+            && find('Java', cgi.http_user_agent) > 0
         ) {
+            setting requestTimeout=300;
+            
             cacheService.clearAll();
             var start = getTickCount();
 
@@ -87,6 +89,7 @@ component extends="base" {
                 )
                 .get();
 
+            setSetting('warmedUp', true);
             prc.auditInfo.event  = 'main.warmup';
             prc.auditInfo.detail = 'Successfully warmed up server in #getTickCount() - start#ms.';
             async.newFuture(() => {

@@ -2,7 +2,7 @@ component extends="base" {
 
     function run(qb, mockdata) {
         var data     = [];
-        var levelMap = deserializeJSON(fileRead('../../../includes/assets/levels.json'));
+        var levelMap = deserializeJSON(fileRead('../../includes/assets/levels.json'));
         levelMap.each((key, value) => {
             data.append({'level': parseNumber(key), 'requiredxp': parseNumber(value)});
         });

@@ -68,15 +68,15 @@ jobs:
           IMAGEMAGICKPATH=/usr/bin
           HTTP_PORT=8084
           HTTP_HOST=127.0.0.1
-          REQUESTTIMEOUT=600
+          REQUESTTIMEOUT=60
           SESSIONTIMEOUT=30
           OS=linux
           JAVAHEAP=2048
           JAVAMINHEAP=512
-          DB_SCHEMA=public
-          DB_NAME=test_pogotracker
           DB_HOST=localhost
           DB_PORT=5432
+          DB_NAME=test_pogotracker
+          DB_SCHEMA=public
           DB_USERNAME=runner
           DB_PASSWORD=postgres
           DB_BUNDLEVERSION=42.7.7
@@ -93,7 +93,6 @@ jobs:
           REINITKEY=
           RECAPTCHASITEKEY=${{ secrets.RECAPTCHASITEKEY }}
           RECAPTCHASECRETKEY=${{ secrets.RECAPTCHASECRETKEY }}
-          WARMUPTIMEOUT=0
           EOL
 
       - name: Install Dependencies
@@ -126,8 +125,8 @@ jobs:
 
       - name: Start CommandBox Server
         run: |
-          box server start
-        timeout-minutes: 5
+          box server start --verbose
+        timeout-minutes: 2
 
       - name: Wait for Server to be Ready
         run: |
@@ -151,6 +150,7 @@ jobs:
           box testbox run --verbose outputFile="tests/results/test-results" outputFormats="json,antjunit" \
             || echo "TESTS_FAILED=true" >> $GITHUB_ENV
         continue-on-error: true
+        timeout-minutes: 10
 
       - name: Display Test Results
         if: always()

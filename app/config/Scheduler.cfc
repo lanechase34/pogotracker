@@ -37,7 +37,7 @@ component {
             .onSuccess((task, results) => {
                 callbackOnSuccess(task);
             })
-            .every(5, 'seconds');
+            .everyDayAt('07:00');
 
         // Update the move data nightly
         task('nightlyUpdateMoveData')
@@ -53,7 +53,7 @@ component {
             .onSuccess((task, results) => {
                 callbackOnSuccess(task);
             })
-            .everyDayAt('21:00');
+            .everyDayAt('06:00');
 
         // Update medal data every week
         task('weeklyUpdateMedalData')
@@ -93,6 +93,11 @@ component {
                 task.overviewStruct.event = 'metricsSubscription';
             })
             .call(() => {
+                // Wait for server to finish warming up
+                if(!getSetting('warmedUp')) {
+                    return;
+                }
+
                 var ws           = application.ws;
                 var adminService = getInstance('services.admin');
 

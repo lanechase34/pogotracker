@@ -22,24 +22,24 @@ npm-debug.log
 yarn-error.log
 
 ## Ignored Dependencies
-coldbox/**
-testbox/**
-modules/**
-modules/
-coldbox/
+app/coldbox/**
+app/testbox/**
+app/modules/**
+app/modules/
+app/coldbox/
 
-includes/uploads/**
-includes/uploads/
+app/includes/uploads/**
+app/includes/uploads/
 
-_testemails
+app/_testemails
 
-includes/assets/envpokedexoverrides.json
-includes/assets/pokedex.json
-includes/assets/moves.json
-includes/assets/medals.json
+app/includes/assets/envpokedexoverrides.json
+app/includes/assets/pokedex.json
+app/includes/assets/moves.json
+app/includes/assets/medals.json
 
 /node_modules
-tests/test.xml
+app/tests/test.xml
 
-tests/results/*
-!/tests/results/.gitkeep
+app/tests/results/*
+!app/tests/results/.gitkeep
