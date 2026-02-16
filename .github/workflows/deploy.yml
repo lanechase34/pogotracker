@@ -18,24 +18,22 @@ jobs:
         with:
           switches: -avz --rsync-path="sudo rsync"
             --exclude='.env'
-            --exclude='app/includes/uploads/'
-            --exclude='app/includes/.terser.json'
-            --exclude='app/includes/eslint.config.js'
-            --exclude='app/includes/package-lock.json'
-            --exclude='app/includes/package.json'
-            --exclude='app/includes/css/'
-            --exclude='app/includes/js/'
-            --exclude='app/includes/node_modules/'
-            --exclude='app/includes/assets/envpokedexoverrides.json'
-            --exclude='app/coldbox/'
-            --exclude='app/modules/'
-            --exclude='app/tests/'
-            --exclude='app/database/seeds/'
-            --exclude='app/_testemails/'
-            --exclude='app/.cfformat.json'
-            --include='app/***'
-            --exclude='*'
-          path: ./
+            --exclude='includes/uploads/'
+            --exclude='includes/.terser.json'
+            --exclude='includes/eslint.config.js'
+            --exclude='includes/package-lock.json'
+            --exclude='includes/package.json'
+            --exclude='includes/css/'
+            --exclude='includes/js/'
+            --exclude='includes/node_modules/'
+            --exclude='includes/assets/envpokedexoverrides.json'
+            --exclude='coldbox/'
+            --exclude='modules/'
+            --exclude='tests/'
+            --exclude='database/seeds/'
+            --exclude='_testemails/'
+            --exclude='.cfformat.json'
+          path: ./app/
           remote_path: /var/www/wwwroot/pogotracker/
           remote_host: ${{ secrets.LIGHTSAIL_IP }}
           remote_user: ${{ secrets.LIGHTSAIL_USERNAME }}
