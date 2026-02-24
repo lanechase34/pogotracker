@@ -125,7 +125,7 @@ component singleton accessors="true" {
                     ip      = 'localhost',
                     event   = 'scraperService.getData',
                     referer = '',
-                    detail  = 'Scraper attempt ###count# failed for #arguments.url#: #e.message# - #e.detail#',
+                    detail  = 'Scraper attempt ###count + 1# failed for #arguments.url#: #e.message# - #e.detail#',
                     agent   = ''
                 );
                 count += 1;

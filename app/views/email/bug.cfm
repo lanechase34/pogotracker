@@ -6,7 +6,7 @@
     </head>
     <body style="margin: 0; padding: 0;">
         <span>#dateTimeFormat( now(), "mm/dd/yyyy hh:nn tt" )#</span>
-        <cfdump var="#args.error#" top="3"/>
+        <cfdump var="#args.error#"/>
         <cfdump var="#args.sessionData#" top="2"/>
         <cfdump var="#args.requestContext#" top="3"/>
         <cfdump var="#args.cookieData#" top="3"/>
