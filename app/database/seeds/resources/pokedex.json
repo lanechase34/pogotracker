@@ -661,7 +661,17 @@
         "shadowshiny": false,
         "giga": false,
         "number": 851,
-        "evolutions": [],
+        "evolutions": [
+            {
+                "condition": "Gigantamax Form",
+                "number": 851,
+                "gender": "",
+                "cost": "",
+                "name": "Gigantamax Centiskorch",
+                "special": true,
+                "stage": 0
+            }
+        ],
         "form": false,
         "mega": false,
         "Attack": 220,
@@ -1633,36 +1643,36 @@
         "Defense": 99
     },
     "Glimmora": {
-        "flee": 0,
         "live": true,
-        "catch": 20,
+        "Flee": 0,
+        "Catch": 20,
         "shadowshiny": false,
-        "number": "970",
         "giga": false,
-        "form": false,
+        "number": "970",
         "evolutions": [],
+        "form": false,
         "mega": false,
-        "attack": "246",
-        "hp": "195",
+        "Attack": "246",
+        "HP": "195",
         "shadow": false,
         "shiny": false,
         "gender": "",
-        "name": "Glimmora",
-        "type": ["Rock", "Poison"],
+        "Name": "Glimmora",
         "tradable": true,
+        "Type": ["Rock", "Poison"],
         "sprite": "970",
         "formtype": "",
         "generation": 9,
+        "ses": "970",
         "moves": [
             { "nameid": "ROCK_THROW", "shadow": false, "legacy": false },
             { "nameid": "SMACK_DOWN", "shadow": false, "legacy": false },
-            { "nameid": "POWER_GEM", "shadow": false, "legacy": false },
             { "nameid": "DAZZLING_GLEAM", "shadow": false, "legacy": false },
+            { "nameid": "POWER_GEM", "shadow": false, "legacy": false },
             { "nameid": "SLUDGE_WAVE", "shadow": false, "legacy": false },
             { "nameid": "METEOR_BEAM", "shadow": false, "legacy": false }
         ],
-        "ses": "970",
-        "defense": "177"
+        "Defense": "177"
     },
     "Noivern": {
         "live": true,
@@ -2324,6 +2334,38 @@
         ],
         "Defense": 195
     },
+    "Enamorus Therian Forme": {
+        "live": true,
+        "Flee": 0,
+        "Catch": 0,
+        "shadowshiny": false,
+        "giga": false,
+        "number": "905",
+        "evolutions": [],
+        "form": false,
+        "mega": false,
+        "Attack": "250",
+        "HP": "179",
+        "shadow": false,
+        "shiny": false,
+        "gender": "",
+        "Name": "Enamorus Therian Forme",
+        "tradable": true,
+        "Type": ["Fairy", "Flying"],
+        "sprite": "905-Enamorus Therian Forme",
+        "formtype": "Therian",
+        "generation": 8.5,
+        "ses": "905-Therian",
+        "moves": [
+            { "nameid": "ASTONISH", "shadow": false, "legacy": false },
+            { "nameid": "FAIRY_WIND", "shadow": false, "legacy": false },
+            { "nameid": "ZEN_HEADBUTT", "shadow": false, "legacy": false },
+            { "nameid": "DAZZLING_GLEAM", "shadow": false, "legacy": false },
+            { "nameid": "FLY", "shadow": false, "legacy": false },
+            { "nameid": "GRASS_KNOT", "shadow": false, "legacy": false }
+        ],
+        "Defense": "201"
+    },
     "Azurill": {
         "live": true,
         "Flee": 4,
@@ -2653,6 +2695,39 @@
         ],
         "Defense": 158
     },
+    "Gigantamax Copperajah": {
+        "flee": 0,
+        "live": false,
+        "catch": 20,
+        "shadowshiny": false,
+        "number": "879",
+        "giga": true,
+        "form": true,
+        "evolutions": [],
+        "mega": false,
+        "attack": "226",
+        "hp": "263",
+        "shadow": false,
+        "shiny": false,
+        "gender": "",
+        "name": "Gigantamax Copperajah",
+        "type": ["Steel"],
+        "tradable": false,
+        "sprite": "879-Gigantamax Copperajah",
+        "formtype": "Gigantamax",
+        "generation": 8,
+        "moves": [
+            { "nameid": "TACKLE", "shadow": false, "legacy": false },
+            { "nameid": "ROCK_SMASH", "shadow": false, "legacy": false },
+            { "nameid": "DIG", "shadow": false, "legacy": false },
+            { "nameid": "IRON_HEAD", "shadow": false, "legacy": false },
+            { "nameid": "PLAY_ROUGH", "shadow": false, "legacy": false },
+            { "nameid": "HEAVY_SLAM", "shadow": false, "legacy": false },
+            { "nameid": "G-MAX_STEELSURGE", "shadow": false, "legacy": false }
+        ],
+        "ses": "879-Gigantamax",
+        "defense": "126"
+    },
     "Venusaur": {
         "live": true,
         "Flee": 5,
@@ -2662,20 +2737,20 @@
         "number": 3,
         "evolutions": [
             {
-                "condition": "Gigantamax Form",
-                "number": 3,
-                "gender": "",
-                "cost": "",
-                "name": "Gigantamax Venusaur",
-                "special": true,
-                "stage": 0
-            },
-            {
                 "condition": "Mega Evolution",
                 "number": 3,
                 "gender": "",
                 "cost": "",
                 "name": "Mega Venusaur",
+                "special": true,
+                "stage": 0
+            },
+            {
+                "condition": "Gigantamax Form",
+                "number": 3,
+                "gender": "",
+                "cost": "",
+                "name": "Gigantamax Venusaur",
                 "special": true,
                 "stage": 0
             }
@@ -2988,13 +3063,12 @@
         "Defense": 94
     },
     "Glimmet": {
-        "flee": 0,
         "live": true,
-        "catch": 20,
+        "Flee": 0,
+        "Catch": 20,
         "shadowshiny": false,
-        "number": "969",
         "giga": false,
-        "form": false,
+        "number": "969",
         "evolutions": [
             {
                 "condition": "",
@@ -3007,27 +3081,61 @@
                 "stage": ""
             }
         ],
+        "form": false,
         "mega": false,
-        "attack": "187",
-        "hp": "134",
+        "Attack": "187",
+        "HP": "134",
         "shadow": false,
         "shiny": false,
         "gender": "",
-        "name": "Glimmet",
-        "type": ["Rock", "Poison"],
+        "Name": "Glimmet",
         "tradable": true,
+        "Type": ["Rock", "Poison"],
         "sprite": "969",
         "formtype": "",
         "generation": 9,
+        "ses": "969",
         "moves": [
             { "nameid": "ROCK_THROW", "shadow": false, "legacy": false },
             { "nameid": "SMACK_DOWN", "shadow": false, "legacy": false },
-            { "nameid": "POWER_GEM", "shadow": false, "legacy": false },
             { "nameid": "DAZZLING_GLEAM", "shadow": false, "legacy": false },
+            { "nameid": "POWER_GEM", "shadow": false, "legacy": false },
             { "nameid": "SLUDGE_WAVE", "shadow": false, "legacy": false }
         ],
-        "ses": "969",
-        "defense": "104"
+        "Defense": "104"
+    },
+    "Gigantamax Meowth": {
+        "flee": 0,
+        "live": true,
+        "catch": 20,
+        "shadowshiny": false,
+        "number": "52",
+        "giga": true,
+        "form": true,
+        "evolutions": [],
+        "mega": false,
+        "attack": "92",
+        "hp": "120",
+        "shadow": false,
+        "shiny": true,
+        "gender": "",
+        "name": "Gigantamax Meowth",
+        "type": ["Normal"],
+        "tradable": false,
+        "sprite": "52-Gigantamax Meowth",
+        "formtype": "Gigantamax",
+        "generation": 1,
+        "moves": [
+            { "nameid": "BITE", "shadow": false, "legacy": false },
+            { "nameid": "SCRATCH", "shadow": false, "legacy": false },
+            { "nameid": "DARK_PULSE", "shadow": false, "legacy": false },
+            { "nameid": "NIGHT_SLASH", "shadow": false, "legacy": false },
+            { "nameid": "BODY_SLAM ", "shadow": false, "legacy": true },
+            { "nameid": "FOUL_PLAY", "shadow": false, "legacy": false },
+            { "nameid": "G-MAX_GOLD RUSH", "shadow": false, "legacy": false }
+        ],
+        "ses": "52-Gigantamax",
+        "defense": "78"
     },
     "Overqwil": {
         "live": true,
@@ -3063,49 +3171,6 @@
             { "nameid": "RETURN", "shadow": true, "legacy": false }
         ],
         "Defense": 171
-    },
-    "Lopunny": {
-        "live": true,
-        "Flee": 6,
-        "Catch": 20,
-        "shadowshiny": false,
-        "giga": false,
-        "number": 428,
-        "evolutions": [
-            {
-                "condition": "Mega Evolution",
-                "number": 428,
-                "gender": "",
-                "cost": "",
-                "name": "Mega Lopunny",
-                "special": true,
-                "stage": 0
-            }
-        ],
-        "form": false,
-        "mega": false,
-        "Attack": 156,
-        "HP": 163,
-        "shadow": false,
-        "shiny": true,
-        "gender": "",
-        "Name": "Lopunny",
-        "tradable": true,
-        "Type": ["Normal"],
-        "sprite": 428,
-        "formtype": "",
-        "generation": 4,
-        "ses": 428,
-        "moves": [
-            { "nameid": "DOUBLE_KICK", "shadow": false, "legacy": false },
-            { "nameid": "LOW_KICK", "shadow": false, "legacy": false },
-            { "nameid": "POUND", "shadow": false, "legacy": false },
-            { "nameid": "FIRE_PUNCH", "shadow": false, "legacy": false },
-            { "nameid": "FOCUS_BLAST", "shadow": false, "legacy": false },
-            { "nameid": "HYPER_BEAM", "shadow": false, "legacy": false },
-            { "nameid": "TRIPLE_AXEL", "shadow": false, "legacy": false }
-        ],
-        "Defense": 194
     },
     "Corphish": {
         "live": true,
@@ -3152,6 +3217,49 @@
             { "nameid": "RETURN", "shadow": true, "legacy": false }
         ],
         "Defense": 99
+    },
+    "Lopunny": {
+        "live": true,
+        "Flee": 6,
+        "Catch": 20,
+        "shadowshiny": false,
+        "giga": false,
+        "number": 428,
+        "evolutions": [
+            {
+                "condition": "Mega Evolution",
+                "number": 428,
+                "gender": "",
+                "cost": "",
+                "name": "Mega Lopunny",
+                "special": true,
+                "stage": 0
+            }
+        ],
+        "form": false,
+        "mega": false,
+        "Attack": 156,
+        "HP": 163,
+        "shadow": false,
+        "shiny": true,
+        "gender": "",
+        "Name": "Lopunny",
+        "tradable": true,
+        "Type": ["Normal"],
+        "sprite": 428,
+        "formtype": "",
+        "generation": 4,
+        "ses": 428,
+        "moves": [
+            { "nameid": "DOUBLE_KICK", "shadow": false, "legacy": false },
+            { "nameid": "LOW_KICK", "shadow": false, "legacy": false },
+            { "nameid": "POUND", "shadow": false, "legacy": false },
+            { "nameid": "FIRE_PUNCH", "shadow": false, "legacy": false },
+            { "nameid": "FOCUS_BLAST", "shadow": false, "legacy": false },
+            { "nameid": "HYPER_BEAM", "shadow": false, "legacy": false },
+            { "nameid": "TRIPLE_AXEL", "shadow": false, "legacy": false }
+        ],
+        "Defense": 194
     },
     "Duosion": {
         "live": true,
@@ -3296,7 +3404,7 @@
         "Attack": 160,
         "HP": 149,
         "shadow": false,
-        "shiny": false,
+        "shiny": true,
         "gender": "",
         "Name": "Klefki",
         "tradable": true,
@@ -3388,35 +3496,36 @@
         "Defense": 91
     },
     "Klawf": {
-        "flee": 0,
         "live": true,
-        "catch": 20,
+        "Flee": 0,
+        "Catch": 20,
         "shadowshiny": false,
-        "number": "950",
         "giga": false,
-        "form": false,
+        "number": "950",
         "evolutions": [],
+        "form": false,
         "mega": false,
-        "attack": "184",
-        "hp": "172",
+        "Attack": "184",
+        "HP": "172",
         "shadow": false,
         "shiny": false,
         "gender": "",
-        "name": "Klawf",
-        "type": ["Rock"],
+        "Name": "Klawf",
         "tradable": true,
+        "Type": ["Rock"],
         "sprite": "950",
         "formtype": "",
         "generation": 9,
-        "moves": [
-            { "nameid": "ROCK_THROW", "shadow": false, "legacy": false },
-            { "nameid": "MUD-SLAP", "shadow": false, "legacy": false },
-            { "nameid": "ROCK_TOMB", "shadow": false, "legacy": false },
-            { "nameid": "ROCK_SLIDE", "shadow": false, "legacy": false },
-            { "nameid": "BULLDOZE", "shadow": false, "legacy": false }
-        ],
         "ses": "950",
-        "defense": "185"
+        "moves": [
+            { "nameid": "MUD_SLAP", "shadow": false, "legacy": false },
+            { "nameid": "ROCK_THROW", "shadow": false, "legacy": false },
+            { "nameid": "BULLDOZE", "shadow": false, "legacy": false },
+            { "nameid": "ROCK_SLIDE", "shadow": false, "legacy": false },
+            { "nameid": "ROCK_TOMB", "shadow": false, "legacy": false },
+            { "nameid": "MUD-SLAP", "shadow": false, "legacy": false }
+        ],
+        "Defense": "185"
     },
     "Noibat": {
         "live": true,
@@ -3579,6 +3688,37 @@
         ],
         "Defense": 121
     },
+    "Castform Snowy Form": {
+        "live": true,
+        "Flee": 10,
+        "Catch": 30,
+        "shadowshiny": false,
+        "giga": false,
+        "number": 351,
+        "evolutions": [],
+        "form": true,
+        "mega": false,
+        "Attack": 139,
+        "HP": 172,
+        "shadow": false,
+        "shiny": true,
+        "gender": "",
+        "Name": "Castform Snowy Form",
+        "tradable": true,
+        "Type": ["Ice"],
+        "sprite": "351-Castform Snowy Form",
+        "formtype": "Snowy",
+        "generation": 3,
+        "ses": "351-Snowy",
+        "moves": [
+            { "nameid": "POWDER_SNOW", "shadow": false, "legacy": false },
+            { "nameid": "TACKLE", "shadow": false, "legacy": false },
+            { "nameid": "BLIZZARD", "shadow": false, "legacy": false },
+            { "nameid": "ICE_BEAM", "shadow": false, "legacy": false },
+            { "nameid": "WEATHER_BALL_ICE", "shadow": false, "legacy": false }
+        ],
+        "Defense": 139
+    },
     "Zorua": {
         "live": true,
         "Flee": 9,
@@ -3621,37 +3761,6 @@
             { "nameid": "NIGHT_SHADE", "shadow": false, "legacy": false }
         ],
         "Defense": 78
-    },
-    "Castform Snowy Form": {
-        "live": true,
-        "Flee": 10,
-        "Catch": 30,
-        "shadowshiny": false,
-        "giga": false,
-        "number": 351,
-        "evolutions": [],
-        "form": true,
-        "mega": false,
-        "Attack": 139,
-        "HP": 172,
-        "shadow": false,
-        "shiny": true,
-        "gender": "",
-        "Name": "Castform Snowy Form",
-        "tradable": true,
-        "Type": ["Ice"],
-        "sprite": "351-Castform Snowy Form",
-        "formtype": "Snowy",
-        "generation": 3,
-        "ses": "351-Snowy",
-        "moves": [
-            { "nameid": "POWDER_SNOW", "shadow": false, "legacy": false },
-            { "nameid": "TACKLE", "shadow": false, "legacy": false },
-            { "nameid": "BLIZZARD", "shadow": false, "legacy": false },
-            { "nameid": "ICE_BEAM", "shadow": false, "legacy": false },
-            { "nameid": "WEATHER_BALL_ICE", "shadow": false, "legacy": false }
-        ],
-        "Defense": 139
     },
     "Tatsugiri (Droopy Form)": {
         "flee": 0,
@@ -3887,41 +3996,6 @@
         ],
         "Defense": 64
     },
-    "Registeel": {
-        "live": true,
-        "Flee": 1,
-        "Catch": 2,
-        "shadowshiny": true,
-        "giga": false,
-        "number": 379,
-        "evolutions": [],
-        "form": false,
-        "mega": false,
-        "Attack": 143,
-        "HP": 190,
-        "shadow": true,
-        "shiny": true,
-        "gender": "",
-        "Name": "Registeel",
-        "tradable": true,
-        "Type": ["Steel"],
-        "sprite": 379,
-        "formtype": "",
-        "generation": 3,
-        "ses": 379,
-        "moves": [
-            { "nameid": "LOCK_ON", "shadow": false, "legacy": false },
-            { "nameid": "METAL_CLAW", "shadow": false, "legacy": false },
-            { "nameid": "ROCK_SMASH", "shadow": false, "legacy": false },
-            { "nameid": "FLASH_CANNON", "shadow": false, "legacy": false },
-            { "nameid": "FOCUS_BLAST", "shadow": false, "legacy": false },
-            { "nameid": "HYPER_BEAM", "shadow": false, "legacy": false },
-            { "nameid": "ZAP_CANNON", "shadow": false, "legacy": false },
-            { "nameid": "FRUSTRATION", "shadow": true, "legacy": false },
-            { "nameid": "RETURN", "shadow": true, "legacy": false }
-        ],
-        "Defense": 285
-    },
     "Skitty": {
         "live": true,
         "Flee": 10,
@@ -3963,6 +4037,41 @@
             { "nameid": "WILD_CHARGE", "shadow": false, "legacy": false }
         ],
         "Defense": 79
+    },
+    "Registeel": {
+        "live": true,
+        "Flee": 1,
+        "Catch": 2,
+        "shadowshiny": true,
+        "giga": false,
+        "number": 379,
+        "evolutions": [],
+        "form": false,
+        "mega": false,
+        "Attack": 143,
+        "HP": 190,
+        "shadow": true,
+        "shiny": true,
+        "gender": "",
+        "Name": "Registeel",
+        "tradable": true,
+        "Type": ["Steel"],
+        "sprite": 379,
+        "formtype": "",
+        "generation": 3,
+        "ses": 379,
+        "moves": [
+            { "nameid": "LOCK_ON", "shadow": false, "legacy": false },
+            { "nameid": "METAL_CLAW", "shadow": false, "legacy": false },
+            { "nameid": "ROCK_SMASH", "shadow": false, "legacy": false },
+            { "nameid": "FLASH_CANNON", "shadow": false, "legacy": false },
+            { "nameid": "FOCUS_BLAST", "shadow": false, "legacy": false },
+            { "nameid": "HYPER_BEAM", "shadow": false, "legacy": false },
+            { "nameid": "ZAP_CANNON", "shadow": false, "legacy": false },
+            { "nameid": "FRUSTRATION", "shadow": true, "legacy": false },
+            { "nameid": "RETURN", "shadow": true, "legacy": false }
+        ],
+        "Defense": 285
     },
     "Wigglytuff": {
         "live": true,
@@ -6029,6 +6138,40 @@
         ],
         "Defense": 143
     },
+    "Gigantamax Hatterene": {
+        "flee": 0,
+        "live": false,
+        "catch": 20,
+        "shadowshiny": false,
+        "number": "858",
+        "giga": true,
+        "form": true,
+        "evolutions": [],
+        "mega": false,
+        "attack": "237",
+        "hp": "149",
+        "shadow": false,
+        "shiny": false,
+        "gender": "",
+        "name": "Gigantamax Hatterene",
+        "type": ["Psychic", "Fairy"],
+        "tradable": false,
+        "sprite": "858-Gigantamax Hatterene",
+        "formtype": "Gigantamax",
+        "generation": 8,
+        "moves": [
+            { "nameid": "PSYCHO_CUT", "shadow": false, "legacy": false },
+            { "nameid": "CONFUSION", "shadow": false, "legacy": false },
+            { "nameid": "CHARM", "shadow": false, "legacy": false },
+            { "nameid": "PSYSHOCK", "shadow": false, "legacy": false },
+            { "nameid": "DAZZLING_GLEAM", "shadow": false, "legacy": false },
+            { "nameid": "PSYCHIC", "shadow": false, "legacy": false },
+            { "nameid": "POWER_WHIP", "shadow": false, "legacy": false },
+            { "nameid": "G-MAX_SMITE", "shadow": false, "legacy": false }
+        ],
+        "ses": "858-Gigantamax",
+        "defense": "182"
+    },
     "Smoliv": {
         "live": true,
         "Flee": 10,
@@ -7065,6 +7208,71 @@
         ],
         "Defense": 193
     },
+    "Gigantamax Alcremie": {
+        "flee": 0,
+        "live": false,
+        "catch": 20,
+        "shadowshiny": false,
+        "number": "869",
+        "giga": true,
+        "form": true,
+        "evolutions": [],
+        "mega": false,
+        "attack": "203",
+        "hp": "163",
+        "shadow": false,
+        "shiny": false,
+        "gender": "",
+        "name": "Gigantamax Alcremie",
+        "type": ["Fairy"],
+        "tradable": false,
+        "sprite": "869-Gigantamax Alcremie",
+        "formtype": "Gigantamax",
+        "generation": 8,
+        "moves": [
+            { "nameid": "TACKLE", "shadow": false, "legacy": false },
+            { "nameid": "CHARM", "shadow": false, "legacy": false },
+            { "nameid": "PSYSHOCK", "shadow": false, "legacy": false },
+            { "nameid": "DAZZLING_GLEAM", "shadow": false, "legacy": false },
+            { "nameid": "ENERGY_BALL", "shadow": false, "legacy": false },
+            { "nameid": "G-MAX_FINALE", "shadow": false, "legacy": false }
+        ],
+        "ses": "869-Gigantamax",
+        "defense": "203"
+    },
+    "Naganadel": {
+        "live": true,
+        "Flee": 0,
+        "Catch": 30,
+        "shadowshiny": false,
+        "giga": false,
+        "number": 804,
+        "evolutions": [],
+        "form": false,
+        "mega": false,
+        "Attack": 263,
+        "HP": 177,
+        "shadow": false,
+        "shiny": false,
+        "gender": "",
+        "Name": "Naganadel",
+        "tradable": true,
+        "Type": ["Poison", "Dragon"],
+        "sprite": 804,
+        "formtype": "",
+        "generation": 7,
+        "ses": 804,
+        "moves": [
+            { "nameid": "AIR_SLASH", "shadow": false, "legacy": false },
+            { "nameid": "POISON_JAB", "shadow": false, "legacy": false },
+            { "nameid": "ACROBATICS", "shadow": false, "legacy": false },
+            { "nameid": "DRAGON_CLAW", "shadow": false, "legacy": false },
+            { "nameid": "DRAGON_PULSE", "shadow": false, "legacy": false },
+            { "nameid": "FELL_STINGER", "shadow": false, "legacy": false },
+            { "nameid": "SLUDGE_BOMB", "shadow": false, "legacy": false }
+        ],
+        "Defense": 159
+    },
     "Kubfu": {
         "live": true,
         "Flee": 10,
@@ -7116,39 +7324,6 @@
             { "nameid": "DYNAMIC_PUNCH", "shadow": false, "legacy": false }
         ],
         "Defense": 112
-    },
-    "Naganadel": {
-        "live": true,
-        "Flee": 0,
-        "Catch": 30,
-        "shadowshiny": false,
-        "giga": false,
-        "number": 804,
-        "evolutions": [],
-        "form": false,
-        "mega": false,
-        "Attack": 263,
-        "HP": 177,
-        "shadow": false,
-        "shiny": false,
-        "gender": "",
-        "Name": "Naganadel",
-        "tradable": true,
-        "Type": ["Poison", "Dragon"],
-        "sprite": 804,
-        "formtype": "",
-        "generation": 7,
-        "ses": 804,
-        "moves": [
-            { "nameid": "AIR_SLASH", "shadow": false, "legacy": false },
-            { "nameid": "POISON_JAB", "shadow": false, "legacy": false },
-            { "nameid": "ACROBATICS", "shadow": false, "legacy": false },
-            { "nameid": "DRAGON_CLAW", "shadow": false, "legacy": false },
-            { "nameid": "DRAGON_PULSE", "shadow": false, "legacy": false },
-            { "nameid": "FELL_STINGER", "shadow": false, "legacy": false },
-            { "nameid": "SLUDGE_BOMB", "shadow": false, "legacy": false }
-        ],
-        "Defense": 159
     },
     "Suicune": {
         "live": true,
@@ -7627,7 +7802,7 @@
         "Attack": 159,
         "HP": 149,
         "shadow": false,
-        "shiny": false,
+        "shiny": true,
         "gender": "",
         "Name": "Dachsbun",
         "tradable": true,
@@ -9571,50 +9746,6 @@
         ],
         "Defense": 217
     },
-    "Alolan Sandshrew": {
-        "live": true,
-        "Flee": 10,
-        "Catch": 50,
-        "shadowshiny": false,
-        "giga": false,
-        "number": 27,
-        "evolutions": [
-            {
-                "condition": "",
-                "number": 28,
-                "cost": 50,
-                "gender": "",
-                "name": "Alolan Sandslash",
-                "special": false,
-                "region": "Alolan",
-                "stage": 2
-            }
-        ],
-        "form": true,
-        "mega": false,
-        "Attack": 125,
-        "HP": 137,
-        "shadow": true,
-        "shiny": true,
-        "gender": "",
-        "Name": "Alolan Sandshrew",
-        "tradable": true,
-        "Type": ["Ice", "Steel"],
-        "sprite": "27-Alolan Sandshrew",
-        "formtype": "Alolan",
-        "generation": 7,
-        "ses": "27-Alolan",
-        "moves": [
-            { "nameid": "METAL_CLAW", "shadow": false, "legacy": false },
-            { "nameid": "POWDER_SNOW", "shadow": false, "legacy": false },
-            { "nameid": "BLIZZARD", "shadow": false, "legacy": false },
-            { "nameid": "GYRO_BALL", "shadow": false, "legacy": false },
-            { "nameid": "NIGHT_SLASH", "shadow": false, "legacy": false },
-            { "nameid": "FRUSTRATION", "shadow": true, "legacy": false },
-            { "nameid": "RETURN", "shadow": true, "legacy": false }
-        ],
-        "Defense": 129
-    },
     "Kingler": {
         "live": true,
         "Flee": 7,
@@ -9660,6 +9791,50 @@
             { "nameid": "RETURN", "shadow": true, "legacy": false }
         ],
         "Defense": 181
+    },
+    "Alolan Sandshrew": {
+        "live": true,
+        "Flee": 10,
+        "Catch": 50,
+        "shadowshiny": false,
+        "giga": false,
+        "number": 27,
+        "evolutions": [
+            {
+                "condition": "",
+                "number": 28,
+                "cost": 50,
+                "gender": "",
+                "name": "Alolan Sandslash",
+                "special": false,
+                "region": "Alolan",
+                "stage": 2
+            }
+        ],
+        "form": true,
+        "mega": false,
+        "Attack": 125,
+        "HP": 137,
+        "shadow": true,
+        "shiny": true,
+        "gender": "",
+        "Name": "Alolan Sandshrew",
+        "tradable": true,
+        "Type": ["Ice", "Steel"],
+        "sprite": "27-Alolan Sandshrew",
+        "formtype": "Alolan",
+        "generation": 7,
+        "ses": "27-Alolan",
+        "moves": [
+            { "nameid": "METAL_CLAW", "shadow": false, "legacy": false },
+            { "nameid": "POWDER_SNOW", "shadow": false, "legacy": false },
+            { "nameid": "BLIZZARD", "shadow": false, "legacy": false },
+            { "nameid": "GYRO_BALL", "shadow": false, "legacy": false },
+            { "nameid": "NIGHT_SLASH", "shadow": false, "legacy": false },
+            { "nameid": "FRUSTRATION", "shadow": true, "legacy": false },
+            { "nameid": "RETURN", "shadow": true, "legacy": false }
+        ],
+        "Defense": 129
     },
     "Dubwool": {
         "live": true,
@@ -9842,13 +10017,12 @@
         "Defense": 232
     },
     "Wattrel": {
-        "flee": 0,
         "live": true,
-        "catch": 20,
+        "Flee": 0,
+        "Catch": 20,
         "shadowshiny": false,
-        "number": "940",
         "giga": false,
-        "form": false,
+        "number": "940",
         "evolutions": [
             {
                 "condition": "",
@@ -9861,27 +10035,28 @@
                 "stage": ""
             }
         ],
+        "form": false,
         "mega": false,
-        "attack": "105",
-        "hp": "120",
+        "Attack": "105",
+        "HP": "120",
         "shadow": false,
         "shiny": false,
         "gender": "",
-        "name": "Wattrel",
-        "type": ["Electric", "Flying"],
+        "Name": "Wattrel",
         "tradable": true,
+        "Type": ["Electric", "Flying"],
         "sprite": "940",
         "formtype": "",
         "generation": 9,
-        "moves": [
-            { "nameid": "THUNDER_SHOCK", "shadow": false, "legacy": false },
-            { "nameid": "PECK", "shadow": false, "legacy": false },
-            { "nameid": "AERIAL_ACE", "shadow": false, "legacy": false },
-            { "nameid": "THUNDERBOLT", "shadow": false, "legacy": false },
-            { "nameid": "ACROBATICS", "shadow": false, "legacy": false }
-        ],
         "ses": "940",
-        "defense": "75"
+        "moves": [
+            { "nameid": "PECK", "shadow": false, "legacy": false },
+            { "nameid": "THUNDER_SHOCK", "shadow": false, "legacy": false },
+            { "nameid": "ACROBATICS", "shadow": false, "legacy": false },
+            { "nameid": "AERIAL_ACE", "shadow": false, "legacy": false },
+            { "nameid": "THUNDERBOLT", "shadow": false, "legacy": false }
+        ],
+        "Defense": "75"
     },
     "Dialga Origin Forme": {
         "live": true,
@@ -10011,16 +10186,6 @@
                 "stage": 2
             },
             {
-                "condition": "earn 70 buddy hearts",
-                "number": 700,
-                "cost": 25,
-                "gender": "",
-                "name": "Sylveon",
-                "special": false,
-                "region": "",
-                "stage": 2
-            },
-            {
                 "condition": "random",
                 "number": 134,
                 "cost": 25,
@@ -10031,11 +10196,11 @@
                 "stage": 2
             },
             {
-                "condition": "use Mossy Lure",
-                "number": 470,
+                "condition": "random",
+                "number": 135,
                 "cost": 25,
                 "gender": "",
-                "name": "Leafeon",
+                "name": "Jolteon",
                 "special": false,
                 "region": "",
                 "stage": 2
@@ -10052,10 +10217,30 @@
             },
             {
                 "condition": "random",
-                "number": 135,
+                "number": 136,
                 "cost": 25,
                 "gender": "",
-                "name": "Jolteon",
+                "name": "Flareon",
+                "special": false,
+                "region": "",
+                "stage": 2
+            },
+            {
+                "condition": "earn 70 buddy hearts",
+                "number": 700,
+                "cost": 25,
+                "gender": "",
+                "name": "Sylveon",
+                "special": false,
+                "region": "",
+                "stage": 2
+            },
+            {
+                "condition": "use Mossy Lure",
+                "number": 470,
+                "cost": 25,
+                "gender": "",
+                "name": "Leafeon",
                 "special": false,
                 "region": "",
                 "stage": 2
@@ -10066,16 +10251,6 @@
                 "cost": 25,
                 "gender": "",
                 "name": "Glaceon",
-                "special": false,
-                "region": "",
-                "stage": 2
-            },
-            {
-                "condition": "random",
-                "number": 136,
-                "cost": 25,
-                "gender": "",
-                "name": "Flareon",
                 "special": false,
                 "region": "",
                 "stage": 2
@@ -10631,7 +10806,7 @@
         "Attack": 342,
         "HP": 137,
         "shadow": false,
-        "shiny": false,
+        "shiny": true,
         "gender": "",
         "Name": "Mega Diancie",
         "tradable": false,
@@ -11951,35 +12126,37 @@
         "Defense": 148
     },
     "Grapploct": {
-        "flee": 0,
         "live": true,
-        "catch": 20,
+        "Flee": 0,
+        "Catch": 20,
         "shadowshiny": false,
-        "number": "853",
         "giga": false,
-        "form": false,
+        "number": "853",
         "evolutions": [],
+        "form": false,
         "mega": false,
-        "attack": "209",
-        "hp": "190",
+        "Attack": "209",
+        "HP": "190",
         "shadow": false,
         "shiny": false,
         "gender": "",
-        "name": "Grapploct",
-        "type": ["Fighting"],
+        "Name": "Grapploct",
         "tradable": true,
+        "Type": ["Fighting"],
         "sprite": "853",
+        "formtype": "",
         "generation": 8,
         "ses": "853",
         "moves": [
             { "nameid": "ROCK_SMASH", "shadow": false, "legacy": false },
             { "nameid": "WATERFALL", "shadow": false, "legacy": false },
-            { "nameid": "ICE_PUNCH", "shadow": false, "legacy": false },
             { "nameid": "BRICK_BREAK", "shadow": false, "legacy": false },
+            { "nameid": "ICE_PUNCH", "shadow": false, "legacy": false },
+            { "nameid": "SUPER_POWER", "shadow": false, "legacy": false },
             { "nameid": "SURF", "shadow": false, "legacy": false },
             { "nameid": "SUPERPOWER", "shadow": false, "legacy": false }
         ],
-        "defense": "162"
+        "Defense": "162"
     },
     "Stunky": {
         "live": true,
@@ -12348,15 +12525,6 @@
         "number": 6,
         "evolutions": [
             {
-                "condition": "Gigantamax Form",
-                "number": 6,
-                "gender": "",
-                "cost": "",
-                "name": "Gigantamax Charizard",
-                "special": true,
-                "stage": 0
-            },
-            {
                 "condition": "Mega Evolution",
                 "number": 6,
                 "gender": "",
@@ -12371,6 +12539,15 @@
                 "gender": "",
                 "cost": "",
                 "name": "Mega Charizard X",
+                "special": true,
+                "stage": 0
+            },
+            {
+                "condition": "Gigantamax Form",
+                "number": 6,
+                "gender": "",
+                "cost": "",
+                "name": "Gigantamax Charizard",
                 "special": true,
                 "stage": 0
             }
@@ -12710,6 +12887,38 @@
         ],
         "Defense": 174
     },
+    "Genesect Shock Drive": {
+        "live": true,
+        "Flee": 1,
+        "Catch": 2,
+        "shadowshiny": false,
+        "giga": false,
+        "number": 649,
+        "evolutions": [],
+        "form": true,
+        "mega": false,
+        "Attack": 252,
+        "HP": 174,
+        "shadow": false,
+        "shiny": true,
+        "gender": "",
+        "Name": "Genesect Shock Drive",
+        "tradable": false,
+        "Type": ["Bug", "Steel"],
+        "sprite": "649-Genesect Shock Drive",
+        "formtype": "Shock",
+        "generation": 5,
+        "ses": "649-Shock",
+        "moves": [
+            { "nameid": "FURY_CUTTER", "shadow": false, "legacy": false },
+            { "nameid": "METAL_CLAW", "shadow": false, "legacy": false },
+            { "nameid": "MAGNET_BOMB", "shadow": false, "legacy": false },
+            { "nameid": "X_SCISSOR", "shadow": false, "legacy": false },
+            { "nameid": "ZAP_CANNON", "shadow": false, "legacy": false },
+            { "nameid": "TECHNO_BLAST_SHOCK", "shadow": false, "legacy": true }
+        ],
+        "Defense": 199
+    },
     "Mega Absol": {
         "live": true,
         "Flee": 10,
@@ -12776,38 +12985,6 @@
             { "nameid": "WATER_PULSE", "shadow": false, "legacy": false }
         ],
         "Defense": 179
-    },
-    "Genesect Shock Drive": {
-        "live": true,
-        "Flee": 1,
-        "Catch": 2,
-        "shadowshiny": false,
-        "giga": false,
-        "number": 649,
-        "evolutions": [],
-        "form": true,
-        "mega": false,
-        "Attack": 252,
-        "HP": 174,
-        "shadow": false,
-        "shiny": true,
-        "gender": "",
-        "Name": "Genesect Shock Drive",
-        "tradable": false,
-        "Type": ["Bug", "Steel"],
-        "sprite": "649-Genesect Shock Drive",
-        "formtype": "Shock",
-        "generation": 5,
-        "ses": "649-Shock",
-        "moves": [
-            { "nameid": "FURY_CUTTER", "shadow": false, "legacy": false },
-            { "nameid": "METAL_CLAW", "shadow": false, "legacy": false },
-            { "nameid": "MAGNET_BOMB", "shadow": false, "legacy": false },
-            { "nameid": "X_SCISSOR", "shadow": false, "legacy": false },
-            { "nameid": "ZAP_CANNON", "shadow": false, "legacy": false },
-            { "nameid": "TECHNO_BLAST_SHOCK", "shadow": false, "legacy": true }
-        ],
-        "Defense": 199
     },
     "Cinderace": {
         "live": true,
@@ -14230,41 +14407,6 @@
         ],
         "Defense": 275
     },
-    "Wailord": {
-        "live": true,
-        "Flee": 6,
-        "Catch": 20,
-        "shadowshiny": false,
-        "giga": false,
-        "number": 321,
-        "evolutions": [],
-        "form": false,
-        "mega": false,
-        "Attack": 175,
-        "HP": 347,
-        "shadow": true,
-        "shiny": true,
-        "gender": "",
-        "Name": "Wailord",
-        "tradable": true,
-        "Type": ["Water"],
-        "sprite": 321,
-        "formtype": "",
-        "generation": 3,
-        "ses": 321,
-        "moves": [
-            { "nameid": "ROLLOUT", "shadow": false, "legacy": false },
-            { "nameid": "WATER_GUN", "shadow": false, "legacy": false },
-            { "nameid": "ZEN_HEADBUTT", "shadow": false, "legacy": false },
-            { "nameid": "BLIZZARD", "shadow": false, "legacy": false },
-            { "nameid": "HYPER_BEAM", "shadow": false, "legacy": false },
-            { "nameid": "SCALD", "shadow": false, "legacy": false },
-            { "nameid": "SURF", "shadow": false, "legacy": false },
-            { "nameid": "FRUSTRATION", "shadow": true, "legacy": false },
-            { "nameid": "RETURN", "shadow": true, "legacy": false }
-        ],
-        "Defense": 87
-    },
     "Qwilfish": {
         "live": true,
         "Flee": 8,
@@ -14300,6 +14442,41 @@
             { "nameid": "RETURN", "shadow": true, "legacy": false }
         ],
         "Defense": 138
+    },
+    "Wailord": {
+        "live": true,
+        "Flee": 6,
+        "Catch": 20,
+        "shadowshiny": false,
+        "giga": false,
+        "number": 321,
+        "evolutions": [],
+        "form": false,
+        "mega": false,
+        "Attack": 175,
+        "HP": 347,
+        "shadow": true,
+        "shiny": true,
+        "gender": "",
+        "Name": "Wailord",
+        "tradable": true,
+        "Type": ["Water"],
+        "sprite": 321,
+        "formtype": "",
+        "generation": 3,
+        "ses": 321,
+        "moves": [
+            { "nameid": "ROLLOUT", "shadow": false, "legacy": false },
+            { "nameid": "WATER_GUN", "shadow": false, "legacy": false },
+            { "nameid": "ZEN_HEADBUTT", "shadow": false, "legacy": false },
+            { "nameid": "BLIZZARD", "shadow": false, "legacy": false },
+            { "nameid": "HYPER_BEAM", "shadow": false, "legacy": false },
+            { "nameid": "SCALD", "shadow": false, "legacy": false },
+            { "nameid": "SURF", "shadow": false, "legacy": false },
+            { "nameid": "FRUSTRATION", "shadow": true, "legacy": false },
+            { "nameid": "RETURN", "shadow": true, "legacy": false }
+        ],
+        "Defense": 87
     },
     "Marowak": {
         "live": true,
@@ -14664,13 +14841,12 @@
         "Defense": 93
     },
     "Carkol": {
-        "flee": 0,
         "live": true,
-        "catch": 20,
+        "Flee": 0,
+        "Catch": 20,
         "shadowshiny": false,
-        "number": "838",
         "giga": false,
-        "form": false,
+        "number": "838",
         "evolutions": [
             {
                 "condition": "",
@@ -14683,27 +14859,28 @@
                 "stage": ""
             }
         ],
+        "form": false,
         "mega": false,
-        "attack": "114",
-        "hp": "190",
+        "Attack": "114",
+        "HP": "190",
         "shadow": false,
         "shiny": false,
         "gender": "",
-        "name": "Carkol",
-        "type": ["Rock", "Fire"],
+        "Name": "Carkol",
         "tradable": true,
+        "Type": ["Rock", "Fire"],
         "sprite": "838",
         "formtype": "",
         "generation": 8,
-        "moves": [
-            { "nameid": "SMACK_DOWN", "shadow": false, "legacy": false },
-            { "nameid": "INCINERATE", "shadow": false, "legacy": false },
-            { "nameid": "ROCK_SLIDE", "shadow": false, "legacy": false },
-            { "nameid": "FLAME_CHARGE", "shadow": false, "legacy": false },
-            { "nameid": "ROCK_BLAST", "shadow": false, "legacy": false }
-        ],
         "ses": "838",
-        "defense": "157"
+        "moves": [
+            { "nameid": "INCINERATE", "shadow": false, "legacy": false },
+            { "nameid": "SMACK_DOWN", "shadow": false, "legacy": false },
+            { "nameid": "FLAME_CHARGE", "shadow": false, "legacy": false },
+            { "nameid": "ROCK_BLAST", "shadow": false, "legacy": false },
+            { "nameid": "ROCK_SLIDE", "shadow": false, "legacy": false }
+        ],
+        "Defense": "157"
     },
     "Mega Houndoom": {
         "live": true,
@@ -15308,35 +15485,35 @@
         "Defense": 219
     },
     "Flamigo": {
-        "flee": 0,
         "live": true,
-        "catch": 20,
+        "Flee": 0,
+        "Catch": 20,
         "shadowshiny": false,
-        "number": "973",
         "giga": false,
-        "form": false,
+        "number": "973",
         "evolutions": [],
+        "form": false,
         "mega": false,
-        "attack": "227",
-        "hp": "193",
+        "Attack": "227",
+        "HP": "193",
         "shadow": false,
         "shiny": false,
         "gender": "",
-        "name": "Flamigo",
-        "type": ["Flying", "Fighting"],
+        "Name": "Flamigo",
         "tradable": true,
+        "Type": ["Flying", "Fighting"],
         "sprite": "973",
         "formtype": "",
         "generation": 9,
-        "moves": [
-            { "nameid": "WING_ATTACK", "shadow": false, "legacy": false },
-            { "nameid": "DOUBLE_KICK", "shadow": false, "legacy": false },
-            { "nameid": "AERIAL_ACE", "shadow": false, "legacy": false },
-            { "nameid": "CLOSE_COMBAT", "shadow": false, "legacy": false },
-            { "nameid": "BRAVE_BIRD", "shadow": false, "legacy": false }
-        ],
         "ses": "973",
-        "defense": "145"
+        "moves": [
+            { "nameid": "DOUBLE_KICK", "shadow": false, "legacy": false },
+            { "nameid": "WING_ATTACK", "shadow": false, "legacy": false },
+            { "nameid": "AERIAL_ACE", "shadow": false, "legacy": false },
+            { "nameid": "BRAVE_BIRD", "shadow": false, "legacy": false },
+            { "nameid": "CLOSE_COMBAT", "shadow": false, "legacy": false }
+        ],
+        "Defense": "145"
     },
     "Regice": {
         "live": true,
@@ -16028,37 +16205,6 @@
         ],
         "Defense": 139
     },
-    "Ninjask": {
-        "live": true,
-        "Flee": 7,
-        "Catch": 10,
-        "shadowshiny": false,
-        "giga": false,
-        "number": 291,
-        "evolutions": [],
-        "form": false,
-        "mega": false,
-        "Attack": 199,
-        "HP": 156,
-        "shadow": false,
-        "shiny": true,
-        "gender": "",
-        "Name": "Ninjask",
-        "tradable": true,
-        "Type": ["Bug", "Flying"],
-        "sprite": 291,
-        "formtype": "",
-        "generation": 3,
-        "ses": 291,
-        "moves": [
-            { "nameid": "FURY_CUTTER", "shadow": false, "legacy": false },
-            { "nameid": "METAL_CLAW", "shadow": false, "legacy": false },
-            { "nameid": "AERIAL_ACE", "shadow": false, "legacy": false },
-            { "nameid": "BUG_BUZZ", "shadow": false, "legacy": false },
-            { "nameid": "SHADOW_BALL", "shadow": false, "legacy": false }
-        ],
-        "Defense": 112
-    },
     "Alolan Grimer": {
         "live": true,
         "Flee": 10,
@@ -16103,6 +16249,37 @@
         ],
         "Defense": 90
     },
+    "Ninjask": {
+        "live": true,
+        "Flee": 7,
+        "Catch": 10,
+        "shadowshiny": false,
+        "giga": false,
+        "number": 291,
+        "evolutions": [],
+        "form": false,
+        "mega": false,
+        "Attack": 199,
+        "HP": 156,
+        "shadow": false,
+        "shiny": true,
+        "gender": "",
+        "Name": "Ninjask",
+        "tradable": true,
+        "Type": ["Bug", "Flying"],
+        "sprite": 291,
+        "formtype": "",
+        "generation": 3,
+        "ses": 291,
+        "moves": [
+            { "nameid": "FURY_CUTTER", "shadow": false, "legacy": false },
+            { "nameid": "METAL_CLAW", "shadow": false, "legacy": false },
+            { "nameid": "AERIAL_ACE", "shadow": false, "legacy": false },
+            { "nameid": "BUG_BUZZ", "shadow": false, "legacy": false },
+            { "nameid": "SHADOW_BALL", "shadow": false, "legacy": false }
+        ],
+        "Defense": 112
+    },
     "Dewpider": {
         "live": true,
         "Flee": 10,
@@ -16145,38 +16322,36 @@
         ],
         "Defense": 117
     },
-    "Sawsbuck Autumn Form": {
-        "live": true,
-        "Flee": 0,
-        "Catch": 15,
+    "Gigantamax Orbeetle": {
+        "flee": 0,
+        "live": false,
+        "catch": 20,
         "shadowshiny": false,
-        "giga": false,
-        "number": 586,
-        "evolutions": [],
+        "number": "826",
+        "giga": true,
         "form": true,
+        "evolutions": [],
         "mega": false,
-        "Attack": 198,
-        "HP": 190,
+        "attack": "156",
+        "hp": "155",
         "shadow": false,
-        "shiny": true,
+        "shiny": false,
         "gender": "",
-        "Name": "Sawsbuck Autumn Form",
-        "tradable": true,
-        "Type": ["Normal", "Grass"],
-        "sprite": "586-Sawsbuck Autumn Form",
-        "formtype": "Autumn",
-        "generation": 5,
-        "ses": "586-Autumn",
+        "name": "Gigantamax Orbeetle",
+        "type": ["Bug", "Psychic"],
+        "tradable": false,
+        "sprite": "826-Gigantamax Orbeetle",
+        "formtype": "Gigantamax",
+        "generation": 8,
         "moves": [
-            { "nameid": "FEINT_ATTACK", "shadow": false, "legacy": false },
-            { "nameid": "TAKE_DOWN", "shadow": false, "legacy": false },
-            { "nameid": "HYPER_BEAM", "shadow": false, "legacy": false },
-            { "nameid": "MEGAHORN", "shadow": false, "legacy": false },
-            { "nameid": "SOLAR_BEAM", "shadow": false, "legacy": false },
-            { "nameid": "TRAILBLAZE", "shadow": false, "legacy": false },
-            { "nameid": "WILD_CHARGE", "shadow": false, "legacy": false }
+            { "nameid": "CONFUSION", "shadow": false, "legacy": false },
+            { "nameid": "STRUGGLE_BUG", "shadow": false, "legacy": false },
+            { "nameid": "BUG_BUZZ", "shadow": false, "legacy": false },
+            { "nameid": "PSYCHIC", "shadow": false, "legacy": false },
+            { "nameid": "G-MAX_GRAVITAS", "shadow": false, "legacy": false }
         ],
-        "Defense": 146
+        "ses": "826-Gigantamax",
+        "defense": "240"
     },
     "Piloswine": {
         "live": true,
@@ -16224,6 +16399,39 @@
         ],
         "Defense": 138
     },
+    "Sawsbuck Autumn Form": {
+        "live": true,
+        "Flee": 0,
+        "Catch": 15,
+        "shadowshiny": false,
+        "giga": false,
+        "number": 586,
+        "evolutions": [],
+        "form": true,
+        "mega": false,
+        "Attack": 198,
+        "HP": 190,
+        "shadow": false,
+        "shiny": true,
+        "gender": "",
+        "Name": "Sawsbuck Autumn Form",
+        "tradable": true,
+        "Type": ["Normal", "Grass"],
+        "sprite": "586-Sawsbuck Autumn Form",
+        "formtype": "Autumn",
+        "generation": 5,
+        "ses": "586-Autumn",
+        "moves": [
+            { "nameid": "FEINT_ATTACK", "shadow": false, "legacy": false },
+            { "nameid": "TAKE_DOWN", "shadow": false, "legacy": false },
+            { "nameid": "HYPER_BEAM", "shadow": false, "legacy": false },
+            { "nameid": "MEGAHORN", "shadow": false, "legacy": false },
+            { "nameid": "SOLAR_BEAM", "shadow": false, "legacy": false },
+            { "nameid": "TRAILBLAZE", "shadow": false, "legacy": false },
+            { "nameid": "WILD_CHARGE", "shadow": false, "legacy": false }
+        ],
+        "Defense": 146
+    },
     "Poochyena": {
         "live": true,
         "Flee": 20,
@@ -16268,37 +16476,6 @@
         ],
         "Defense": 61
     },
-    "Thievul": {
-        "live": true,
-        "Flee": 7,
-        "Catch": 20,
-        "shadowshiny": false,
-        "giga": false,
-        "number": 828,
-        "evolutions": [],
-        "form": false,
-        "mega": false,
-        "Attack": 172,
-        "HP": 172,
-        "shadow": false,
-        "shiny": false,
-        "gender": "",
-        "Name": "Thievul",
-        "tradable": true,
-        "Type": ["Dark"],
-        "sprite": 828,
-        "formtype": "",
-        "generation": 8,
-        "ses": 828,
-        "moves": [
-            { "nameid": "QUICK_ATTACK", "shadow": false, "legacy": false },
-            { "nameid": "SNARL", "shadow": false, "legacy": false },
-            { "nameid": "SUCKER_PUNCH", "shadow": false, "legacy": false },
-            { "nameid": "NIGHT_SLASH", "shadow": false, "legacy": false },
-            { "nameid": "PLAY_ROUGH", "shadow": false, "legacy": false }
-        ],
-        "Defense": 164
-    },
     "Sobble": {
         "live": true,
         "Flee": 10,
@@ -16339,6 +16516,37 @@
             { "nameid": "WATER_PULSE", "shadow": false, "legacy": false }
         ],
         "Defense": 79
+    },
+    "Thievul": {
+        "live": true,
+        "Flee": 7,
+        "Catch": 20,
+        "shadowshiny": false,
+        "giga": false,
+        "number": 828,
+        "evolutions": [],
+        "form": false,
+        "mega": false,
+        "Attack": 172,
+        "HP": 172,
+        "shadow": false,
+        "shiny": false,
+        "gender": "",
+        "Name": "Thievul",
+        "tradable": true,
+        "Type": ["Dark"],
+        "sprite": 828,
+        "formtype": "",
+        "generation": 8,
+        "ses": 828,
+        "moves": [
+            { "nameid": "QUICK_ATTACK", "shadow": false, "legacy": false },
+            { "nameid": "SNARL", "shadow": false, "legacy": false },
+            { "nameid": "SUCKER_PUNCH", "shadow": false, "legacy": false },
+            { "nameid": "NIGHT_SLASH", "shadow": false, "legacy": false },
+            { "nameid": "PLAY_ROUGH", "shadow": false, "legacy": false }
+        ],
+        "Defense": 164
     },
     "Galarian Stunfisk": {
         "live": true,
@@ -18742,6 +18950,40 @@
         "moves": [],
         "Defense": 203
     },
+    "Mega Garchomp": {
+        "flee": 0,
+        "live": true,
+        "catch": 0,
+        "shadowshiny": false,
+        "number": "445",
+        "giga": false,
+        "form": true,
+        "evolutions": [],
+        "mega": true,
+        "attack": "339",
+        "hp": "239",
+        "shadow": false,
+        "shiny": false,
+        "gender": "",
+        "name": "Mega Garchomp",
+        "type": ["Dragon", "Ground"],
+        "tradable": false,
+        "sprite": "445-Mega Garchomp",
+        "formtype": "Mega",
+        "generation": 4,
+        "moves": [
+            { "nameid": "MUD_SHOT", "shadow": false, "legacy": false },
+            { "nameid": "DRAGON_TAIL", "shadow": false, "legacy": false },
+            { "nameid": "EARTHQUAKE", "shadow": false, "legacy": false },
+            { "nameid": "FIRE_BLAST", "shadow": false, "legacy": false },
+            { "nameid": "SAND_TOMB", "shadow": false, "legacy": false },
+            { "nameid": "OUTRAGE", "shadow": false, "legacy": false },
+            { "nameid": "EARTH_POWER ", "shadow": false, "legacy": true },
+            { "nameid": "BREAKING_SWIPE", "shadow": false, "legacy": false }
+        ],
+        "ses": "445-Mega",
+        "defense": "222"
+    },
     "Swoobat": {
         "live": true,
         "Flee": 7,
@@ -20910,7 +21152,17 @@
         "shadowshiny": false,
         "giga": false,
         "number": 445,
-        "evolutions": [],
+        "evolutions": [
+            {
+                "condition": "Mega Evolution",
+                "number": 445,
+                "gender": "",
+                "cost": "",
+                "name": "Mega Garchomp",
+                "special": true,
+                "stage": 0
+            }
+        ],
         "form": false,
         "mega": false,
         "Attack": 261,
@@ -21807,20 +22059,20 @@
         "number": 9,
         "evolutions": [
             {
-                "condition": "Mega Evolution",
-                "number": 9,
-                "gender": "",
-                "cost": "",
-                "name": "Mega Blastoise",
-                "special": true,
-                "stage": 0
-            },
-            {
                 "condition": "Gigantamax Form",
                 "number": 9,
                 "gender": "",
                 "cost": "",
                 "name": "Gigantamax Blastoise",
+                "special": true,
+                "stage": 0
+            },
+            {
+                "condition": "Mega Evolution",
+                "number": 9,
+                "gender": "",
+                "cost": "",
+                "name": "Mega Blastoise",
                 "special": true,
                 "stage": 0
             }
@@ -22629,13 +22881,12 @@
         "Defense": 172
     },
     "Clobbopus": {
-        "flee": 0,
         "live": true,
-        "catch": 20,
+        "Flee": 0,
+        "Catch": 20,
         "shadowshiny": false,
-        "number": "852",
         "giga": false,
-        "form": false,
+        "number": "852",
         "evolutions": [
             {
                 "condition": "",
@@ -22648,67 +22899,28 @@
                 "stage": ""
             }
         ],
+        "form": false,
         "mega": false,
-        "attack": "121",
-        "hp": "137",
+        "Attack": "121",
+        "HP": "137",
         "shadow": false,
         "shiny": false,
         "gender": "",
-        "name": "Clobbopus",
-        "type": ["Fighting"],
+        "Name": "Clobbopus",
         "tradable": true,
+        "Type": ["Fighting"],
         "sprite": "852",
+        "formtype": "",
         "generation": 8,
         "ses": "852",
         "moves": [
             { "nameid": "ROCK_SMASH", "shadow": false, "legacy": false },
-            { "nameid": "ICE_PUNCH", "shadow": false, "legacy": false },
             { "nameid": "BRICK_BREAK", "shadow": false, "legacy": false },
+            { "nameid": "ICE_PUNCH", "shadow": false, "legacy": false },
+            { "nameid": "SUPER_POWER", "shadow": false, "legacy": false },
             { "nameid": "SUPERPOWER", "shadow": false, "legacy": false }
         ],
-        "defense": "103"
-    },
-    "Taillow": {
-        "live": true,
-        "Flee": 20,
-        "Catch": 50,
-        "shadowshiny": false,
-        "giga": false,
-        "number": 276,
-        "evolutions": [
-            {
-                "condition": "",
-                "number": 277,
-                "cost": 50,
-                "gender": "",
-                "name": "Swellow",
-                "special": false,
-                "region": "",
-                "stage": 2
-            }
-        ],
-        "form": false,
-        "mega": false,
-        "Attack": 106,
-        "HP": 120,
-        "shadow": true,
-        "shiny": true,
-        "gender": "",
-        "Name": "Taillow",
-        "tradable": true,
-        "Type": ["Normal", "Flying"],
-        "sprite": 276,
-        "formtype": "",
-        "generation": 3,
-        "ses": 276,
-        "moves": [
-            { "nameid": "PECK", "shadow": false, "legacy": false },
-            { "nameid": "QUICK_ATTACK", "shadow": false, "legacy": false },
-            { "nameid": "AERIAL_ACE", "shadow": false, "legacy": false },
-            { "nameid": "FRUSTRATION", "shadow": true, "legacy": false },
-            { "nameid": "RETURN", "shadow": true, "legacy": false }
-        ],
-        "Defense": 61
+        "Defense": "103"
     },
     "Galarian Zigzagoon": {
         "live": true,
@@ -22753,6 +22965,48 @@
             { "nameid": "RETURN", "shadow": true, "legacy": false }
         ],
         "Defense": 80
+    },
+    "Taillow": {
+        "live": true,
+        "Flee": 20,
+        "Catch": 50,
+        "shadowshiny": false,
+        "giga": false,
+        "number": 276,
+        "evolutions": [
+            {
+                "condition": "",
+                "number": 277,
+                "cost": 50,
+                "gender": "",
+                "name": "Swellow",
+                "special": false,
+                "region": "",
+                "stage": 2
+            }
+        ],
+        "form": false,
+        "mega": false,
+        "Attack": 106,
+        "HP": 120,
+        "shadow": true,
+        "shiny": true,
+        "gender": "",
+        "Name": "Taillow",
+        "tradable": true,
+        "Type": ["Normal", "Flying"],
+        "sprite": 276,
+        "formtype": "",
+        "generation": 3,
+        "ses": 276,
+        "moves": [
+            { "nameid": "PECK", "shadow": false, "legacy": false },
+            { "nameid": "QUICK_ATTACK", "shadow": false, "legacy": false },
+            { "nameid": "AERIAL_ACE", "shadow": false, "legacy": false },
+            { "nameid": "FRUSTRATION", "shadow": true, "legacy": false },
+            { "nameid": "RETURN", "shadow": true, "legacy": false }
+        ],
+        "Defense": 61
     },
     "Skorupi": {
         "live": true,
@@ -25180,48 +25434,6 @@
         ],
         "Defense": "155"
     },
-    "Weedle": {
-        "live": true,
-        "Flee": 20,
-        "Catch": 50,
-        "shadowshiny": false,
-        "giga": false,
-        "number": 13,
-        "evolutions": [
-            {
-                "condition": "",
-                "number": 14,
-                "cost": 12,
-                "gender": "",
-                "name": "Kakuna",
-                "special": false,
-                "region": "",
-                "stage": 2
-            }
-        ],
-        "form": false,
-        "mega": false,
-        "Attack": 63,
-        "HP": 120,
-        "shadow": true,
-        "shiny": true,
-        "gender": "",
-        "Name": "Weedle",
-        "tradable": true,
-        "Type": ["Bug", "Poison"],
-        "sprite": 13,
-        "formtype": "",
-        "generation": 1,
-        "ses": 13,
-        "moves": [
-            { "nameid": "BUG_BITE", "shadow": false, "legacy": false },
-            { "nameid": "POISON_STING", "shadow": false, "legacy": false },
-            { "nameid": "STRUGGLE", "shadow": false, "legacy": false },
-            { "nameid": "FRUSTRATION", "shadow": true, "legacy": false },
-            { "nameid": "RETURN", "shadow": true, "legacy": false }
-        ],
-        "Defense": 50
-    },
     "Dwebble": {
         "live": true,
         "Flee": 10,
@@ -25265,6 +25477,48 @@
             { "nameid": "RETURN", "shadow": true, "legacy": false }
         ],
         "Defense": 128
+    },
+    "Weedle": {
+        "live": true,
+        "Flee": 20,
+        "Catch": 50,
+        "shadowshiny": false,
+        "giga": false,
+        "number": 13,
+        "evolutions": [
+            {
+                "condition": "",
+                "number": 14,
+                "cost": 12,
+                "gender": "",
+                "name": "Kakuna",
+                "special": false,
+                "region": "",
+                "stage": 2
+            }
+        ],
+        "form": false,
+        "mega": false,
+        "Attack": 63,
+        "HP": 120,
+        "shadow": true,
+        "shiny": true,
+        "gender": "",
+        "Name": "Weedle",
+        "tradable": true,
+        "Type": ["Bug", "Poison"],
+        "sprite": 13,
+        "formtype": "",
+        "generation": 1,
+        "ses": 13,
+        "moves": [
+            { "nameid": "BUG_BITE", "shadow": false, "legacy": false },
+            { "nameid": "POISON_STING", "shadow": false, "legacy": false },
+            { "nameid": "STRUGGLE", "shadow": false, "legacy": false },
+            { "nameid": "FRUSTRATION", "shadow": true, "legacy": false },
+            { "nameid": "RETURN", "shadow": true, "legacy": false }
+        ],
+        "Defense": 50
     },
     "Igglybuff": {
         "live": true,
@@ -26472,7 +26726,17 @@
         "shadowshiny": false,
         "giga": false,
         "number": 823,
-        "evolutions": [],
+        "evolutions": [
+            {
+                "condition": "Gigantamax Form",
+                "number": 823,
+                "gender": "",
+                "cost": "",
+                "name": "Gigantamax Corviknight",
+                "special": true,
+                "stage": 0
+            }
+        ],
         "form": false,
         "mega": false,
         "Attack": 163,
@@ -26605,7 +26869,7 @@
         "Attack": 102,
         "HP": 114,
         "shadow": false,
-        "shiny": false,
+        "shiny": true,
         "gender": "",
         "Name": "Fidough",
         "tradable": true,
@@ -26975,6 +27239,39 @@
             { "nameid": "DIG", "shadow": false, "legacy": false }
         ],
         "Defense": 120
+    },
+    "Gigantamax Centiskorch": {
+        "flee": 0,
+        "live": false,
+        "catch": 20,
+        "shadowshiny": false,
+        "number": "851",
+        "giga": true,
+        "form": true,
+        "evolutions": [],
+        "mega": false,
+        "attack": "220",
+        "hp": "225",
+        "shadow": false,
+        "shiny": false,
+        "gender": "",
+        "name": "Gigantamax Centiskorch",
+        "type": ["Fire", "Bug"],
+        "tradable": false,
+        "sprite": "851-Gigantamax Centiskorch",
+        "formtype": "Gigantamax",
+        "generation": 8,
+        "moves": [
+            { "nameid": "BUG_BITE", "shadow": false, "legacy": false },
+            { "nameid": "EMBER", "shadow": false, "legacy": false },
+            { "nameid": "HEAT_WAVE", "shadow": false, "legacy": false },
+            { "nameid": "BUG_BUZZ", "shadow": false, "legacy": false },
+            { "nameid": "CRUNCH", "shadow": false, "legacy": false },
+            { "nameid": "LUNGE", "shadow": false, "legacy": false },
+            { "nameid": "G-MAX_CENTIFERNO", "shadow": false, "legacy": false }
+        ],
+        "ses": "851-Gigantamax",
+        "defense": "158"
     },
     "Quagsire": {
         "live": true,
@@ -28463,49 +28760,6 @@
         ],
         "Defense": 105
     },
-    "Spearow": {
-        "live": true,
-        "Flee": 15,
-        "Catch": 50,
-        "shadowshiny": false,
-        "giga": false,
-        "number": 21,
-        "evolutions": [
-            {
-                "condition": "",
-                "number": 22,
-                "cost": 50,
-                "gender": "",
-                "name": "Fearow",
-                "special": false,
-                "region": "",
-                "stage": 2
-            }
-        ],
-        "form": false,
-        "mega": false,
-        "Attack": 112,
-        "HP": 120,
-        "shadow": false,
-        "shiny": true,
-        "gender": "",
-        "Name": "Spearow",
-        "tradable": true,
-        "Type": ["Normal", "Flying"],
-        "sprite": 21,
-        "formtype": "",
-        "generation": 1,
-        "ses": 21,
-        "moves": [
-            { "nameid": "PECK", "shadow": false, "legacy": false },
-            { "nameid": "QUICK_ATTACK", "shadow": false, "legacy": false },
-            { "nameid": "AERIAL_ACE", "shadow": false, "legacy": false },
-            { "nameid": "DRILL_PECK", "shadow": false, "legacy": false },
-            { "nameid": "SKY_ATTACK", "shadow": false, "legacy": false },
-            { "nameid": "TWISTER", "shadow": false, "legacy": true }
-        ],
-        "Defense": 60
-    },
     "Flaaffy": {
         "live": true,
         "Flee": 7,
@@ -28550,6 +28804,49 @@
             { "nameid": "RETURN", "shadow": true, "legacy": false }
         ],
         "Defense": 109
+    },
+    "Spearow": {
+        "live": true,
+        "Flee": 15,
+        "Catch": 50,
+        "shadowshiny": false,
+        "giga": false,
+        "number": 21,
+        "evolutions": [
+            {
+                "condition": "",
+                "number": 22,
+                "cost": 50,
+                "gender": "",
+                "name": "Fearow",
+                "special": false,
+                "region": "",
+                "stage": 2
+            }
+        ],
+        "form": false,
+        "mega": false,
+        "Attack": 112,
+        "HP": 120,
+        "shadow": false,
+        "shiny": true,
+        "gender": "",
+        "Name": "Spearow",
+        "tradable": true,
+        "Type": ["Normal", "Flying"],
+        "sprite": 21,
+        "formtype": "",
+        "generation": 1,
+        "ses": 21,
+        "moves": [
+            { "nameid": "PECK", "shadow": false, "legacy": false },
+            { "nameid": "QUICK_ATTACK", "shadow": false, "legacy": false },
+            { "nameid": "AERIAL_ACE", "shadow": false, "legacy": false },
+            { "nameid": "DRILL_PECK", "shadow": false, "legacy": false },
+            { "nameid": "SKY_ATTACK", "shadow": false, "legacy": false },
+            { "nameid": "TWISTER", "shadow": false, "legacy": true }
+        ],
+        "Defense": 60
     },
     "Hisuian Avalugg": {
         "live": true,
@@ -28816,37 +29113,6 @@
         ],
         "Defense": 97
     },
-    "Deoxys Normal Forme": {
-        "live": true,
-        "Flee": 1,
-        "Catch": 2,
-        "shadowshiny": false,
-        "giga": false,
-        "number": 386,
-        "evolutions": [],
-        "form": true,
-        "mega": false,
-        "Attack": 345,
-        "HP": 137,
-        "shadow": false,
-        "shiny": true,
-        "gender": "",
-        "Name": "Deoxys Normal Forme",
-        "tradable": false,
-        "Type": ["Psychic"],
-        "sprite": "386-Deoxys Normal Forme",
-        "formtype": "Normal",
-        "generation": 3,
-        "ses": "386-Normal",
-        "moves": [
-            { "nameid": "CHARGE_BEAM", "shadow": false, "legacy": false },
-            { "nameid": "ZEN_HEADBUTT", "shadow": false, "legacy": false },
-            { "nameid": "HYPER_BEAM", "shadow": false, "legacy": false },
-            { "nameid": "PSYCHO_BOOST", "shadow": false, "legacy": false },
-            { "nameid": "ZAP_CANNON", "shadow": false, "legacy": false }
-        ],
-        "Defense": 115
-    },
     "Doublade": {
         "live": true,
         "Flee": 0,
@@ -28899,6 +29165,37 @@
             { "nameid": "SACRED_SWORD", "shadow": false, "legacy": false }
         ],
         "Defense": "206"
+    },
+    "Deoxys Normal Forme": {
+        "live": true,
+        "Flee": 1,
+        "Catch": 2,
+        "shadowshiny": false,
+        "giga": false,
+        "number": 386,
+        "evolutions": [],
+        "form": true,
+        "mega": false,
+        "Attack": 345,
+        "HP": 137,
+        "shadow": false,
+        "shiny": true,
+        "gender": "",
+        "Name": "Deoxys Normal Forme",
+        "tradable": false,
+        "Type": ["Psychic"],
+        "sprite": "386-Deoxys Normal Forme",
+        "formtype": "Normal",
+        "generation": 3,
+        "ses": "386-Normal",
+        "moves": [
+            { "nameid": "CHARGE_BEAM", "shadow": false, "legacy": false },
+            { "nameid": "ZEN_HEADBUTT", "shadow": false, "legacy": false },
+            { "nameid": "HYPER_BEAM", "shadow": false, "legacy": false },
+            { "nameid": "PSYCHO_BOOST", "shadow": false, "legacy": false },
+            { "nameid": "ZAP_CANNON", "shadow": false, "legacy": false }
+        ],
+        "Defense": 115
     },
     "Quaxly": {
         "live": true,
@@ -30893,38 +31190,6 @@
         ],
         "Defense": 81
     },
-    "Landorus Incarnate Forme": {
-        "live": true,
-        "Flee": 1,
-        "Catch": 2,
-        "shadowshiny": false,
-        "giga": false,
-        "number": 645,
-        "evolutions": [],
-        "form": true,
-        "mega": false,
-        "Attack": 261,
-        "HP": 205,
-        "shadow": false,
-        "shiny": true,
-        "gender": "",
-        "Name": "Landorus Incarnate Forme",
-        "tradable": true,
-        "Type": ["Ground", "Flying"],
-        "sprite": "645-Landorus Incarnate Forme",
-        "formtype": "Incarnate",
-        "generation": 5,
-        "ses": "645-Incarnate",
-        "moves": [
-            { "nameid": "MUD_SHOT", "shadow": false, "legacy": false },
-            { "nameid": "ROCK_THROW", "shadow": false, "legacy": false },
-            { "nameid": "EARTH_POWER", "shadow": false, "legacy": false },
-            { "nameid": "FOCUS_BLAST", "shadow": false, "legacy": false },
-            { "nameid": "OUTRAGE", "shadow": false, "legacy": false },
-            { "nameid": "ROCK_SLIDE", "shadow": false, "legacy": false }
-        ],
-        "Defense": 182
-    },
     "Kyurem": {
         "live": true,
         "Flee": 1,
@@ -30975,6 +31240,38 @@
             { "nameid": "GLACIATE", "shadow": false, "legacy": true }
         ],
         "Defense": 170
+    },
+    "Landorus Incarnate Forme": {
+        "live": true,
+        "Flee": 1,
+        "Catch": 2,
+        "shadowshiny": false,
+        "giga": false,
+        "number": 645,
+        "evolutions": [],
+        "form": true,
+        "mega": false,
+        "Attack": 261,
+        "HP": 205,
+        "shadow": false,
+        "shiny": true,
+        "gender": "",
+        "Name": "Landorus Incarnate Forme",
+        "tradable": true,
+        "Type": ["Ground", "Flying"],
+        "sprite": "645-Landorus Incarnate Forme",
+        "formtype": "Incarnate",
+        "generation": 5,
+        "ses": "645-Incarnate",
+        "moves": [
+            { "nameid": "MUD_SHOT", "shadow": false, "legacy": false },
+            { "nameid": "ROCK_THROW", "shadow": false, "legacy": false },
+            { "nameid": "EARTH_POWER", "shadow": false, "legacy": false },
+            { "nameid": "FOCUS_BLAST", "shadow": false, "legacy": false },
+            { "nameid": "OUTRAGE", "shadow": false, "legacy": false },
+            { "nameid": "ROCK_SLIDE", "shadow": false, "legacy": false }
+        ],
+        "Defense": 182
     },
     "Alakazam": {
         "live": true,
@@ -31072,7 +31369,17 @@
         "shadowshiny": false,
         "giga": false,
         "number": 858,
-        "evolutions": [],
+        "evolutions": [
+            {
+                "condition": "Gigantamax Form",
+                "number": 858,
+                "gender": "",
+                "cost": "",
+                "name": "Gigantamax Hatterene",
+                "special": true,
+                "stage": 0
+            }
+        ],
         "form": false,
         "mega": false,
         "Attack": 237,
@@ -31414,6 +31721,15 @@
                 "special": false,
                 "region": "",
                 "stage": 2
+            },
+            {
+                "condition": "Gigantamax Form",
+                "number": 52,
+                "gender": "",
+                "cost": "",
+                "name": "Gigantamax Meowth",
+                "special": true,
+                "stage": 0
             }
         ],
         "form": false,
@@ -32271,37 +32587,6 @@
         ],
         "Defense": 85
     },
-    "Kricketune": {
-        "live": true,
-        "Flee": 7,
-        "Catch": 20,
-        "shadowshiny": false,
-        "giga": false,
-        "number": 402,
-        "evolutions": [],
-        "form": false,
-        "mega": false,
-        "Attack": 160,
-        "HP": 184,
-        "shadow": false,
-        "shiny": true,
-        "gender": "",
-        "Name": "Kricketune",
-        "tradable": true,
-        "Type": ["Bug"],
-        "sprite": 402,
-        "formtype": "",
-        "generation": 4,
-        "ses": 402,
-        "moves": [
-            { "nameid": "FURY_CUTTER", "shadow": false, "legacy": false },
-            { "nameid": "STRUGGLE_BUG", "shadow": false, "legacy": false },
-            { "nameid": "AERIAL_ACE", "shadow": false, "legacy": false },
-            { "nameid": "BUG_BUZZ", "shadow": false, "legacy": false },
-            { "nameid": "X_SCISSOR", "shadow": false, "legacy": false }
-        ],
-        "Defense": 100
-    },
     "Genesect Chill Drive": {
         "live": true,
         "Flee": 1,
@@ -32333,6 +32618,37 @@
             { "nameid": "TECHNO_BLAST_CHILL", "shadow": false, "legacy": true }
         ],
         "Defense": 199
+    },
+    "Kricketune": {
+        "live": true,
+        "Flee": 7,
+        "Catch": 20,
+        "shadowshiny": false,
+        "giga": false,
+        "number": 402,
+        "evolutions": [],
+        "form": false,
+        "mega": false,
+        "Attack": 160,
+        "HP": 184,
+        "shadow": false,
+        "shiny": true,
+        "gender": "",
+        "Name": "Kricketune",
+        "tradable": true,
+        "Type": ["Bug"],
+        "sprite": 402,
+        "formtype": "",
+        "generation": 4,
+        "ses": 402,
+        "moves": [
+            { "nameid": "FURY_CUTTER", "shadow": false, "legacy": false },
+            { "nameid": "STRUGGLE_BUG", "shadow": false, "legacy": false },
+            { "nameid": "AERIAL_ACE", "shadow": false, "legacy": false },
+            { "nameid": "BUG_BUZZ", "shadow": false, "legacy": false },
+            { "nameid": "X_SCISSOR", "shadow": false, "legacy": false }
+        ],
+        "Defense": 100
     },
     "Roggenrola": {
         "live": true,
@@ -32670,41 +32986,6 @@
         ],
         "Defense": 178
     },
-    "Exeggutor": {
-        "live": true,
-        "Flee": 6,
-        "Catch": 20,
-        "shadowshiny": true,
-        "giga": false,
-        "number": 103,
-        "evolutions": [],
-        "form": false,
-        "mega": false,
-        "Attack": 233,
-        "HP": 216,
-        "shadow": true,
-        "shiny": true,
-        "gender": "",
-        "Name": "Exeggutor",
-        "tradable": true,
-        "Type": ["Grass", "Psychic"],
-        "sprite": 103,
-        "formtype": "",
-        "generation": 1,
-        "ses": 103,
-        "moves": [
-            { "nameid": "BULLET_SEED", "shadow": false, "legacy": false },
-            { "nameid": "CONFUSION", "shadow": false, "legacy": false },
-            { "nameid": "EXTRASENSORY", "shadow": false, "legacy": false },
-            { "nameid": "ZEN_HEADBUTT", "shadow": false, "legacy": true },
-            { "nameid": "PSYCHIC", "shadow": false, "legacy": false },
-            { "nameid": "SEED_BOMB", "shadow": false, "legacy": false },
-            { "nameid": "SOLAR_BEAM", "shadow": false, "legacy": false },
-            { "nameid": "FRUSTRATION", "shadow": true, "legacy": false },
-            { "nameid": "RETURN", "shadow": true, "legacy": false }
-        ],
-        "Defense": 149
-    },
     "Zubat": {
         "live": true,
         "Flee": 20,
@@ -32749,6 +33030,41 @@
             { "nameid": "RETURN", "shadow": true, "legacy": false }
         ],
         "Defense": 73
+    },
+    "Exeggutor": {
+        "live": true,
+        "Flee": 6,
+        "Catch": 20,
+        "shadowshiny": true,
+        "giga": false,
+        "number": 103,
+        "evolutions": [],
+        "form": false,
+        "mega": false,
+        "Attack": 233,
+        "HP": 216,
+        "shadow": true,
+        "shiny": true,
+        "gender": "",
+        "Name": "Exeggutor",
+        "tradable": true,
+        "Type": ["Grass", "Psychic"],
+        "sprite": 103,
+        "formtype": "",
+        "generation": 1,
+        "ses": 103,
+        "moves": [
+            { "nameid": "BULLET_SEED", "shadow": false, "legacy": false },
+            { "nameid": "CONFUSION", "shadow": false, "legacy": false },
+            { "nameid": "EXTRASENSORY", "shadow": false, "legacy": false },
+            { "nameid": "ZEN_HEADBUTT", "shadow": false, "legacy": true },
+            { "nameid": "PSYCHIC", "shadow": false, "legacy": false },
+            { "nameid": "SEED_BOMB", "shadow": false, "legacy": false },
+            { "nameid": "SOLAR_BEAM", "shadow": false, "legacy": false },
+            { "nameid": "FRUSTRATION", "shadow": true, "legacy": false },
+            { "nameid": "RETURN", "shadow": true, "legacy": false }
+        ],
+        "Defense": 149
     },
     "Tangrowth": {
         "live": true,
@@ -32895,13 +33211,12 @@
         "Defense": 129
     },
     "Rolycoly": {
-        "flee": 0,
         "live": true,
-        "catch": 20,
+        "Flee": 0,
+        "Catch": 20,
         "shadowshiny": false,
-        "number": "837",
         "giga": false,
-        "form": false,
+        "number": "837",
         "evolutions": [
             {
                 "condition": "",
@@ -32914,26 +33229,27 @@
                 "stage": ""
             }
         ],
+        "form": false,
         "mega": false,
-        "attack": "73",
-        "hp": "102",
+        "Attack": "73",
+        "HP": "102",
         "shadow": false,
         "shiny": false,
         "gender": "",
-        "name": "Rolycoly",
-        "type": ["Rock"],
+        "Name": "Rolycoly",
         "tradable": true,
+        "Type": ["Rock"],
         "sprite": "837",
         "formtype": "",
         "generation": 8,
-        "moves": [
-            { "nameid": "TACKLE", "shadow": false, "legacy": false },
-            { "nameid": "SMACK_DOWN", "shadow": false, "legacy": false },
-            { "nameid": "ROCK_SLIDE", "shadow": false, "legacy": false },
-            { "nameid": "ROCK_BLAST", "shadow": false, "legacy": false }
-        ],
         "ses": "837",
-        "defense": "91"
+        "moves": [
+            { "nameid": "SMACK_DOWN", "shadow": false, "legacy": false },
+            { "nameid": "TACKLE", "shadow": false, "legacy": false },
+            { "nameid": "ROCK_BLAST", "shadow": false, "legacy": false },
+            { "nameid": "ROCK_SLIDE", "shadow": false, "legacy": false }
+        ],
+        "Defense": "91"
     },
     "Tinkaton": {
         "live": true,
@@ -33475,6 +33791,38 @@
         "ses": "257-Mega",
         "moves": [],
         "Defense": 168
+    },
+    "Gigantamax Duraludon": {
+        "flee": 0,
+        "live": false,
+        "catch": 20,
+        "shadowshiny": false,
+        "number": "884",
+        "giga": true,
+        "form": true,
+        "evolutions": [],
+        "mega": false,
+        "attack": "239",
+        "hp": "172",
+        "shadow": false,
+        "shiny": false,
+        "gender": "",
+        "name": "Gigantamax Duraludon",
+        "type": ["Steel", "Dragon"],
+        "tradable": false,
+        "sprite": "884-Gigantamax Duraludon",
+        "formtype": "Gigantamax",
+        "generation": 8,
+        "moves": [
+            { "nameid": "METAL_CLAW", "shadow": false, "legacy": false },
+            { "nameid": "DRAGON_TAIL", "shadow": false, "legacy": false },
+            { "nameid": "HYPER_BEAM", "shadow": false, "legacy": false },
+            { "nameid": "FLASH_CANNON", "shadow": false, "legacy": false },
+            { "nameid": "DRAGON_CLAW", "shadow": false, "legacy": false },
+            { "nameid": "G-MAX_DEPLETION", "shadow": false, "legacy": false }
+        ],
+        "ses": "884-Gigantamax",
+        "defense": "185"
     },
     "Eelektrik": {
         "live": true,
@@ -34520,68 +34868,6 @@
         ],
         "Defense": 186
     },
-    "Basculin White-Striped Form": {
-        "live": true,
-        "Flee": 7,
-        "Catch": 20,
-        "shadowshiny": false,
-        "giga": false,
-        "number": 550,
-        "evolutions": [],
-        "form": true,
-        "mega": false,
-        "Attack": 189,
-        "HP": 172,
-        "shadow": false,
-        "shiny": true,
-        "gender": "",
-        "Name": "Basculin White-Striped Form",
-        "tradable": true,
-        "Type": ["Water"],
-        "sprite": "550-Basculin White-Striped Form",
-        "formtype": "White-Striped",
-        "generation": 8.5,
-        "ses": "550-White-Striped",
-        "moves": [
-            { "nameid": "TACKLE", "shadow": false, "legacy": false },
-            { "nameid": "WATER_GUN", "shadow": false, "legacy": false },
-            { "nameid": "AQUA_JET", "shadow": false, "legacy": false },
-            { "nameid": "AQUA_TAIL", "shadow": false, "legacy": false },
-            { "nameid": "MUDDY_WATER", "shadow": false, "legacy": false }
-        ],
-        "Defense": 129
-    },
-    "Deoxys Defense Forme": {
-        "live": true,
-        "Flee": 1,
-        "Catch": 2,
-        "shadowshiny": false,
-        "giga": false,
-        "number": 386,
-        "evolutions": [],
-        "form": true,
-        "mega": false,
-        "Attack": 144,
-        "HP": 137,
-        "shadow": false,
-        "shiny": true,
-        "gender": "",
-        "Name": "Deoxys Defense Forme",
-        "tradable": false,
-        "Type": ["Psychic"],
-        "sprite": "386-Deoxys Defense Forme",
-        "formtype": "Defense",
-        "generation": 3,
-        "ses": "386-Defense",
-        "moves": [
-            { "nameid": "COUNTER", "shadow": false, "legacy": false },
-            { "nameid": "ZEN_HEADBUTT", "shadow": false, "legacy": false },
-            { "nameid": "PSYCHO_BOOST", "shadow": false, "legacy": false },
-            { "nameid": "ROCK_SLIDE", "shadow": false, "legacy": false },
-            { "nameid": "THUNDERBOLT", "shadow": false, "legacy": false }
-        ],
-        "Defense": 330
-    },
     "Landorus Therian Forme": {
         "live": true,
         "Flee": 1,
@@ -34614,6 +34900,68 @@
             { "nameid": "SANDSEAR_STORM", "shadow": false, "legacy": true }
         ],
         "Defense": 179
+    },
+    "Deoxys Defense Forme": {
+        "live": true,
+        "Flee": 1,
+        "Catch": 2,
+        "shadowshiny": false,
+        "giga": false,
+        "number": 386,
+        "evolutions": [],
+        "form": true,
+        "mega": false,
+        "Attack": 144,
+        "HP": 137,
+        "shadow": false,
+        "shiny": true,
+        "gender": "",
+        "Name": "Deoxys Defense Forme",
+        "tradable": false,
+        "Type": ["Psychic"],
+        "sprite": "386-Deoxys Defense Forme",
+        "formtype": "Defense",
+        "generation": 3,
+        "ses": "386-Defense",
+        "moves": [
+            { "nameid": "COUNTER", "shadow": false, "legacy": false },
+            { "nameid": "ZEN_HEADBUTT", "shadow": false, "legacy": false },
+            { "nameid": "PSYCHO_BOOST", "shadow": false, "legacy": false },
+            { "nameid": "ROCK_SLIDE", "shadow": false, "legacy": false },
+            { "nameid": "THUNDERBOLT", "shadow": false, "legacy": false }
+        ],
+        "Defense": 330
+    },
+    "Basculin White-Striped Form": {
+        "live": true,
+        "Flee": 7,
+        "Catch": 20,
+        "shadowshiny": false,
+        "giga": false,
+        "number": 550,
+        "evolutions": [],
+        "form": true,
+        "mega": false,
+        "Attack": 189,
+        "HP": 172,
+        "shadow": false,
+        "shiny": true,
+        "gender": "",
+        "Name": "Basculin White-Striped Form",
+        "tradable": true,
+        "Type": ["Water"],
+        "sprite": "550-Basculin White-Striped Form",
+        "formtype": "White-Striped",
+        "generation": 8.5,
+        "ses": "550-White-Striped",
+        "moves": [
+            { "nameid": "TACKLE", "shadow": false, "legacy": false },
+            { "nameid": "WATER_GUN", "shadow": false, "legacy": false },
+            { "nameid": "AQUA_JET", "shadow": false, "legacy": false },
+            { "nameid": "AQUA_TAIL", "shadow": false, "legacy": false },
+            { "nameid": "MUDDY_WATER", "shadow": false, "legacy": false }
+        ],
+        "Defense": 129
     },
     "Unown P": {
         "Flee": 10,
@@ -34827,6 +35175,39 @@
             { "nameid": "RETURN", "shadow": true, "legacy": false }
         ],
         "Defense": 159
+    },
+    "Gigantamax Drednaw": {
+        "flee": 0,
+        "live": false,
+        "catch": 20,
+        "shadowshiny": false,
+        "number": "834",
+        "giga": true,
+        "form": true,
+        "evolutions": [],
+        "mega": false,
+        "attack": "213",
+        "hp": "207",
+        "shadow": false,
+        "shiny": false,
+        "gender": "",
+        "name": "Gigantamax Drednaw",
+        "type": ["Water", "Rock"],
+        "tradable": false,
+        "sprite": "834-Gigantamax Drednaw",
+        "formtype": "Gigantamax",
+        "generation": 8,
+        "moves": [
+            { "nameid": "BITE", "shadow": false, "legacy": false },
+            { "nameid": "WATERFALL", "shadow": false, "legacy": false },
+            { "nameid": "BODY_SLAM", "shadow": false, "legacy": false },
+            { "nameid": "ROCK_BLAST", "shadow": false, "legacy": false },
+            { "nameid": "CRUNCH", "shadow": false, "legacy": false },
+            { "nameid": "SURF", "shadow": false, "legacy": false },
+            { "nameid": "G-MAX_STONESURGE", "shadow": false, "legacy": false }
+        ],
+        "ses": "834-Gigantamax",
+        "defense": "164"
     },
     "Floette Red Flower": {
         "live": true,
@@ -35120,7 +35501,7 @@
         "Attack": 190,
         "HP": 137,
         "shadow": false,
-        "shiny": false,
+        "shiny": true,
         "gender": "",
         "Name": "Diancie",
         "tradable": false,
@@ -36595,7 +36976,7 @@
         "Attack": 195,
         "HP": 186,
         "shadow": false,
-        "shiny": false,
+        "shiny": true,
         "gender": "",
         "Name": "Hawlucha",
         "tradable": true,
@@ -37822,6 +38203,38 @@
             { "nameid": "RETURN", "shadow": true, "legacy": false }
         ],
         "Defense": 154
+    },
+    "Gigantamax Coalossal": {
+        "flee": 0,
+        "live": false,
+        "catch": 20,
+        "shadowshiny": false,
+        "number": "839",
+        "giga": true,
+        "form": true,
+        "evolutions": [],
+        "mega": false,
+        "attack": "146",
+        "hp": "242",
+        "shadow": false,
+        "shiny": false,
+        "gender": "",
+        "name": "Gigantamax Coalossal",
+        "type": ["Rock", "Fire"],
+        "tradable": false,
+        "sprite": "839-Gigantamax Coalossal",
+        "formtype": "Gigantamax",
+        "generation": 8,
+        "moves": [
+            { "nameid": "FIRE_SPIN", "shadow": false, "legacy": false },
+            { "nameid": "SMACK_DOWN", "shadow": false, "legacy": false },
+            { "nameid": "ROCK_SLIDE", "shadow": false, "legacy": false },
+            { "nameid": "FLAME_CHARGE", "shadow": false, "legacy": false },
+            { "nameid": "ROCK_BLAST", "shadow": false, "legacy": false },
+            { "nameid": "G-MAX_VOLCALITH", "shadow": false, "legacy": false }
+        ],
+        "ses": "839-Gigantamax",
+        "defense": "198"
     },
     "Pangoro": {
         "live": true,
@@ -40892,6 +41305,40 @@
         ],
         "Defense": 85
     },
+    "Gigantamax Corviknight": {
+        "flee": 0,
+        "live": false,
+        "catch": 20,
+        "shadowshiny": false,
+        "number": "823",
+        "giga": true,
+        "form": true,
+        "evolutions": [],
+        "mega": false,
+        "attack": "163",
+        "hp": "221",
+        "shadow": false,
+        "shiny": false,
+        "gender": "",
+        "name": "Gigantamax Corviknight",
+        "type": ["Flying", "Steel"],
+        "tradable": false,
+        "sprite": "823-Gigantamax Corviknight",
+        "formtype": "Gigantamax",
+        "generation": 8,
+        "moves": [
+            { "nameid": "STEEL_WING", "shadow": false, "legacy": false },
+            { "nameid": "AIR_SLASH", "shadow": false, "legacy": false },
+            { "nameid": "SAND_ATTACK", "shadow": false, "legacy": false },
+            { "nameid": "IRON_HEAD ", "shadow": false, "legacy": true },
+            { "nameid": "AIR_CUTTER ", "shadow": false, "legacy": true },
+            { "nameid": "SKY_ATTACK", "shadow": false, "legacy": false },
+            { "nameid": "PAYBACK", "shadow": false, "legacy": false },
+            { "nameid": "G-MAX_WIND RAGE", "shadow": false, "legacy": false }
+        ],
+        "ses": "823-Gigantamax",
+        "defense": "192"
+    },
     "Purugly": {
         "live": true,
         "Flee": 8,
@@ -41815,41 +42262,6 @@
         "moves": [],
         "Defense": 276
     },
-    "Mr. Mime": {
-        "live": true,
-        "Flee": 9,
-        "Catch": 30,
-        "shadowshiny": false,
-        "giga": false,
-        "number": 122,
-        "evolutions": [],
-        "form": false,
-        "mega": false,
-        "Attack": 192,
-        "HP": 120,
-        "shadow": false,
-        "shiny": true,
-        "gender": "",
-        "Name": "Mr. Mime",
-        "tradable": true,
-        "Type": ["Psychic", "Fairy"],
-        "sprite": 122,
-        "formtype": "",
-        "generation": 1,
-        "ses": 122,
-        "moves": [
-            { "nameid": "CONFUSION", "shadow": false, "legacy": false },
-            { "nameid": "MAGICAL_LEAF", "shadow": false, "legacy": false },
-            { "nameid": "PSYWAVE", "shadow": false, "legacy": false },
-            { "nameid": "ZEN_HEADBUTT", "shadow": false, "legacy": false },
-            { "nameid": "PSYBEAM", "shadow": false, "legacy": false },
-            { "nameid": "PSYCHIC", "shadow": false, "legacy": false },
-            { "nameid": "SHADOW_BALL", "shadow": false, "legacy": false },
-            { "nameid": "FRUSTRATION", "shadow": true, "legacy": false },
-            { "nameid": "RETURN", "shadow": true, "legacy": false }
-        ],
-        "Defense": 205
-    },
     "Nidorina": {
         "live": true,
         "Flee": 7,
@@ -41895,36 +42307,71 @@
         ],
         "Defense": 120
     },
-    "Coalossal": {
-        "flee": 0,
+    "Mr. Mime": {
         "live": true,
-        "catch": 20,
+        "Flee": 9,
+        "Catch": 30,
         "shadowshiny": false,
-        "number": "839",
         "giga": false,
-        "form": false,
+        "number": 122,
         "evolutions": [],
+        "form": false,
         "mega": false,
-        "attack": "146",
-        "hp": "242",
+        "Attack": 192,
+        "HP": 120,
+        "shadow": false,
+        "shiny": true,
+        "gender": "",
+        "Name": "Mr. Mime",
+        "tradable": true,
+        "Type": ["Psychic", "Fairy"],
+        "sprite": 122,
+        "formtype": "",
+        "generation": 1,
+        "ses": 122,
+        "moves": [
+            { "nameid": "CONFUSION", "shadow": false, "legacy": false },
+            { "nameid": "MAGICAL_LEAF", "shadow": false, "legacy": false },
+            { "nameid": "PSYWAVE", "shadow": false, "legacy": false },
+            { "nameid": "ZEN_HEADBUTT", "shadow": false, "legacy": false },
+            { "nameid": "PSYBEAM", "shadow": false, "legacy": false },
+            { "nameid": "PSYCHIC", "shadow": false, "legacy": false },
+            { "nameid": "SHADOW_BALL", "shadow": false, "legacy": false },
+            { "nameid": "FRUSTRATION", "shadow": true, "legacy": false },
+            { "nameid": "RETURN", "shadow": true, "legacy": false }
+        ],
+        "Defense": 205
+    },
+    "Coalossal": {
+        "live": true,
+        "Flee": 0,
+        "Catch": 20,
+        "shadowshiny": false,
+        "giga": false,
+        "number": "839",
+        "evolutions": [],
+        "form": false,
+        "mega": false,
+        "Attack": "146",
+        "HP": "242",
         "shadow": false,
         "shiny": false,
         "gender": "",
-        "name": "Coalossal",
-        "type": ["Rock", "Fire"],
+        "Name": "Coalossal",
         "tradable": true,
+        "Type": ["Rock", "Fire"],
         "sprite": "839",
         "formtype": "",
         "generation": 8,
-        "moves": [
-            { "nameid": "SMACK_DOWN", "shadow": false, "legacy": false },
-            { "nameid": "INCINERATE", "shadow": false, "legacy": false },
-            { "nameid": "ROCK_SLIDE", "shadow": false, "legacy": false },
-            { "nameid": "FLAME_CHARGE", "shadow": false, "legacy": false },
-            { "nameid": "ROCK_BLAST", "shadow": false, "legacy": false }
-        ],
         "ses": "839",
-        "defense": "198"
+        "moves": [
+            { "nameid": "INCINERATE", "shadow": false, "legacy": false },
+            { "nameid": "SMACK_DOWN", "shadow": false, "legacy": false },
+            { "nameid": "FLAME_CHARGE", "shadow": false, "legacy": false },
+            { "nameid": "ROCK_BLAST", "shadow": false, "legacy": false },
+            { "nameid": "ROCK_SLIDE", "shadow": false, "legacy": false }
+        ],
+        "Defense": "198"
     },
     "Togetic": {
         "live": true,
@@ -42021,35 +42468,35 @@
         "Defense": 232
     },
     "Kilowattrel": {
-        "flee": 0,
         "live": true,
-        "catch": 20,
+        "Flee": 0,
+        "Catch": 20,
         "shadowshiny": false,
-        "number": "941",
         "giga": false,
-        "form": false,
+        "number": "941",
         "evolutions": [],
+        "form": false,
         "mega": false,
-        "attack": "221",
-        "hp": "172",
+        "Attack": "221",
+        "HP": "172",
         "shadow": false,
         "shiny": false,
         "gender": "",
-        "name": "Kilowattrel",
-        "type": ["Electric", "Flying"],
+        "Name": "Kilowattrel",
         "tradable": true,
+        "Type": ["Electric", "Flying"],
         "sprite": "941",
         "formtype": "",
         "generation": 9,
-        "moves": [
-            { "nameid": "THUNDER_SHOCK", "shadow": false, "legacy": false },
-            { "nameid": "AIR_SLASH", "shadow": false, "legacy": false },
-            { "nameid": "AERIAL_ACE", "shadow": false, "legacy": false },
-            { "nameid": "THUNDERBOLT", "shadow": false, "legacy": false },
-            { "nameid": "ACROBATICS", "shadow": false, "legacy": false }
-        ],
         "ses": "941",
-        "defense": "132"
+        "moves": [
+            { "nameid": "AIR_SLASH", "shadow": false, "legacy": false },
+            { "nameid": "THUNDER_SHOCK", "shadow": false, "legacy": false },
+            { "nameid": "ACROBATICS", "shadow": false, "legacy": false },
+            { "nameid": "AERIAL_ACE", "shadow": false, "legacy": false },
+            { "nameid": "THUNDERBOLT", "shadow": false, "legacy": false }
+        ],
+        "Defense": "132"
     },
     "Lucario": {
         "live": true,
@@ -42682,6 +43129,39 @@
         ],
         "Defense": 85
     },
+    "Keldeo Ordinary Form": {
+        "live": true,
+        "Flee": 1,
+        "Catch": 2,
+        "shadowshiny": false,
+        "giga": false,
+        "number": 647,
+        "evolutions": [],
+        "form": true,
+        "mega": false,
+        "Attack": 260,
+        "HP": 209,
+        "shadow": false,
+        "shiny": true,
+        "gender": "",
+        "Name": "Keldeo Ordinary Form",
+        "tradable": false,
+        "Type": ["Water", "Fighting"],
+        "sprite": "647-Keldeo-Ordinary-Form",
+        "formtype": "Ordinary",
+        "generation": 5,
+        "ses": "647-Ordinary",
+        "moves": [
+            { "nameid": "LOW_KICK", "shadow": false, "legacy": false },
+            { "nameid": "POISON_JAB", "shadow": false, "legacy": false },
+            { "nameid": "AQUA_JET", "shadow": false, "legacy": false },
+            { "nameid": "CLOSE_COMBAT", "shadow": false, "legacy": false },
+            { "nameid": "HYDRO_PUMP", "shadow": false, "legacy": false },
+            { "nameid": "SACRED_SWORD", "shadow": false, "legacy": false },
+            { "nameid": "X_SCISSOR", "shadow": false, "legacy": false }
+        ],
+        "Defense": 192
+    },
     "Sigilyph": {
         "live": true,
         "Flee": 7,
@@ -42753,39 +43233,6 @@
             { "nameid": "STRUGGLE", "shadow": false, "legacy": false }
         ],
         "Defense": 78
-    },
-    "Keldeo Ordinary Form": {
-        "live": true,
-        "Flee": 1,
-        "Catch": 2,
-        "shadowshiny": false,
-        "giga": false,
-        "number": 647,
-        "evolutions": [],
-        "form": true,
-        "mega": false,
-        "Attack": 260,
-        "HP": 209,
-        "shadow": false,
-        "shiny": true,
-        "gender": "",
-        "Name": "Keldeo Ordinary Form",
-        "tradable": false,
-        "Type": ["Water", "Fighting"],
-        "sprite": "647-Keldeo-Ordinary-Form",
-        "formtype": "Ordinary",
-        "generation": 5,
-        "ses": "647-Ordinary",
-        "moves": [
-            { "nameid": "LOW_KICK", "shadow": false, "legacy": false },
-            { "nameid": "POISON_JAB", "shadow": false, "legacy": false },
-            { "nameid": "AQUA_JET", "shadow": false, "legacy": false },
-            { "nameid": "CLOSE_COMBAT", "shadow": false, "legacy": false },
-            { "nameid": "HYDRO_PUMP", "shadow": false, "legacy": false },
-            { "nameid": "SACRED_SWORD", "shadow": false, "legacy": false },
-            { "nameid": "X_SCISSOR", "shadow": false, "legacy": false }
-        ],
-        "Defense": 192
     },
     "Mudbray": {
         "live": true,
@@ -43739,38 +44186,6 @@
         ],
         "Defense": 74
     },
-    "Mandibuzz": {
-        "live": true,
-        "Flee": 5,
-        "Catch": 15,
-        "shadowshiny": false,
-        "giga": false,
-        "number": 630,
-        "evolutions": [],
-        "form": false,
-        "mega": false,
-        "Attack": 129,
-        "HP": 242,
-        "shadow": false,
-        "shiny": true,
-        "gender": "",
-        "Name": "Mandibuzz",
-        "tradable": true,
-        "Type": ["Dark", "Flying"],
-        "sprite": 630,
-        "formtype": "",
-        "generation": 5,
-        "ses": 630,
-        "moves": [
-            { "nameid": "AIR_SLASH", "shadow": false, "legacy": false },
-            { "nameid": "SNARL", "shadow": false, "legacy": false },
-            { "nameid": "AERIAL_ACE", "shadow": false, "legacy": false },
-            { "nameid": "DARK_PULSE", "shadow": false, "legacy": false },
-            { "nameid": "FOUL_PLAY", "shadow": false, "legacy": false },
-            { "nameid": "SHADOW_BALL", "shadow": false, "legacy": false }
-        ],
-        "Defense": 205
-    },
     "Dreepy": {
         "live": true,
         "Flee": 9,
@@ -43810,6 +44225,38 @@
             { "nameid": "STRUGGLE", "shadow": false, "legacy": false }
         ],
         "Defense": 61
+    },
+    "Mandibuzz": {
+        "live": true,
+        "Flee": 5,
+        "Catch": 15,
+        "shadowshiny": false,
+        "giga": false,
+        "number": 630,
+        "evolutions": [],
+        "form": false,
+        "mega": false,
+        "Attack": 129,
+        "HP": 242,
+        "shadow": false,
+        "shiny": true,
+        "gender": "",
+        "Name": "Mandibuzz",
+        "tradable": true,
+        "Type": ["Dark", "Flying"],
+        "sprite": 630,
+        "formtype": "",
+        "generation": 5,
+        "ses": 630,
+        "moves": [
+            { "nameid": "AIR_SLASH", "shadow": false, "legacy": false },
+            { "nameid": "SNARL", "shadow": false, "legacy": false },
+            { "nameid": "AERIAL_ACE", "shadow": false, "legacy": false },
+            { "nameid": "DARK_PULSE", "shadow": false, "legacy": false },
+            { "nameid": "FOUL_PLAY", "shadow": false, "legacy": false },
+            { "nameid": "SHADOW_BALL", "shadow": false, "legacy": false }
+        ],
+        "Defense": 205
     },
     "Haunter": {
         "live": true,

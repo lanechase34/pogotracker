@@ -185,8 +185,7 @@ component singleton accessors="true" {
         if(application.cbController.getSetting('getShadowData')) {
             shadowData    = {};
             var shadowDoc = scraperService.getData(
-                'https://bulbapedia.bulbagarden.net/wiki/List_of_Shadow_Pok%C3%A9mon_in_Pok%C3%A9mon_GO',
-                true
+                'https://bulbapedia.bulbagarden.net/wiki/List_of_Shadow_Pok%C3%A9mon_in_Pok%C3%A9mon_GO'
             );
             var shadowTable = shadowDoc
                 .body()
@@ -1410,7 +1409,7 @@ component singleton accessors="true" {
      */
     public void function createPokemon(required string pokemonLink) {
         // Fetch the pokemon page
-        var pokemonDoc = scraperService.getData(arguments.pokemonLink, true).body();
+        var pokemonDoc = scraperService.getData(arguments.pokemonLink).body();
 
         // Additional Pokedex Information Table
         var pokedexTable = pokemonDoc.select('h1##additional')[1]

@@ -4179,5 +4179,39 @@
         "ses": "884-Gigantamax",
         "moves": ["METAL_CLAW", "DRAGON_TAIL", "HYPER_BEAM", "FLASH_CANNON", "DRAGON_CLAW", "G-MAX_DEPLETION"],
         "defense": "185"
+    },
+    "Mega Garchomp": {
+        "live": true,
+        "flee": 0,
+        "catch": 0,
+        "shadowshiny": false,
+        "giga": false,
+        "number": "445",
+        "evolutions": [],
+        "form": true,
+        "mega": true,
+        "attack": "339",
+        "hp": "239",
+        "shadow": false,
+        "gender": "",
+        "shiny": false,
+        "name": "Mega Garchomp",
+        "tradable": false,
+        "type": ["Dragon", "Ground"],
+        "sprite": "445-Mega Garchomp",
+        "formtype": "Mega",
+        "generation": 4,
+        "ses": "445-Mega",
+        "moves": [
+            "MUD_SHOT",
+            "DRAGON_TAIL",
+            "EARTHQUAKE",
+            "FIRE_BLAST",
+            "SAND_TOMB",
+            "OUTRAGE",
+            "EARTH_POWER *",
+            "BREAKING_SWIPE"
+        ],
+        "defense": "222"
     }
 }

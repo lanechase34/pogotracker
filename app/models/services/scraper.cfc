@@ -15,18 +15,9 @@ component singleton accessors="true" {
     private array function getUserAgentsByOS(required string os) {
         switch(arguments.os) {
             case 'windows':
-                return [
-                    'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:147.0) Gecko/20100101 Firefox/147.0',
-                    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36',
-                    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0'
-                ];
+                return ['Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:148.0) Gecko/20100101 Firefox/148.0'];
             case 'linux':
-                return [
-                    'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-                    'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:121.0) Gecko/20100101 Firefox/121.0',
-                    'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36',
-                    'Mozilla/5.0 (X11; Linux x86_64; rv:120.0) Gecko/20100101 Firefox/120.0'
-                ];
+                return ['Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:147.0) Gecko/20100101 Firefox/147.0'];
             default:
                 throw('no valid os set');
         }
@@ -45,12 +36,11 @@ component singleton accessors="true" {
      */
     private struct function getRealisticHeaders(required string userAgent) {
         var headers = {
-            'Accept'                   : 'application/json, text/html, application/xhtml+xml, application/xml;q=0.9, image/avif, image/webp, */*;q=0.8',
+            'Accept'                   : 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
             'Accept-Language'          : 'en-US,en;q=0.9',
             'DNT'                      : '1',
             'Connection'               : 'keep-alive',
-            'Upgrade-Insecure-Requests': '1',
-            'Cache-Control'            : 'max-age=0'
+            'Upgrade-Insecure-Requests': '1'
         };
 
         // Determine platform based on user agent
