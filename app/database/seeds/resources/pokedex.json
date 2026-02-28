@@ -34261,34 +34261,6 @@
         ],
         "Defense": 100
     },
-    "Unown": {
-        "live": true,
-        "Flee": 10,
-        "Catch": 30,
-        "shadowshiny": false,
-        "giga": false,
-        "number": 201,
-        "evolutions": [],
-        "form": false,
-        "mega": false,
-        "Attack": 136,
-        "HP": 134,
-        "shadow": false,
-        "shiny": true,
-        "gender": "",
-        "Name": "Unown",
-        "tradable": true,
-        "Type": ["Psychic"],
-        "sprite": 201,
-        "formtype": "",
-        "generation": 2,
-        "ses": 201,
-        "moves": [
-            { "nameid": "HIDDEN_POWER", "shadow": false, "legacy": false },
-            { "nameid": "STRUGGLE", "shadow": false, "legacy": false }
-        ],
-        "Defense": 91
-    },
     "Yveltal": {
         "live": true,
         "Flee": 10,
