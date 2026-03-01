@@ -127,7 +127,7 @@ component extends="base" {
      */
     function getFriendRequestToast(event, rc, prc) {
         // Return blank on the profile page
-        if(!securityService.getReferer().find('/profile')) {
+        if(securityService.getReferer().find('/profile')) {
             event.setView(view = '/views/fragment/blank', nolayout = true);
             return;
         }
