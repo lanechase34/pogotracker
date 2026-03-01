@@ -20,7 +20,9 @@ component {
         buildMoveData         : 'GET',
         showMoveData          : 'GET',
         saveState             : 'POST',
-        taskManager           : 'GET'
+        taskManager           : 'GET',
+        readOverrides         : 'GET',
+        saveOverrides         : 'POST'
     };
 
     property name="auditService"      inject="services.audit";
@@ -339,6 +341,26 @@ component {
         }
 
         prc.header = 'Log Viewer';
+    }
+
+    function readOverrides(event, rc, prc) {
+        prc.overridesJSON = fileRead('/includes/assets/envpokedexoverrides.json');
+    }
+
+    function saveOverrides(event, rc, prc) {
+        try {
+            var raw = toString(rc.json ?: '');
+            // Validate it's actually JSON before saving
+            deserializeJSON(raw);
+            fileWrite(
+                '#getSetting('rootPath')#/includes/assets/envpokedexoverrides.json',
+                raw,
+                'UTF-8'
+            );
+        }
+        catch(any e) {
+        }
+        relocate(event = 'admin.readOverrides');
     }
 
 }

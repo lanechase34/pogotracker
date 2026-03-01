@@ -304,13 +304,14 @@ component singleton accessors="true" {
     }
 
     /**
-     * Get top 3 biggest single-day deltas for each stat type for the supplied trainer
+     * Get top n biggest single-day deltas for each stat type for the supplied trainer
      *
      * @trainer trainer
+     * @reords  number of top records to retrieve
      *
      * @return struct of arrays in format: { xp: [{date, delta}, ...], caught: [...], spun: [...], walked: [...] }
      */
-    public struct function getTopDeltas(required component trainer) {
+    public struct function getTopDeltas(required component trainer, numeric records = 5) {
         var cacheKey  = '#arguments.trainer.getId()#|stats.getTopDeltas';
         var topDeltas = cacheService.get(cacheKey);
 
@@ -328,11 +329,11 @@ component singleton accessors="true" {
                 walked_delta
             FROM (
                 SELECT
-                    created                                                                                                                                                              AS curr_date,
-                    ROUND((xp     - LAG(xp)     OVER (ORDER BY created))::numeric / NULLIF(DATE_PART('day', created - LAG(created) OVER (ORDER BY created))::numeric, 0), 1) AS xp_delta,
-                    ROUND((caught - LAG(caught) OVER (ORDER BY created))::numeric / NULLIF(DATE_PART('day', created - LAG(created) OVER (ORDER BY created))::numeric, 0), 1) AS caught_delta,
-                    ROUND((spun   - LAG(spun)   OVER (ORDER BY created))::numeric / NULLIF(DATE_PART('day', created - LAG(created) OVER (ORDER BY created))::numeric, 0), 1) AS spun_delta,
-                    ROUND((walked - LAG(walked) OVER (ORDER BY created))::numeric / NULLIF(DATE_PART('day', created - LAG(created) OVER (ORDER BY created))::numeric, 0), 1) AS walked_delta
+                    created AS curr_date,
+                    ROUND(CAST(xp     - LAG(xp)     OVER (ORDER BY created) AS numeric) / NULLIF(CAST(DATE_PART(''day'', created - LAG(created) OVER (ORDER BY created)) AS numeric), 0), 1) AS xp_delta,
+                    ROUND(CAST(caught - LAG(caught) OVER (ORDER BY created) AS numeric) / NULLIF(CAST(DATE_PART(''day'', created - LAG(created) OVER (ORDER BY created)) AS numeric), 0), 1) AS caught_delta,
+                    ROUND(CAST(spun   - LAG(spun)   OVER (ORDER BY created) AS numeric) / NULLIF(CAST(DATE_PART(''day'', created - LAG(created) OVER (ORDER BY created)) AS numeric), 0), 1) AS spun_delta,
+                    ROUND(CAST(walked - LAG(walked) OVER (ORDER BY created) AS numeric) / NULLIF(CAST(DATE_PART(''day'', created - LAG(created) OVER (ORDER BY created)) AS numeric), 0), 1) AS walked_delta
                 FROM stat
                 WHERE trainerid = :trainerid
             ) AS deltas
@@ -355,23 +356,20 @@ component singleton accessors="true" {
         topDeltas.each((stat) => {
             var sorted = queryExecute(
                 '
-                SELECT curr_date, #stat#_delta AS delta 
-                FROM query ORDER BY #stat#_delta DESC 
-                FETCH FIRST 3 ROWS ONLY
+                SELECT TOP :records curr_date, #stat#_delta AS delta 
+                FROM qStats
+                ORDER BY #stat#_delta DESC 
                 ',
-                {},
-                {dbtype: 'query', datasource: qStats}
+                {records: {value: records, cfsqltype: 'integer'}},
+                {dbtype: 'query'}
             );
 
             sorted.each((row) => {
-                topDeltas[statType].append({date: dateFormat(row.curr_date, 'short'), delta: row.delta});
+                topDeltas[stat].append({date: dateFormat(row.curr_date, 'short'), delta: row.delta});
             });
         });
 
-        writeDump(topDeltas);
-        abort;
-
-        cacheService.put(cacheKey, topDeltas, 10, 10);
+        cacheService.put(cacheKey, topDeltas, 60, 60);
 
         return topDeltas;
     }

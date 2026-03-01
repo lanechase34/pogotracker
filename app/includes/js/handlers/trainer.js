@@ -2,7 +2,7 @@ import { createAlert } from 'alert';
 import { getWrapper, postWrapper } from 'fetch';
 import { $loadingCard, $submitBtn } from 'loading';
 import { submitHandler, resetHandler } from 'modals';
-import { initStatsTracker, getSummaryStats, getPokedexStats, getMedalSummary } from 'stats';
+import { initStatsTracker, getSummaryStats, getPokedexStats, getMedalSummary, getTopDeltas } from 'stats';
 import { createAddFriendSearch } from 'search';
 
 const $friendsListDiv = document.getElementById('friendsListDiv');
@@ -13,6 +13,7 @@ const $profilerow = document.getElementById('profilerow');
 const $summaryStatsDiv = document.getElementById('summaryStatsDiv');
 const trainerid = document.getElementById('mainProfileUsername').dataset.trainerid;
 const $editProfile = document.getElementById('editProfile');
+const $topDeltasDiv = document.getElementById('topDeltasDiv');
 
 let $trainerLoading = {
     editProfile: false,
@@ -161,6 +162,7 @@ async function loadProfileCards() {
         getSummaryStats(trainerid, $summaryStatsDiv, $profilerow),
         getPokedexStats(trainerid, $pokedexStatsDiv),
         getMedalSummary(trainerid, $medalSummaryDiv),
+        getTopDeltas(trainerid, $topDeltasDiv),
     ];
     if ($profilerow.dataset.myprofile == 'true') {
         calls.push(getFriendsList($friendsListDiv));

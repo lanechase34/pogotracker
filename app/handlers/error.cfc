@@ -89,7 +89,7 @@ component extends="base" {
 
         emailService.sendBug(prc.exception.getExceptionStruct(), rc);
 
-        relocate(uri = '/exception', persistStruct = {details: prc.exception});
+        relocate(uri = '/exception', persistStruct = {details: prc.exception, erroredEvent: event.getCurrentEvent()});
     }
 
     /**
@@ -99,6 +99,10 @@ component extends="base" {
         // Page metadata
         prc.title           = 'Something Went Wrong';
         prc.metaDescription = 'An unexpected error occurred while processing your request.';
+
+        // Debugging mode
+        prc.debuggingMode = getSetting('environment') != 'production';
+        prc.erroredEvent  = prc?.erroredEvent ?: 'home.home';
 
         event.setHTTPHeader(statusCode = 500);
         event.setView(view = '/views/fragment/exception').setLayout('basic');

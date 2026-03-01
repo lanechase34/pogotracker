@@ -314,10 +314,13 @@ component extends="base" {
         }
 
         prc.trainer   = trainerService.getFromId(trainerid = prc.trainerid);
-        prc.topDeltas = statsSevice.getTopDeltas(trainer = prc.trainer);
+        prc.topDeltas = statsService.getTopDeltas(trainer = prc.trainer);
 
-        writeDump(prc.topDeltas);
-        abort;
+        event.setView(
+            view     = '/views/stats/topdeltas',
+            nolayout = true,
+            args     = {topDeltas: prc.topDeltas}
+        );
     }
 
 }

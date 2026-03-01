@@ -57,7 +57,8 @@
         "getPokedexStats": 10,
         "getMedalProgress": 10,
         "trackMedalProgress": 10,
-        "getMedalSummary": 10
+        "getMedalSummary": 10,
+        "topDeltas": 10
     },
     "trade": {
         "tradePlanForm": 10,
