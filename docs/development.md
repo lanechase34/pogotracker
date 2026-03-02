@@ -134,16 +134,29 @@ There are many tasks available that cover these topics below. Run tasks in vscod
     DB_PORT=5432
     ```
 
-## Github Actions
+## Testing Github Actions Locally
 
-Run Github Test action locally using
+GitHub Actions workflows can be run locally using [act](https://github.com/nektos/act), which simulates the GitHub Actions runner environment via Docker.
 
+### Prerequisites
+
+- Docker running locally
+- `act` installed
+- The `ubuntu-24.04` runner image pulled:
+
+    ```bash
+    docker pull ghcr.io/catthehacker/ubuntu:act-24.04
+    ```
+
+### Running the Test Workflow
+
+You can run the test workflow from the VS Code Tasks menu (`Terminal > Run Task`) or directly from the terminal at the project root:
+
+```bash
+act -W '.github/workflows/test.yml' -P ubuntu-24.04=ghcr.io/catthehacker/ubuntu:act-24.04 --rm --pull=false
 ```
 
-ctrl + shift + p
-Tasks: Run Task -> Github Actions Test
-
-```
+Note: The `--pull=false` flag prevents `act` from re-pulling the runner image each run. If the container image is missing or outdated, remove this flag to pull a fresh copy.
 
 This runs the yaml file using nektos/act to utilize docker instances
 simulating the real steps Github takes when executing this action

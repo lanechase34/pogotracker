@@ -73,7 +73,7 @@ component extends="tests.resources.baseTest" {
 
                 it('Save an updated entity', () => {
                     // Wait 2 seconds then update the entity
-                    sleep(2000);
+                    sleep(3000);
                     trainer = entityLoadByPK('trainer', session.newId);
                     before  = trainer.getUpdated();
                     trainer.setIcon('treeko');

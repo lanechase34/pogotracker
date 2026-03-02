@@ -54,7 +54,8 @@ component extends="tests.resources.baseTest" asyncAll="true" {
                     shadow  = false,
                     giga    = false
                 );
-                expect(pokedexHelperFunctions.countRegistered(registered, true)).toBe(100);
+                // 99 because unown not included in Johto dex - has own unown dex
+                expect(pokedexHelperFunctions.countRegistered(registered, true)).toBe(99);
             });
 
             afterEach(() => {

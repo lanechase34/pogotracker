@@ -33,10 +33,10 @@ jobs:
         image: postgres:16
         env:
           POSTGRES_USER: runner
-          POSTGRES_PASSWORD: postgres
+          POSTGRES_PASSWORD: postgres_docker
           POSTGRES_DB: test_pogotracker
         ports:
-          - 5432:5432
+          - 5435:5432
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
@@ -67,18 +67,18 @@ jobs:
           INSPECTTEMPLATE=never
           IMAGEMAGICKPATH=/usr/bin
           HTTP_PORT=8084
-          HTTP_HOST=127.0.0.1
+          HTTP_HOST=0.0.0.0
           REQUESTTIMEOUT=60
           SESSIONTIMEOUT=30
           OS=linux
           JAVAHEAP=2048
           JAVAMINHEAP=512
           DB_HOST=localhost
-          DB_PORT=5432
+          DB_PORT=5435
           DB_NAME=test_pogotracker
           DB_SCHEMA=public
           DB_USERNAME=runner
-          DB_PASSWORD=postgres
+          DB_PASSWORD=postgres_docker
           DB_BUNDLEVERSION=42.7.7
           EMAIL_SERVER=localhost
           EMAIL_PORT=587
@@ -104,13 +104,13 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y postgresql-client
-          until pg_isready -h localhost -p 5432 -U runner; do
+          until pg_isready -h localhost -p 5435 -U runner; do
             echo "Waiting for PostgreSQL..."
             sleep 2
           done
-          psql -h localhost -p 5432 -U runner -d test_pogotracker -c "SELECT version();"
+          psql -h localhost -p 5435 -U runner -d test_pogotracker -c "SELECT version();"
         env:
-          PGPASSWORD: postgres
+          PGPASSWORD: postgres_docker
 
       - name: Run Database Migrations
         run: |
@@ -132,7 +132,7 @@ jobs:
         run: |
           echo "Waiting for server to start..."
           for i in {1..60}; do
-            if curl -sf http://127.0.0.1:8084 > /dev/null 2>&1; then
+            if curl -sf http://localhost:8084 > /dev/null 2>&1; then
               echo "Server is ready!"
               exit 0
             fi
