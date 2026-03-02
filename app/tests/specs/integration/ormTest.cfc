@@ -25,6 +25,7 @@ component extends="tests.resources.baseTest" {
 
                 it('Can load by col', () => {
                     var mockedTrainer = mockTrainer.make(autoLogin = false);
+                    sleep(1000);
                     var trainer       = entityLoad('trainer', {email: mockedTrainer.getEmail()});
                     expect(trainer).toBeArray();
                     expect(trainer.len()).toBe(1);

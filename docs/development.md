@@ -204,6 +204,14 @@ Minified files go to `/include/build`
     Tasks: Run Build Task
     ```
 
+## GitHooks
+
+    Test pre-commit GitHooks by running the following
+
+    ```bash
+    lefthook run pre-commit
+    ```
+
 ## Dev Setup (No Docker)
 
 ### Prerequisites

@@ -5,6 +5,9 @@
             "label": "Format CF",
             "type": "shell",
             "command": "box run-script format",
+            "options": {
+                "cwd": "${workspaceFolder}/app"
+            },
             "group": {
                 "kind": "build"
             },
@@ -18,7 +21,7 @@
                 "kind": "build"
             },
             "options": {
-                "cwd": "${workspaceFolder}/includes"
+                "cwd": "${workspaceFolder}/app/includes"
             },
             "detail": "Lint all JS files"
         },
@@ -30,9 +33,9 @@
                 "kind": "build"
             },
             "options": {
-                "cwd": "${workspaceFolder}/includes"
+                "cwd": "${workspaceFolder}/app/includes"
             },
-            "detail": "Minify JS and build output files to /includes/build"
+            "detail": "Minify JS and build output files to /app/includes/build"
         },
         {
             "label": "Bulid CSS",
@@ -42,9 +45,9 @@
                 "kind": "build"
             },
             "options": {
-                "cwd": "${workspaceFolder}/includes"
+                "cwd": "${workspaceFolder}/app/includes"
             },
-            "detail": "Minify CSS and build output files to /includes/build"
+            "detail": "Minify CSS and build output files to /app/includes/build"
         },
         {
             "label": "Github Actions Test",
