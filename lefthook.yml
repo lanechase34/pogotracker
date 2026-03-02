@@ -1,0 +1,30 @@
+pre-commit:
+  parallel: true
+  commands:
+    format:
+      root: "app/"
+      run: box run-script format
+    lint:
+      root: "app/includes/"
+      run: npm run-script lint
+    envcheck:
+      root: "app/"
+      run: box dotenv check --reverse
+    minjs:
+      root: "app/includes/"
+      run: npm run-script minJS
+    mincss:
+      root: "app/includes/"
+      run: npm run-script minCSS
+
+post-checkout:
+  parallel: true
+  commands:
+    box-install:
+      root: "app/"
+      run: box install
+    npm-install:
+      root: "app/includes/"
+      run: npm install
+    box-fix-json-lineending:
+      run: box config set JSON.lineEnding=`#chr 10`

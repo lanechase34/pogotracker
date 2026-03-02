@@ -618,7 +618,9 @@ export const runtime = {
         editor.addEventListener('input', () => {
             try {
                 JSON.parse(editor.value);
-            } catch (e) {}
+            } catch (e) {
+                console.error('Error saving', e);
+            }
         });
     },
 };

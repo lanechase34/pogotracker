@@ -357,8 +357,21 @@ component {
                 raw,
                 'UTF-8'
             );
+
+            sessionService.setAlert(
+                'success',
+                true,
+                'bi bi-copy',
+                'Successfully saved!'
+            );
         }
         catch(any e) {
+            sessionService.setAlert(
+                'danger',
+                true,
+                'bi-exclamation-diamond-fill',
+                'Error saving. Please try again. #e.message#'
+            );
         }
         relocate(event = 'admin.readOverrides');
     }

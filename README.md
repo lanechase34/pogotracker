@@ -61,8 +61,22 @@ The database container will automatically be seeded with dev data.
     - **App**: http://localhost:8081
 
 5. Stop containers by running
+
     ```
     docker compose down
+    ```
+
+6. Install NPM packages for formatting, linting frontend files
+
+    ```bash
+    cd /app/includes
+    npm install
+    ```
+
+7. Setup GitHooks from root
+    ```bash
+    npm install -g lefthook
+    lefthook install
     ```
 
 ### Commands
