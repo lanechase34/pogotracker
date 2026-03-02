@@ -19,6 +19,10 @@ let $statsLoading = {
     trackStats: false,
 };
 
+const STAT_UNITS = {
+    walked: ' km',
+};
+
 export async function getLeaderboard($div) {
     return getWrapper({
         url: `/stats/leaderboard/stat/XP`,
@@ -93,6 +97,71 @@ export async function getMedalSummary(trainerid, $div) {
             $div.innerHTML = data;
         },
     });
+}
+
+/**
+ * Loads the trainer's top stat days card
+ * @param {number} trainerid
+ * @param {HTMLElement} $div
+ */
+export async function getTopDeltas(trainerid, $div) {
+    return getWrapper({
+        url: `/stats/topDeltas/trainerid/${trainerid}`,
+        $loadingDiv: $div,
+        loading: $loadingCard,
+        dataHandler: (data) => {
+            $div.innerHTML = data;
+
+            const buttons = document.querySelectorAll('.topDeltaStat');
+            const list = document.getElementById('topDeltaList');
+            const deltas = JSON.parse(document.getElementById('topDeltaData').dataset.deltas);
+
+            buttons.forEach((btn) => {
+                btn.addEventListener('click', () => {
+                    buttons.forEach((b) => {
+                        b.classList.remove('active');
+                        b.disabled = false;
+                    });
+                    btn.classList.add('active');
+                    btn.disabled = true;
+
+                    list.innerHTML = renderStat(deltas[btn.dataset.stat] ?? [], btn.dataset.stat);
+                });
+            });
+
+            list.innerHTML = renderStat(deltas['xp'] ?? [], 'xp');
+        },
+    });
+}
+
+/**
+ * Renders list items for a stat's top days
+ * @param {Array<{date: string, delta: number}>} rows
+ * @param {string} stat
+ * @returns {string}
+ */
+function renderStat(rows, stat) {
+    if (!rows.length) {
+        return `
+            <div class="d-grid gap-2 px-3 py-2 rounded shadow-sm bg-body-secondary text-center">
+                <span class="text-center text-muted py-3">No data available</span>
+            </div>
+            `;
+    }
+
+    const unit = STAT_UNITS[stat] ?? '';
+
+    return rows
+        .map(
+            (row, i) => `
+                <div class="d-flex align-items-center gap-2 px-3 py-2 rounded shadow-sm bg-body-secondary">
+                    <span class="text-muted small" style="min-width: 1rem; text-align: right;">${i + 1}.</span>
+                    <span class="text-muted small flex-grow-1">${row.date}</span>
+                    <span class="fw-semibold small">${row.delta.toLocaleString()}${unit}</span>
+                </div>
+            `
+        )
+        .join('');
 }
 
 async function getTrackStats() {

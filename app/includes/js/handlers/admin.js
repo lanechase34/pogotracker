@@ -3,6 +3,7 @@ import { initCopyIcons } from 'copy';
 import { getWrapper, postWrapper } from 'fetch';
 import { $submitBtn } from 'loading';
 import { startMetricsSocket } from 'socket';
+import { createToast } from 'toast';
 
 const $listTrainers = document.getElementById('listTrainers');
 const tables = {};
@@ -578,6 +579,46 @@ export const runtime = {
             paging: false,
             searching: false,
             scrollX: true,
+        });
+    },
+    readoverrides: () => {
+        const editor = document.getElementById('jsonEditor');
+        const formatBtn = document.getElementById('formatBtn');
+        const saveBtn = document.getElementById('saveBtn');
+
+        function validate() {
+            try {
+                JSON.parse(editor.value);
+                return true;
+            } catch (e) {
+                createToast(`Invalid JSON: ${e.message}`, 'danger', 'bi-exclamation-triangle');
+                return false;
+            }
+        }
+
+        function format() {
+            try {
+                const parsed = JSON.parse(editor.value);
+                editor.value = JSON.stringify(parsed, null, 4);
+            } catch (e) {
+                createToast(`Invalid JSON: ${e.message}`, 'danger', 'bi-exclamation-triangle');
+            }
+        }
+
+        format();
+
+        formatBtn.addEventListener('click', format);
+
+        saveBtn.addEventListener('click', () => {
+            if (validate()) {
+                document.getElementById('overridesForm').submit();
+            }
+        });
+
+        editor.addEventListener('input', () => {
+            try {
+                JSON.parse(editor.value);
+            } catch (e) {}
         });
     },
 };

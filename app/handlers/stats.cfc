@@ -8,7 +8,8 @@ component extends="base" {
         getPokedexStats   : 'GET',
         getMedalSummary   : 'GET',
         getMedalProgress  : 'GET',
-        trackMedalProgress: 'POST'
+        trackMedalProgress: 'POST',
+        topDeltas         : 'GET'
     };
 
     property name="cacheService"   inject="services.cache";
@@ -288,6 +289,38 @@ component extends="base" {
         );
 
         jsonOk(event = event);
+    }
+
+    /**
+     * Top deltas view
+     * Lists the biggest deltas for each stat
+     *
+     * @rc.trainerid (optional) defaults to current session
+     */
+    function topDeltas(event, rc, prc) {
+        rc.trainerid = rc?.trainerid ?: session.trainerid;
+
+        // Validate viewing a friend's deltas
+        prc.trainerid = parseNumber(rc.trainerid);
+        if(
+            prc.trainerid != session.trainerid && !friendService.checkFriend(
+                trainerid = session.trainerid,
+                friendid  = prc.trainerid,
+                accepted  = true
+            )
+        ) {
+            htmlValidationFailure(event = event);
+            return;
+        }
+
+        prc.trainer   = trainerService.getFromId(trainerid = prc.trainerid);
+        prc.topDeltas = statsService.getTopDeltas(trainer = prc.trainer);
+
+        event.setView(
+            view     = '/views/stats/topdeltas',
+            nolayout = true,
+            args     = {topDeltas: prc.topDeltas}
+        );
     }
 
 }

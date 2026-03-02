@@ -113,5 +113,6 @@
     <div class="col-12 col-xl-6 mt-3 profileCard" id="summaryStatsDiv"></div>
     <div class="col-12 col-xl-6 mt-3 profileCard" id="pokedexStatsDiv"></div>
     <div class="col-12 col-xl-6 mt-3 profileCard" id="medalSummaryDiv"></div>
+    <div class="col-12 col-xl-6 mt-3 profileCard" id="topDeltasDiv"></div>
 </div>
 </cfoutput>

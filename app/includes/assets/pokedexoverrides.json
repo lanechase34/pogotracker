@@ -4213,5 +4213,6 @@
             "BREAKING_SWIPE"
         ],
         "defense": "222"
-    }
+    },
+    "Unown": { "delete": true }
 }

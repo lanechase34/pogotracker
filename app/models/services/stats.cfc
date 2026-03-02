@@ -303,4 +303,75 @@ component singleton accessors="true" {
         return pokedexStats;
     }
 
+    /**
+     * Get top n biggest single-day deltas for each stat type for the supplied trainer
+     *
+     * @trainer trainer
+     * @reords  number of top records to retrieve
+     *
+     * @return struct of arrays in format: { xp: [{date, delta}, ...], caught: [...], spun: [...], walked: [...] }
+     */
+    public struct function getTopDeltas(required component trainer, numeric records = 5) {
+        var cacheKey  = '#arguments.trainer.getId()#|stats.getTopDeltas';
+        var topDeltas = cacheService.get(cacheKey);
+
+        if(!isNull(topDeltas)) {
+            return topDeltas;
+        }
+
+        var qStats = queryExecute(
+            '
+            SELECT
+                curr_date,
+                xp_delta,
+                caught_delta,
+                spun_delta,
+                walked_delta
+            FROM (
+                SELECT
+                    created AS curr_date,
+                    ROUND(CAST(xp     - LAG(xp)     OVER (ORDER BY created) AS numeric) / NULLIF(CAST(DATE_PART(''day'', created - LAG(created) OVER (ORDER BY created)) AS numeric), 0), 1) AS xp_delta,
+                    ROUND(CAST(caught - LAG(caught) OVER (ORDER BY created) AS numeric) / NULLIF(CAST(DATE_PART(''day'', created - LAG(created) OVER (ORDER BY created)) AS numeric), 0), 1) AS caught_delta,
+                    ROUND(CAST(spun   - LAG(spun)   OVER (ORDER BY created) AS numeric) / NULLIF(CAST(DATE_PART(''day'', created - LAG(created) OVER (ORDER BY created)) AS numeric), 0), 1) AS spun_delta,
+                    ROUND(CAST(walked - LAG(walked) OVER (ORDER BY created) AS numeric) / NULLIF(CAST(DATE_PART(''day'', created - LAG(created) OVER (ORDER BY created)) AS numeric), 0), 1) AS walked_delta
+                FROM stat
+                WHERE trainerid = :trainerid
+            ) AS deltas
+            WHERE xp_delta     IS NOT NULL
+            AND   caught_delta IS NOT NULL
+            AND   spun_delta   IS NOT NULL
+            AND   walked_delta IS NOT NULL
+            ',
+            {trainerid: {value: arguments.trainer.getId(), cfsqltype: 'integer'}}
+        );
+
+        var topDeltas = {
+            xp    : [],
+            caught: [],
+            spun  : [],
+            walked: []
+        };
+
+        // For each stat, sort the full result set by that delta desc and take top 3
+        topDeltas.each((stat) => {
+            var sorted = queryExecute(
+                '
+                SELECT TOP :records curr_date, #stat#_delta AS delta 
+                FROM qStats
+                ORDER BY #stat#_delta DESC 
+                ',
+                {records: {value: records, cfsqltype: 'integer'}},
+                {dbtype: 'query'}
+            );
+
+            sorted.each((row) => {
+                topDeltas[stat].append({date: dateFormat(row.curr_date, 'short'), delta: row.delta});
+            });
+        });
+
+        cacheService.put(cacheKey, topDeltas, 60, 60);
+
+        return topDeltas;
+    }
+
 }

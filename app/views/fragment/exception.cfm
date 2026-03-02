@@ -23,9 +23,17 @@
             <button class="btn btn-outline-dark" onclick="history.back();">
                 <i class="bi bi-arrow-left me-1"></i>Go Back
             </button>
+
+            <cfif prc.debuggingMode>
+                <a href="#event.buildLink(prc.erroredEvent)#?fwreinit">
+                    <button class="btn btn-outline-dark">
+                        <i class="bi bi-arrow-left me-1"></i>Re-run event
+                    </button>
+                </a>
+            </cfif>
         </div>
 
-        <cfif application.cbController.getSetting("environment") NEQ "production">
+        <cfif prc.debuggingMode>
             <div class="alert alert-dark mt-4 text-start small">
                 <strong>Debug:</strong><br>
                 Event: #prc?.currEvent ?: "unknown"#<br>
