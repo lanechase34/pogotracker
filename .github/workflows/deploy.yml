@@ -28,6 +28,11 @@ jobs:
             --exclude='includes/assets/envpokedexoverrides.json'
             --include='includes/build/js/modules/***'
             --exclude='includes/js/'
+            --exclude='includes/tests/'
+            --exclude='includes/.eslintignore',
+            --exclude='includes/.prettierignore',
+            --exclude='includes/.prettierrc',
+            --exclude='includes/playwright.config.js',
             --exclude='coldbox/'
             --include='config/modules/***'
             --exclude='modules/'
