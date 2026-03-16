@@ -14,6 +14,9 @@ COPY ./ ${APP_DIR}/
 # The following commands will be ran against the app directory
 WORKDIR ${APP_DIR}
 
+# Set the commandbox lineending
+RUN box config set JSON.lineEnding=`#chr 10`
+
 # Make sure dependencies are installed
 RUN box install --production
 

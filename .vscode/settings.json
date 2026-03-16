@@ -17,7 +17,9 @@
     },
     "files.exclude": {
         "**/.git": true,
-        "app/includes/node_modules/": true
+        "app/includes/node_modules/": true,
+        "app/includes/test-results/": true,
+        "app/includes/playwright-report/": true
     },
     "prettier.tabWidth": 4,
     "prettier.singleQuote": true,

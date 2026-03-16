@@ -14,6 +14,18 @@
             "detail": "Format CF code using CF Formatter"
         },
         {
+            "label": "Format JS",
+            "type": "shell",
+            "command": "npm run-script format",
+            "options": {
+                "cwd": "${workspaceFolder}/app/includes"
+            },
+            "group": {
+                "kind": "build"
+            },
+            "detail": "Format JS files using Prettier"
+        },
+        {
             "label": "Lint JS",
             "type": "shell",
             "command": "npm run-script lint",

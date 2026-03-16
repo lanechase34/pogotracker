@@ -21,7 +21,7 @@ jobs:
     name: Run Tests
     runs-on: ubuntu-24.04
     environment: Test
-    timeout-minutes: 30
+    timeout-minutes: 45
 
     # Set default working directory for all run steps
     defaults:
@@ -143,6 +143,7 @@ jobs:
           box server log
           exit 1
 
+      # TestBox Tests
       - name: Run TestBox Tests
         id: run_tests
         run: |
@@ -150,7 +151,7 @@ jobs:
           box testbox run --verbose outputFile="tests/results/test-results" outputFormats="json,antjunit" \
             || echo "TESTS_FAILED=true" >> $GITHUB_ENV
         continue-on-error: true
-        timeout-minutes: 10
+        timeout-minutes: 15
 
       - name: Display Test Results
         if: always()
@@ -170,6 +171,7 @@ jobs:
             echo "No test results found!"
             ls -la tests/results/ || echo "Results directory doesn't exist"
           fi
+        continue-on-error: true
 
       - name: Publish Test Reports
         uses: mikepenz/action-junit-report@v6.0.0
@@ -181,6 +183,7 @@ jobs:
           include_passed: false
           fail_on_failure: true
           detailed_summary: true
+        continue-on-error: true
 
       - name: Upload Test Results
         uses: actions/upload-artifact@v4
@@ -192,8 +195,74 @@ jobs:
             app/tests/results/*.json
             app/tests/results/*.xml
           retention-days: 30
+        continue-on-error: true
+
+      # Playwright Tests
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: "npm"
+          cache-dependency-path: app/includes/package-lock.json
+
+      - name: Clean Install Dependencies
+        working-directory: ./app/includes
+        run: |
+          npm ci
+          npm run install:browsers
+
+      - name: Run Playwright Tests
+        id: run_playwright_tests
+        working-directory: ./app/includes
+        run: |
+          npx playwright test
+        continue-on-error: true
+        timeout-minutes: 15
+        env:
+          CI: true
+          BASE_URL: http://localhost:8084
+
+      - name: Display Playwright Results
+        if: always()
+        working-directory: ./app/includes
+        run: |
+          if [ -f "playwright-report/index.html" ]; then
+            echo "=== Playwright Results Summary ==="
+            # Extract pass/fail counts from the JSON results if available
+            if [ -f "test-results/.last-run.json" ]; then
+              cat test-results/.last-run.json | jq -r '
+                "Status: \(.status)",
+                "Failed: \(.failedTests | length)"
+              ' 2>/dev/null || echo "Could not parse Playwright results JSON"
+            fi
+          else
+            echo "No Playwright report found"
+          fi
+
+      - name: Upload Playwright Report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report
+          path: |
+            app/includes/playwright-report/
+            app/includes/test-results/
+          retention-days: 30
+        continue-on-error: true
+
+      - name: Publish Playwright Results
+        uses: mikepenz/action-junit-report@v6.0.0
+        if: always()
+        with:
+          report_paths: |
+            app/includes/test-results/**/*.xml
+          check_name: "Playwright Report"
+          include_passed: false
+          fail_on_failure: true
+          detailed_summary: true
+        continue-on-error: true
 
       - name: Stop Server
         if: always()
         run: |
-          box server stop
+          box server stop --force

@@ -7,6 +7,7 @@
         "esbenp.prettier-vscode",
         "redhat.vscode-yaml",
         "dbaeumer.vscode-eslint",
-        "redhat.vscode-xml"
+        "redhat.vscode-xml",
+        "ms-playwright.playwright"
     ]
 }

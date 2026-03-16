@@ -38,6 +38,12 @@ app/includes/assets/pokedex.json
 app/includes/assets/moves.json
 app/includes/assets/medals.json
 
+app/includes/test-results/
+app/includes/playwright-report/
+app/includes/blob-report/
+app/includes/playwright/.cache/
+app/includes/playwright/.auth/
+
 /node_modules
 app/tests/test.xml
 
