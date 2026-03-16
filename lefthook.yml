@@ -1,21 +1,32 @@
 pre-commit:
   parallel: true
-  commands:
-    format:
-      root: "app/"
-      run: box run-script format
-    lint:
-      root: "app/includes/"
-      run: npm run-script lint
-    envcheck:
+  jobs:
+    - name: backend
+      group:
+        piped: true
+        jobs:
+          - name: format
+            root: "app/"
+            run: box run-script format
+    - name: frontend
+      group:
+        piped: true
+        jobs:
+          - name: format
+            root: "app/includes/"
+            run: npm run-script format
+          - name: lint
+            root: "app/includes/"
+            run: npm run lint:fix
+          - name: minJS
+            root: "app/includes/"
+            run: npm run-script minJS
+          - name: minCSS
+            root: "app/includes/"
+            run: npm run-script minCSS
+    - name: envcheck
       root: "app/"
       run: box dotenv check --reverse
-    minjs:
-      root: "app/includes/"
-      run: npm run-script minJS
-    mincss:
-      root: "app/includes/"
-      run: npm run-script minCSS
 
 post-checkout:
   parallel: true
@@ -27,4 +38,4 @@ post-checkout:
       root: "app/includes/"
       run: npm install
     box-fix-json-lineending:
-      run: box config set JSON.lineEnding=`#chr 10`
+      run: echo 'config set JSON.lineEnding=`#chr 10`' | box

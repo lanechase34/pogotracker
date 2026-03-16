@@ -177,6 +177,8 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                     uri  = right(link, link.len() - link.find(application.cbController.getSetting('httpPort')) - 3);
                     code = right(uri, uri.len() - 7);
 
+                    expect(uri.len()).toBeGTE(1);
+
                     // Get the reset password form using the link emailed
                     event = get(route = uri, params = {});
                     expect(event.getResponse().getStatusCode()).toBe(200);

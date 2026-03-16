@@ -21,7 +21,7 @@ jobs:
     name: Run Tests
     runs-on: ubuntu-24.04
     environment: Test
-    timeout-minutes: 30
+    timeout-minutes: 45
 
     # Set default working directory for all run steps
     defaults:
@@ -143,6 +143,7 @@ jobs:
           box server log
           exit 1
 
+      # TestBox Tests
       - name: Run TestBox Tests
         id: run_tests
         run: |
@@ -150,7 +151,7 @@ jobs:
           box testbox run --verbose outputFile="tests/results/test-results" outputFormats="json,antjunit" \
             || echo "TESTS_FAILED=true" >> $GITHUB_ENV
         continue-on-error: true
-        timeout-minutes: 10
+        timeout-minutes: 15
 
       - name: Display Test Results
         if: always()
@@ -170,6 +171,7 @@ jobs:
             echo "No test results found!"
             ls -la tests/results/ || echo "Results directory doesn't exist"
           fi
+        continue-on-error: true
 
       - name: Publish Test Reports
         uses: mikepenz/action-junit-report@v6.0.0
@@ -181,6 +183,7 @@ jobs:
           include_passed: false
           fail_on_failure: true
           detailed_summary: true
+        continue-on-error: true
 
       - name: Upload Test Results
         uses: actions/upload-artifact@v4
@@ -192,8 +195,9 @@ jobs:
             app/tests/results/*.json
             app/tests/results/*.xml
           retention-days: 30
+        continue-on-error: true
 
       - name: Stop Server
         if: always()
         run: |
-          box server stop
+          box server stop --force

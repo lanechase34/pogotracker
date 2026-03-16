@@ -4,6 +4,7 @@ component singleton accessors="true" {
     property name="emailService"   inject="services.email";
     property name="sessionService" inject="services.session";
     property name="trainerService" inject="services.trainer";
+    property name="useRecaptcha"   inject="coldbox:setting:useRecaptcha";
 
     property name="securityMap"    type="struct";
     property name="securityLevels" type="struct";
@@ -554,42 +555,45 @@ component singleton accessors="true" {
      * @token user's recaptcha token
      */
     public boolean function verifyRecaptcha(required string token) {
-        cfhttp(
-            url    = "https://www.google.com/recaptcha/api/siteverify",
-            result = "result",
-            method = "POST"
-        ) {
-            cfhttpparam(
-                name  = "secret",
-                type  = "url",
-                value = application.cbController.getSetting("reCaptchaSecretKey")
-            );
-            cfhttpparam(
-                name  = "response",
-                type  = "url",
-                value = arguments.token
-            );
-            cfhttpparam(
-                name  = "remoteip",
-                type  = "url",
-                value = getRequestIP()
-            );
-        };
-
-        result = deserializeJSON(result.filecontent);
-
         // Returns {success, challenge_ts, hostname, score, action}
-        session.recaptcha = {
+        var recaptchaResult = {
             token    : arguments.token,
-            valid    : result.success && result.score > 0.5,
+            valid    : !getUseRecaptcha(),
             timestamp: now(),
-            action   : result?.action ?: ''
+            action   : ''
         };
 
-        if(!application.cbController.getSetting('useRecaptcha')) {
-            session.recaptcha.valid = true;
+        if(getUseRecaptcha()) {
+            cfhttp(
+                url    = "https://www.google.com/recaptcha/api/siteverify",
+                result = "result",
+                method = "POST"
+            ) {
+                cfhttpparam(
+                    name  = "secret",
+                    type  = "url",
+                    value = application.cbController.getSetting("reCaptchaSecretKey")
+                );
+                cfhttpparam(
+                    name  = "response",
+                    type  = "url",
+                    value = arguments.token
+                );
+                cfhttpparam(
+                    name  = "remoteip",
+                    type  = "url",
+                    value = getRequestIP()
+                );
+            };
+
+            var recaptchaResponse = deserializeJSON(result.filecontent);
+
+            recaptchaResult.valid  = recaptchaResponse.success && recaptchaResponse.score > 0.5;
+            recaptchaResult.action = recaptchaResponse?.action ?: '';
         }
 
+        // Store recaptcha result in session
+        session.recaptcha = recaptchaResult;
         return session.recaptcha.valid;
     }
 

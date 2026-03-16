@@ -20,6 +20,7 @@ export default defineConfig([
             globals: {
                 // js running in browser
                 ...globals.browser,
+                process: 'readonly',
                 // libraries
                 DataTable: 'readonly',
                 bootstrap: 'readonly',
