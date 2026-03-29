@@ -42,6 +42,9 @@ component extends="coldbox.system.Interceptor" {
         if(environment == 'production' && !getInstance('services.email').verifyConnection()) {
             throw('Cannot connect to email server');
         }
+
+        // Ensure overrides json exists
+        getInstance('services.admin').checkOverridesJson();
     }
 
     /**

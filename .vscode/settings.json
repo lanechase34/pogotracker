@@ -32,7 +32,6 @@
         "**/.secrets": true,
         "**/.env": true,
         "*.min.js": true,
-        "app/includes/package.json": true,
         "app/includes/package-lock.json": true,
         "app/coldbox/": true,
         "app/modules/**": true,

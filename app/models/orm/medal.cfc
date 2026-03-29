@@ -12,6 +12,9 @@ component persistent="true" extends="base" {
     // relations
     property name="trainermedal" fieldtype="one-to-many" cfc="trainermedal" lazy="true";
 
+    /**
+     * Return alt text for the image using the medal's name
+     */
     string function getAltText() {
         return '#ucFirst(getName())# medal icon';
     }

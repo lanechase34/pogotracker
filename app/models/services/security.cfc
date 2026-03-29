@@ -243,12 +243,13 @@ component singleton accessors="true" {
         var trainer         = trainerService.getFromId(arguments.trainerid);
 
         // Permissions - only admins can edit other trainers and/or security level and verified
+        var checkBoxOptions = ['off', 'on'];
         if(
             session.securityLevel < 50 && (
                 session.trainerid != arguments.trainerid ||
                 arguments.friendcode.len() ||
                 (arguments.securityLevel.len() && !getSecurityLevels().keyExists(arguments.securityLevel)) ||
-                (arguments.verified.len() && !['off', 'on'].contains(arguments.verified))
+                (arguments.verified.len() && !checkBoxOptions.contains(arguments.verified))
             )
         ) {
             return false;

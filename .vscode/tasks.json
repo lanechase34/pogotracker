@@ -26,6 +26,18 @@
             "detail": "Format JS files using Prettier"
         },
         {
+            "label": "Lint CF",
+            "type": "shell",
+            "command": "box run-script lint:error",
+            "options": {
+                "cwd": "${workspaceFolder}/app"
+            },
+            "group": {
+                "kind": "build"
+            },
+            "detail": "Lint CF code using CFLint"
+        },
+        {
             "label": "Lint JS",
             "type": "shell",
             "command": "npm run-script lint",

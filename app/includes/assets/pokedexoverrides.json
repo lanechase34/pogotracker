@@ -4311,5 +4311,112 @@
         "ses": "826",
         "moves": ["CONFUSION", "STRUGGLE_BUG", "BUG_BUZZ", "PSYCHIC"],
         "defense": "240"
+    },
+    "Silicobra": {
+        "live": true,
+        "flee": 0,
+        "catch": 20,
+        "shadowshiny": false,
+        "giga": false,
+        "number": "843",
+        "evolutions": [
+            {
+                "condition": "",
+                "number": "844",
+                "gender": "",
+                "cost": "50",
+                "name": "Sandaconda",
+                "special": false,
+                "region": "",
+                "stage": ""
+            }
+        ],
+        "form": false,
+        "mega": false,
+        "attack": "103",
+        "hp": "141",
+        "shadow": false,
+        "gender": "",
+        "shiny": false,
+        "name": "Silicobra",
+        "tradable": true,
+        "type": ["Ground"],
+        "sprite": "843",
+        "formtype": "",
+        "generation": 8,
+        "ses": "843",
+        "moves": ["MUD_SHOT", "MUD-SLAP", "WRAP", "DIG", "BULLDOZE", "EARTH_POWER"],
+        "defense": "123"
+    },
+    "Sandaconda": {
+        "live": true,
+        "flee": 0,
+        "catch": 20,
+        "shadowshiny": false,
+        "giga": false,
+        "number": "844",
+        "evolutions": [],
+        "form": false,
+        "mega": false,
+        "attack": "202",
+        "hp": "176",
+        "shadow": false,
+        "gender": "",
+        "shiny": false,
+        "name": "Sandaconda",
+        "tradable": true,
+        "type": ["Ground"],
+        "sprite": "844",
+        "formtype": "",
+        "generation": 8,
+        "ses": "844",
+        "moves": ["MUD_SHOT", "MUD-SLAP", "WRAP", "DIG", "BULLDOZE", "EARTH_POWER"],
+        "defense": "207"
+    },
+    "Gigantamax Pikachu": {
+        "live": true,
+        "flee": 0,
+        "catch": 0,
+        "shadowshiny": false,
+        "giga": true,
+        "number": "25",
+        "evolutions": [],
+        "form": true,
+        "mega": false,
+        "attack": "112",
+        "hp": "111",
+        "shadow": false,
+        "gender": "",
+        "shiny": true,
+        "name": "Gigantamax Pikachu",
+        "tradable": false,
+        "type": ["Normal"],
+        "sprite": "25-Gigantamax Pikachu",
+        "generation": 1,
+        "moves": [
+            "THUNDER_SHOCK",
+            "QUICK_ATTACK",
+            "PRESENT",
+            "DISCHARGE",
+            "THUNDERBOLT",
+            "WILD_CHARGE",
+            "SURF",
+            "THUNDER"
+        ],
+        "defense": "96",
+        "formtype": "Gigantamax"
+    },
+    "Pikachu": {
+        "evolutions": [
+            {
+                "condition": "Gigantamax Form",
+                "number": 25,
+                "gender": "",
+                "cost": "",
+                "name": "Gigantamax Pikachu",
+                "special": true,
+                "stage": 0
+            }
+        ]
     }
 }

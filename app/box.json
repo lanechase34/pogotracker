@@ -16,13 +16,14 @@
         "lucee-password-util":"modules/lucee-password-util/"
     },
     "devDependencies":{
-        "testbox":"6.4.0+17",
-        "testbox-cli":"1.6.0+23",
+        "testbox":"7.0.0+19",
+        "testbox-cli":"1.9.0+26",
         "route-visualizer":"2.2.0+2",
         "commandbox-cfformat":"0.21.0",
         "cfml-compiler":"1.0.6",
         "lucee-password-util":"1.0.3",
-        "cbdebugger":"4.4.0+6"
+        "cbdebugger":"4.4.0+6",
+        "commandbox-cflint":"2.4.0"
     },
     "dependencies":{
         "coldbox":"8.0.5+33",
@@ -33,7 +34,7 @@
         "cbmailservices":"2.9.0+2",
         "cfmigrations":"5.1.0",
         "commandbox-migrations":"5.3.0",
-        "qb":"13.0.19",
+        "qb":"13.1.0",
         "socketbox":"2.0.12"
     },
     "scripts":{
@@ -41,6 +42,8 @@
         "format:check":"cfformat check Application.cfc,WebSocket.cfc,config/,handlers/,interceptors/,models/,tests/,database/ ./.cfformat.json",
         "format:watch":"cfformat watch path='Application.cfc,WebSocket.cfc,config/,handlers/,interceptors/,models/,tests/,database/' settingsPath='.cfformat.json'",
         "docker:build":"!docker build --no-cache -t pogotracker -f ./Dockerfile ./",
+        "lint":"cflint Application.cfc,WebSocket.cfc,handlers/**.cfc,interceptors/**.cfc,models/**.cfc",
+        "lint:error":"cflint pattern=Application.cfc,WebSocket.cfc,handlers/**.cfc,interceptors/**.cfc,models/**.cfc reportLevel=ERROR",
         "setEnv":"cp env/${1}.dev.env .env",
         "blankEnv":"cp .env.example .env"
     },

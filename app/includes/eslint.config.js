@@ -9,7 +9,7 @@ export default defineConfig([
     },
     eslint.configs.recommended,
     {
-        files: ['**/*.js', '**/*.jsx'], // Target TypeScript files
+        files: ['**/*.js', '**/*.jsx'],
         ignores: [],
         languageOptions: {
             parser: eslint.parser,

@@ -1,11 +1,17 @@
-component accessors="true" singleton {
+component accessors="true" singleton hint="Validator for checking if a user has appropriate security level" {
 
     property name="name";
 
+    /**
+     * Init validator
+     */
     function init() {
         this.name = 'securityCheck';
     }
 
+    /**
+     * Getter for validator's name
+     */
     string function getName() {
         return this.name;
     }
@@ -13,19 +19,18 @@ component accessors="true" singleton {
     /**
      * Checks if the supplied user passes security check
      *
-     * @validationResultThe result object of the validation
-     * @targetThe           target object to validate on
-     * @fieldThe            field on the target object to validate on
-     * @targetValueThe      target value to validate
-     * @validationDataThe   validation data the validator was created with
+     * @validationResult The result object of the validation
+     * @target           The target object to validate on
+     * @field            The field on the target object to validate on
+     * @targetValue      The target value to validate
+     * @validationData   The validation data the validator was created with
      */
     boolean function validate(
         required any validationResult,
         required any target,
         required string field,
         any targetValue,
-        any validationData,
-        struct rules
+        any validationData
     ) {
         var errorStruct = {
             message       : '',

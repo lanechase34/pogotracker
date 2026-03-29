@@ -5,13 +5,15 @@ component singleton accessors="true" {
 
     /**
      * Verify image magick is running
+     *
+     * @CFLintIgnore AVOID_USING_CFEXECUTE_TAG
      */
     public boolean function verifyImageMagick() {
         try {
             cfexecute(
                 name      = "#getImageMagickPath()#",
                 arguments = "identify --version",
-                variable  = "result",
+                variable  = "variables.result",
                 timeout   = 30
             );
         }
@@ -24,14 +26,15 @@ component singleton accessors="true" {
     /**
      * Uses imagick identify to check if path is a valid image
      *
-     * @path full path to image
+     * @path         full path to image
+     * @CFLintIgnore AVOID_USING_CFEXECUTE_TAG
      */
     public boolean function validIdentify(required string path) {
         try {
             cfexecute(
                 name      = "#getImageMagickPath()#",
                 arguments = "identify ""#arguments.path#""",
-                variable  = "result",
+                variable  = "variables.result",
                 timeout   = 30
             );
         }
@@ -44,14 +47,16 @@ component singleton accessors="true" {
     /**
      * Uses imagick mogrify to convert the upload to webp and decrease quality
      *
-     * @path full path to image
+     * @path         full path to image
+     * @quality      0-100 quality of image
+     * @CFLintIgnore AVOID_USING_CFEXECUTE_TAG
      */
     public boolean function convertToWebp(required string path, numeric quality = 50) {
         try {
             cfexecute(
                 name      = "#getImageMagickPath()#",
                 arguments = "mogrify -format webp -strip -quality #arguments.quality# ""#arguments.path#""",
-                variable  = "result",
+                variable  = "variables.result",
                 timeout   = 30
             );
         }
@@ -65,8 +70,9 @@ component singleton accessors="true" {
      * Validate the incoming image upload
      * If valid, move to the user's upload directory and return the filename generated
      *
-     * @formField  image form field
-     * @extensions
+     * @formField  The image's form field
+     * @extensions List of applicable file extensions
+     * @uploadDir  Where to upload to
      */
     public string function validateUpload(
         required string formField,
@@ -124,6 +130,8 @@ component singleton accessors="true" {
 
     /**
      * Resizes blog image to specific dimensions used
+     *
+     * @filename The image's filename in the uploadDir()
      */
     public void function resizeBlogImage(required string filename) {
         // Resize the image

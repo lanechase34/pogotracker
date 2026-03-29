@@ -480,9 +480,6 @@ component singleton accessors="true" {
         );
 
         // Read in env overrides
-        if(!fileExists('#getRootPath()#/includes/assets/envpokedexoverrides.json')) {
-            fileWrite('#getRootPath()#/includes/assets/envpokedexoverrides.json', serializeJSON({}));
-        }
         var envOverrides = deserializeJSON(fileRead('/includes/assets/envpokedexoverrides.json'));
         envOverrides.each(
             (pokemon, custom) => {
@@ -1565,11 +1562,21 @@ component singleton accessors="true" {
     }
 
     /**
+     * Check an make sure the envpokedexoverrides.json file exists
+     * If not, create
+     */
+    public void function checkOverridesJson() {
+        if(!fileExists('#getRootPath()#/includes/assets/envpokedexoverrides.json')) {
+            fileWrite('#getRootPath()#/includes/assets/envpokedexoverrides.json', serializeJSON({}));
+        }
+    }
+
+    /**
      * Uses the json created from createPokemon() and allows you to add the pokemon
      *
      * @jsonPokemon 
      */
-    function addPokemon(required struct pokemon) {
+    public void function addPokemon(required struct pokemon) {
         // Add to the overrides
         var envOverrides = deserializeJSON(fileRead('/includes/assets/envpokedexoverrides.json'));
         if(envOverrides.keyExists(pokemon.name)) {

@@ -10,6 +10,10 @@ component persistent="true" extends="base" {
     property name="trainer" fieldtype="many-to-one" fkcolumn="trainerid" cfc="trainer" lazy="true";
 
     // functions
+
+    /**
+     * Get the username of the trainer, if exists, that the bug belongs to
+     */
     string function getUsername() {
         return getTrainer()?.getUsername() ?: '';
     }

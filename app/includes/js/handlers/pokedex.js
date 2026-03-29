@@ -40,6 +40,7 @@ const pokedexStruct = {
     mousedown: false,
     catching: false,
     active: '',
+    temp: { region: '', shiny: false },
 };
 
 let $pokedexLoading = {
@@ -314,9 +315,27 @@ function createRegisterEvent(pokemonCells) {
 }
 
 async function switchPokedex(region) {
+    // Register all btn disabled for mega, giga
     Array.from($registerAllBtn).forEach((btn) => {
-        btn.disabled = region == 'mega' || region == 'giga';
+        btn.disabled = region === 'mega' || region === 'giga';
     });
+
+    // Shiny btn disabled for mega
+    Array.from($shinyToggle).forEach((btn) => {
+        btn.disabled = region === 'mega';
+    });
+
+    // Store shiny state in temp struct when viewing mega
+    if (region === 'mega') {
+        pokedexStruct.temp.region = 'mega';
+        pokedexStruct.temp.shiny = pokedexStruct.shiny;
+        pokedexStruct.shiny = false;
+    }
+    // If we were viewing mega, restore the shiny state
+    else if (pokedexStruct.temp.region === 'mega') {
+        pokedexStruct.temp.region = '';
+        pokedexStruct.shiny = pokedexStruct.temp.shiny;
+    }
 
     let activeNavButton = document.querySelector('.pokedex-link.active');
     if (activeNavButton) activeNavButton.classList.remove('active');

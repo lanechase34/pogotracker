@@ -45,9 +45,10 @@ component extends="base" {
         };
 
         // Ensure signups are allowed if attempting signup
+        var signupEndpoints = ['register', 'registrationform'];
         if(
             !getSetting('signups') &&
-            ['register', 'registrationform'].contains(prc.currAction)
+            signupEndpoints.contains(prc.currAction)
         ) {
             relocate(uri = '/login');
         }

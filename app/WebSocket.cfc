@@ -1,4 +1,4 @@
-component extends="modules.socketbox.models.WebSocketSTOMP" {
+component extends="modules.socketbox.models.WebSocketSTOMP" hint="WebSocket Endpoint for SocketBox" {
 
     /**
 	 * Socket destination -> Allowed security level
@@ -6,6 +6,8 @@ component extends="modules.socketbox.models.WebSocketSTOMP" {
     this.validSockets = {'metrics': 50};
 
     function configure() {
+        application.wsLog = application.wirebox.getInstance('logbox:logger:WebSocket');
+
         return {
             debugMode  : false,
             heartBeatMS: 10000,
@@ -37,6 +39,7 @@ component extends="modules.socketbox.models.WebSocketSTOMP" {
             return authenticated && trainerid > 0;
         }
         catch(any e) {
+            application.wsLog.error('WebSocket authentication failed unexpectedly: #e.message#', e.stackTrace);
         }
 
         return false;
@@ -67,6 +70,7 @@ component extends="modules.socketbox.models.WebSocketSTOMP" {
         var sessionID         = connectionDetails['sessionID'] ?: '';
 
         if(!sessionID.len()) {
+            application.wsLog.warn('WebSocket authorization failed - no sessionID for destination: #arguments.destination#');
             return false;
         }
 
@@ -75,6 +79,10 @@ component extends="modules.socketbox.models.WebSocketSTOMP" {
             return securityLevel >= this.validSockets[destination];
         }
         catch(any e) {
+            application.wsLog.error(
+                'WebSocket authorization failed unexpectedly for destination "#arguments.destination#": #e.message#',
+                e.stackTrace
+            );
         }
 
         return false;

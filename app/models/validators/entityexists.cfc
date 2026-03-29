@@ -1,11 +1,17 @@
-component acecssors="true" singleton {
+component acecssors="true" singleton hint="Validator for checking if an entity (db record) exists" {
 
     property name="name";
 
+    /**
+     * Init validator
+     */
     function init() {
         this.name = 'entityExists';
     }
 
+    /**
+     * Getter for validator's name
+     */
     string function getName() {
         return this.name;
     }
@@ -15,11 +21,12 @@ component acecssors="true" singleton {
      *
      * Expects the entity name and either the PK or unique field to load entity by
      *
-     * @validationResultThe result object of the validation
-     * @targetThe           target object to validate on
-     * @fieldThe            field on the target object to validate on
-     * @targetValueThe      target value to validate
-     * @validationDataThe   validation data the validator was created with
+     * @validationResult The result object of the validation
+     * @target           The target object to validate on
+     * @field            The field on the target object to validate on
+     * @targetValue      The target value to validate
+     * @validationData   The validation data the validator was created with
+     * @rules            The other validation rules. Check if the key is numeric/string and required/optional 
      */
     boolean function validate(
         required any validationResult,

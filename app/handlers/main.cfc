@@ -34,9 +34,10 @@ component extends="base" {
         }
 
         // Fires on server start
+        var trustedIPs = ['0:0:0:0:0:0:0:1', '127.0.0.1'];
         if(
             !getSetting('warmedUp')
-            && ['0:0:0:0:0:0:0:1', '127.0.0.1'].contains(securityService.getRequestIP())
+            && trustedIPs.contains(securityService.getRequestIP())
             && findNoCase('Java', cgi.http_user_agent) > 0
         ) {
             setting requestTimeout=300;

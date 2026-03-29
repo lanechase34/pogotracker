@@ -25,6 +25,13 @@ component singleton accessors="true" {
         return false;
     }
 
+    /**
+     * Send a user contact email - contains feedback and email from user
+     *
+     * @email   User's email
+     * @subject Email subject
+     * @message Email content
+     */
     public void function sendContact(
         required string email,
         required string subject,
@@ -43,6 +50,12 @@ component singleton accessors="true" {
             .queue();
     }
 
+    /**
+     * Send a bug error dump
+     *
+     * @error          The error struct
+     * @requestContext The rc struct
+     */
     public void function sendBug(required struct error, required struct requestContext) {
         mailService
             .newMail(to: getContactEmail(), subject: 'BUG Found')
@@ -58,6 +71,14 @@ component singleton accessors="true" {
             .queue();
     }
 
+    /**
+     * Send a password reset code to a user
+     *
+     * @email     User's email
+     * @resetLink Link containing reset code
+     * @expires   When link expires
+     * @lifespan  The lifespan of link in minutes
+     */
     public void function sendResetCode(
         required string email,
         required string resetLink,
@@ -77,6 +98,14 @@ component singleton accessors="true" {
             .send();
     }
 
+    /**
+     * Send a verification code to a user
+     *
+     * @email            User's email
+     * @verificationCode The verification code
+     * @expires          When code expires
+     * @lifespan         The lifespan of code in minutes
+     */
     public void function sendVerificationCode(
         required string email,
         required string verificationCode,
@@ -97,6 +126,9 @@ component singleton accessors="true" {
             .send();
     }
 
+    /**
+     * Send a test email
+     */
     public void function sendTestEmail() {
         mailService
             .newMail(to: getContactEmail(), subject: 'Sending a test email!')

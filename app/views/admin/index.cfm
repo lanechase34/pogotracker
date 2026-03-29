@@ -79,7 +79,7 @@
                             <input type="text" class="form-control" id="eventLink" name="eventLink" value="">
                         </div>
                         <div class="col-12 mb-1">
-                            <label for="pokemonLink" class="form-label">Pokemon Link</label>
+                            <label for="pokemonLink" class="form-label">Pokemon Link (Pokemon GO DB)</label>
                             <input type="text" class="form-control" id="pokemonLink" name="pokemonLink" value="">
                         </div>
                         <div class="col-12 mb-1">

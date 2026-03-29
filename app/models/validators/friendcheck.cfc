@@ -1,12 +1,18 @@
-component acecssors="true" singleton {
+component acecssors="true" singleton hint="Validator for checking if two trainers are friends" {
 
     property name="name";
     property name="friendService" inject="services.friend";
 
+    /**
+     * Init validator
+     */
     function init() {
         this.name = 'friendCheck';
     }
 
+    /**
+     * Getter for validator's name
+     */
     string function getName() {
         return this.name;
     }
@@ -28,8 +34,7 @@ component acecssors="true" singleton {
         required any target,
         required string field,
         any targetValue,
-        any validationData,
-        struct rules
+        any validationData
     ) {
         var errorStruct = {
             message       : '',

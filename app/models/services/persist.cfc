@@ -69,7 +69,7 @@ component singleton accessors="true" {
     /**
      * Adds a persist cookie for a user logging in
      *
-     * @trainer 
+     * @trainer The trainer entity to add cookie to
      */
     public void function addCookie(required component trainer) {
         var persistCookie = createCookie();
@@ -91,7 +91,7 @@ component singleton accessors="true" {
     /**
      * Rotates the existing persist cookie
      *
-     * @persist 
+     * @persist The persist entity to rotate
      */
     public void function rotateCookie(required component persist) {
         var newPersistCookie = createCookie();
@@ -107,7 +107,7 @@ component singleton accessors="true" {
     /**
      * Attempt to login a user with the incoming persist cookie
      *
-     * @persistCookie 
+     * @persistCookie The encoded persist cookie
      */
     public struct function login(required string persistCookie) {
         var result = {success: false, email: ''};
@@ -150,10 +150,16 @@ component singleton accessors="true" {
         return cookie.keyExists(getPersistCookieName());
     }
 
+    /**
+     * Get the cookie from cookie scope
+     */
     public string function getCookie() {
         return cookie[getPersistCookieName()];
     }
 
+    /**
+     * Delete the cookie by telling the browser cookie has expired
+     */
     public void function deleteCookie() {
         if(checkCookie()) {
             cookie.delete(getPersistCookieName());

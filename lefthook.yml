@@ -8,6 +8,9 @@ pre-commit:
           - name: format
             root: "app/"
             run: box run-script format
+          - name: lint
+            root: "backend/"
+            run: box run-script lint:error
     - name: frontend
       group:
         piped: true
@@ -31,11 +34,5 @@ pre-commit:
 post-checkout:
   parallel: true
   commands:
-    box-install:
-      root: "app/"
-      run: box install
-    npm-install:
-      root: "app/includes/"
-      run: npm install
     box-fix-json-lineending:
       run: echo 'config set JSON.lineEnding=`#chr 10`' | box
