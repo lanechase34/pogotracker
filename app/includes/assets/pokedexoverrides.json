@@ -4418,5 +4418,30 @@
                 "stage": 0
             }
         ]
+    },
+    "Orthworm": {
+        "live": true,
+        "flee": 1,
+        "catch": 1,
+        "shadowshiny": false,
+        "giga": false,
+        "number": "968",
+        "evolutions": [],
+        "form": false,
+        "mega": false,
+        "attack": "161",
+        "hp": "172",
+        "shadow": false,
+        "gender": "",
+        "shiny": true,
+        "name": "Orthworm",
+        "tradable": true,
+        "type": ["Steel"],
+        "sprite": "968",
+        "formtype": "",
+        "generation": 9,
+        "ses": "968",
+        "moves": ["MUD-SLAP", "IRON_TAIL", "EARTHQUAKE", "ROCK_TOMB", "IRON_HEAD"],
+        "defense": "219"
     }
 }

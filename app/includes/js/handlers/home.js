@@ -3,7 +3,6 @@ import { getWrapper } from 'fetch';
 import { $loading } from 'loading';
 import { createPokemonSearch } from 'search';
 import { $leaderboardDiv, getLeaderboard } from 'stats';
-import { isMobileDisplay } from 'display';
 
 const $newsDiv = document.getElementById('newsDiv');
 const $eventsDiv = document.getElementById('eventsDiv');
@@ -48,7 +47,6 @@ async function loadHomeCards() {
                 showImage: true,
                 exclude: -1,
                 sidebar: false,
-                max: isMobileDisplay ? 4 : blogFetchStruct.max,
             })
         );
     if ($leaderboardDiv) calls.push(getLeaderboard($leaderboardDiv));

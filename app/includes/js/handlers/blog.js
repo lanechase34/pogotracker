@@ -2,6 +2,7 @@ import { createAlert } from 'alert';
 import { getWrapper, postWrapper } from 'fetch';
 import { resizeHomeCards } from 'home';
 import { $loading, $submitBtn } from 'loading';
+import { isMobileDisplay } from 'display';
 
 export const $blogListDiv = document.getElementById('blogList');
 const $submitBlogCommentBtn = document.getElementById('submitBlogComment');
@@ -14,14 +15,16 @@ export const blogFetchStruct = {
     currOffset: 0,
     count: 4,
     max: 20,
+    scrollHandler: () => {},
+    resizeHandler: () => {},
 };
 
-export async function getBlogs({ $div, count, offset, showImage, exclude, sidebar, max }) {
+export async function getBlogs({ $div, count, offset, showImage, exclude, sidebar }) {
     return getWrapper({
         url: `/blog/get/count/${count}/offset/${offset}/showimage/${showImage}/exclude/${exclude}/sidebar/${sidebar}`,
         $loadingDiv: offset === 0 ? $div : null,
         loading: $loading,
-        dataHandler: (data) => {
+        dataHandler: async (data) => {
             if (offset === 0) {
                 // Blank the loading spinner
                 $div.innerHTML = '';
@@ -38,35 +41,45 @@ export async function getBlogs({ $div, count, offset, showImage, exclude, sideba
 
             blogFetchStruct.currOffset = offset + count;
 
-            if (blogFetchStruct.currOffset < max && window.innerHeight > $div.offsetHeight) {
-                getBlogs({
-                    $div: $div,
+            const fetchMoreBlogs = async (currentMax) => {
+                if (blogFetchStruct.loadingBlogs || blogFetchStruct.currOffset >= currentMax) return;
+
+                blogFetchStruct.loadingBlogs = true;
+                await getBlogs({
+                    $div,
                     count: blogFetchStruct.count,
                     offset: blogFetchStruct.currOffset,
-                    showImage: showImage,
-                    exclude: exclude,
-                    sidebar: sidebar,
-                    max: blogFetchStruct.max,
+                    showImage,
+                    exclude,
+                    sidebar,
+                    max: currentMax,
                 });
-            } else {
-                // Load more blogs on scroll
-                addEventListener('scroll', async () => {
-                    let atBottom = window.innerHeight + window.scrollY >= $blogList.scrollHeight - 500; //document.body.scrollHeight - 500;
-                    if (atBottom && !blogFetchStruct.loadingBlogs && blogFetchStruct.currOffset < max) {
-                        blogFetchStruct.loadingBlogs = true;
-                        await getBlogs({
-                            $div: $div,
-                            count: blogFetchStruct.count,
-                            offset: blogFetchStruct.currOffset,
-                            showImage: showImage,
-                            exclude: exclude,
-                            sidebar: sidebar,
-                            max: blogFetchStruct.max,
-                        });
-                        blogFetchStruct.loadingBlogs = false;
-                    }
-                });
-            }
+                blogFetchStruct.loadingBlogs = false;
+            };
+
+            // Check if the current blogs fill the current window size or we are near the bottom of page
+            const checkAndLoad = async () => {
+                const currentMax = isMobileDisplay() ? 4 : blogFetchStruct.max;
+                const nearBottom = window.innerHeight + window.scrollY >= $blogList.scrollHeight - 500;
+                const contentFillsWindow = $div.offsetHeight >= window.innerHeight;
+
+                if (!contentFillsWindow || nearBottom) {
+                    await fetchMoreBlogs(currentMax);
+                }
+            };
+
+            // Remove old listeners before adding new ones
+            window.removeEventListener('scroll', blogFetchStruct.scrollHandler);
+            window.removeEventListener('resize', blogFetchStruct.resizeHandler);
+
+            blogFetchStruct.scrollHandler = checkAndLoad;
+            blogFetchStruct.resizeHandler = checkAndLoad;
+
+            window.addEventListener('scroll', blogFetchStruct.scrollHandler);
+            window.addEventListener('resize', blogFetchStruct.resizeHandler);
+
+            // Check immediately in case the window is already large enough
+            await checkAndLoad();
         },
     });
 }
@@ -223,7 +236,6 @@ export const runtime = {
                 showImage: true,
                 exclude: $blogListDiv.dataset.blogid,
                 sidebar: true,
-                max: blogFetchStruct.max,
             });
         }
     },

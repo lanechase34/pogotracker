@@ -94,7 +94,7 @@ component {
             })
             .call(() => {
                 // Wait for server to finish warming up
-                if(!getSetting('warmedUp') || !application.keyExists('ws')) {
+                if(!application.keyExists('ws')) {
                     return;
                 }
 

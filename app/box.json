@@ -30,9 +30,9 @@
         "cbvalidation":"4.8.0+30",
         "commandbox-dotenv":"2.4.0",
         "commandbox-cfconfig":"2.1.1",
-        "cbjavaloader":"2.3.0+2",
+        "cbjavaloader":"2.5.0+4",
         "cbmailservices":"2.9.0+2",
-        "cfmigrations":"5.1.0",
+        "cfmigrations":"5.1.1",
         "commandbox-migrations":"5.3.0",
         "qb":"13.1.0",
         "socketbox":"2.0.12"

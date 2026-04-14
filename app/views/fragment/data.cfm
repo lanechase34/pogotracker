@@ -8,5 +8,6 @@
     data-userauthenticated="#session?.authenticated ?: false#"
     data-environment="#getSetting('environment')#"
     data-port="#getSetting('environment') != 'production' ? '#getSetting('httpPort')#' : ''#"
+    data-baseurl="#getSetting('baseURL')#"
 ></div>
 </cfoutput>

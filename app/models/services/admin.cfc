@@ -1414,10 +1414,7 @@ component singleton accessors="true" {
             .nextSibling()
             .select('tr');
         // Stats table
-        var statsTable = pokemonDoc.select('h3[class*=PokemonPageRenderers_inlineTitle]')[1]
-            .nextSibling()
-            .select('table')
-            .select('tr');
+        var statBars = pokemonDoc.select('div[class*=PokemonStatBars_pokemonStatBars]');
 
         // Needed information per pokemon
         var pokemon = {
@@ -1443,36 +1440,12 @@ component singleton accessors="true" {
                     .text()
                     .replace('%', '', 'all')
             ),
-            tradable: pokedexTable[5].select('td').text() == 'Allowed',
-            attack  : reReplace(
-                statsTable[2]
-                    .select('td')
-                    .select('strong > span > strong')
-                    .text(),
-                '[^0-9]',
-                '',
-                'all'
-            ),
-            defense: reReplace(
-                statsTable[3]
-                    .select('td')
-                    .select('strong > span > strong')
-                    .text(),
-                '[^0-9]',
-                '',
-                'all'
-            ),
-            hp: reReplace(
-                statsTable[4]
-                    .select('td')
-                    .select('strong > span > strong')
-                    .text(),
-                '[^0-9]',
-                '',
-                'all'
-            ),
+            tradable   : pokedexTable[5].select('td').text() == 'Allowed',
+            attack     : statBars.select('div[class*=PokemonStatBars_atk] span[class*=PokemonStatBars_amount]').text(),
+            defense    : statBars.select('div[class*=PokemonStatBars_def] span[class*=PokemonStatBars_amount]').text(),
+            hp         : statBars.select('div[class*=PokemonStatBars_sta] span[class*=PokemonStatBars_amount]').text(),
             live       : true,
-            shiny      : statsTable[7].select('td').text() == 'Yes',
+            shiny      : pokemonDoc.select('img[title*="✨"]').size() > 0,
             generation : 0,
             shadowshiny: false,
             giga       : false,

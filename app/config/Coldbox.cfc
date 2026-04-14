@@ -62,6 +62,7 @@ component {
 		 */
         settings = {
             rootPath        : replace(expandPath('/'), '\', '/', 'all'),
+            baseURL         : getSystemSetting('environment') != 'production' ? getSystemSetting('OS') == 'linux' ? 'localhost' : '127.0.0.1' : '',
             cacheBuster     : '?v=#right(hash(createUUID()), 10)#',
             cacheIdleTimeout: 30,
             cacheTimeout    : 120,

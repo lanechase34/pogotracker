@@ -23,10 +23,10 @@ pre-commit:
             run: npm run lint:fix
           - name: minJS
             root: "app/includes/"
-            run: npm run-script minJS
+            run: npm run minJS
           - name: minCSS
             root: "app/includes/"
-            run: npm run-script minCSS
+            run: npm run minCSS
     - name: envcheck
       root: "app/"
       run: box dotenv check --reverse

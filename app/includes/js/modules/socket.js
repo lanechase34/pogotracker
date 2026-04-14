@@ -3,6 +3,7 @@ import { Client } from '@stomp/stompjs';
 let metricClient = null;
 
 const env = document.getElementById('currentEvent').dataset.environment.toLowerCase();
+const baseURL = document.getElementById('currentEvent').dataset.baseurl;
 const port = document.getElementById('currentEvent').dataset.port;
 
 /**
@@ -11,7 +12,7 @@ const port = document.getElementById('currentEvent').dataset.port;
 export function startMetricsSocket() {
     if (metricClient?.active) return;
 
-    const BROKER_URL = env == 'production' ? 'wss://pogotracker.app/ws' : `ws://localhost:${port}/ws`;
+    const BROKER_URL = env == 'production' ? 'wss://pogotracker.app/ws' : `ws://${baseURL}:${port}/ws`;
 
     metricClient = new Client({
         brokerURL: BROKER_URL,
