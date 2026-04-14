@@ -1,5 +1,5 @@
 <cfoutput>
-<div class="row">
+<div class="row" id="baseURL" data-baseurl="#prc.baseURL#">
     <div class="col-12 mt-3">
         <table id="cacheData" class="table table-striped table-bordered">
             <thead>
