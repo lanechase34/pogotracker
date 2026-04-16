@@ -3,7 +3,7 @@ import { Client } from '@stomp/stompjs';
 let metricClient = null;
 
 const env = document.getElementById('currentEvent').dataset.environment.toLowerCase();
-const baseURL = document.getElementById('baseURL').dataset.baseurl;
+const baseURL = document.getElementById('baseURL')?.dataset?.baseurl ?? '';
 const port = document.getElementById('currentEvent').dataset.port;
 
 /**
