@@ -16,7 +16,7 @@ component extends="tests.resources.baseTest" {
             });
 
             it('Socket can be created', () => {
-                var ws = new WebSocket();
+                var ws = getWebSocket();
                 expect(ws).toBeComponent();
             });
 
@@ -27,7 +27,7 @@ component extends="tests.resources.baseTest" {
             });
 
             it('Can authenticate via session successfully', () => {
-                var ws = new WebSocket();
+                var ws = getWebSocket();
 
                 var trainer = mockTrainer.make();
 
@@ -42,7 +42,7 @@ component extends="tests.resources.baseTest" {
             });
 
             it('Can fail session authentication', () => {
-                var ws = new WebSocket();
+                var ws = getWebSocket();
 
                 // Attempt with no valid session
                 var authenticateResult = ws.authenticate(
@@ -56,7 +56,7 @@ component extends="tests.resources.baseTest" {
             });
 
             it('Can authorize ADMIN user to metrics topic', () => {
-                var ws = new WebSocket();
+                var ws = getWebSocket();
 
                 // Admin user
                 var trainer = mockTrainer.make(securityLevel = 50);
@@ -97,7 +97,7 @@ component extends="tests.resources.baseTest" {
             });
 
             it('Can fail authorization with non ADMIN user to metrics topic', () => {
-                var ws = new WebSocket();
+                var ws = getWebSocket();
 
                 var trainer = mockTrainer.make(securityLevel = 10);
 
@@ -140,7 +140,7 @@ component extends="tests.resources.baseTest" {
             });
 
             it('Can broadcast a message to metrics', () => {
-                var ws = new WebSocket();
+                var ws = getWebSocket();
 
                 expect(() => {
                     ws.send('topic/metrics', {time: now()});
@@ -154,6 +154,16 @@ component extends="tests.resources.baseTest" {
      */
     private struct function mockChannel() {
         return {hashCode: () => 'mockChannelHash123', isOpen: () => true};
+    }
+
+    /**
+     * Wrapper to instantiate new websocket component and run the initial configure
+     */
+    private component function getWebSocket() {
+        var ws = new WebSocket();
+        ws.initDeps();
+        ws.getConfig();
+        return ws;
     }
 
 }

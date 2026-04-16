@@ -1,5 +1,11 @@
 component {
 
+    property name="adminService"   inject="provider:services.admin";
+    property name="auditService"   inject="provider:services.audit";
+    property name="bugService"     inject="provider:services.bug";
+    property name="emailService"   inject="provider:services.email";
+    property name="persistService" inject="provider:services.persist";
+
     /**
 	 * Configure the ColdBox Scheduler
 	 * https://coldbox.ortusbooks.com/digging-deeper/scheduled-tasks
@@ -29,7 +35,7 @@ component {
                 task.overviewStruct.event = 'nightlyUpdatePokemonData';
             })
             .call(() => {
-                getInstance('services.admin').buildPokemonData();
+                adminService.buildPokemonData();
             })
             .onFailure((task, exception) => {
                 callbackOnFailure(task, exception);
@@ -45,7 +51,7 @@ component {
                 task.overviewStruct.event = 'nightlyUpdateMoveData';
             })
             .call(() => {
-                getInstance('services.admin').buildMoveData();
+                adminService.buildMoveData();
             })
             .onFailure((task, exception) => {
                 callbackOnFailure(task, exception);
@@ -61,7 +67,7 @@ component {
                 task.overviewStruct.event = 'weeklyUpdateMedalData';
             })
             .call(() => {
-                getInstance('services.admin').buildMedalData();
+                adminService.buildMedalData();
             })
             .onFailure((task, exception) => {
                 callbackOnFailure(task, exception);
@@ -77,7 +83,7 @@ component {
                 task.overviewStruct.event = 'nightlyCreateEvents';
             })
             .call(() => {
-                getInstance('services.admin').createEvents();
+                adminService.createEvents();
             })
             .onFailure((task, exception) => {
                 callbackOnFailure(task, exception);
@@ -93,24 +99,16 @@ component {
                 task.overviewStruct.event = 'metricsSubscription';
             })
             .call(() => {
-                // Wait for server to finish warming up
-                if(!application.keyExists('ws')) {
-                    return;
-                }
-
-                var ws           = application.ws;
-                var adminService = getInstance('services.admin');
-
                 /**
                  * Check if there are any current subscribers to the 'metrics' subscription
                  */
-                var subscriptions = ws.getSubscriptions();
+                var subscriptions = application.ws.getSubscriptions();
                 if((subscriptions?.metrics?.count() ?: 0) > 0) {
                     /**
                      * Post metrics response message to topic/metrics
                      */
                     var metrics = adminService.getMetrics();
-                    ws.send('topic/metrics', {data: metrics, success: true});
+                    application.ws.send('topic/metrics', {data: metrics, success: true});
                 }
 
                 /**
@@ -129,7 +127,7 @@ component {
                 task.overviewStruct.event = 'cleanupCookies';
             })
             .call(() => {
-                getInstance('services.persist').cleanupCookies();
+                persistService.cleanupCookies();
             })
             .onFailure((task, exception) => {
                 callbackOnFailure(task, exception);
@@ -154,21 +152,18 @@ component {
 
     function callbackOnFailure(required struct task, struct exception = {}) {
         task.overviewStruct.detail = 'Task Failure';
-        getInstance('services.audit').audit(argumentCollection = task.overviewStruct);
+        auditService.audit(argumentCollection = task.overviewStruct);
 
         task.overviewStruct.message = left(exception?.message ?: 'Unknown Error Message', 250);
         task.overviewStruct.stack   = exception?.stackTrace ?: 'Unknown Stack Trace';
-        getInstance('services.bug').logBug(argumentCollection = task.overviewStruct);
+        bugService.logBug(argumentCollection = task.overviewStruct);
 
-        getInstance('services.email').sendBug(
-            error          = exception,
-            requestContext = {task: task.overviewStruct, detail: 'Task Failure'}
-        );
+        emailService.sendBug(error = exception, requestContext = {task: task.overviewStruct, detail: 'Task Failure'});
     }
 
     function callbackOnSuccess(required struct task) {
         task.overviewStruct.detail = 'Task Success';
-        getInstance('services.audit').audit(argumentCollection = task.overviewStruct);
+        auditService.audit(argumentCollection = task.overviewStruct);
     }
 
     /**

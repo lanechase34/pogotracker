@@ -5,9 +5,12 @@ component extends="modules.socketbox.models.WebSocketSTOMP" hint="WebSocket Endp
 	 */
     this.validSockets = {'metrics': 50};
 
-    function configure() {
+    // Initialize dependencies and store in app scope
+    function initDeps() {
         application.wsLog = application.wirebox.getInstance('logbox:logger:WebSocket');
+    }
 
+    function configure() {
         return {
             debugMode  : false,
             heartBeatMS: 10000,

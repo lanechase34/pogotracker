@@ -26,7 +26,7 @@
         "commandbox-cflint":"2.4.0"
     },
     "dependencies":{
-        "coldbox":"8.0.5+33",
+        "coldbox":"8.1.0+34",
         "cbvalidation":"4.8.0+30",
         "commandbox-dotenv":"2.4.0",
         "commandbox-cfconfig":"2.1.1",

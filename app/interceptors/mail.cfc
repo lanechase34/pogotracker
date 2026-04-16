@@ -1,6 +1,7 @@
 component extends="coldbox.system.Interceptor" {
 
-    property name="async" inject="asyncManager@coldbox";
+    property name="async"      inject="asyncManager@coldbox";
+    property name="bugService" inject="provider:services.bug";
 
     function configure() {
     }
@@ -31,7 +32,7 @@ component extends="coldbox.system.Interceptor" {
             };
 
             async.newFuture(() => {
-                getInstance('bugService').log(argumentCollection = prc.bugDetail);
+                bugService.log(argumentCollection = prc.bugDetail);
             });
         }
     }

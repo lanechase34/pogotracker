@@ -45,8 +45,6 @@ component extends="base" {
             cacheService.clearAll();
             var start = getTickCount();
 
-            application.ws = new WebSocket();
-
             // Warmup and load everything into cache
             var results = async
                 .newFuture()

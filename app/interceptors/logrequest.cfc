@@ -3,6 +3,9 @@ component extends="coldbox.system.Interceptor" {
     property name="async"       inject="asyncManager@coldbox";
     property name="concurrency" inject="coldbox:setting:concurrency";
 
+    property name="auditService"    inject="provider:services.audit";
+    property name="securityService" inject="provider:services.security";
+
     // Request Log Settings
     property name="REQUEST_LOG_SETTINGS" inject="coldbox:setting:requestLog";
     property name="LOG_REQUESTS"         inject="coldbox:setting:logRequests";
@@ -33,12 +36,12 @@ component extends="coldbox.system.Interceptor" {
      */
     function preProcess(event, data, buffer, rc, prc) {
         prc.requestAudit = {
-            ip        : getInstance('services.security').getRequestIP(),
+            ip        : securityService.getRequestIP(),
             urlpath   : left(event.getFullPath(), URLPATH_LENGTH),
             method    : left(event.getHTTPMethod(), METHOD_LENGTH),
             start     : getTickCount(),
-            agent     : left(getInstance('services.security').getUserAgent(), AGENT_LENGTH),
-            referer   : left(getInstance('services.security').getReferer(), REFERER_LENGTH),
+            agent     : left(securityService.getUserAgent(), AGENT_LENGTH),
+            referer   : left(securityService.getReferer(), REFERER_LENGTH),
             response  : '',
             statuscode: -1,
             trainerid : session?.trainerid ?: -1
@@ -54,7 +57,7 @@ component extends="coldbox.system.Interceptor" {
         prc.requestAudit.delta = getTickCount() - prc.requestAudit.start;
 
         // If this was a json request
-        if(getInstance('services.security').isJsonRequest()) {
+        if(securityService.isJsonRequest()) {
             prc.requestAudit.statuscode = prc?.responseObj?.statuscode ?: -1;
             prc.requestAudit.response   = serializeJSON(prc?.responseObj ?: {});
         }
@@ -70,7 +73,7 @@ component extends="coldbox.system.Interceptor" {
         if(LOG_REQUESTS && !skip) {
             var auditData = duplicate(prc.requestAudit);
             async.newFuture(() => {
-                getInstance('services.audit').logRequest(argumentCollection = auditData);
+                auditService.logRequest(argumentCollection = auditData);
             });
         }
 

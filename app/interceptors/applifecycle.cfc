@@ -4,6 +4,10 @@ component extends="coldbox.system.Interceptor" {
     property name="environment" inject="coldbox:setting:environment";
     property name="uploadPath"  inject="coldbox:setting:uploadPath";
 
+    property name="adminService" inject="provider:services.admin";
+    property name="emailService" inject="provider:services.email";
+    property name="imageService" inject="provider:services.image";
+
     /**
      * Runs after Coldbox configuration loads - similar to onApplicationStart
      * Will verify dependencies on prod
@@ -34,17 +38,21 @@ component extends="coldbox.system.Interceptor" {
         }
 
         // Check imagemagick
-        if(environment == 'production' && !getInstance('services.image').verifyImageMagick()) {
+        if(environment == 'production' && !imageService.verifyImageMagick()) {
             throw('Imagemagick is not running');
         }
 
         // Check email
-        if(environment == 'production' && !getInstance('services.email').verifyConnection()) {
+        if(environment == 'production' && !emailService.verifyConnection()) {
             throw('Cannot connect to email server');
         }
 
         // Ensure overrides json exists
-        getInstance('services.admin').checkOverridesJson();
+        adminService.checkOverridesJson();
+
+        // Set up websocket cfc
+        application.ws = new WebSocket();
+        application.ws.initDeps();
     }
 
     /**

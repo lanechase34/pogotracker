@@ -1,5 +1,7 @@
 component extends="coldbox.system.Interceptor" {
 
+    property name="sessionService" inject="provider:services.session";
+
     function configure() {
     }
 
@@ -10,7 +12,7 @@ component extends="coldbox.system.Interceptor" {
     function postEvent(event, data, buffer, rc, prc) {
         if(session.keyExists('alert')) {
             request.alert = session.alert;
-            getInstance('services.session').clearAlert();
+            sessionService.clearAlert();
         }
     }
 

@@ -46,14 +46,9 @@ component extends="coldbox.system.testing.BaseInterceptorTest" interceptor="inte
                 interceptor.$property(propertyName = 'concurrency', mock = mockConcurrency);
                 interceptor.$property(propertyName = 'REQUEST_LOG_SETTINGS', mock = mockAuditSettings);
                 interceptor.$property(propertyName = 'LOG_REQUESTS', mock = true);
-                interceptor
-                    .$('getInstance')
-                    .$args('services.audit')
-                    .$results(mockAuditService);
-                interceptor
-                    .$('getInstance')
-                    .$args('services.security')
-                    .$results(mockSecurityService);
+
+                interceptor.$property(propertyName = 'auditService', mock = mockAuditService);
+                interceptor.$property(propertyName = 'securityService', mock = mockSecurityService);
 
                 // Mock event and data objects
                 mockRequestContext = createEmptyMock('coldbox.system.web.context.RequestContext');
