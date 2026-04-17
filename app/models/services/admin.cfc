@@ -1539,7 +1539,7 @@ component singleton accessors="true" {
      * If not, create
      */
     public void function checkOverridesJson() {
-        if(!fileExists('#getRootPath()#/includes/assets/envpokedexoverrides.json')) {
+        if(directoryExists(getRootPath()) && !fileExists('#getRootPath()#/includes/assets/envpokedexoverrides.json')) {
             fileWrite('#getRootPath()#/includes/assets/envpokedexoverrides.json', serializeJSON({}));
         }
     }
