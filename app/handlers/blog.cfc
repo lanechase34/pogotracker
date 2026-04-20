@@ -34,7 +34,6 @@ component extends="base" {
      * @rc.sidebar   t/f whether this is a sidebar view
      */
     function get(event, rc, prc) {
-        rc.exclude = parseNumber(rc?.exclude ?: -1);
         if(hasValidationErrors(target = rc, constraints = 'blog.get')) {
             htmlValidationFailure(event = event);
             return;
