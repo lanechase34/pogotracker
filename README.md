@@ -74,9 +74,16 @@ The database container will automatically be seeded with dev data.
     ```
 
 7. Setup GitHooks from root
+
     ```bash
     npm install -g lefthook
     lefthook install
+    ```
+
+8. Run the 'Post-checkout' GitHook
+
+    ```bash
+    lefthook run post-checkout
     ```
 
 ### Commands
