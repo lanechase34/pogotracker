@@ -12,8 +12,8 @@ function refreshPage() {
 
 export function addLogoutHandler() {
     // Listen for when a tab logs out
-    window.addEventListener('storage', function (event) {
-        if (event.key == 'logout-event') {
+    window.addEventListener('storage', (event) => {
+        if (event.key === 'logout-event') {
             window.location = '/logout';
         }
     });
@@ -21,7 +21,7 @@ export function addLogoutHandler() {
     if ($logoutBtn) {
         $logoutBtn.addEventListener('click', (e) => {
             e.preventDefault();
-            localStorage.setItem('logout-event', 'logout' + Math.random());
+            localStorage.setItem('logout-event', `logout${Math.random()}`);
             window.location = '/logout';
         });
     }
@@ -29,7 +29,7 @@ export function addLogoutHandler() {
 
 export function startIdleTimer() {
     // Force logout the user if idle before session timeout
-    let sessionTimeout = document.getElementById('currentEvent').dataset.idletimeout - 1;
+    const sessionTimeout = document.getElementById('currentEvent').dataset.idletimeout - 1;
     setTimeout(idleLogout, sessionTimeout * 60 * 1000);
 }
 

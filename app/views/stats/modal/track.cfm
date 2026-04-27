@@ -14,7 +14,19 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <form name="trackStatsForm" id="trackStatsForm" class="needs-validation row g-3" novalidate autocomplete="off">
+                <form 
+                    name="trackStatsForm" 
+                    id="trackStatsForm" 
+                    class="needs-validation row g-3" 
+                    novalidate 
+                    autocomplete="off"
+                    <cfif isObject(args.latestStat)>
+                        data-latest-xp="#EncodeForHTML(args.latestStat.getXp())#"
+                        data-latest-caught="#EncodeForHTML(args.latestStat.getCaught())#"
+                        data-latest-spun="#EncodeForHTML(args.latestStat.getSpun())#"
+                        data-latest-walked="#EncodeForHTML(args.latestStat.getWalked())#"
+                    </cfif>
+                >
                     <div id="statAlert"></div>
                     <input type="hidden" id="trainerid" name="trainerid" value="#EncodeForHTML(args.trainer.getId())#">
                     <div class="col-12">

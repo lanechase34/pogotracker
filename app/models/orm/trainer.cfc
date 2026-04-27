@@ -44,6 +44,13 @@ component persistent="true" extends="base" {
         return getLastLogin().getTime();
     }
 
+    any function getLatestStat() {
+        if(isNull(getStat()) || !getStat().len()) {
+            return;
+        }
+        return getStat()[1];
+    }
+
     struct function getCurrentLevel() {
         var statStruct = {
             level      : '--',
@@ -55,7 +62,7 @@ component persistent="true" extends="base" {
             return statStruct;
         }
 
-        var latestStat = getStat()[1];
+        var latestStat = getLatestStat();
 
         statStruct.totalxp = latestStat.getXp();
         statStruct.level   = ormExecuteQuery(

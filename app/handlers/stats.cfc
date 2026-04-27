@@ -118,11 +118,16 @@ component extends="base" {
      * Track daily stats form
      */
     function trackForm(event, rc, prc) {
-        prc.trainer = trainerService.getFromId(session.trainerid);
+        prc.trainer    = trainerService.getFromId(session.trainerid);
+        prc.latestStat = prc.trainer.getLatestStat();
         event.setView(
             view     = '/views/stats/modal/track',
             nolayout = true,
-            args     = {currDate: now(), trainer: prc.trainer}
+            args     = {
+                currDate  : now(),
+                trainer   : prc.trainer,
+                latestStat: isNull(prc.latestStat) ? '' : prc.latestStat
+            }
         );
     }
 

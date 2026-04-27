@@ -1,10 +1,10 @@
 const $copied = `<i class="bi bi-check2 me-2"></i>Copied!`;
 
 export function initCopyIcons() {
-    let copyIcons = document.querySelectorAll('.copyIcon');
+    const copyIcons = document.querySelectorAll('.copyIcon');
     Array.from(copyIcons).forEach((copyicon) => {
         copyicon.addEventListener('click', (evt) => {
-            let text = evt.currentTarget.dataset.copydata;
+            const text = evt.currentTarget.dataset.copydata;
 
             navigator.clipboard.writeText(text);
 
@@ -18,7 +18,7 @@ export function copyString($btns, string) {
 
     $btns.forEach(($btn) => {
         $btn.disabled = true;
-        let temp = $btn.innerHTML;
+        const temp = $btn.innerHTML;
 
         $btn.innerHTML = $copied;
         setTimeout(() => {

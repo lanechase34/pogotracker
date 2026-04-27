@@ -8,7 +8,9 @@ component extends="tests.resources.baseTest" asyncAll="false" {
         // Make sure events needed during the tests are deleted before running
         eventNames = [
             'Psychic Spectacular: Taken Over',
-            'Cozy Companions'
+            'Cozy Companions',
+            'Steeled Resolve',
+            'Steeled Resolve 2026'
         ];
         eventNames.each((name) => {
             customHelperFunctions.deleteByName(name);
@@ -214,6 +216,42 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                 });
 
                 expect(expectedSpawns.count()).toBe(0);
+            });
+
+            it('Will append current year to event name if same name already exists', () => {
+                var firstLink  = 'https://leekduck.com/events/steeled-resolve/';
+                var secondLink = 'https://leekduck.com/events/steeled-resolve-2026/';
+                var customid2  = -1;
+                var custom2    = javacast('null', '');
+
+                beforeCount = customHelperFunctions.count();
+
+                // Create the first event
+                adminService.createEvent(firstLink);
+
+                afterCount = customHelperFunctions.count();
+                expect(afterCount).toBe(beforeCount + 1);
+
+                customid = customHelperFunctions.getMostRecentCreated();
+                custom   = customService.getFromId(customid);
+                expect(custom).toBeComponent();
+                entityReload(custom);
+                expect(custom.getName()).toBe('Steeled Resolve');
+
+                // Create the second event with the same name - should have year appended
+                adminService.createEvent(secondLink);
+
+                afterCount = customHelperFunctions.count();
+                expect(afterCount).toBe(beforeCount + 2);
+
+                customid2 = customHelperFunctions.getMostRecentCreated();
+                custom2   = customService.getFromId(customid2);
+                expect(custom2).toBeComponent();
+                entityReload(custom2);
+                expect(custom2.getName()).toBe('Steeled Resolve 2026');
+
+                // Clean up second event - first is handled by afterEach
+                customService.delete(custom2);
             });
 
             afterEach(() => {

@@ -1,6 +1,6 @@
 import { getCookie, setCookie } from 'cookie';
 import { copyString } from 'copy';
-import { postWrapper, getWrapper } from 'fetch';
+import { getWrapper, postWrapper } from 'fetch';
 import { $loading, $loadingModal } from 'loading';
 import { confirmModal, submitHandler } from 'modals';
 import { createMultiSelect } from 'multiselect';
@@ -43,13 +43,13 @@ const pokedexStruct = {
     temp: { region: '', shiny: false },
 };
 
-let $pokedexLoading = {
+const $pokedexLoading = {
     customEdit: false,
     customAdd: false,
 };
 
 function submitCustomPokedexModal(e, type, $form, $btn, $modal) {
-    let valid = $form.checkValidity();
+    const valid = $form.checkValidity();
     $form.classList.add('was-validated');
     if (!valid) {
         e.preventDefault();
@@ -57,10 +57,10 @@ function submitCustomPokedexModal(e, type, $form, $btn, $modal) {
         return;
     }
 
-    let formData = new FormData($form);
-    let packet = Object.fromEntries(formData.entries());
+    const formData = new FormData($form);
+    const packet = Object.fromEntries(formData.entries());
 
-    let pokemonList = formData.getAll('pokemon[]');
+    const pokemonList = formData.getAll('pokemon[]');
     packet.pokemon = pokemonList;
     delete packet['pokemon[]'];
 
@@ -71,7 +71,7 @@ function submitCustomPokedexModal(e, type, $form, $btn, $modal) {
     submitHandler($modal, $btn);
 
     if ('public' in packet) {
-        packet.public = packet.public == 'on' ? true : false;
+        packet.public = packet.public === 'on' ? true : false;
     } else {
         packet.public = false;
     }
@@ -87,7 +87,7 @@ function submitCustomPokedexModal(e, type, $form, $btn, $modal) {
         packet: JSON.stringify(packet),
         responseType: 'json',
         dataHandler: (result) => {
-            if (type == 'delete') {
+            if (type === 'delete') {
                 window.location.reload();
             } else {
                 window.location = `/mycustompokedex/${result.data.id}`;
@@ -96,18 +96,18 @@ function submitCustomPokedexModal(e, type, $form, $btn, $modal) {
     });
 }
 
-async function getCustomPokedexModal(type, customid) {
+async function getCustomPokedexModal(type, customidLoad) {
     let url = `/pokedex/${type}Custompokedexform`;
-    if (customid.length) {
-        url += `/customid/${customid}`;
+    if (customidLoad.length) {
+        url += `/customid/${customidLoad}`;
     }
 
-    return getWrapper({
-        url: url,
+    return await getWrapper({
+        url,
         $loadingDiv: null,
         loading: '',
         dataHandler: (data) => {
-            let newDiv = document.createElement('div');
+            const newDiv = document.createElement('div');
             newDiv.innerHTML = data;
             document.getElementById('loadedModal').appendChild(newDiv);
 
@@ -121,7 +121,7 @@ async function getCustomPokedexModal(type, customid) {
                 submitCustomPokedexModal(e, type, $customPokedexForm, $submitCustomBtn, $customPokedexModal);
             });
 
-            if (type == 'edit') {
+            if (type === 'edit') {
                 const $deleteCustomBtn = document.getElementById('deleteCustomForm');
                 $deleteCustomBtn.addEventListener('click', (e) => {
                     submitCustomPokedexModal(e, 'delete', $customPokedexForm, $deleteCustomBtn, $customPokedexModal);
@@ -132,11 +132,11 @@ async function getCustomPokedexModal(type, customid) {
 }
 
 function toggleLock() {
-    pokedexStruct.lock = pokedexStruct.lock == 'true' ? 'false' : 'true';
+    pokedexStruct.lock = pokedexStruct.lock === 'true' ? 'false' : 'true';
     setCookie('pokedexLock', pokedexStruct.lock, 100);
 
     Array.from($pokedexLock).forEach((btn) => {
-        if (pokedexStruct.lock == 'true') {
+        if (pokedexStruct.lock === 'true') {
             btn.innerHTML = '<i class="bi bi-lock me-1"></i>Locked';
         } else {
             btn.innerHTML = '<i class="bi bi-unlock me-1"></i>Unlocked';
@@ -178,8 +178,8 @@ function registerAllConfirm() {
 }
 
 function createEditEvent(count) {
-    let $editCustomPokedexBtn = document.querySelectorAll(`.editCustomPokedex${count}`);
-    Array.from($editCustomPokedexBtn).forEach(async (btn) => {
+    const $editCustomPokedexBtn = document.querySelectorAll(`.editCustomPokedex${count}`);
+    Array.from($editCustomPokedexBtn).forEach((btn) => {
         btn.addEventListener('click', async (evt) => {
             if ($pokedexLoading.customEdit) return;
 
@@ -200,10 +200,10 @@ function createEditEvent(count) {
 }
 
 async function fetchCustomPokedexList(counter) {
-    let $nextGroup = document.getElementById(`nextGroup${counter}`);
+    const $nextGroup = document.getElementById(`nextGroup${counter}`);
     if (!$nextGroup) return;
 
-    return getWrapper({
+    return await getWrapper({
         url: `/pokedex/customPokedexList/offset/${counter}`,
         $loadingDiv: $nextGroup,
         loading: $loading,
@@ -223,7 +223,7 @@ async function fetchCustomPokedexList(counter) {
 }
 
 async function switchCustomPokedex() {
-    return getWrapper({
+    return await getWrapper({
         url: `/pokedex/getCustomPokedex/trainerid/${customtrainerid}/customid/${customid}/shiny/${pokedexStruct.shiny}/hundo/false`,
         $loadingDiv: $customPokedexTable,
         loading: $loading,
@@ -231,10 +231,10 @@ async function switchCustomPokedex() {
             $customPokedexTable.innerHTML = data;
 
             pokedexStruct.view = document.querySelector('#pokedexGrid')?.dataset?.view ?? 'none';
-            let $pokemonCells = document.querySelectorAll('#pokedexGrid>.pokemonCell');
+            const $pokemonCells = document.querySelectorAll('#pokedexGrid>.pokemonCell');
             createRegisterEvent($pokemonCells);
 
-            let currRegistered = document.getElementById('registeredCount').dataset;
+            const currRegistered = document.getElementById('registeredCount').dataset;
 
             pokedexStruct.registered = currRegistered.registered;
             pokedexStruct.total = currRegistered.total;
@@ -244,9 +244,9 @@ async function switchCustomPokedex() {
 }
 
 async function register(evt) {
-    let cell = evt.currentTarget;
-    let dataset = cell.dataset;
-    let body = {
+    const cell = evt.currentTarget;
+    const dataset = cell.dataset;
+    const body = {
         pokemonid: dataset.id,
         caught: dataset.caught,
         shiny: dataset.shiny,
@@ -270,7 +270,7 @@ async function register(evt) {
     }
     updateRegistered();
 
-    postWrapper({
+    await postWrapper({
         url: '/pokedex/register',
         $loadingBtn: null,
         loading: '',
@@ -291,7 +291,7 @@ function createRegisterEvent(pokemonCells) {
         ['mousedown', 'ontouchstart'].forEach((event) => {
             cell.addEventListener(event, async (evt) => {
                 evt.preventDefault();
-                if (pokedexStruct.lock == 'false') {
+                if (pokedexStruct.lock === 'false') {
                     // only allow updates while unlocked
                     pokedexStruct.mousedown = true;
                     pokedexStruct.catching = await register(evt);
@@ -303,9 +303,9 @@ function createRegisterEvent(pokemonCells) {
             cell.addEventListener(event, (evt) => {
                 evt.preventDefault();
                 if (
-                    pokedexStruct.lock == 'false' &&
+                    pokedexStruct.lock === 'false' &&
                     pokedexStruct.mousedown &&
-                    pokedexStruct.catching == !evt.currentTarget.classList.contains('caught')
+                    pokedexStruct.catching === !evt.currentTarget.classList.contains('caught')
                 ) {
                     register(evt);
                 }
@@ -337,9 +337,9 @@ async function switchPokedex(region) {
         pokedexStruct.shiny = pokedexStruct.temp.shiny;
     }
 
-    let activeNavButton = document.querySelector('.pokedex-link.active');
+    const activeNavButton = document.querySelector('.pokedex-link.active');
     if (activeNavButton) activeNavButton.classList.remove('active');
-    let navButton = document.querySelector(`.${region}link`);
+    const navButton = document.querySelector(`.${region}link`);
     navButton.classList.add('active');
 
     let url = `/pokedex/getPokedex`;
@@ -351,18 +351,18 @@ async function switchPokedex(region) {
     }
     url += `/shiny/${pokedexStruct.shiny}`;
 
-    return getWrapper({
-        url: url,
+    return await getWrapper({
+        url,
         $loadingDiv: $pokedexTable,
         loading: $loading,
         dataHandler: (data) => {
             $pokedexTable.innerHTML = data;
 
             pokedexStruct.view = document.querySelector('#pokedexGrid')?.dataset?.view ?? 'none';
-            let $pokemonCells = document.querySelectorAll('#pokedexGrid>.pokemonCell');
+            const $pokemonCells = document.querySelectorAll('#pokedexGrid>.pokemonCell');
             createRegisterEvent($pokemonCells);
 
-            let currRegistered = document.getElementById('registeredCount').dataset;
+            const currRegistered = document.getElementById('registeredCount').dataset;
             pokedexStruct.registered = currRegistered.registered;
             pokedexStruct.total = currRegistered.total;
 
@@ -379,18 +379,18 @@ async function switchShadowPokedex() {
     url += `/shiny/${pokedexStruct.shiny}`;
     url += `/shadow/${pokedexStruct.shadow}`;
 
-    return getWrapper({
-        url: url,
+    return await getWrapper({
+        url,
         $loadingDiv: $shadowPokedexTable,
         loading: $loading,
         dataHandler: (data) => {
             $shadowPokedexTable.innerHTML = data;
 
             pokedexStruct.view = document.querySelector('#pokedexGrid')?.dataset?.view ?? 'none';
-            let $pokemonCells = document.querySelectorAll('#pokedexGrid>.pokemonCell');
+            const $pokemonCells = document.querySelectorAll('#pokedexGrid>.pokemonCell');
             createRegisterEvent($pokemonCells);
 
-            let currRegistered = document.getElementById('registeredCount').dataset;
+            const currRegistered = document.getElementById('registeredCount').dataset;
 
             pokedexStruct.registered = currRegistered.registered;
             pokedexStruct.total = currRegistered.total;
@@ -401,7 +401,7 @@ async function switchShadowPokedex() {
 
 function updateRegistered() {
     $monsRegistered.innerHTML = `${pokedexStruct.registered} / ${pokedexStruct.total} Registered`;
-    let percentage = pokedexStruct.registered / pokedexStruct.total;
+    const percentage = pokedexStruct.registered / pokedexStruct.total;
     $monsRegistered.classList.remove('basic', 'bronze', 'silver', 'gold', 'diamond');
     if (percentage < 0.25) {
         $monsRegistered.classList.add('basic');
@@ -419,7 +419,7 @@ function updateRegistered() {
 async function registerAll() {
     $loadingModal.show();
 
-    return postWrapper({
+    return await postWrapper({
         url: `/pokedex/registerAll`,
         $loadingBtn: null,
         loading: '',
@@ -442,13 +442,13 @@ function copySearchString($btns, missing) {
         string += `${pokedexStruct.region}&`;
     }
 
-    if (pokedexStruct.view == 'shadowshiny') {
+    if (pokedexStruct.view === 'shadowshiny') {
         if (missing) condition = `[data-shadowshiny=false]`;
         string += 'shadow&shiny&';
-    } else if (pokedexStruct.view == 'shadow') {
+    } else if (pokedexStruct.view === 'shadow') {
         if (missing) condition = `[data-shadow=false]`;
         string += 'shadow&';
-    } else if (pokedexStruct.view == 'shiny') {
+    } else if (pokedexStruct.view === 'shiny') {
         if (missing) condition = `[data-shiny=false]`;
         string += 'shiny&';
     } else {
@@ -456,7 +456,7 @@ function copySearchString($btns, missing) {
         string += '';
     }
 
-    let cells = document.querySelectorAll(`div.pokemonCell${condition}`);
+    const cells = document.querySelectorAll(`div.pokemonCell${condition}`);
     cells.forEach((cell) => {
         string += `${cell.dataset.number},`;
     });
@@ -486,7 +486,7 @@ export const runtime = {
 
         Array.from($shinyToggle).forEach((btn) => {
             btn.addEventListener('click', async () => {
-                toggleShiny();
+                await toggleShiny();
             });
         });
 
@@ -506,7 +506,7 @@ export const runtime = {
     },
     mypokedex: () => {
         pokedexStruct.region = $pokedexTable.dataset.region;
-        pokedexStruct.shiny = $pokedexTable.dataset.shiny == 'true';
+        pokedexStruct.shiny = $pokedexTable.dataset.shiny === 'true';
         switchPokedex(pokedexStruct.region);
 
         Array.from(document.querySelectorAll('.pokedex-link')).forEach((navBtn) => {
@@ -514,7 +514,7 @@ export const runtime = {
                 if (
                     !pokedexStruct.catching &&
                     !pokedexStruct.mousedown &&
-                    pokedexStruct.region != navBtn.dataset.region
+                    pokedexStruct.region !== navBtn.dataset.region
                 ) {
                     pokedexStruct.region = navBtn.dataset.region;
                     switchPokedex(pokedexStruct.region);
@@ -523,7 +523,7 @@ export const runtime = {
         });
     },
     mycustompokedex: () => {
-        pokedexStruct.shiny = $customPokedexTable.dataset.shiny == 'true';
+        pokedexStruct.shiny = $customPokedexTable.dataset.shiny === 'true';
         switchCustomPokedex();
     },
     custompokedexlist: () => {
@@ -548,7 +548,7 @@ export const runtime = {
         }
 
         addEventListener('scroll', async () => {
-            let atBottom = window.innerHeight + window.scrollY >= document.body.scrollHeight;
+            const atBottom = window.innerHeight + window.scrollY >= document.body.scrollHeight;
             if (atBottom && !fetchStruct.loadingList) {
                 fetchStruct.loadingList = true;
                 await fetchCustomPokedexList(fetchStruct.counter);
@@ -559,7 +559,7 @@ export const runtime = {
         createCustomSearch('customSearch', 'Search a Pokedex...', true, '');
     },
     myshadowpokedex: () => {
-        pokedexStruct.shiny = $shadowPokedexTable.dataset.shiny == 'true';
+        pokedexStruct.shiny = $shadowPokedexTable.dataset.shiny === 'true';
         pokedexStruct.shadow = true;
         switchShadowPokedex();
     },

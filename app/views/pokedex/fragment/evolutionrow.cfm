@@ -11,7 +11,7 @@
         </a>
     </td>
     <td>
-        <cfif args.evolution.getCost() GTE 0>#args.evolution.getCost()# Candy <br></cfif><cfif args.evolution.getCondition().len()>#ucFirst(args.evolution.getCondition())#</cfif></td>
+        <cfif args.evolution.getCost() GT 0>#args.evolution.getCost()# Candy <br></cfif><cfif args.evolution.getCondition().len()>#ucFirst(args.evolution.getCondition())#</cfif></td>
     <td>
         <a href="/pokemon/#args.evolution.getEvolution().getSes()#" class="link-dark link-offset-2 link-underline-opacity-0 link-underline-opacity-100-hover">
             <span class="d-flex justify-content-center">

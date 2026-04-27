@@ -7,7 +7,7 @@ export async function getWrapper({ url, $loadingDiv, loading, dataHandler }) {
         method: 'GET',
     })
         .then((response) => {
-            if (response.status == 401) {
+            if (response.status === 401) {
                 location.href = '/login';
             } else if (!response.ok) {
                 throw new Error(`Server error`);
@@ -33,13 +33,11 @@ export async function postWrapper({ url, $loadingBtn, loading, packet, responseT
     await fetch(url, {
         method: 'POST',
         headers: {
-            Accept: responseType == 'json' ? 'application/json' : 'text/html',
+            Accept: responseType === 'json' ? 'application/json' : 'text/html',
         },
         body: packet,
     })
-        .then((response) => {
-            return response[responseType]();
-        })
+        .then((response) => response[responseType]())
         .then(dataHandler)
         .catch((error) => {
             if ($loadingBtn) {

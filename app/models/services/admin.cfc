@@ -1091,9 +1091,11 @@ component singleton accessors="true" {
             .select('h1.page-title')
             .text();
 
+        var currYear = year(now());
+
         if(eventTitle == 'Pokémon GO Wild Area: Global') {
             eventTitle = eventTitle.split(':');
-            eventTitle = '#eventTitle[1]# #year(now())#:#eventTitle[2]#';
+            eventTitle = '#eventTitle[1]# #currYear#:#eventTitle[2]#';
         }
 
         // Remove shadow spawns
@@ -1169,15 +1171,32 @@ component singleton accessors="true" {
         );
 
         // Create custom pokedex if needed
+        // Use link which contains year
         var custom = ormExecuteQuery(
             '
             select custom
             from custom as custom
-            where upper(custom.name) = :eventTitle
+            where upper(custom.link) = :eventLink
             ',
-            {eventTitle: uCase(eventTitle)},
+            {eventLink: uCase(eventLink)},
             true
         );
+
+        // Check if this event title already exists in db - if so, append the currYear to title
+        var checkName = ormExecuteQuery(
+            '
+            select custom
+            from custom as custom
+            where upper(custom.link) != :eventLink
+            and upper(custom.name) = :eventTitle
+            ',
+            {eventLink: uCase(eventLink), eventTitle: uCase(eventTitle)},
+            true
+        );
+
+        if(!isNull(checkName)) {
+            eventTitle &= ' #currYear#';
+        }
 
         if(isNull(custom)) {
             customid = customService.create(

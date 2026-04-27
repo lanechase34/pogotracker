@@ -1,8 +1,8 @@
 import { createAlert } from 'alert';
 import { copyString } from 'copy';
 import { getWrapper, postWrapper } from 'fetch';
-import { $loading, $submitBtn, $loadingCard } from 'loading';
-import { submitHandler, resetHandler } from 'modals';
+import { $loading, $loadingCard, $submitBtn } from 'loading';
+import { resetHandler, submitHandler } from 'modals';
 
 export const $leaderboardDiv = document.getElementById('leaderboardDiv');
 
@@ -15,7 +15,7 @@ const chartStruct = {
 };
 const lineColor = '#0d6efd'; //'#333333'; //'rgb(75, 192, 192)';
 
-let $statsLoading = {
+const $statsLoading = {
     trackStats: false,
 };
 
@@ -24,7 +24,7 @@ const STAT_UNITS = {
 };
 
 export async function getLeaderboard($div) {
-    return getWrapper({
+    return await getWrapper({
         url: `/stats/leaderboard/stat/XP`,
         $loadingDiv: $div,
         loading: $loading,
@@ -49,13 +49,13 @@ export function initStatsTracker() {
 
 export async function getSummaryStats(trainerid, $div, $profilerow) {
     $div.innerHTML = $loadingCard;
-    let packet = {
+    const packet = {
         startDate: $profilerow.dataset.startdate,
         endDate: $profilerow.dataset.enddate,
         summary: true,
     };
 
-    return postWrapper({
+    return await postWrapper({
         url: `/overview/${trainerid}`,
         $loadingBtn: null,
         loading: '',
@@ -68,7 +68,7 @@ export async function getSummaryStats(trainerid, $div, $profilerow) {
 }
 
 export async function getPokedexStats(trainerid, $div) {
-    return getWrapper({
+    return await getWrapper({
         url: `/stats/getPokedexStats/trainerid/${trainerid}`,
         $loadingDiv: $div,
         loading: $loadingCard,
@@ -89,7 +89,7 @@ export async function getPokedexStats(trainerid, $div) {
 }
 
 export async function getMedalSummary(trainerid, $div) {
-    return getWrapper({
+    return await getWrapper({
         url: `/stats/getMedalSummary/trainerid/${trainerid}`,
         $loadingDiv: $div,
         loading: $loadingCard,
@@ -105,7 +105,7 @@ export async function getMedalSummary(trainerid, $div) {
  * @param {HTMLElement} $div
  */
 export async function getTopDeltas(trainerid, $div) {
-    return getWrapper({
+    return await getWrapper({
         url: `/stats/topDeltas/trainerid/${trainerid}`,
         $loadingDiv: $div,
         loading: $loadingCard,
@@ -165,21 +165,21 @@ function renderStat(rows, stat) {
 }
 
 async function getTrackStats() {
-    return getWrapper({
+    return await getWrapper({
         url: '/stats/trackForm',
         $loadingDiv: null,
         loading: $loading,
         dataHandler: (data) => {
-            let newDiv = document.createElement('div');
+            const newDiv = document.createElement('div');
             newDiv.innerHTML = data;
             document.getElementById('loadedModal').appendChild(newDiv);
             const $trackStatsModal = document.getElementById('trackStatsModal');
             globalModals.$trackStatsModal = new bootstrap.Modal($trackStatsModal, {});
-            let $trackStatsForm = document.getElementById('trackStatsForm');
-            let $submitTrackStatsForm = document.getElementById('submitTrackStatsForm');
+            const $trackStatsForm = document.getElementById('trackStatsForm');
+            const $submitTrackStatsForm = document.getElementById('submitTrackStatsForm');
 
             $submitTrackStatsForm.addEventListener('click', async (evt) => {
-                let valid = $trackStatsForm.checkValidity();
+                const valid = $trackStatsForm.checkValidity();
                 $trackStatsForm.classList.add('was-validated');
 
                 if (!valid) {
@@ -188,26 +188,65 @@ async function getTrackStats() {
                     return;
                 }
 
+                const formData = new FormData($trackStatsForm);
+                const packet = Object.fromEntries(formData.entries());
+
+                // Warn if any entered value is lower than the latest tracked stat
+                if (!$submitTrackStatsForm.dataset.confirmed) {
+                    const dataset = $trackStatsForm.dataset;
+                    const checks = [
+                        { key: 'xp', label: 'Total XP', latest: dataset.latestXp },
+                        { key: 'caught', label: 'Pokemon Caught', latest: dataset.latestCaught },
+                        { key: 'spun', label: 'Pokestops Spun', latest: dataset.latestSpun },
+                        { key: 'walked', label: 'Distance Walked', latest: dataset.latestWalked },
+                    ];
+
+                    const warnings = checks
+                        .filter(({ key, latest }) => latest !== undefined && Number(packet[key]) < Number(latest))
+                        .map(
+                            ({ label, latest, key }) =>
+                                `<li>${label}: Entered <strong>${packet[key]}</strong>, last entry was <strong>${latest}</strong></li>`
+                        )
+                        .join('');
+
+                    if (warnings) {
+                        createAlert(
+                            document.getElementById('statAlert'),
+                            'warning',
+                            'bi-exclamation-triangle',
+                            `Some stats are lower than your last entry - are you sure these are correct?<ul class="mb-0 mt-1">${warnings}</ul>`
+                        );
+
+                        $submitTrackStatsForm.textContent = 'Submit Anyway';
+                        $submitTrackStatsForm.dataset.confirmed = 'true';
+                        return;
+                    }
+                }
+
                 submitHandler($trackStatsModal, $submitTrackStatsForm, false);
-
-                let formData = new FormData($trackStatsForm);
-                let packet = Object.fromEntries(formData.entries());
-
                 await submitTrackStats(packet, $submitTrackStatsForm, $trackStatsModal);
+            });
+
+            $trackStatsForm.addEventListener('input', () => {
+                if ($submitTrackStatsForm.dataset.confirmed) {
+                    document.getElementById('statAlert').innerHTML = '';
+                    $submitTrackStatsForm.textContent = 'Submit';
+                    delete $submitTrackStatsForm.dataset.confirmed;
+                }
             });
         },
     });
 }
 
-async function getMedalProgress($medalProgressDiv) {
-    return getWrapper({
+async function getMedalProgress($medalProgressDivToLoad) {
+    return await getWrapper({
         url: '/stats/getMedalProgress',
-        $loadingDiv: $medalProgressDiv,
+        $loadingDiv: $medalProgressDivToLoad,
         loading: $loading,
         dataHandler: (data) => {
-            $medalProgressDiv.innerHTML = data;
+            $medalProgressDivToLoad.innerHTML = data;
 
-            let $medalFields = document.querySelectorAll('.medalInput');
+            const $medalFields = document.querySelectorAll('.medalInput');
             Array.from($medalFields).forEach((input) => {
                 input.addEventListener('blur', () => {
                     if (validateMedalInput(input)) {
@@ -223,7 +262,7 @@ async function getMedalProgress($medalProgressDiv) {
 }
 
 async function loadStatCards() {
-    let calls = [getLeaderboard($leaderboardDiv), getMedalProgress($medalProgressDiv)];
+    const calls = [getLeaderboard($leaderboardDiv), getMedalProgress($medalProgressDiv)];
 
     await Promise.all(calls);
     resizeStatCards();
@@ -250,7 +289,7 @@ function resizeStatCards() {
 }
 
 async function submitTrackStats(packet, $btn, $modal) {
-    return postWrapper({
+    return await postWrapper({
         url: '/stats/track',
         $loadingBtn: $btn,
         loading: $submitBtn,
@@ -273,10 +312,10 @@ async function submitTrackStats(packet, $btn, $modal) {
 }
 
 function validateMedalInput($input) {
-    let regex = /^\d+$/;
-    let value = $input.value.trim();
-    let $invalidFeedback = $input.nextElementSibling;
-    if (value.length == 0) {
+    const regex = /^\d+$/;
+    const value = $input.value.trim();
+    const $invalidFeedback = $input.nextElementSibling;
+    if (value.length === 0) {
         return false;
     }
 
@@ -291,15 +330,15 @@ function validateMedalInput($input) {
 
 async function trackMedalProgress($input) {
     $input.disabled = true;
-    let $parentRow = $input.parentElement.parentElement;
-    let medal = $parentRow.dataset.id;
-    let value = $input.value.trim();
+    const $parentRow = $input.parentElement.parentElement;
+    const medal = $parentRow.dataset.id;
+    const value = $input.value.trim();
 
-    return postWrapper({
+    return await postWrapper({
         url: '/stats/trackMedalProgress',
         $loadingBtn: null,
         loading: '',
-        packet: JSON.stringify({ medal: medal, current: value }),
+        packet: JSON.stringify({ medal, current: value }),
         responseType: 'json',
         dataHandler: (data) => {
             if (!data.success) {
@@ -312,7 +351,7 @@ async function trackMedalProgress($input) {
             }%`;
 
             // Update medal icon
-            let $medalImg = document.getElementById(`${medal}icon`);
+            const $medalImg = document.getElementById(`${medal}icon`);
             if ($medalImg) {
                 $medalImg.classList.remove('platinumMedal');
                 $medalImg.classList.remove('goldMedal');
@@ -336,19 +375,19 @@ async function trackMedalProgress($input) {
 }
 
 function renderChart(canvas, stat) {
-    let labels = statDataset.labels;
-    let data = [];
+    const labels = statDataset.labels;
+    const data = [];
     for (let i = 0; i < labels.length; i++) {
         data.push(statDataset.data[labels[i]][stat]);
     }
     chartStruct.statLineChart = new Chart(canvas, {
         type: 'line',
         data: {
-            labels: labels,
+            labels,
             datasets: [
                 {
                     label: stat,
-                    data: data,
+                    data,
                     fill: false,
                     borderColor: lineColor,
                     tension: 0.5,
@@ -368,7 +407,7 @@ export const runtime = {
         // Add the change stat handler
         Array.from(document.querySelectorAll('.changeStat')).forEach((stat) => {
             stat.addEventListener('click', (evt) => {
-                let $activeBtn = document.querySelector('.changeStat.active');
+                const $activeBtn = document.querySelector('.changeStat.active');
                 $activeBtn.classList.remove('active');
                 $activeBtn.disabled = false;
 
@@ -379,8 +418,8 @@ export const runtime = {
             });
         });
 
-        let startDateInput = document.getElementById('startDate');
-        let endDateInput = document.getElementById('endDate');
+        const startDateInput = document.getElementById('startDate');
+        const endDateInput = document.getElementById('endDate');
         const dateMask = 'MM-DD-YYYY';
 
         $('#dateRangePicker').daterangepicker(
@@ -407,7 +446,7 @@ export const runtime = {
                     ],
                 },
             },
-            function (start, end) {
+            (start, end) => {
                 startDateInput.value = start.format(dateMask);
                 endDateInput.value = end.format(dateMask);
                 document.getElementById('statsOverviewForm').submit();

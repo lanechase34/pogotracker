@@ -1,9 +1,9 @@
 import { createAlert } from 'alert';
 import { getWrapper, postWrapper } from 'fetch';
 import { $loadingCard, $submitBtn } from 'loading';
-import { submitHandler, resetHandler } from 'modals';
-import { initStatsTracker, getSummaryStats, getPokedexStats, getMedalSummary, getTopDeltas } from 'stats';
+import { resetHandler, submitHandler } from 'modals';
 import { createAddFriendSearch } from 'search';
+import { getMedalSummary, getPokedexStats, getSummaryStats, getTopDeltas, initStatsTracker } from 'stats';
 
 const $friendsListDiv = document.getElementById('friendsListDiv');
 const $medalSummaryDiv = document.getElementById('medalSummaryDiv');
@@ -15,18 +15,18 @@ const trainerid = document.getElementById('mainProfileUsername').dataset.trainer
 const $editProfile = document.getElementById('editProfile');
 const $topDeltasDiv = document.getElementById('topDeltasDiv');
 
-let $trainerLoading = {
+const $trainerLoading = {
     editProfile: false,
     addFriend: false,
 };
 
 async function getFriendsToAdd() {
-    return getWrapper({
+    return await getWrapper({
         url: '/friend/getFriendsToAdd',
         $loadingDiv: null,
         loading: '',
         dataHandler: (data) => {
-            let newDiv = document.createElement('div');
+            const newDiv = document.createElement('div');
             newDiv.innerHTML = data;
             document.getElementById('loadedModal').appendChild(newDiv);
 
@@ -35,11 +35,11 @@ async function getFriendsToAdd() {
 
             createAddFriendSearch('friendsToAddSearch');
 
-            let $addFriendForm = document.getElementById('addFriendForm');
-            let $submitAddFriendForm = document.getElementById('submitAddFriendForm');
+            const $addFriendForm = document.getElementById('addFriendForm');
+            const $submitAddFriendForm = document.getElementById('submitAddFriendForm');
 
             $submitAddFriendForm.addEventListener('click', async (event) => {
-                let valid = $addFriendForm.checkValidity();
+                const valid = $addFriendForm.checkValidity();
                 $addFriendForm.classList.add('was-validated');
 
                 if (!valid) {
@@ -48,11 +48,11 @@ async function getFriendsToAdd() {
                     return;
                 }
 
-                let temp = $submitAddFriendForm.innerHTML;
+                const temp = $submitAddFriendForm.innerHTML;
                 submitHandler($addFriendModal, $submitAddFriendForm);
 
-                let formData = new FormData($addFriendForm);
-                let packet = Object.fromEntries(formData.entries());
+                const formData = new FormData($addFriendForm);
+                const packet = Object.fromEntries(formData.entries());
                 await sendFriendRequest(packet, $submitAddFriendForm);
 
                 resetHandler($addFriendModal, $submitAddFriendForm, temp);
@@ -64,14 +64,14 @@ async function getFriendsToAdd() {
 }
 
 async function getFriendsList($div) {
-    return getWrapper({
+    return await getWrapper({
         url: `/friend/getFriendsList`,
         $loadingDiv: $div,
         loading: $loadingCard,
         dataHandler: (data) => {
             $div.innerHTML = data;
 
-            let $addFriendBtn = document.getElementById('addFriendBtn');
+            const $addFriendBtn = document.getElementById('addFriendBtn');
             $addFriendBtn.addEventListener('click', async (evt) => {
                 if ($trainerLoading.addFriend) return;
 
@@ -83,7 +83,7 @@ async function getFriendsList($div) {
                 $trainerLoading.addFriend = false;
             });
 
-            let trainerRows = document.querySelectorAll('.trainerRow');
+            const trainerRows = document.querySelectorAll('.trainerRow');
             Array.from(trainerRows).forEach((row) => {
                 row.addEventListener('click', (evt) => {
                     window.location.href = evt.currentTarget.dataset.profilelink;
@@ -94,18 +94,18 @@ async function getFriendsList($div) {
 }
 
 async function getFriendRequests($div) {
-    return getWrapper({
+    return await getWrapper({
         url: `/friend/getFriendRequests`,
         $loadingDiv: $div,
         loading: $loadingCard,
         dataHandler: (data) => {
             $div.innerHTML = data;
-            let $decideBtns = document.querySelectorAll('.decideRequest');
+            const $decideBtns = document.querySelectorAll('.decideRequest');
             if ($decideBtns) {
                 Array.from($decideBtns).forEach((btn) => {
                     btn.addEventListener('click', async (evt) => {
-                        let $btn = evt.currentTarget;
-                        let packet = {};
+                        const $btn = evt.currentTarget;
+                        const packet = {};
                         packet.friendrequestid = $btn.parentElement.dataset.friendrequestid;
                         packet.accept = $btn.dataset.accept;
                         await decideFriendRequest(packet, $btn);
@@ -117,22 +117,22 @@ async function getFriendRequests($div) {
 }
 
 async function getEditProfile() {
-    return getWrapper({
+    return await getWrapper({
         url: '/trainer/editProfile',
         $loadingDiv: null,
         loading: '',
         dataHandler: (data) => {
-            let newDiv = document.createElement('div');
+            const newDiv = document.createElement('div');
             newDiv.innerHTML = data;
             document.getElementById('loadedModal').appendChild(newDiv);
             const $editProfileModal = document.getElementById('editProfileModal');
             globalModals.$editProfileModal = new bootstrap.Modal($editProfileModal, {});
 
-            let $editProfileForm = document.getElementById('editProfileForm');
-            let $submitEditProfileForm = document.getElementById('submitEditProfileForm');
+            const $editProfileForm = document.getElementById('editProfileForm');
+            const $submitEditProfileForm = document.getElementById('submitEditProfileForm');
 
             $submitEditProfileForm.addEventListener('click', async (evt) => {
-                let valid = $editProfileForm.checkValidity();
+                const valid = $editProfileForm.checkValidity();
                 $editProfileForm.classList.add('was-validated');
 
                 if (!valid) {
@@ -141,8 +141,8 @@ async function getEditProfile() {
                     return;
                 }
 
-                let formData = new FormData($editProfileForm);
-                let packet = Object.fromEntries(formData.entries());
+                const formData = new FormData($editProfileForm);
+                const packet = Object.fromEntries(formData.entries());
                 await updateProfile(packet, $submitEditProfileForm, $editProfileModal);
             });
         },
@@ -158,13 +158,13 @@ function resizeProfileCards() {
 // Loads the profile cards and resizes the grid using masonry
 // Waits for all profile cards to load before resizing the dom
 async function loadProfileCards() {
-    let calls = [
+    const calls = [
         getSummaryStats(trainerid, $summaryStatsDiv, $profilerow),
         getPokedexStats(trainerid, $pokedexStatsDiv),
         getMedalSummary(trainerid, $medalSummaryDiv),
         getTopDeltas(trainerid, $topDeltasDiv),
     ];
-    if ($profilerow.dataset.myprofile == 'true') {
+    if ($profilerow.dataset.myprofile === 'true') {
         calls.push(getFriendsList($friendsListDiv));
         calls.push(getFriendRequests($pendingRequestsDiv));
         initStatsTracker();
@@ -174,7 +174,7 @@ async function loadProfileCards() {
 }
 
 async function decideFriendRequest(packet, $btn) {
-    return postWrapper({
+    return await postWrapper({
         url: '/friend/decideFriendRequest',
         $loadingBtn: $btn,
         loading: $submitBtn,
@@ -190,7 +190,7 @@ async function decideFriendRequest(packet, $btn) {
 }
 
 async function sendFriendRequest(packet, $btn) {
-    return postWrapper({
+    return await postWrapper({
         url: '/friend/sendFriendRequest',
         $loadingBtn: $btn,
         loading: $submitBtn,
@@ -206,9 +206,9 @@ async function sendFriendRequest(packet, $btn) {
 }
 
 async function updateProfile(packet, $btn, $modal) {
-    let temp = $btn.innerHTML;
+    const temp = $btn.innerHTML;
     submitHandler($modal, $btn);
-    return postWrapper({
+    return await postWrapper({
         url: '/trainer/updateProfile',
         $loadingBtn: '',
         loading: '',

@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 
 const isMobile = (projectName) => projectName.toLowerCase().includes('mobile');
 
@@ -8,7 +8,7 @@ async function loginAsTestUser(page) {
     await page.addInitScript(() => {
         window.grecaptcha = {
             ready: (callback) => callback(),
-            // eslint-disable-next-line no-unused-vars
+
             execute: (_siteKey, _options) => Promise.resolve('mock-token'),
         };
     });

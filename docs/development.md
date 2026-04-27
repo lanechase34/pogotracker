@@ -68,8 +68,23 @@ There are many tasks available that cover these topics below. Run tasks in vscod
 ## Testing
 
 1. Run Testbox Suite via browser
+
     ```
     http://localhost:${HTTP_PORT}/tests/runner.cfm
+    ```
+
+## Playwright Testing
+
+1. Install the necessary playwright browsers
+
+    ```
+    npx playwright install
+    ```
+
+2. Run the test suite across various browsers
+
+    ```
+    npm run test
     ```
 
 ## Running in WSL

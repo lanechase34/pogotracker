@@ -42,9 +42,11 @@
     "editor.stickyScroll.enabled": false,
     "terminal.integrated.stickyScroll.enabled": false,
     "workbench.iconTheme": "material-icon-theme",
+    "eslint.workingDirectories": ["./app/includes"],
     "eslint.options": {
         "overrideConfigFile": "eslint.config.js"
     },
+    "eslint.validate": ["javascript", "css"],
     "prettier.trailingComma": "es5",
     "files.eol": "\n",
     "gitlens.ai.enabled": false,

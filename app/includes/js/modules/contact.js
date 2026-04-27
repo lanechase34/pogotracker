@@ -5,20 +5,20 @@ import { createToast } from 'toast';
 export const $contactBtn = document.getElementById('contactBtn');
 
 export async function getContactForm() {
-    return getWrapper({
+    return await getWrapper({
         url: '/contact',
         $loadingDiv: null,
         loading: '',
         dataHandler: (data) => {
-            let newDiv = document.createElement('div');
+            const newDiv = document.createElement('div');
             newDiv.innerHTML = data;
             document.getElementById('loadedModal').appendChild(newDiv);
             globalModals.$contactFormModal = new bootstrap.Modal(document.getElementById('contactFormModal'), {});
-            let $contactForm = document.getElementById('contactForm');
-            let $submitContactForm = document.getElementById('submitContactForm');
+            const $contactForm = document.getElementById('contactForm');
+            const $submitContactForm = document.getElementById('submitContactForm');
 
             $submitContactForm.addEventListener('click', async (evt) => {
-                let valid = $contactForm.checkValidity();
+                const valid = $contactForm.checkValidity();
                 $contactForm.classList.add('was-validated');
 
                 if (!valid) {
@@ -29,8 +29,8 @@ export async function getContactForm() {
 
                 document.getElementById('closeContactForm').disabled = true;
 
-                let formData = new FormData($contactForm);
-                let packet = Object.fromEntries(formData.entries());
+                const formData = new FormData($contactForm);
+                const packet = Object.fromEntries(formData.entries());
 
                 await submitContactForm(packet, $submitContactForm);
             });
@@ -39,7 +39,7 @@ export async function getContactForm() {
 }
 
 async function submitContactForm(packet, $btn) {
-    return postWrapper({
+    return await postWrapper({
         url: '/home/contact',
         $loadingBtn: $btn,
         loading: $submitBtn,

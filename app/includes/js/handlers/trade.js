@@ -2,7 +2,7 @@ import { createAlert } from 'alert';
 import { postWrapper } from 'fetch';
 import { checkFormValidity } from 'form';
 import { $submitBtn } from 'loading';
-import { createFriendsListSearch, createCustomSearch, createRegionSelect } from 'search';
+import { createCustomSearch, createFriendsListSearch, createRegionSelect } from 'search';
 
 const $tradePlanAlert = document.getElementById('tradePlanAlert');
 const $submitTradePlan = document.getElementById('submitTradePlan');
@@ -11,18 +11,18 @@ const $tradePlanForm = document.getElementById('tradePlanForm');
 const $tradePlanDiv = document.getElementById('tradePlanDiv');
 
 async function getTradePlan($form, $btn, event) {
-    let valid = await checkFormValidity($form, event, false);
+    const valid = await checkFormValidity($form, event, false);
     if (!valid) return;
 
     $tradePlanAlert.innerHTML = '';
     $tradePlanDiv.innerHTML = '';
 
-    let temp = $btn.innerHTML;
+    const temp = $btn.innerHTML;
     $btn.innerHTML = $submitBtn;
     $btn.disabled = true;
 
-    let formData = new FormData($form);
-    let packet = Object.fromEntries(formData.entries());
+    const formData = new FormData($form);
+    const packet = Object.fromEntries(formData.entries());
 
     await postWrapper({
         url: `/trade/tradePlan`,

@@ -1,8 +1,8 @@
 import { createAlert } from 'alert';
+import { isMobileDisplay } from 'display';
 import { getWrapper, postWrapper } from 'fetch';
 import { resizeHomeCards } from 'home';
 import { $loading, $submitBtn } from 'loading';
-import { isMobileDisplay } from 'display';
 
 export const $blogListDiv = document.getElementById('blogList');
 const $submitBlogCommentBtn = document.getElementById('submitBlogComment');
@@ -20,7 +20,7 @@ export const blogFetchStruct = {
 };
 
 export async function getBlogs({ $div, count, offset, showImage, exclude, sidebar }) {
-    return getWrapper({
+    return await getWrapper({
         url: `/blog/get/count/${count}/offset/${offset}/showimage/${showImage}/exclude/${exclude}/sidebar/${sidebar}`,
         $loadingDiv: offset === 0 ? $div : null,
         loading: $loading,
@@ -31,7 +31,7 @@ export async function getBlogs({ $div, count, offset, showImage, exclude, sideba
             }
 
             // Append the blog
-            let newDiv = document.createElement('div');
+            const newDiv = document.createElement('div');
             newDiv.innerHTML = data;
             $div.appendChild(newDiv);
 
@@ -99,21 +99,21 @@ function imageParser(block) {
 }
 
 async function submitBlog($blogDivEditor, $blogSubmitBtn, submitUrl) {
-    let header = document.getElementById('blogheader').value;
-    let body = await $blogDivEditor.save();
+    const header = document.getElementById('blogheader').value;
+    const body = await $blogDivEditor.save();
 
     if (!header.length || !body.blocks.length) {
         createAlert(document.getElementById('blogAlert'), 'danger', 'bi-exclamation-diamond-fill', 'Invalid Blog Add');
         return false;
     }
 
-    let bodyhtml = edjsHTML({
+    const bodyhtml = edjsHTML({
         raw: rawParser,
         code: codeParser,
         image: imageParser,
     }).parse(body);
 
-    let packet = new FormData(document.getElementById('writeblogform'));
+    const packet = new FormData(document.getElementById('writeblogform'));
     packet.append('blogbodyjson', JSON.stringify(body));
     packet.append('blogbody', JSON.stringify(bodyhtml));
 
@@ -121,7 +121,7 @@ async function submitBlog($blogDivEditor, $blogSubmitBtn, submitUrl) {
         url: submitUrl,
         $loadingBtn: $blogSubmitBtn,
         loading: $submitBtn,
-        packet: packet,
+        packet,
         responseType: 'json',
         dataHandler: (data) => {
             if (!data.success) {
@@ -141,23 +141,23 @@ async function submitBlog($blogDivEditor, $blogSubmitBtn, submitUrl) {
     });
 }
 
-async function submitBlogComment($blogComment, $submitBlogCommentBtn) {
-    if (!$blogComment.value.length) return;
+async function submitBlogComment($blogCommentSubmit, $submitBlogCommentBtnClicked) {
+    if (!$blogCommentSubmit.value.length) return;
 
-    let packet = new FormData();
-    packet.append('comment', JSON.stringify($blogComment.value));
+    const packet = new FormData();
+    packet.append('comment', $blogCommentSubmit.value.trim());
     packet.append('blogid', $blogData.dataset.blogid);
 
-    return postWrapper({
+    return await postWrapper({
         url: '/blog/addComment',
-        $loadingBtn: $submitBlogCommentBtn,
+        $loadingBtn: $submitBlogCommentBtnClicked,
         loading: $submitBtn,
-        packet: packet,
+        packet,
         responseType: 'json',
         dataHandler: (data) => {
             if (!data.success) {
-                $submitBlogCommentBtn.disabled = false;
-                $submitBlogCommentBtn.innerHTML = 'Add Comment';
+                $submitBlogCommentBtnClicked.disabled = false;
+                $submitBlogCommentBtnClicked.innerHTML = 'Add Comment';
                 createAlert(
                     document.getElementById('commentAlert'),
                     'danger',
@@ -166,7 +166,7 @@ async function submitBlogComment($blogComment, $submitBlogCommentBtn) {
                 );
                 throw new Error(data.message);
             } else {
-                $blogComment.value = '';
+                $blogCommentSubmit.value = '';
                 window.location.reload();
             }
         },

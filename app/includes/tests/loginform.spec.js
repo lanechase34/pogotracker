@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 
 test.describe('Login page', () => {
     test.beforeEach(async ({ page }) => {
@@ -97,7 +97,7 @@ test.describe('Login page', () => {
         });
 
         test('Does not accept more than 100 characters in email', async ({ page }) => {
-            const longEmail = 'a'.repeat(95) + '@b.com';
+            const longEmail = `${'a'.repeat(95)}@b.com`;
             await page.locator('#inputEmail').fill(longEmail);
             const value = await page.locator('#inputEmail').inputValue();
             expect(value.length).toBeLessThanOrEqual(100);

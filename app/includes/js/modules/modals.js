@@ -1,5 +1,7 @@
 import { $submitBtn } from 'loading';
 
+export const $confirmModalDiv = document.getElementById('confirmModalDiv');
+
 export function confirmModal(message, submitText = 'Submit', handler) {
     $confirmModalDiv.innerHTML = `
         <div 
@@ -29,9 +31,10 @@ export function confirmModal(message, submitText = 'Submit', handler) {
             </div>
         </div>`;
 
-    let $confirmModal = document.getElementById('confirmModal');
-    let confirmModal = new bootstrap.Modal($confirmModal, {});
-    confirmModal.show();
+    const $confirmModal = document.getElementById('confirmModal');
+    const confirmModalInstance = new bootstrap.Modal($confirmModal, {});
+
+    confirmModalInstance.show();
 
     $confirmModal.addEventListener('hidden.bs.modal', () => {
         $confirmModal.remove();
@@ -40,11 +43,9 @@ export function confirmModal(message, submitText = 'Submit', handler) {
     document.getElementById('confirmModalBtn').addEventListener('click', async () => {
         document.getElementById('confirmModalBtn').innerHTML = $submitBtn;
         await handler(true);
-        confirmModal.hide();
+        confirmModalInstance.hide();
     });
 }
-
-export const $confirmModalDiv = document.getElementById('confirmModalDiv');
 
 function preventClose(e) {
     e.preventDefault();

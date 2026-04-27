@@ -1,4 +1,4 @@
-import { blogFetchStruct, $blogListDiv, getBlogs } from 'blog';
+import { $blogListDiv, blogFetchStruct, getBlogs } from 'blog';
 import { getWrapper } from 'fetch';
 import { $loading } from 'loading';
 import { createPokemonSearch } from 'search';
@@ -15,7 +15,7 @@ export function resizeHomeCards() {
 }
 
 async function getNews() {
-    return getWrapper({
+    return await getWrapper({
         url: '/blog/getNews',
         $loadingDiv: $newsDiv,
         loading: $loading,
@@ -26,7 +26,7 @@ async function getNews() {
 }
 
 async function getEvents() {
-    return getWrapper({
+    return await getWrapper({
         url: '/blog/getEvents',
         $loadingDiv: $eventsDiv,
         loading: $loading,
@@ -37,7 +37,7 @@ async function getEvents() {
 }
 
 async function loadHomeCards() {
-    let calls = [];
+    const calls = [];
     if ($blogListDiv)
         calls.push(
             getBlogs({

@@ -7,7 +7,7 @@ function pokemonSearch(params, data) {
 }
 
 function formatPokemonSearch(option) {
-    if (option.image == undefined || !option.image.length) {
+    if (!option.image?.length) {
         return option.text;
     }
 
@@ -31,13 +31,13 @@ function formatCustomSearchResults(option) {
 }
 
 function addFocusEvent() {
-    $('.select2-container').on('click', function () {
+    $('.select2-container').on('click', () => {
         $('.select2-search__field').focus();
     });
 }
 
 export function createPokemonSearch(elementid) {
-    let element = $(`#${elementid}`);
+    const element = $(`#${elementid}`);
 
     element.select2({
         minimumInputLength: 1,
@@ -51,8 +51,8 @@ export function createPokemonSearch(elementid) {
         width: '100%',
     });
 
-    element.on('select2:select', function (e) {
-        let ses = e.params.data.ses;
+    element.on('select2:select', (e) => {
+        const ses = e.params.data.ses;
         window.location.href = `/pokemon/${ses}`;
     });
 
@@ -60,20 +60,20 @@ export function createPokemonSearch(elementid) {
 }
 
 export function createAddFriendSearch(elementid) {
-    let element = $(`#${elementid}`);
+    const element = $(`#${elementid}`);
 
     element.select2({
         ajax: {
             url: '/friend/searchFriendsToAdd',
             dataType: 'json',
-            data: function (params) {
-                var query = {
+            data(params) {
+                const query = {
                     search: params.term,
                     page: params.page || 1,
                 };
                 return query; // Query parameters will be ?search=[term]&page=[page]
             },
-            processResults: function (data) {
+            processResults(data) {
                 return data.data;
             },
             cache: true,
@@ -91,20 +91,20 @@ export function createAddFriendSearch(elementid) {
 }
 
 export function createFriendsListSearch(elementid) {
-    let element = $(`#${elementid}`);
+    const element = $(`#${elementid}`);
 
     element.select2({
         ajax: {
             url: '/friend/searchFriendsList',
             dataType: 'json',
-            data: function (params) {
-                var query = {
+            data(params) {
+                const query = {
                     search: params.term,
                     page: params.page || 1,
                 };
                 return query; // Query parameters will be ?search=[term]&page=[page]
             },
-            processResults: function (data) {
+            processResults(data) {
                 return data.data;
             },
             cache: true,
@@ -126,20 +126,20 @@ export function createCustomSearch(
     onclickCustom = false,
     width = '100%'
 ) {
-    let element = $(`#${elementid}`);
+    const element = $(`#${elementid}`);
 
     element.select2({
         ajax: {
             url: '/pokedex/searchCustomPokedexList',
             dataType: 'json',
-            data: function (params) {
-                var query = {
+            data(params) {
+                const query = {
                     search: params.term,
                     page: params.page || 1,
                 };
                 return query; // Query parameters will be ?search=[term]&page=[page]
             },
-            processResults: function (data) {
+            processResults(data) {
                 return data.data;
             },
             cache: true,
@@ -149,21 +149,21 @@ export function createCustomSearch(
         theme: 'bootstrap-5',
         maximumInputLength: 15,
         templateResult: formatCustomSearchResults,
-        width: width,
+        width,
     });
 
     addFocusEvent();
 
     if (onclickCustom) {
-        element.on('select2:select', function (e) {
-            let customid = e.params.data.id;
+        element.on('select2:select', (e) => {
+            const customid = e.params.data.id;
             window.location.href = `/mycustompokedex/${customid}`;
         });
     }
 }
 
 export function createRegionSelect(elementid) {
-    let element = $(`#${elementid}`);
+    const element = $(`#${elementid}`);
 
     element.select2({
         minimumResultsForSearch: Infinity,

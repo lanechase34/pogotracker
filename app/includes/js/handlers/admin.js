@@ -19,21 +19,21 @@ const $cacheData = document.getElementById('cacheData');
 const $taskInfo = document.getElementById('taskInfo');
 
 async function getEditTrainer(trainerid) {
-    return getWrapper({
+    return await getWrapper({
         url: `/admin/editTrainer/trainerid/${trainerid}`,
         $loadingDiv: null,
         loading: '',
         dataHandler: (data) => {
-            let newDiv = document.createElement('div');
+            const newDiv = document.createElement('div');
             newDiv.innerHTML = data;
             document.getElementById('loadedModal').appendChild(newDiv);
             globalModals.$editProfileModal = new bootstrap.Modal(document.getElementById('editProfileModal'), {});
 
-            let $editProfileForm = document.getElementById('editProfileForm');
-            let $submitEditProfileForm = document.getElementById('submitEditProfileForm');
+            const $editProfileForm = document.getElementById('editProfileForm');
+            const $submitEditProfileForm = document.getElementById('submitEditProfileForm');
 
             $submitEditProfileForm.addEventListener('click', async (evt) => {
-                let valid = $editProfileForm.checkValidity();
+                const valid = $editProfileForm.checkValidity();
                 $editProfileForm.classList.add('was-validated');
 
                 if (!valid) {
@@ -42,8 +42,8 @@ async function getEditTrainer(trainerid) {
                     return;
                 }
 
-                let formData = new FormData($editProfileForm);
-                let packet = Object.fromEntries(formData.entries());
+                const formData = new FormData($editProfileForm);
+                const packet = Object.fromEntries(formData.entries());
                 await updateProfile(packet, $submitEditProfileForm);
             });
 
@@ -65,7 +65,7 @@ function attachEditProfileHandler() {
 }
 
 async function updateProfile(packet, $btn) {
-    return postWrapper({
+    return await postWrapper({
         url: '/trainer/updateProfile',
         $loadingBtn: $btn,
         loading: $submitBtn,
@@ -119,7 +119,7 @@ export const runtime = {
                 {
                     orderable: false,
                     targets: 5,
-                    render: function (data, type, full, meta) {
+                    render(data, type, full, meta) {
                         return `
                         <button type="button" class="extendedInfo btn btn-secondary" data-bs-toggle="modal" data-bs-target="#bug-${meta.row}">
                             <i class="bi bi-bug"></i>
@@ -153,7 +153,7 @@ export const runtime = {
         });
     },
     listtrainers: () => {
-        let listTrainers = new DataTable($listTrainers, {
+        const listTrainers = new DataTable($listTrainers, {
             ajax: {
                 url: '/admin/getTrainers',
                 type: 'GET',
@@ -168,9 +168,7 @@ export const runtime = {
                 { data: 'securitylevel' },
                 { data: 'lastlogin' },
             ],
-            rowId: (data) => {
-                return data.trainerid;
-            },
+            rowId: (data) => data.trainerid,
             serverSide: true,
             order: [[6, 'desc']],
             columnDefs: [
@@ -183,22 +181,19 @@ export const runtime = {
                     orderable: false,
                     searchable: false,
                     className: 'align-middle text-center',
-                    render: (data, type, full) => {
-                        return `
+                    render: (data, type, full) => `
                             <button type="button" class="editTrainer btn btn-secondary" data-trainerid="${full.trainerid}">
                                 <i class="bi bi-wrench"></i>
                             </button>
-                        `;
-                    },
+                        `,
                 },
                 {
                     targets: 1,
                     orderable: false,
                     searchable: false,
                     className: 'align-middle text-center',
-                    render: (data, type, full) => {
-                        return `<img class="profileIcon" src="${full.icon}" alt="${full.iconAltText}" loading="lazy">`;
-                    },
+                    render: (data, type, full) =>
+                        `<img class="profileIcon" src="${full.icon}" alt="${full.iconAltText}" loading="lazy">`,
                 },
                 {
                     targets: 4,
@@ -220,10 +215,10 @@ export const runtime = {
             scrollY: 'calc(100vh - 250px)',
         });
 
-        listTrainers.on('page.dt', function () {
+        listTrainers.on('page.dt', () => {
             attachEditProfileHandler();
         });
-        listTrainers.on('draw.dt', function () {
+        listTrainers.on('draw.dt', () => {
             attachEditProfileHandler();
         });
     },
@@ -247,9 +242,7 @@ export const runtime = {
                 { data: 'chargemoves' },
                 { data: 'evolutiontext' },
             ],
-            rowId: (data) => {
-                return data.pokemonid;
-            },
+            rowId: (data) => data.pokemonid,
             order: [
                 [0, 'asc'],
                 [1, 'asc'],
@@ -262,16 +255,12 @@ export const runtime = {
                 },
                 {
                     targets: 3,
-                    render: (data, type, full) => {
-                        return `<a href='/pokemon/${full.ses}' target='_blank'>${full.name}</a>`;
-                    },
+                    render: (data, type, full) => `<a href='/pokemon/${full.ses}' target='_blank'>${full.name}</a>`,
                 },
                 {
                     targets: 4,
                     className: 'text-center',
-                    render: (data, type, full) => {
-                        return `<img class='pokemonIcon' src='${full.sprite}' loading='lazy'>`;
-                    },
+                    render: (data, type, full) => `<img class='pokemonIcon' src='${full.sprite}' loading='lazy'>`,
                 },
                 {
                     target: 5,
@@ -560,8 +549,8 @@ export const runtime = {
 
         Array.from($moveLinks).forEach((link) => {
             link.addEventListener('click', (event) => {
-                let $clicked = event.currentTarget;
-                let $active = document.querySelector('.moveLink.active');
+                const $clicked = event.currentTarget;
+                const $active = document.querySelector('.moveLink.active');
 
                 document.getElementById(`${$active.dataset.type}MoveWrapper`).classList.add('d-none');
                 document.getElementById(`${$clicked.dataset.type}MoveWrapper`).classList.remove('d-none');

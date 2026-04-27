@@ -39,7 +39,7 @@
                                 )#
                                 <div class="card bg-light">
                                     <p class="p-3 card-text">
-                                        #deserializeJSON(currComment.getComment())#
+                                        #encodeForHTML(deserializeJSON(currComment.getComment()))#
                                     </p>
                                 </div>
                             </div>

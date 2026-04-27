@@ -67,7 +67,6 @@ export async function checkFormValidity(form, event, submit = true) {
             try {
                 token = await executeRecaptcha(form.dataset.action);
             } catch (error) {
-                console.log(error);
                 console.error('Recaptcha error:', error);
                 createAlert(
                     $alertDiv,
@@ -136,7 +135,9 @@ async function executeRecaptcha(action) {
         throw new Error('reCAPTCHA site key not found.');
     }
 
-    await new Promise((resolve) => grecaptcha.ready(resolve));
+    await new Promise((resolve) => {
+        grecaptcha.ready(resolve);
+    });
 
     const token = await grecaptcha.execute(siteKey, { action });
 
