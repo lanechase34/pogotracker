@@ -114,10 +114,12 @@ component extends="base" {
         prc.currHandler = lCase(event.getCurrentHandler());
         prc.currAction  = lCase(event.getCurrentAction());
         prc.currEvent   = lCase(event.getCurrentEvent());
+        prc.currRoute   = reReplace(event.getCurrentRoutedURL(), '/$', '');
+
+        prc.canonicalURL = '#getSetting('domain')##prc.currRoute.len() ? '/#prc.currRoute#' : ''#';
 
         prc.title           = '';
         prc.metaDescription = '';
-        prc.metaKeywords    = '';
 
         // If this user has the persist cookie and not authenticated
         if(

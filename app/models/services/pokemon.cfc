@@ -353,7 +353,6 @@ component singleton accessors="true" {
             detail.title     = '#detail.pokemon.getNumber()# - #detail.pokemon.getName()#';
 
             detail.metaDescription = '#ucFirst(detail.pokemon.getName())#''s (###detail.pokemon.getNumber()#) evolutions, CP range, stats, moveset, and events in Pokemon GO.';
-            detail.metaKeywords    = 'Pokémon GO, #ucFirst(detail.pokemon.getName())#, max CP, raid CP, shiny, events, moves';
 
             cacheService.put(
                 cacheKey,
