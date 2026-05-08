@@ -32,7 +32,7 @@ component extends="coldbox.system.Interceptor" {
             };
 
             async.newFuture(() => {
-                bugService.log(argumentCollection = prc.bugDetail);
+                bugService.logBug(argumentCollection = prc.bugDetail);
             });
         }
     }

@@ -164,6 +164,7 @@ component {
             sessionTimeout       : getSystemSetting('SESSIONTIMEOUT'),
             signups              : true, // whether signups are enabled
             sitemap              : 'sitemap.xml',
+            systemTrainer        : 'lanechase34@outlook.com',
             testEmailPath        : '#replace(expandPath('/'), '\', '/', 'all')#/_testemails',
             uploadPath           : '#replace(expandPath('/'), '\', '/', 'all')#/includes/uploads',
             title                : 'POGO Tracker',
@@ -200,7 +201,7 @@ component {
             // Define Appenders
             appenders: {coldboxTracer: {class: 'coldbox.system.logging.appenders.ConsoleAppender'}},
             // Root Logger
-            root     : {levelmax: 'DEBUG', appenders: '*'},
+            root     : {levelmax: 'WARN', appenders: '*'},
             // Implicit Level Categories
             info     : ['coldbox.system'],
             warn     : ['WebSocket']
@@ -316,6 +317,7 @@ component {
         settings.useRecaptcha = false;
         settings.writeJson    = true;
         settings.logRequests  = false;
+        settings.domain       = 'http://localhost:#getSystemSetting('HTTP_PORT')#';
 
         // This allows the testing suite to test the login endpoints
         settings.impersonation = true;
@@ -331,6 +333,8 @@ component {
         settings.jsPath      = '/includes/js';
         settings.minifiedCSS = '';
         settings.minifiedJS  = '';
+
+        logBox.root.levelmax = 'DEBUG';
     }
 
     /**
@@ -343,6 +347,7 @@ component {
         settings.impersonation = true;
         settings.refererChecks = {};
         settings.logRequests   = false;
+        settings.domain        = 'http://localhost:#getSystemSetting('HTTP_PORT')#';
     }
 
 }

@@ -276,7 +276,8 @@ component singleton accessors="true" {
      * and total available pokemon and shiny pokemon
      */
     public array function getPokedexStats(required component trainer) {
-        var cacheKey = '#arguments.trainer.getId()#|stats.getPokedexStats';
+        var cacheKey     = '#arguments.trainer.getId()#|stats.getPokedexStats';
+        var pokedexStats = cacheService.get(cacheKey);
 
         if(isNull(pokedexStats)) {
             pokedexStats = ormExecuteQuery(

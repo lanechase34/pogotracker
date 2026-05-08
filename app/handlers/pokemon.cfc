@@ -31,7 +31,7 @@ component extends="base" {
         }
 
         prc.metaDescription = prc.detail.metaDescription;
-        prc.title           = prc.detail.title;
+        prc.title           = prc.detail.title & '- #getSetting('title')#';
     }
 
     /**

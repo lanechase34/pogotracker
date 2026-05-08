@@ -17,9 +17,19 @@ component acecssors="true" singleton hint="Validator for checking if an entity (
     }
 
     /**
-     * Check if the entity exists
+     * Validates that a referenced database entity actually exists. Optionally checks that the entity belongs to the currently authenticated trainer session.
      *
-     * Expects the entity name and either the PK or unique field to load entity by
+     * Ex:
+     * Load stat entity by PK - using the statid param - and force ownership
+     * "statid": {
+     *  required: true,
+     *  type: 'numeric',
+     *  entityExists: {
+     *      entityName: 'stat',
+     *      pk: true,
+     *      belongsToUser: true
+     *  }
+     * }
      *
      * @validationResult The result object of the validation
      * @target           The target object to validate on
@@ -27,6 +37,11 @@ component acecssors="true" singleton hint="Validator for checking if an entity (
      * @targetValue      The target value to validate
      * @validationData   The validation data the validator was created with
      * @rules            The other validation rules. Check if the key is numeric/string and required/optional 
+     * @callingStruct    Params in the struct defined
+     * @entityName       The ORM Entity name to load
+     * @pk               If true, loads the entity using entityLoadByPk()
+     * @column           A unique column name to load using entityLoad()
+     * @belongsToUser    Check if the loaded entity belongs to the current user's session
      */
     boolean function validate(
         required any validationResult,

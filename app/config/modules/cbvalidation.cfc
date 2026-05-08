@@ -562,6 +562,174 @@ component {
                     type        : 'numeric',
                     entityExists: {entityName: 'trainer', pk: true}
                 }
+            },
+            'admin.getPokemon': {
+                draw: {
+                    required: true,
+                    type    : 'numeric',
+                    min     : 1
+                },
+                length: {
+                    required: true,
+                    type    : 'numeric',
+                    min     : 10
+                },
+                start: {
+                    required: true,
+                    type    : 'numeric',
+                    min     : 0
+                },
+                'search[value]'   : {required: false, type: 'string'},
+                'order[0][column]': {
+                    required: false,
+                    type    : 'numeric',
+                    min     : 0,
+                    max     : 4
+                },
+                'order[0][dir]': {
+                    required: false,
+                    type    : 'string',
+                    udf     : (value, target) => {
+                        return ['asc', 'desc'].contains(arguments.value);
+                    }
+                },
+                'order[1][column]': {
+                    required: false,
+                    type    : 'numeric',
+                    min     : 0,
+                    max     : 4
+                },
+                'order[1][dir]': {
+                    required: false,
+                    type    : 'string',
+                    udf     : (value, target) => {
+                        return ['asc', 'desc'].contains(arguments.value);
+                    }
+                }
+            },
+            'admin.getAudits': {
+                draw: {
+                    required: true,
+                    type    : 'numeric',
+                    min     : 1
+                },
+                length: {
+                    required: true,
+                    type    : 'numeric',
+                    min     : 10
+                },
+                start: {
+                    required: true,
+                    type    : 'numeric',
+                    min     : 0
+                },
+                'search[value]'   : {required: false, type: 'string'},
+                'order[0][column]': {
+                    required: false,
+                    type    : 'numeric',
+                    min     : 0,
+                    max     : 7
+                },
+                'order[0][dir]': {
+                    required: false,
+                    type    : 'string',
+                    udf     : (value, target) => {
+                        return ['asc', 'desc'].contains(arguments.value);
+                    }
+                }
+            },
+            'admin.getTrainers': {
+                draw: {
+                    required: true,
+                    type    : 'numeric',
+                    min     : 1
+                },
+                length: {
+                    required: true,
+                    type    : 'numeric',
+                    min     : 10
+                },
+                start: {
+                    required: true,
+                    type    : 'numeric',
+                    min     : 0
+                },
+                'search[value]'   : {required: false, type: 'string'},
+                'order[0][column]': {
+                    required: false,
+                    type    : 'numeric',
+                    min     : 0,
+                    max     : 7
+                },
+                'order[0][dir]': {
+                    required: false,
+                    type    : 'string',
+                    udf     : (value, target) => {
+                        return ['asc', 'desc'].contains(arguments.value);
+                    }
+                }
+            },
+            'admin.getRequests': {
+                draw: {
+                    required: true,
+                    type    : 'numeric',
+                    min     : 1
+                },
+                length: {
+                    required: true,
+                    type    : 'numeric',
+                    min     : 10
+                },
+                start: {
+                    required: true,
+                    type    : 'numeric',
+                    min     : 0
+                },
+                'search[value]'   : {required: false, type: 'string'},
+                'order[0][column]': {
+                    required: false,
+                    type    : 'numeric',
+                    min     : 0,
+                    max     : 9
+                },
+                'order[0][dir]': {
+                    required: false,
+                    type    : 'string',
+                    udf     : (value, target) => {
+                        return ['asc', 'desc'].contains(arguments.value);
+                    }
+                }
+            },
+            'admin.getBugs': {
+                draw: {
+                    required: true,
+                    type    : 'numeric',
+                    min     : 1
+                },
+                length: {
+                    required: true,
+                    type    : 'numeric',
+                    min     : 10
+                },
+                start: {
+                    required: true,
+                    type    : 'numeric',
+                    min     : 0
+                },
+                'search[value]'   : {required: false, type: 'string'},
+                'order[0][column]': {
+                    required: false,
+                    type    : 'numeric',
+                    min     : 0,
+                    max     : 6
+                },
+                'order[0][dir]': {
+                    required: false,
+                    type    : 'string',
+                    udf     : (value, target) => {
+                        return ['asc', 'desc'].contains(arguments.value);
+                    }
+                }
             }
         };
 

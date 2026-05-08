@@ -58,7 +58,7 @@ component extends="base" {
         if(securityService.isJsonRequest()) {
             prc.responseObj.statusCode = 405;
             prc.responseObj.message    = 'Method Not Allowed';
-            renderJson(event = event, response = responseObj);
+            renderJson(event = event, response = prc.responseObj);
         }
         else {
             event.setHTTPHeader(statusCode = 405);

@@ -1,6 +1,7 @@
 component singleton accessors="true" {
 
     property name="cacheService"   inject="services.cache";
+    property name="domain"         inject="coldbox:setting:domain";
     property name="emailService"   inject="services.email";
     property name="sessionService" inject="services.session";
     property name="trainerService" inject="services.trainer";
@@ -472,7 +473,7 @@ component singleton accessors="true" {
         entitySave(arguments.trainer);
         ormFlush();
 
-        return {link: '#cgi.https == 'on' ? 'https://' : 'http://'##cgi.http_host#/reset/#resetCode#', sent: now()};
+        return {link: '#getDomain()#/reset/#resetCode#', sent: now()};
     }
 
     /**

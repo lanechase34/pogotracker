@@ -12,9 +12,10 @@ component singleton accessors="true" {
     property name="scraperService"    inject="services.scraper";
     property name="securityService"   inject="services.security";
 
-    property name="maxThreads"  inject="coldbox:setting:maxThreads";
-    property name="concurrency" inject="coldbox:setting:concurrency";
-    property name="rootPath"    inject="coldbox:setting:rootPath";
+    property name="maxThreads"    inject="coldbox:setting:maxThreads";
+    property name="concurrency"   inject="coldbox:setting:concurrency";
+    property name="rootPath"      inject="coldbox:setting:rootPath";
+    property name="systemTrainer" inject="coldbox:setting:systemTrainer";
 
     property name="leekduckNameMap" type="struct";
     property name="regionalForms"   type="array";
@@ -491,10 +492,12 @@ component singleton accessors="true" {
             maxThreads
         );
 
-        // Derive SES urls
         jsonPokedex.each(
             (name, pokemon) => {
-                pokemon.ses   = createSes(pokemon);
+                // Derive SES urls
+                pokemon.ses = createSes(pokemon);
+
+                // Clean up moves
                 pokemon.moves = pokemon.moves.map((move) => {
                     // Mark which moves are shadow or legacy only
                     // Clean up nameid
@@ -1200,7 +1203,7 @@ component singleton accessors="true" {
 
         if(isNull(custom)) {
             customid = customService.create(
-                trainer = securityService.getTrainer('lanechase34@outlook.com')[1],
+                trainer = securityService.getTrainer(getSystemTrainer())[1],
                 name    = eventTitle,
                 public  = true,
                 begins  = begins,
@@ -1658,7 +1661,7 @@ component singleton accessors="true" {
             if(fileIsEOF(logFile)) break;
             currLine = fileReadLine(logFile);
             if(i < arguments.start) continue;
-            logContent &= '#currLine# <br>';
+            logContent &= '#encodeForHTML(currLine)# <br>';
         }
 
         return logContent;

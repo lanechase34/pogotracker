@@ -147,7 +147,7 @@ component extends="base" {
             return;
         }
 
-        prc.trainerid = parseNumber(rc.trainerid)
+        prc.trainerid = parseNumber(rc.trainerid);
         prc.trainer   = trainerService.getFromId(prc.trainerid);
 
         // Make sure user hasn't already tracked stats on this day

@@ -97,7 +97,8 @@ jobs:
 
       - name: Install Dependencies
         run: |
-          box install
+          box install --production
+          box install testbox@7.0.0+19
 
       - name: Verify Database Connection
         working-directory: . # Override for this step since it doesn't need to be in /app

@@ -342,18 +342,21 @@ component extends="base" {
      * @rc.recaptchaToken user's unique token
      */
     function verifyRecaptcha(event, rc, prc) {
-        prc.validation = validate(target = rc, constraints = 'verifyRecaptcha');
-        if(!prc.validation.hasErrors()) {
-            prc.verifyRecaptcha = securityService.verifyRecaptcha(rc.recaptchaToken);
+        if(hasValidationErrors(target = rc, constraints = 'verifyRecaptcha')) {
+            jsonValidationFailure(event = event);
+            return;
+        }
 
-            prc.responseObj.success = prc.verifyRecaptcha;
-            if(!prc.verifyRecaptcha) {
-                prc.responseObj.message = 'Please try again.';
-            }
-            else {
-                prc.responseObj.message    = 'Success';
-                prc.responseObj.statusCode = 200;
-            }
+        prc.verifyRecaptcha = securityService.verifyRecaptcha(rc.recaptchaToken);
+
+        prc.responseObj.success = prc.verifyRecaptcha;
+        if(!prc.verifyRecaptcha) {
+            prc.responseObj.message    = 'Please try again.';
+            prc.responseObj.statusCode = 400;
+        }
+        else {
+            prc.responseObj.message    = 'Success';
+            prc.responseObj.statusCode = 200;
         }
 
         event.renderData(

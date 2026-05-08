@@ -1,4 +1,4 @@
-component {
+component extends="base" {
 
     this.allowedMethods = {
         index                 : 'GET',
@@ -22,7 +22,10 @@ component {
         saveState             : 'POST',
         taskManager           : 'GET',
         readOverrides         : 'GET',
-        saveOverrides         : 'POST'
+        saveOverrides         : 'POST',
+        logViewer             : 'GET',
+        requestLog            : 'GET',
+        getRequests           : 'GET'
     };
 
     property name="auditService"      inject="services.audit";
@@ -66,6 +69,11 @@ component {
         param name="rc['order[1][column]']" default="";
         param name="rc['order[1][dir]']"    default="";
 
+        if(hasValidationErrors(target = rc, constraints = 'admin.getPokemon')) {
+            jsonValidationFailure(event = event);
+            return;
+        }
+
         prc.responseObj.data = pokemonService.getTable(
             rc.length,
             rc.start,
@@ -95,6 +103,11 @@ component {
         param name="rc['search[value]']"    default="";
         param name="rc['order[0][column]']" default="";
         param name="rc['order[0][dir]']"    default="";
+
+        if(hasValidationErrors(target = rc, constraints = 'admin.getTrainers')) {
+            jsonValidationFailure(event = event);
+            return;
+        }
 
         prc.responseObj.data = trainerService.get(
             rc.length,
@@ -142,24 +155,6 @@ component {
         );
     }
 
-    function createRegistrationLink(event, rc, prc) {
-        var code = securityService.createRegistrationLink();
-        sessionService.setAlert(
-            'success',
-            true,
-            'bi bi-copy',
-            'Success! Registration Link : #cgi.http_host#/register/#code#'
-        );
-
-        prc.responseObj.message    = 'Success!';
-        prc.responseObj.statusCode = 200;
-        event.renderData(
-            type       = 'json',
-            data       = prc.responseObj,
-            statusCode = prc.responseObj.statusCode
-        );
-    }
-
     function buildLevels(event, rc, prc) {
         adminService.buildLevels();
         sessionService.setAlert(
@@ -190,6 +185,11 @@ component {
         param name="rc['order[0][column]']" default="";
         param name="rc['order[0][dir]']"    default="";
 
+        if(hasValidationErrors(target = rc, constraints = 'admin.getAudits')) {
+            jsonValidationFailure(event = event);
+            return;
+        }
+
         prc.responseObj.data = auditService.get(
             rc.length,
             rc.start,
@@ -218,6 +218,11 @@ component {
         param name="rc['order[0][column]']" default="";
         param name="rc['order[0][dir]']"    default="";
 
+        if(hasValidationErrors(target = rc, constraints = 'admin.getRequests')) {
+            jsonValidationFailure(event = event);
+            return;
+        }
+
         prc.responseObj.data = auditService.getRequests(
             rc.length,
             rc.start,
@@ -245,6 +250,11 @@ component {
         param name="rc['search[value]']"    default="";
         param name="rc['order[0][column]']" default="";
         param name="rc['order[0][dir]']"    default="";
+
+        if(hasValidationErrors(target = rc, constraints = 'admin.getBugs')) {
+            jsonValidationFailure(event = event);
+            return;
+        }
 
         prc.responseObj.data = bugService.get(
             rc.length,
@@ -338,6 +348,11 @@ component {
         prc.logs       = adminService.getLogs();
         prc.logContent = '';
         if(rc.filename.len()) {
+            // Validate this is a known log file
+            if(!prc.logs.recordCount || !listFindNoCase(valueList(prc.logs.name), rc.filename)) {
+                htmlValidationFailure(event = event);
+                return;
+            }
             prc.logContent = adminService.readLog(rc.filename, rc.start, rc.end);
         }
 

@@ -36,8 +36,8 @@
         <cfif prc.debuggingMode>
             <div class="alert alert-dark mt-4 text-start small">
                 <strong>Debug:</strong><br>
-                Event: #prc?.currEvent ?: "unknown"#<br>
-                URL: #cgi.script_name#
+                Event: #encodeForHTML(prc?.currEvent ?: 'unknown')#<br>
+                URL: #encodeForHTML(cgi.script_name)#
             </div>
             <cfif prc.keyExists('details')>
                 <cfdump var="#prc.details#"/>

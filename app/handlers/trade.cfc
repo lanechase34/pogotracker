@@ -74,7 +74,7 @@ component extends="base" {
             }
             else {
                 // Check trainer access to custom pokedex
-                prc.custom = customService.get(parseNumber(rc.customid), prc.trainer)
+                prc.custom = customService.get(parseNumber(rc.customid), prc.trainer);
                 if(!prc.custom.len()) {
                     prc.responseObj.message = 'Invalid Trade Plan.';
                 }

@@ -36,6 +36,11 @@ component extends="coldbox.system.Bootstrap" {
     };
 
     function onError(struct exception, string eventName) {
+        writeLog(
+            text = 'onError: #exception.message# | #exception.detail#',
+            type = 'error',
+            file = 'application'
+        );
         writeOutput('Oops. Please try again later.');
     }
 

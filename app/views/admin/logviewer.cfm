@@ -16,7 +16,7 @@
         </div>
     </div>
     <div class="card col-10 overflow-x-scroll">
-        #paragraphFormat(prc.logContent)#
+        #prc.logContent#
     </div>
 </div>
 </cfoutput>

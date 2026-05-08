@@ -130,7 +130,6 @@ component {
         var chase = 1 / 0;
     }
 
-    // daniellebuleje@yahoo.com
     function sendTestEmail(event, rc, prc) {
         emailService.sendTestEmail();
         event.renderData(
@@ -226,8 +225,13 @@ component {
 
         prc.mailContent = '';
         if(rc.filename.len()) {
-            prc.mailContent = fileRead('#getSetting('testEmailPath')#/#rc.filename#.html');
+            var safeFilename = reReplace(rc.filename, '[^a-zA-Z0-9_-]', '', 'all');
+            var fullPath     = '#getSetting('testEmailPath')#/#safeFilename#.html';
+            if(fileExists(fullPath)) {
+                prc.mailContent = fileRead(fullPath);
+            }
         }
+
 
         prc.header = 'View Test Emails';
     }
