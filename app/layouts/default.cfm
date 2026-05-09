@@ -56,7 +56,7 @@
                         <i class="bi bi-list hamburgerIcon"></i>
                     </button>
                     <h2 class="hfs-5 text-light m-0 p-0" id="navHeader">
-                        #encodeForHTML(prc?.header ?: '')#
+                        #prc?.header ?: ''#
                     </h2>
                 </div>
 
@@ -188,7 +188,7 @@
                 <div class="mx-sm-1 mx-lg-3">
                     <cfif prc.keyExists('header') AND prc.header.len()>
                         <h2 class="text-center hfs-5 m-0 p-0 fw-bold" id="bodyHeader">
-                            #encodeForHTML(prc?.header ?: '')#
+                            #prc?.header ?: ''#
                         </h2>
                     </cfif>
                     #view("/views/fragment/alert")#
