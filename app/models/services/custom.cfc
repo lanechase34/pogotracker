@@ -1,5 +1,6 @@
 component singleton accessors="true" {
 
+    property name="async"          inject="asyncManager@coldbox";
     property name="cacheService"   inject="services.cache";
     property name="pokemonService" inject="services.pokemon";
 
@@ -202,39 +203,45 @@ component singleton accessors="true" {
         required numeric page,
         numeric pageSize = 10
     ) {
-        var customList = ormExecuteQuery(
-            '
-            from custom as custom
-            where upper(custom.name) like :search
-            and (
-                custom.trainer = :trainer
-                or custom.public = true
+        var results = async
+            .all(
+                () => ormExecuteQuery(
+                    '
+                    from custom as custom
+                    where upper(custom.name) like :search
+                    and (
+                        custom.trainer = :trainer
+                        or custom.public = true
+                    )
+                    order by custom.id desc, custom.name asc
+                    ',
+                    {trainer: trainer, search: '%#uCase(search)#%'},
+                    {offset: (page - 1) * pageSize, maxResults: pageSize}
+                ),
+                () => ormExecuteQuery(
+                    '
+                    select count(custom.id)
+                    from custom as custom
+                    where upper(custom.name) like :search
+                    and (
+                        custom.trainer = :trainer
+                        or custom.public = true
+                    )
+                    ',
+                    {trainer: trainer, search: '%#uCase(search)#%'}
+                )
             )
-            order by custom.id desc, custom.name asc
-            ',
-            {trainer: arguments.trainer, search: '%#uCase(arguments.search)#%'},
-            {offset: (arguments.page - 1) * pageSize, maxResults: pageSize}
-        );
+            .get();
 
-        var customListCount = ormExecuteQuery(
-            '
-            select count(custom.id)
-            from custom as custom
-            where upper(custom.name) like :search
-            and (
-                custom.trainer = :trainer
-                or custom.public = true
-            )
-            ',
-            {trainer: arguments.trainer, search: '%#uCase(arguments.search)#%'}
-        );
+        var customList      = results[1];
+        var customListCount = results[2];
 
-        var result = {results: [], pagination: {more: customListCount[1] > arguments.page * pageSize}};
-        customList.each((custom) => {
-            result.results.append({id: custom.getId(), text: custom.getName()});
-        });
-
-        return result;
+        return {
+            results: customList.map((custom) => {
+                return {id: custom.getId(), text: custom.getName()};
+            }),
+            pagination: {more: customListCount[1] > page * pageSize}
+        };
     }
 
 }

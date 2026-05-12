@@ -5,6 +5,7 @@ component singleton accessors="true" {
     property name="cacheService" inject="services.cache";
     property name="moveService"  inject="services.move";
 
+    property name="maxThreads"     inject="coldbox:setting:maxThreads";
     property name="rootPath"       inject="coldbox:setting:rootPath";
     property name="imageExtension" inject="coldbox:setting:imageExtension";
 
@@ -100,11 +101,11 @@ component singleton accessors="true" {
             allPokemon = get({}, 'generation asc, number asc, form asc');
 
             // Make sure relationships are loaded before being cached
-            allPokemon.each((pokemon, index) => {
-                var fastMoves   = arguments.pokemon.getMovesText('fast', 'all');
-                var chargeMoves = arguments.pokemon.getMovesText('charge', 'all');
-                var evolutions  = arguments.pokemon.getEvolutionText();
-                var region      = arguments.pokemon.getGeneration().getRegion();
+            allPokemon.each((pokemon) => {
+                pokemon.getMovesText('fast', 'all');
+                pokemon.getMovesText('charge', 'all');
+                pokemon.getEvolutionText();
+                pokemon.getGeneration().getRegion();
             });
 
             cacheService.put(
@@ -267,18 +268,15 @@ component singleton accessors="true" {
             {maxResults: arguments.limit}
         );
 
-        var result = [];
-        events.each((event) => {
-            result.append({
+        return events.map((event) => {
+            return {
                 id    : event.getId(),
                 begins: event.getFormattedBegins(),
                 ends  : event.getFormattedEnds(),
                 name  : event.getName(),
                 link  : event.getLink()
-            });
+            };
         });
-
-        return result;
     }
 
     /**
@@ -441,15 +439,15 @@ component singleton accessors="true" {
         string orderCol2          = '',
         string orderDir2          = ''
     ) {
-        var params = {search: '%#uCase(arguments.search)#%'};
+        var params = {search: '%#uCase(search)#%'};
 
         // Default order by
         var orderBy = '';
-        if(arguments.orderCol1.len() && arguments.orderDir1.len()) {
-            orderBy = 'order by #getDatatableCols()[arguments.orderCol1 + 1]# #arguments.orderDir1#';
+        if(orderCol1.len() && orderDir1.len()) {
+            orderBy = 'order by #getDatatableCols()[orderCol1 + 1]# #orderDir1#';
         }
-        if(arguments.orderCol2.len() && arguments.orderDir2.len()) {
-            orderBy &= ', #getDatatableCols()[arguments.orderCol2 + 1]# #arguments.orderDir2#';
+        if(orderCol2.len() && orderDir2.len()) {
+            orderBy &= ', #getDatatableCols()[orderCol2 + 1]# #orderDir2#';
         }
         if(!orderBy.len()) {
             orderBy = 'order by generation asc, number asc';
@@ -459,63 +457,64 @@ component singleton accessors="true" {
         }
 
         var numericSearch = '';
-        if(isNumeric(arguments.search)) {
+        if(isNumeric(search)) {
             numericSearch = 'or pokemon.number = :numericSearch';
-            params.insert('numericSearch', arguments.search);
+            params.insert('numericSearch', search);
         }
 
-        var pokemon = ormExecuteQuery(
-            '
-            select pokemon
-            from pokemon as pokemon
-            where upper(pokemon.generation.region) like :search
-                or upper(pokemon.gender) like :search
-                or upper(pokemon.name) like :search
-                #numericSearch#
-            #orderBy#
-            ',
-            params,
-            {offset: arguments.offset, maxResults: arguments.records}
-        );
-
-        var filteredCount = ormExecuteQuery(
-            '
-            select count(pokemon.id)
-            from pokemon as pokemon
-            where upper(pokemon.generation.region) like :search
-                or upper(pokemon.gender) like :search
-                or upper(pokemon.name) like :search
-                #numericSearch#
-            ',
-            params,
-            true
-        );
-
-        var data = [];
-        pokemon.each((currPokemon) => {
-            data.append({
-                pokemonid    : currPokemon.getId(),
-                generation   : currPokemon.getGeneration().getRegion(),
-                number       : currPokemon.getNumber(),
-                gender       : currPokemon.getGender(),
-                name         : currPokemon.getName(),
-                sprite       : '/includes/images/sprites/#currPokemon.getSprite()##getImageExtension()#',
-                shiny        : currPokemon.getShiny() ? '/includes/images/shinysprites/#currPokemon.getSprite()##getImageExtension()#' : '',
-                shadow       : currPokemon.getShadow(),
-                shadowshiny  : currPokemon.getShadowShiny(),
-                fastmoves    : currPokemon.getMovesText('fast', 'all'),
-                chargemoves  : currPokemon.getMovesText('charge', 'all'),
-                evolutiontext: currPokemon.getEvolutionText(),
-                shadowicon   : '/includes/images/shadow-pokemon#getImageExtension()#',
-                ses          : currPokemon.getSes()
-            });
-        });
+        var results = async
+            .all(
+                () => ormExecuteQuery(
+                    '
+                    select pokemon
+                    from pokemon as pokemon
+                    where upper(pokemon.generation.region) like :search
+                        or upper(pokemon.gender) like :search
+                        or upper(pokemon.name) like :search
+                        #numericSearch#
+                    #orderBy#
+                    ',
+                    params,
+                    {offset: offset, maxResults: records}
+                ).map((currPokemon) => {
+                    return {
+                        pokemonid    : currPokemon.getId(),
+                        generation   : currPokemon.getGeneration().getRegion(),
+                        number       : currPokemon.getNumber(),
+                        gender       : currPokemon.getGender(),
+                        name         : currPokemon.getName(),
+                        sprite       : '/includes/images/sprites/#currPokemon.getSprite()##getImageExtension()#',
+                        shiny        : currPokemon.getShiny() ? '/includes/images/shinysprites/#currPokemon.getSprite()##getImageExtension()#' : '',
+                        shadow       : currPokemon.getShadow(),
+                        shadowshiny  : currPokemon.getShadowShiny(),
+                        fastmoves    : currPokemon.getMovesText('fast', 'all'),
+                        chargemoves  : currPokemon.getMovesText('charge', 'all'),
+                        evolutiontext: currPokemon.getEvolutionText(),
+                        shadowicon   : '/includes/images/shadow-pokemon#getImageExtension()#',
+                        ses          : currPokemon.getSes()
+                    };
+                }),
+                () => ormExecuteQuery(
+                    '
+                    select count(pokemon.id)
+                    from pokemon as pokemon
+                    where upper(pokemon.generation.region) like :search
+                        or upper(pokemon.gender) like :search
+                        or upper(pokemon.name) like :search
+                        #numericSearch#
+                    ',
+                    params,
+                    true
+                ),
+                () => getAll().len()
+            )
+            .get();
 
         return {
-            data           : data,
-            recordsTotal   : getAll().len(),
-            recordsFiltered: filteredCount
-        }
+            data           : results[1],
+            recordsFiltered: results[2],
+            recordsTotal   : results[3]
+        };
     }
 
 }

@@ -1,5 +1,6 @@
 component singleton accessors="true" {
 
+    property name="async"           inject="asyncManager@coldbox";
     property name="cacheService"    inject="services.cache";
     property name="trainerService"  inject="services.trainer";
     property name="securityService" inject="services.security";
@@ -74,61 +75,67 @@ component singleton accessors="true" {
         required string orderDir = ''
     ) {
         var orderBy = '';
-        if(arguments.orderCol.len() && arguments.orderDir.len()) {
-            orderBy = 'order by #getDatatableCols()[arguments.orderCol + 1]# #arguments.orderDir#';
+        if(orderCol.len() && orderDir.len()) {
+            orderBy = 'order by #getDatatableCols()[orderCol + 1]# #orderDir#';
         }
 
-        var audits = ormExecuteQuery(
-            '
-            select audit
-            from audit as audit
-            left outer join audit.trainer as trainer
-            where upper(audit.event) like :search
-                or upper(audit.referer) like :search
-                or upper(audit.detail) like :search
-                or upper(audit.agent) like :search
-                or upper(trainer.username) like :search
-            #orderBy#
-            ',
-            {search: '%#uCase(arguments.search)#%'},
-            {
-                offset    : arguments.offset,
-                maxResults: arguments.records,
-                cacheable : true,
-                cachename : 'defaultCache'
-            }
-        );
+        var results = async
+            .all(
+                () => ormExecuteQuery(
+                    '
+                    select audit
+                    from audit as audit
+                    left outer join audit.trainer as trainer
+                    where upper(audit.event) like :search
+                        or upper(audit.referer) like :search
+                        or upper(audit.detail) like :search
+                        or upper(audit.agent) like :search
+                        or upper(trainer.username) like :search
+                    #orderBy#
+                    ',
+                    {search: '%#uCase(search)#%'},
+                    {
+                        offset    : offset,
+                        maxResults: records,
+                        cacheable : true,
+                        cachename : 'defaultCache'
+                    }
+                ),
+                () => ormExecuteQuery(
+                    '
+                    select count(audit.id)
+                    from audit as audit
+                    left outer join audit.trainer as trainer
+                    where upper(audit.event) like :search
+                        or upper(audit.referer) like :search
+                        or upper(audit.detail) like :search
+                        or upper(audit.agent) like :search
+                        or upper(trainer.username) like :search
+                    ',
+                    {search: '%#uCase(search)#%'}
+                ),
+                () => getTotalRecords()
+            )
+            .get();
 
-        var filteredCount = ormExecuteQuery(
-            '
-            select count(audit.id)
-            from audit as audit
-            left outer join audit.trainer as trainer
-            where upper(audit.event) like :search
-                or upper(audit.referer) like :search
-                or upper(audit.detail) like :search
-                or upper(audit.agent) like :search
-                or upper(trainer.username) like :search
-            ',
-            {search: '%#uCase(arguments.search)#%'}
-        );
 
-        var data = [];
-        audits.each((audit) => {
-            data.append([
-                audit.getTimestamp(),
-                audit.getIP(),
-                audit.getEvent(),
-                audit.getReferer(),
-                audit.getDetail(),
-                audit.getAgent(),
-                audit.getUsername()
-            ]);
-        });
+        var audits        = results[1];
+        var filteredCount = results[2];
+        var totalRecords  = results[3];
 
         return {
-            data           : data,
-            recordsTotal   : getTotalRecords(),
+            data: audits.map((audit) => {
+                return [
+                    audit.getTimestamp(),
+                    audit.getIP(),
+                    audit.getEvent(),
+                    audit.getReferer(),
+                    audit.getDetail(),
+                    audit.getAgent(),
+                    audit.getUsername()
+                ];
+            }),
+            recordsTotal   : totalRecords,
             recordsFiltered: filteredCount
         };
     }
@@ -194,69 +201,74 @@ component singleton accessors="true" {
         required string orderDir = ''
     ) {
         var orderBy = '';
-        if(arguments.orderCol.len() && arguments.orderDir.len()) {
-            orderBy = 'order by #getRequestDatatableCols()[arguments.orderCol + 1]# #arguments.orderDir#';
+        if(orderCol.len() && orderDir.len()) {
+            orderBy = 'order by #getRequestDatatableCols()[orderCol + 1]# #orderDir#';
         }
 
-        var requests = ormExecuteQuery(
-            '
-            select requestlog
-            from requestlog as requestlog
-            left outer join requestlog.trainer as trainer
-            where upper(requestlog.ip) like :search
-                or upper(requestlog.urlpath) like :search
-                or upper(requestlog.method) like :search
-                or upper(requestlog.agent) like :search
-                or upper(requestlog.response) like :search
-                or upper(requestlog.referer) like :search
-                 or upper(cast(requestlog.statuscode as string)) like :search
-                or upper(trainer.username) like :search
-            #orderBy#
-            ',
-            {search: '%#uCase(arguments.search)#%'},
-            {
-                offset    : arguments.offset,
-                maxResults: arguments.records,
-                cacheable : true,
-                cachename : 'defaultCache'
-            }
-        );
+        var results = async
+            .all(
+                () => ormExecuteQuery(
+                    '
+                    select requestlog
+                    from requestlog as requestlog
+                    left outer join requestlog.trainer as trainer
+                    where upper(requestlog.ip) like :search
+                        or upper(requestlog.urlpath) like :search
+                        or upper(requestlog.method) like :search
+                        or upper(requestlog.agent) like :search
+                        or upper(requestlog.response) like :search
+                        or upper(requestlog.referer) like :search
+                        or upper(cast(requestlog.statuscode as string)) like :search
+                        or upper(trainer.username) like :search
+                    #orderBy#
+                    ',
+                    {search: '%#uCase(search)#%'},
+                    {
+                        offset    : offset,
+                        maxResults: records,
+                        cacheable : true,
+                        cachename : 'defaultCache'
+                    }
+                ),
+                () => ormExecuteQuery(
+                    '
+                    select count(requestlog.id)
+                    from requestlog as requestlog
+                    left outer join requestlog.trainer as trainer
+                    where upper(requestlog.ip) like :search
+                        or upper(requestlog.urlpath) like :search
+                        or upper(requestlog.method) like :search
+                        or upper(requestlog.agent) like :search
+                        or upper(requestlog.response) like :search
+                        or upper(requestlog.referer) like :search
+                        or cast(requestlog.statuscode as string) like :search
+                        or upper(trainer.username) like :search
+                    ',
+                    {search: '%#uCase(search)#%'}
+                ),
+                () => getTotalRequestRecords()
+            )
+            .get();
 
-        var filteredCount = ormExecuteQuery(
-            '
-            select count(requestlog.id)
-            from requestlog as requestlog
-            left outer join requestlog.trainer as trainer
-            where upper(requestlog.ip) like :search
-                or upper(requestlog.urlpath) like :search
-                or upper(requestlog.method) like :search
-                or upper(requestlog.agent) like :search
-                or upper(requestlog.response) like :search
-                or upper(requestlog.referer) like :search
-                or cast(requestlog.statuscode as string) like :search
-                or upper(trainer.username) like :search
-            ',
-            {search: '%#uCase(arguments.search)#%'}
-        );
-
-        var data = [];
-        requests.each((requestObj) => {
-            data.append([
-                requestObj.getTimestamp(),
-                requestObj.getIP(),
-                '#left(requestObj.getUrlPath(), 150)##requestObj.getUrlPath().len() > 150 ? '...' : ''#',
-                requestObj.getMethod(),
-                requestObj.getAgent(),
-                '#left(requestObj.getResponse(), 150)##requestObj.getResponse().len() > 150 ? '...' : ''#',
-                requestObj.getStatusCode(),
-                requestObj.getReferer(),
-                requestObj.getUsername()
-            ]);
-        });
+        var requests      = results[1];
+        var filteredCount = results[2];
+        var totalRecords  = results[3];
 
         return {
-            data           : data,
-            recordsTotal   : getTotalRequestRecords(),
+            data: requests.map((requestObj) => {
+                return [
+                    requestObj.getTimestamp(),
+                    requestObj.getIP(),
+                    '#left(requestObj.getUrlPath(), 150)##requestObj.getUrlPath().len() > 150 ? '...' : ''#',
+                    requestObj.getMethod(),
+                    requestObj.getAgent(),
+                    '#left(requestObj.getResponse(), 150)##requestObj.getResponse().len() > 150 ? '...' : ''#',
+                    requestObj.getStatusCode(),
+                    requestObj.getReferer(),
+                    requestObj.getUsername()
+                ];
+            }),
+            recordsTotal   : totalRecords,
             recordsFiltered: filteredCount
         };
     }

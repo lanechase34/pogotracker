@@ -1,5 +1,6 @@
 component singleton accessors="true" {
 
+    property name="async"          inject="asyncManager@coldbox";
     property name="trainerService" inject="services.trainer";
 
     /**
@@ -35,41 +36,47 @@ component singleton accessors="true" {
         required numeric page,
         numeric pageSize = 10
     ) {
-        var friendsList = ormExecuteQuery(
-            '
-            select friend.friend, friend.accepted
-            from friend as friend
-            where friend.trainer = :trainer
-                and friend.accepted = true
-                and upper(friend.friend.username) like :search
-            order by friend.accepted desc, friend.friend.username asc
-            ',
-            {trainer: arguments.trainer, search: '%#uCase(arguments.search)#%'},
-            {offset: (arguments.page - 1) * pageSize, maxResults: pageSize}
-        );
+        var results = async
+            .all(
+                () => ormExecuteQuery(
+                    '
+                    select friend.friend, friend.accepted
+                    from friend as friend
+                    where friend.trainer = :trainer
+                        and friend.accepted = true
+                        and upper(friend.friend.username) like :search
+                    order by friend.accepted desc, friend.friend.username asc
+                    ',
+                    {trainer: trainer, search: '%#uCase(search)#%'},
+                    {offset: (page - 1) * pageSize, maxResults: pageSize}
+                ),
+                () => ormExecuteQuery(
+                    '
+                    select count(friend.friend.id)
+                    from friend as friend
+                    where friend.trainer = :trainer
+                        and friend.accepted = true
+                        and upper(friend.friend.username) like :search
+                    ',
+                    {trainer: trainer, search: '%#uCase(search)#%'}
+                )
+            )
+            .get();
 
-        var friendsListCount = ormExecuteQuery(
-            '
-            select count(friend.friend.id)
-            from friend as friend
-            where friend.trainer = :trainer
-                and friend.accepted = true
-                and upper(friend.friend.username) like :search
-            ',
-            {trainer: arguments.trainer, search: '%#uCase(arguments.search)#%'}
-        );
+        var friendsList      = results[1];
+        var friendsListCount = results[2];
 
-        var result = {results: [], pagination: {more: friendsListCount[1] > arguments.page * pageSize}};
-        friendsList.each((friend) => {
-            result.results.append({
-                id  : friend[1].getId(),
-                text: friend[1].getUsername(),
-                img : friend[1].getIcon(),
-                alt : friend[1].getIconAltText()
-            });
-        });
-
-        return result;
+        return {
+            results: friendsList.map((friend) => {
+                return {
+                    id  : friend[1].getId(),
+                    text: friend[1].getUsername(),
+                    img : friend[1].getIcon(),
+                    alt : friend[1].getIconAltText()
+                };
+            }),
+            pagination: {more: friendsListCount[1] > page * pageSize}
+        };
     }
 
     /**
@@ -184,45 +191,51 @@ component singleton accessors="true" {
     ) {
         // grab ones that are pending - need to show to user that these are pending requests
         // right xor here so we can join f.friendid = t.id
-        var canAdd = ormExecuteQuery(
-            '
-            select trainer
-            from friend as friend
-            right outer join friend.friend as trainer with friend.trainer = :trainer
-            where friend is null 
-                and trainer != :trainer 
-                and trainer.verified = true
-                and upper(trainer.username) like :search
-            order by trainer.username asc
-            ',
-            {trainer: arguments.trainer, search: '%#uCase(arguments.search)#%'},
-            {offset: (arguments.page - 1) * pageSize, maxResults: pageSize}
-        );
+        var results = async
+            .all(
+                () => ormExecuteQuery(
+                    '
+                    select trainer
+                    from friend as friend
+                    right outer join friend.friend as trainer with friend.trainer = :trainer
+                    where friend is null 
+                        and trainer != :trainer 
+                        and trainer.verified = true
+                        and upper(trainer.username) like :search
+                    order by trainer.username asc
+                    ',
+                    {trainer: trainer, search: '%#uCase(search)#%'},
+                    {offset: (page - 1) * pageSize, maxResults: pageSize}
+                ),
+                () => ormExecuteQuery(
+                    '
+                    select count(trainer.id)
+                    from friend as friend
+                    right outer join friend.friend as trainer with friend.trainer = :trainer
+                    where friend is null 
+                        and trainer != :trainer 
+                        and trainer.verified = true
+                        and upper(trainer.username) like :search
+                    ',
+                    {trainer: trainer, search: '%#uCase(search)#%'}
+                )
+            )
+            .get();
 
-        var canAddCount = ormExecuteQuery(
-            '
-            select count(trainer.id)
-            from friend as friend
-            right outer join friend.friend as trainer with friend.trainer = :trainer
-            where friend is null 
-                and trainer != :trainer 
-                and trainer.verified = true
-                and upper(trainer.username) like :search
-            ',
-            {trainer: arguments.trainer, search: '%#uCase(arguments.search)#%'}
-        );
+        var canAdd      = results[1];
+        var canAddCount = results[2];
 
-        var result = {results: [], pagination: {more: canAddCount[1] > arguments.page * pageSize}};
-        canAdd.each((trainer) => {
-            result.results.append({
-                id  : trainer.getId(),
-                text: trainer.getUsername(),
-                img : trainer.getIcon(),
-                alt : trainer.getIconAltText()
-            });
-        });
-
-        return result;
+        return {
+            results: canAdd.map((trainer) => {
+                return {
+                    id  : trainer.getId(),
+                    text: trainer.getUsername(),
+                    img : trainer.getIcon(),
+                    alt : trainer.getIconAltText()
+                };
+            }),
+            pagination: {more: canAddCount[1] > page * pageSize}
+        };
     }
 
 }

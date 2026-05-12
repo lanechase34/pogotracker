@@ -1,20 +1,23 @@
 component extends="base" {
 
     function run(qb, mockdata) {
-        var data      = [];
         var medalData = deserializeJSON(fileRead('resources/medals.json'));
-        medalData.each((name, medal) => {
-            data.append({
-                'name'        : toUTF8(name),
-                'description' : toUTF8(medal.description),
-                'bronze'      : medal.bronze,
-                'silver'      : medal.silver,
-                'gold'        : medal.gold,
-                'platinum'    : medal.platinum,
-                'displayorder': medal.order
-            });
-        });
-        qb.table('medal').insert(data);
+        qb.table('medal')
+            .insert(
+                medalData
+                    .keyArray()
+                    .map((name) => (
+                        {
+                            'name'        : toUTF8(name),
+                            'description' : toUTF8(medalData[name].description),
+                            'bronze'      : medalData[name].bronze,
+                            'silver'      : medalData[name].silver,
+                            'gold'        : medalData[name].gold,
+                            'platinum'    : medalData[name].platinum,
+                            'displayorder': medalData[name].order
+                        }
+                    ))
+            );
     }
 
 }

@@ -11,6 +11,7 @@ component extends="base" {
         searchFriendsList    : 'GET'
     };
 
+    property name="async"           inject="asyncManager@coldbox";
     property name="friendService"   inject="services.friend";
     property name="securityService" inject="services.security";
     property name="trainerService"  inject="services.trainer";
@@ -89,9 +90,18 @@ component extends="base" {
      * View
      */
     function getFriendRequests(event, rc, prc) {
-        prc.trainer            = trainerService.getFromId(trainerid = session.trainerid);
-        prc.friendRequests     = friendService.getFriendRequests(trainer = prc.trainer);
-        prc.sentFriendRequests = friendService.getFriendsList(trainer = prc.trainer, accepted = false);
+        prc.trainer = trainerService.getFromId(trainerid = session.trainerid);
+
+        var results = async
+            .all(
+                () => friendService.getFriendRequests(trainer = prc.trainer),
+                () => friendService.getFriendsList(trainer = prc.trainer, accepted = false)
+            )
+            .get();
+
+        prc.friendRequests     = results[1];
+        prc.sentFriendRequests = results[2];
+
         event.setView(
             view     = '/views/friend/friendRequests',
             nolayout = true,

@@ -2,6 +2,7 @@ component {
 
     // Stub
     function run() {
+        application.delete('pokemonData');
     }
 
     /**
@@ -18,6 +19,25 @@ component {
             return createObject('java', 'java.lang.String').init(bytes, 'UTF-8');
         }
         return str;
+    }
+
+    /**
+     * Get the pokemon data json struct
+     * Store in applicatio scope to be shared throughout seeder
+     */
+    function getPokemonData() {
+        if(!application.keyExists('pokemonData')) {
+            var pokedexFile = fileOpen(
+                file    = 'resources/pokedex.json',
+                mode    = 'read',
+                charset = 'UTF-8'
+            );
+
+            var pokemonData = deserializeJSON(fileRead(pokedexFile));
+
+            application.pokemonData = pokemonData;
+        }
+        return application.pokemonData;
     }
 
 }

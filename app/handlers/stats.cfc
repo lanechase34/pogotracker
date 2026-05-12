@@ -12,6 +12,7 @@ component extends="base" {
         topDeltas         : 'GET'
     };
 
+    property name="async"          inject="asyncManager@coldbox";
     property name="cacheService"   inject="services.cache";
     property name="pokedexService" inject="services.pokedex";
     property name="friendService"  inject="services.friend";
@@ -197,10 +198,19 @@ component extends="base" {
             return;
         }
 
-        prc.trainer            = trainerService.getFromId(trainerid = prc.trainerid);
-        prc.pokedexStats       = statsService.getPokedexStats(trainer = prc.trainer);
-        prc.missingString      = pokedexService.getMissingString(trainer = prc.trainer, shiny = false);
-        prc.missingShinyString = pokedexService.getMissingString(trainer = prc.trainer, shiny = true);
+        prc.trainer = trainerService.getFromId(trainerid = prc.trainerid);
+
+        var results = async
+            .all(
+                () => statsService.getPokedexStats(trainer = prc.trainer),
+                () => pokedexService.getMissingString(trainer = prc.trainer, shiny = false),
+                () => pokedexService.getMissingString(trainer = prc.trainer, shiny = true)
+            )
+            .get();
+
+        prc.pokedexStats       = results[1];
+        prc.missingString      = results[2];
+        prc.missingShinyString = results[3];
 
         event.setView(
             view     = '/views/stats/pokedexstats',

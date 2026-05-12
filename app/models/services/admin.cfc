@@ -1,5 +1,6 @@
 component singleton accessors="true" {
 
+    property name="async"             inject="asyncManager@coldbox";
     property name="auditService"      inject="services.audit";
     property name="blogService"       inject="services.blog";
     property name="cacheService"      inject="services.cache";
@@ -12,10 +13,13 @@ component singleton accessors="true" {
     property name="scraperService"    inject="services.scraper";
     property name="securityService"   inject="services.security";
 
-    property name="maxThreads"    inject="coldbox:setting:maxThreads";
     property name="concurrency"   inject="coldbox:setting:concurrency";
+    property name="logPath"       inject="coldbox:setting:logPath";
+    property name="maxThreads"    inject="coldbox:setting:maxThreads";
     property name="rootPath"      inject="coldbox:setting:rootPath";
+    property name="shadowData"    inject="coldbox:setting:shadowData";
     property name="systemTrainer" inject="coldbox:setting:systemTrainer";
+    property name="writeJson"     inject="coldbox:setting:writeJson";
 
     property name="leekduckNameMap" type="struct";
     property name="regionalForms"   type="array";
@@ -31,8 +35,26 @@ component singleton accessors="true" {
      * Builds pokemon details, evolutions, moves
      */
     public void function buildPokemonData() {
-        var pokedex      = [];
-        var pokedexDoc   = scraperService.getData('https://pokemondb.net/go/pokedex');
+        var pokedex = [];
+
+        // Perform necessary scrapes in tandem
+        var scrapes = async
+            .all(
+                () => scraperService.getData('https://pokemondb.net/go/pokedex'),
+                () => scraperService.getData('https://pokemondb.net/go/shiny'),
+                () => getShadowData() ? shadowDoc = scraperService.getData(
+                    'https://bulbapedia.bulbagarden.net/wiki/List_of_Shadow_Pok%C3%A9mon_in_Pok%C3%A9mon_GO'
+                ) : '',
+                () => scraperService.getData('https://pokemondb.net/go/evolution')
+            )
+            .get();
+
+        var pokedexDoc   = scrapes[1];
+        var shinyDoc     = scrapes[2];
+        var shadowDoc    = scrapes[3];
+        var evolutionDoc = scrapes[4];
+
+        // Build the pokedex
         var pokedexTable = pokedexDoc.body().select('##pokedex');
 
         var headerData   = pokedexTable.select('thead').select('tr')[1].select('th');
@@ -151,11 +173,10 @@ component singleton accessors="true" {
                 pokedex.append(curr);
             },
             true,
-            maxThreads
+            getMaxThreads()
         );
 
         var shinyData = {}; // map the name to whether they are shiny
-        var shinyDoc  = scraperService.getData('https://pokemondb.net/go/shiny');
         var shinyDivs = shinyDoc.body().select('div.infocard-list');
 
         shinyDivs.each(
@@ -178,16 +199,13 @@ component singleton accessors="true" {
                 });
             },
             true,
-            maxThreads
+            getMaxThreads()
         );
 
         var shadowData = deserializeJSON(fileRead('/includes/assets/shadowdata.json'));
         // Web scraper is blocked in prod
-        if(application.cbController.getSetting('getShadowData')) {
-            shadowData    = {};
-            var shadowDoc = scraperService.getData(
-                'https://bulbapedia.bulbagarden.net/wiki/List_of_Shadow_Pok%C3%A9mon_in_Pok%C3%A9mon_GO'
-            );
+        if(getShadowData()) {
+            shadowData      = {};
             var shadowTable = shadowDoc
                 .body()
                 .select('table.roundy.sortable')
@@ -253,7 +271,6 @@ component singleton accessors="true" {
 
         // Build the evolution data
         var evolutionData = {}; // map name -> stage, evolution, cost
-        var evolutionDoc  = scraperService.getData('https://pokemondb.net/go/evolution');
         var evoLists      = evolutionDoc.body().select('.infocard-filter-block > .infocard-list-evo');
 
         // Handles branching evolutions
@@ -262,7 +279,7 @@ component singleton accessors="true" {
                 processEvolutionChain(evo, evolutionData);
             },
             true,
-            maxThreads
+            getMaxThreads()
         );
 
         // Map final stage -> mega/giga mon
@@ -438,7 +455,7 @@ component singleton accessors="true" {
                 }
             },
             true,
-            maxThreads
+            getMaxThreads()
         );
 
         // Read in custom overrides and overwrite scraped data
@@ -477,7 +494,7 @@ component singleton accessors="true" {
                 });
             },
             true,
-            maxThreads
+            getMaxThreads()
         );
 
         // Read in env overrides
@@ -489,7 +506,7 @@ component singleton accessors="true" {
                 });
             },
             true,
-            maxThreads
+            getMaxThreads()
         );
 
         jsonPokedex.each(
@@ -536,10 +553,10 @@ component singleton accessors="true" {
                 });
             },
             true,
-            maxThreads
+            getMaxThreads()
         );
 
-        if(application.cbController.getSetting('writeJson')) {
+        if(getWriteJson()) {
             fileWrite(
                 '#getRootPath()#/includes/assets/pokedex.json',
                 serializeJSON(jsonPokedex),
@@ -928,7 +945,7 @@ component singleton accessors="true" {
             });
         });
 
-        if(application.cbController.getSetting('writeJson')) {
+        if(getWriteJson()) {
             fileWrite(
                 '#getRootPath()#/includes/assets/medals.json',
                 serializeJSON(jsonMedals),
@@ -986,7 +1003,7 @@ component singleton accessors="true" {
         });
 
         jsonMoves = refineMoveData(jsonMoves);
-        if(application.cbController.getSetting('writeJson')) {
+        if(getWriteJson()) {
             fileWrite(
                 '#getRootPath()#/includes/assets/moves.json',
                 serializeJSON(jsonMoves),
@@ -1604,7 +1621,7 @@ component singleton accessors="true" {
     public query function getLogs() {
         // Commandbox output logs
         var cbLogs = directoryList(
-            path    : '#application.cbController.getSetting('logPath')#/../logs',
+            path    : '#getLogPath()#/../logs',
             recurse : false,
             listInfo: 'query',
             sort    : ''
@@ -1612,7 +1629,7 @@ component singleton accessors="true" {
 
         // Lucee server logs
         var serverLogs = directoryList(
-            path    : '#application.cbController.getSetting('logPath')#/lucee-server/context/logs',
+            path    : '#getLogPath()#/lucee-server/context/logs',
             recurse : false,
             listInfo: 'query',
             sort    : ''
@@ -1645,14 +1662,12 @@ component singleton accessors="true" {
 
         var logFile = '';
         // Commandbox log
-        if(fileExists('#application.cbController.getSetting('logPath')#/../logs/#arguments.filename#')) {
-            logFile = fileOpen('#application.cbController.getSetting('logPath')#/../logs/#arguments.filename#');
+        if(fileExists('#getLogPath()#/../logs/#arguments.filename#')) {
+            logFile = fileOpen('#getLogPath()#/../logs/#arguments.filename#');
         }
         // Lucee server log
-        else if(
-            fileExists('#application.cbController.getSetting('logPath')#/lucee-server/context/logs/#arguments.filename#')
-        ) {
-            logFile = fileOpen('#application.cbController.getSetting('logPath')#/lucee-server/context/logs/#arguments.filename#');
+        else if(fileExists('#getLogPath()#/lucee-server/context/logs/#arguments.filename#')) {
+            logFile = fileOpen('#getLogPath()#/lucee-server/context/logs/#arguments.filename#');
         }
 
         if(!isStruct(logFile)) return logContent;

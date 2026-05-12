@@ -52,50 +52,55 @@ component persistent="true" extends="base" {
     }
 
     struct function getCurrentLevel() {
-        var statStruct = {
-            level      : '--',
-            totalxp    : '',
-            dateTracked: createDate(2000, 1, 1)
+        // No stat recorded yet
+        var latestStat = getLatestStat();
+        if(isNull(latestStat)) {
+            return {
+                level      : '--',
+                totalxp    : '',
+                dateTracked: createDate(2000, 1, 1)
+            };
+        }
+
+        // Total XP from the latest recorded stat
+        var totalxp = latestStat.getXp();
+
+        // Select the current level and the next level
+        var levelData = queryExecute(
+            '
+            SELECT curr.level, curr.requiredxp AS currlevelxp, next.requiredxp AS nextlevelxp
+            FROM level curr
+            LEFT JOIN level next ON next.level = curr.level + 1
+            WHERE :totalxp > curr.requiredxp
+            ORDER BY curr.level DESC
+            LIMIT 1
+            ',
+            {totalxp: {value: totalxp, cfsqltype: 'bigint'}}
+        );
+
+        var result = {
+            level      : levelData.level,
+            totalxp    : numberFormat(totalxp, ','),
+            dateTracked: dateFormat(latestStat.getCreated(), 'short')
         };
 
-        if(isNull(getStat()) || !getStat().len()) {
-            return statStruct;
+        // Calculate progress to the next level
+        if(!isNull(levelData.nextlevelxp) && levelData.nextlevelxp.len()) {
+            var xpIntoLevel   = totalxp - levelData.currlevelxp;
+            var xpToNextLevel = levelData.nextlevelxp - levelData.currlevelxp;
+
+            result.currxp      = xpIntoLevel;
+            result.nextlevelxp = xpToNextLevel;
+            result.progress    = round(xpIntoLevel / xpToNextLevel, 2) * 100;
         }
 
-        var latestStat = getLatestStat();
-
-        statStruct.totalxp = latestStat.getXp();
-        statStruct.level   = ormExecuteQuery(
-            '
-            select level.level
-            from level as level
-            where :latestxp > requiredxp
-            order by level.level desc
-            ',
-            {'latestxp': statStruct.totalxp},
-            false,
-            {maxResults: 1}
-        )[1];
-
-        // Calculate the progress to the next level
-        if(statStruct.level < 50) {
-            statStruct.nextlevelxp = entityLoad('level', {'level': statStruct.level + 1}, true).getRequiredXp();
-            statStruct.currlevelxp = entityLoad('level', {'level': statStruct.level}, true).getRequiredXp();
-
-            statStruct.currxp      = statStruct.totalxp - statStruct.currlevelxp;
-            statStruct.nextlevelxp = statStruct.nextlevelxp - statStruct.currlevelxp;
-            statStruct.progress    = round(statStruct.currxp / statStruct.nextlevelxp, 2) * 100;
-        }
-
-        statStruct.totalxp     = numberFormat(statStruct.totalxp, ',');
-        statStruct.dateTracked = dateFormat(latestStat.getCreated(), 'short');
-        return statStruct;
+        return result;
     }
 
     array function getUnlockedIcons() {
         var icons = [];
 
-        // caught badges
+        // Caught badges
         var caught = ormExecuteQuery(
             '
             select count(pokedex.id) as caught, pokedex.pokemon.generation.region as region
@@ -110,26 +115,26 @@ component persistent="true" extends="base" {
         );
 
         caught.each((curr) => {
-            var region = curr[2];
-            var caught = curr[1];
+            var registered = curr[1];
+            var region     = curr[2];
 
             if(region == 'Kanto') {
-                if(caught >= 76) {
+                if(registered >= 76) {
                     icons.append('Venusaur');
                     icons.append('Blastoise');
                     icons.append('Charizard');
                 }
-                if(caught == 151) {
+                if(registered == 151) {
                     icons.append('Mewtwo');
                 }
             }
 
             if(region == 'Johto') {
-                if(caught >= 75) {
+                if(registered >= 75) {
                     icons.append('Lugia');
                     icons.append('Ho-Oh');
                 }
-                if(caught == 100) {
+                if(registered == 100) {
                     icons.append('Celebi');
                 }
             }
@@ -157,7 +162,7 @@ component persistent="true" extends="base" {
             select settings
             from trainer
             where id = :trainerid
-        ',
+            ',
             {trainerid: {value: getId(), cfsqltype: 'integer'}}
         ).settings;
         return deserializeJSON(settings);
@@ -170,7 +175,10 @@ component persistent="true" extends="base" {
             set settings = cast(:settings as jsonb)
             where id = :trainerid
             ',
-            {settings: {value: serializeJSON(arguments.settings)}, trainerid: {value: getId(), cfsqltype: 'integer'}}
+            {
+                settings : {value: serializeJSON(arguments.settings), cfsqltype: 'other'},
+                trainerid: {value: getId(), cfsqltype: 'integer'}
+            }
         );
     }
 

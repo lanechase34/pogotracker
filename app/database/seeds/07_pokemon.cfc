@@ -1,13 +1,7 @@
 component extends="base" {
 
     function run(qb, mockdata) {
-        var data        = [];
-        var pokedexFile = fileOpen(
-            file    = 'resources/pokedex.json',
-            mode    = 'read',
-            charset = 'UTF-8'
-        );
-        var pokemonData = deserializeJSON(fileRead(pokedexFile));
+        var pokemonData = getPokemonData();
         pokemonData.each(
             (name, pokemon) => {
                 var freshQB = qb.newQuery();

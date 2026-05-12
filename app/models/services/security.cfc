@@ -292,22 +292,27 @@ component singleton accessors="true" {
         return ipAddress;
     }
 
+    /**
+     * Get an HTTP header value
+     */
     private string function getHeaderValue(required string headername) {
         var headers = getHTTPRequestData(false).headers;
-        if(!headers.keyExists(arguments.headername)) {
+        if(!headers.keyExists(headername)) {
             return '';
         }
 
-        var value = headers[arguments.headername];
-        // Collapse complex values (multi header struct) to comma separated lists
-        if(!isSimpleValue(value)) {
-            var items = [];
-            value.each((key, item) => {
-                items.append(item);
-            });
-            return items.toList(',').trim();
+        var value = headers[headername];
+
+        if(isSimpleValue(value)) {
+            return value.trim();
         }
-        return value.trim();
+
+        // Collapse complex values (multi header struct) to comma separated lists
+        return value
+            .reduce((acc, key, item) => {
+                return acc.listAppend(item);
+            }, '')
+            .trim();
     }
 
     /**

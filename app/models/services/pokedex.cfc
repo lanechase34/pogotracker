@@ -190,19 +190,17 @@ component singleton accessors="true" {
         required string view,
         boolean unregisteredOnly = false
     ) {
-        var string =
-        arguments.view == 'shadowshiny' ? 'shadow&shiny&' : arguments.view == 'shadow' ? 'shadow&' : arguments.view == 'shiny' ? 'shiny&' : arguments.view == 'hundo' ? '4*&' : '';
+        var prefix = view == 'shadowshiny' ? 'shadow&shiny&'
+         : view == 'shadow' ? 'shadow&'
+         : view == 'shiny' ? 'shiny&'
+         : view == 'hundo' ? '4*&'
+         : '';
 
-        arguments.pokedex.each((pokemon) => {
-            if(
-                !unregisteredOnly ||
-                (unregisteredOnly && isNull(pokemon[2]))
-            ) {
-                string &= '#pokemon[1].getNumber()#,';
-            }
-        });
-
-        return string;
+        return pokedex.reduce((result, pokemon) => {
+            return (!unregisteredOnly || isNull(pokemon[2]))
+             ? result & '#pokemon[1].getNumber()#,'
+             : result;
+        }, prefix);
     }
 
     /**

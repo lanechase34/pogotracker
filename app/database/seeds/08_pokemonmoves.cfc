@@ -1,8 +1,7 @@
 component extends="base" {
 
     function run(qb, mockdata) {
-        var data        = [];
-        var pokemonData = deserializeJSON(fileRead('resources/pokedex.json'));
+        var pokemonData = getPokemonData();
         pokemonData.each(
             (name, pokemon) => {
                 pokemon.moves.each((move) => {

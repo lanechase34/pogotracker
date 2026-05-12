@@ -1,5 +1,6 @@
 component singleton accessors="true" {
 
+    property name="async"          inject="asyncManager@coldbox";
     property name="cacheService"   inject="services.cache";
     property name="trainerService" inject="services.trainer";
 
@@ -57,56 +58,61 @@ component singleton accessors="true" {
         required string orderDir = ''
     ) {
         var orderBy = '';
-        if(arguments.orderCol.len() && arguments.orderDir.len()) {
-            orderBy = 'order by #getDatatableCols()[arguments.orderCol + 1]# #arguments.orderDir#';
+        if(orderCol.len() && orderDir.len()) {
+            orderBy = 'order by #getDatatableCols()[orderCol + 1]# #orderDir#';
         }
 
-        var bugs = ormExecuteQuery(
-            '
-            select bug
-            from bug as bug
-            left outer join bug.trainer as trainer
-            where upper(bug.event) like :search
-                or upper(bug.message) like :search
-                or upper(trainer.username) like :search
-            #orderBy#
-            ',
-            {search: '%#uCase(arguments.search)#%'},
-            {
-                offset    : arguments.offset,
-                maxResults: arguments.records,
-                cacheable : true,
-                cachename : 'defaultCache'
-            }
-        );
+        var results = async
+            .all(
+                () => ormExecuteQuery(
+                    '
+                    select bug
+                    from bug as bug
+                    left outer join bug.trainer as trainer
+                    where upper(bug.event) like :search
+                        or upper(bug.message) like :search
+                        or upper(trainer.username) like :search
+                    #orderBy#
+                    ',
+                    {search: '%#uCase(search)#%'},
+                    {
+                        offset    : offset,
+                        maxResults: records,
+                        cacheable : true,
+                        cachename : 'defaultCache'
+                    }
+                ),
+                () => ormExecuteQuery(
+                    '
+                    select count(bug.id)
+                    from bug as bug
+                    left outer join bug.trainer as trainer
+                    where upper(bug.event) like :search
+                        or upper(bug.message) like :search
+                        or upper(trainer.username) like :search
+                    ',
+                    {search: '%#uCase(search)#%'}
+                ),
+                () => getTotalRecords()
+            )
+            .get();
 
-        var filteredCount = ormExecuteQuery(
-            '
-            select count(bug.id)
-            from bug as bug
-            left outer join bug.trainer as trainer
-            where upper(bug.event) like :search
-                or upper(bug.message) like :search
-                or upper(trainer.username) like :search
-            ',
-            {search: '%#uCase(arguments.search)#%'}
-        );
-
-        var data = [];
-        bugs.each((bug) => {
-            data.append([
-                bug.getTimestamp(),
-                bug.getIP(),
-                bug.getEvent(),
-                bug.getMessage(),
-                bug.getUsername(),
-                encodeForHTML(bug.getStack())
-            ]);
-        });
+        var bugs          = results[1];
+        var filteredCount = results[2];
+        var totalRecords  = results[3];
 
         return {
-            data           : data,
-            recordsTotal   : getTotalRecords(),
+            data: bugs.map((bug) => {
+                return [
+                    bug.getTimestamp(),
+                    bug.getIP(),
+                    bug.getEvent(),
+                    bug.getMessage(),
+                    bug.getUsername(),
+                    encodeForHTML(bug.getStack())
+                ];
+            }),
+            recordsTotal   : totalRecords,
             recordsFiltered: filteredCount
         };
     }

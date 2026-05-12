@@ -60,10 +60,7 @@ component persistent="true" extends="base" {
         var moves = getMoves(arguments.type, arguments.pokemonType);
         if(!moves.len()) return '';
 
-        var moveText = [];
-        moves.each((move) => {
-            moveText.append('#move.getMove().getName()##move.getShadow() ? '$' : ''##move.getLegacy() ? '*' : ''#');
-        });
+        var moveText = moves.map((move) => ('#move.getMove().getName()##move.getShadow() ? '$' : ''##move.getLegacy() ? '*' : ''#'));
         return moveText.sort('text', 'asc').toList('<br>');
     }
 

@@ -1,5 +1,6 @@
 component singleton accessors="true" {
 
+    property name="async"           inject="asyncManager@coldbox";
     property name="cacheService"    inject="services.cache";
     property name="securityService" inject="services.security";
 
@@ -58,54 +59,58 @@ component singleton accessors="true" {
             orderBy = 'order by #getDatatableCols()[arguments.orderCol + 1]# #arguments.orderDir# nulls last';
         }
 
-        var trainers = ormExecuteQuery(
-            '
-            select trainer
-            from trainer as trainer
-            where upper(trainer.username) like :search
-                or upper(trainer.email) like :search
-            #orderBy#
-            ',
-            {search: '%#uCase(arguments.search)#%'},
-            {
-                offset    : arguments.offset,
-                maxResults: arguments.records,
-                cacheable : true,
-                cachename : 'defaultCache'
-            }
-        );
+        var results = async
+            .all(
+                () => ormExecuteQuery(
+                    '
+                    select trainer
+                    from trainer as trainer
+                    where upper(trainer.username) like :search
+                        or upper(trainer.email) like :search
+                    #orderBy#
+                    ',
+                    {search: '%#uCase(search)#%'},
+                    {
+                        offset    : offset,
+                        maxResults: records,
+                        cacheable : true,
+                        cachename : 'defaultCache'
+                    }
+                ),
+                () => ormExecuteQuery(
+                    '
+                    select count(trainer.id)
+                    from trainer as trainer
+                    where upper(trainer.username) like :search
+                        or upper(trainer.email) like :search
+                    ',
+                    {search: '%#uCase(search)#%'},
+                    true
+                ),
+                () => getTotalRecords()
+            )
+            .get();
 
-        var filteredCount = ormExecuteQuery(
-            '
-            select count(trainer.id)
-            from trainer as trainer
-            where upper(trainer.username) like :search
-                or upper(trainer.email) like :search
-            ',
-            {search: '%#uCase(arguments.search)#%'},
-            true
-        );
-
+        var trainers       = results[1];
+        var filteredCount  = results[2];
+        var totalRecords   = results[3];
         var securityLevels = securityService.getSecurityLevels();
 
-        var data = [];
-        trainers.each((trainer) => {
-            data.append({
-                trainerid    : trainer.getId(),
-                edit         : '',
-                icon         : trainer.getIconPath(),
-                iconAltText  : trainer.getIconAltText(),
-                username     : trainer.getUsername(),
-                email        : trainer.getEmail(),
-                verified     : trainer.getVerified(),
-                securitylevel: securityLevels[trainer.getSecurityLevel()],
-                lastlogin    : trainer.getFormattedLastLogin()
-            });
-        });
-
         return {
-            data           : data,
-            recordsTotal   : getTotalRecords(),
+            data: trainers.map((trainer) => {
+                return {
+                    trainerid    : trainer.getId(),
+                    edit         : '',
+                    icon         : trainer.getIconPath(),
+                    iconAltText  : trainer.getIconAltText(),
+                    username     : trainer.getUsername(),
+                    email        : trainer.getEmail(),
+                    verified     : trainer.getVerified(),
+                    securitylevel: securityLevels[trainer.getSecurityLevel()],
+                    lastlogin    : trainer.getFormattedLastLogin()
+                };
+            }),
+            recordsTotal   : totalRecords,
             recordsFiltered: filteredCount
         };
     }

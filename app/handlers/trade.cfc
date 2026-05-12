@@ -2,6 +2,7 @@ component extends="base" {
 
     this.allowedMethods = {tradePlanForm: 'GET', tradePlan: 'POST'}
 
+    property name="async"             inject="asyncManager@coldbox";
     property name="customService"     inject="services.custom";
     property name="friendService"     inject="services.friend";
     property name="generationService" inject="services.generation";
@@ -87,10 +88,14 @@ component extends="base" {
 
         // If still valid, generate the trade plan
         if(!prc.responseObj.message.len()) {
-            prc.tradePlan = {
-                'trainerOnly': tradeService.findExclusive(argumentCollection = prc.trainerOnlyArgs),
-                'friendOnly' : tradeService.findExclusive(argumentCollection = prc.friendOnlyArgs)
-            };
+            var results = async
+                .all(
+                    () => tradeService.findExclusive(argumentCollection = prc.trainerOnlyArgs),
+                    () => tradeService.findExclusive(argumentCollection = prc.friendOnlyArgs)
+                )
+                .get();
+
+            prc.tradePlan = {trainerOnly: results[1], friendOnly: results[2]};
 
             // Check if trade plan has pokemon
             if(!prc.tradePlan.trainerOnly.len() && !prc.tradePlan.friendOnly.len()) {

@@ -5,6 +5,8 @@ component {
 	 * https://coldbox.ortusbooks.com/getting-started/configuration
 	 */
     function configure() {
+        var logPath = getPageContext().getServletContext().getRealPath('/WEB-INF/');
+
         /**
 		 * --------------------------------------------------------------------------
 		 * ColdBox Directives
@@ -101,14 +103,13 @@ component {
             favIcoVersion  : 3,
             fetchCount     : 7, // number of news/leekduck posts to fetch on home page
             fromEmail      : 'noreply@pogotracker.app',
-            getShadowData  : false, // get shadow data from wikipedia
             healthCheck    : true,
             httpPort       : getSystemSetting('HTTP_PORT'),
             imageExtension : '.webp',
             imageMagickPath: getSystemSetting('IMAGEMAGICKPATH'),
             impersonation  : false,
             jsPath         : '/includes/build/js',
-            logPath        : getPageContext().getServletContext().getRealPath('/WEB-INF/'),
+            logPath        : logPath,
             logRequests    : false,
             maxThreads     : createObject('java', 'java.lang.Runtime').getRuntime().availableProcessors(),
             metaDescription: 'POGO Tracker offers in-depth analytics on your Pokémon collection, daily catches, walking distance, medal achievements, and much more',
@@ -162,6 +163,7 @@ component {
             resetPasswordCooldown: 900, // time in seconds to wait for a new reset code
             resetPasswordLifespan: 30, // time in minutes the reset link is valid for
             sessionTimeout       : getSystemSetting('SESSIONTIMEOUT'),
+            shadowData           : false, // get shadow data from wikipedia
             signups              : true, // whether signups are enabled
             sitemap              : 'sitemap.xml',
             systemTrainer        : 'lanechase34@outlook.com',
@@ -199,12 +201,38 @@ component {
 		 */
         logBox = {
             // Define Appenders
-            appenders: {coldboxTracer: {class: 'coldbox.system.logging.appenders.ConsoleAppender'}},
+            appenders: {
+                appLog: {
+                    class     : 'coldbox.system.logging.appenders.RollingFileAppender',
+                    properties: {
+                        filePath       : '#logPath#/../logs',
+                        filename       : 'app',
+                        autoExpand     : false,
+                        fileMaxSize    : 10000,
+                        fileMaxArchives: 10,
+                        async          : true
+                    }
+                }
+            },
             // Root Logger
-            root     : {levelmax: 'WARN', appenders: '*'},
+            root: {
+                levelMin : 'FATAL',
+                levelMax : 'WARN',
+                appenders: 'appLog'
+            },
             // Implicit Level Categories
-            info     : ['coldbox.system'],
-            warn     : ['WebSocket']
+            categories: {
+                'coldbox.system': {
+                    levelMin : 'FATAL',
+                    levelMax : 'INFO',
+                    appenders: 'appLog'
+                },
+                'WebSocket': {
+                    levelMin : 'FATAL',
+                    levelMax : 'WARN',
+                    appenders: 'appLog'
+                }
+            }
         };
 
         /**
@@ -325,7 +353,7 @@ component {
 
         // settings.debugging     = true;
         // settings.useCache      = false;
-        settings.getShadowData = true;
+        settings.shadowData = true;
         // settings.warmedup      = true;
 
         // Comment to use minified files

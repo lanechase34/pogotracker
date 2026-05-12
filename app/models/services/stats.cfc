@@ -1,5 +1,6 @@
 component singleton accessors="true" {
 
+    property name="async"        inject="asyncManager@coldbox";
     property name="cacheService" inject="services.cache";
 
     /**
@@ -352,21 +353,33 @@ component singleton accessors="true" {
             spun  : [],
             walked: []
         };
+        var statKeys = topDeltas.keyArray();
+
+        var futurews
 
         // For each stat, sort the full result set by that delta desc and take top 3
-        topDeltas.each((stat) => {
-            var sorted = queryExecute(
-                '
-                SELECT TOP :records curr_date, #stat#_delta AS delta 
-                FROM qStats
-                ORDER BY #stat#_delta DESC 
-                ',
-                {records: {value: records, cfsqltype: 'integer'}},
-                {dbtype: 'query'}
-            );
+        var futures = async
+            .all(
+                statKeys.map((stat) => {
+                    return () => {
+                        var sorted = queryExecute(
+                            '
+                            SELECT TOP :records curr_date, #stat#_delta AS delta
+                            FROM qStats
+                            ORDER BY #stat#_delta DESC
+                            ',
+                            {records: {value: records, cfsqltype: 'integer'}},
+                            {dbtype: 'query'}
+                        );
+                        return {stat: stat, rows: sorted};
+                    };
+                })
+            )
+            .get();
 
-            sorted.each((row) => {
-                topDeltas[stat].append({date: dateFormat(row.curr_date, 'short'), delta: row.delta});
+        futures.each((result) => {
+            result.rows.each((row) => {
+                topDeltas[result.stat].append({date: dateFormat(row.curr_date, 'short'), delta: row.delta});
             });
         });
 
