@@ -41,7 +41,15 @@
                 </cfif>
             </div>
         </cfif>
-    </cfloop>   
+    </cfloop>
+    <cfif total EQ 0>
+        <!--- No valid pokemon exists for this view --->
+        <div class="col-12 d-flex justify-content-center py-5">
+            <div class="d-flex flex-column align-items-center text-center px-5 py-4 rounded border shadow-sm" style="max-width: 500px;">
+                <p class="fs-5 fw-medium mb-1 text-muted">No Pokemon found</p>
+            </div>
+        </div>
+    </cfif>
 </div>
 <div id="registeredCount" data-registered="#registered#" data-total="#total#"></div>
 </cfoutput>

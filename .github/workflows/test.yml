@@ -3,7 +3,6 @@ name: Test Suite
 permissions:
   contents: read
   checks: write
-  id-token: write
 
 on:
   push:
@@ -21,7 +20,7 @@ jobs:
     name: Run Tests
     runs-on: ubuntu-24.04
     environment: Test
-    timeout-minutes: 45
+    timeout-minutes: 30
 
     # Set default working directory for all run steps
     defaults:
@@ -44,17 +43,19 @@ jobs:
           --health-retries 5
 
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
 
       - name: Setup Java
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@c1e323688fd81a25caa38c78aa6df2d33d3e20d9 # v4
         with:
           distribution: "temurin"
           java-version: "21"
 
       - name: Setup CommandBox CLI
-        uses: Ortus-Solutions/setup-commandbox@v2.0.1
+        uses: Ortus-Solutions/setup-commandbox@7be599028dcf77743854b2f6c720b15316f39be2 # v2.0.1
         with:
           version: latest
 
@@ -100,29 +101,14 @@ jobs:
           box install --production
           box install testbox@7.0.0+19
 
-      - name: Verify Database Connection
-        working-directory: . # Override for this step since it doesn't need to be in /app
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y postgresql-client
-          until pg_isready -h localhost -p 5435 -U runner; do
-            echo "Waiting for PostgreSQL..."
-            sleep 2
-          done
-          psql -h localhost -p 5435 -U runner -d test_pogotracker -c "SELECT version();"
-        env:
-          PGPASSWORD: postgres_docker
-
       - name: Run Database Migrations
         run: |
           box migrate install --verbose
           box migrate up --verbose
-        continue-on-error: false
 
       - name: Seed Database
         run: |
           box migrate seed run --verbose
-        continue-on-error: false
 
       - name: Start CommandBox Server
         run: |
@@ -144,7 +130,6 @@ jobs:
           box server log
           exit 1
 
-      # TestBox Tests
       - name: Run TestBox Tests
         id: run_tests
         run: |
@@ -152,7 +137,7 @@ jobs:
           box testbox run --verbose outputFile="tests/results/test-results" outputFormats="json,antjunit" \
             || echo "TESTS_FAILED=true" >> $GITHUB_ENV
         continue-on-error: true
-        timeout-minutes: 15
+        timeout-minutes: 10
 
       - name: Display Test Results
         if: always()
@@ -172,10 +157,9 @@ jobs:
             echo "No test results found!"
             ls -la tests/results/ || echo "Results directory doesn't exist"
           fi
-        continue-on-error: true
 
       - name: Publish Test Reports
-        uses: mikepenz/action-junit-report@v6.0.0
+        uses: mikepenz/action-junit-report@5b7ee5a21e8674b695313d769f3cbdfd5d4d53a4 # v6.0.0
         if: always()
         with:
           report_paths: |
@@ -184,10 +168,9 @@ jobs:
           include_passed: false
           fail_on_failure: true
           detailed_summary: true
-        continue-on-error: true
 
       - name: Upload Test Results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()
         with:
           name: test-results
@@ -202,3 +185,4 @@ jobs:
         if: always()
         run: |
           box server stop --force
+        continue-on-error: true
