@@ -69,6 +69,8 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                 expect(auditCountAfter - auditCountBefore).toBe(1);
                 bugCountAfter = ormExecuteQuery('select count(id) from bug')[1];
                 expect(bugCountAfter - bugCountBefore).toBe(1);
+
+                application.cbController.setSetting('healthCheck', true);
             });
 
             it('Can toggle a task', () => {
