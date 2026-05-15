@@ -1,13 +1,19 @@
 component extends="coldbox.system.testing.BaseTestCase" appMapping="/app" {
 
+    this.loadColdBox   = true;
+    this.unloadColdBox = false;
+
     function beforeAll() {
-        structDelete(application, 'cbController');
-        structDelete(application, 'wirebox');
+        /**
+         * Re-wire everything
+         */
         super.beforeAll();
         application.wirebox.autowire(this);
 
         // Check if there is a lingering session (from error)
-        if(session.keyExists('mocktrainerid')) getInstance('tests.resources.mocktrainer').delete();
+        if(session.keyExists('mocktrainerid')) {
+            getInstance('tests.resources.mocktrainer').delete();
+        }
 
         globalFunctions = getInstance('tests.resources.globalFunctions');
 
