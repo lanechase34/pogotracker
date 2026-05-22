@@ -250,16 +250,19 @@ export const runtime = {
     all: () => {},
     viewprofile: () => {
         loadProfileCards();
-        $editProfile.addEventListener('click', async () => {
-            if ($trainerLoading.editProfile) return;
 
-            if (!document.getElementById('editProfileModal')) {
-                $trainerLoading.editProfile = true;
-                await getEditProfile();
-            }
+        if ($editProfile) {
+            $editProfile.addEventListener('click', async () => {
+                if ($trainerLoading.editProfile) return;
 
-            globalModals.$editProfileModal.show();
-            $trainerLoading.editProfile = false;
-        });
+                if (!document.getElementById('editProfileModal')) {
+                    $trainerLoading.editProfile = true;
+                    await getEditProfile();
+                }
+
+                globalModals.$editProfileModal.show();
+                $trainerLoading.editProfile = false;
+            });
+        }
     },
 };

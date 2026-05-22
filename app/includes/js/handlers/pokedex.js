@@ -27,6 +27,7 @@ const fetchStruct = {
     count: 0,
     counter: 0,
     loadingList: false,
+    scrollHandler: () => {},
 };
 
 const pokedexStruct = {
@@ -215,7 +216,7 @@ async function fetchCustomPokedexList(counter) {
 
             fetchStruct.counter += fetchStruct.count;
 
-            if (window.innerHeight > document.body.scrollHeight) {
+            if (window.innerHeight > document.getElementById('mainSection').scrollHeight) {
                 await fetchCustomPokedexList(fetchStruct.counter);
             }
         },
@@ -544,18 +545,23 @@ export const runtime = {
         // start at defined count
         fetchStruct.counter = fetchStruct.count;
 
-        if (window.innerHeight > document.getElementById('mainSection').offsetHeight) {
+        if (window.innerHeight > document.getElementById('mainSection').scrollHeight) {
             fetchCustomPokedexList(fetchStruct.counter);
         }
 
-        addEventListener('scroll', async () => {
-            const atBottom = window.innerHeight + window.scrollY >= document.body.scrollHeight;
+        const scrollHandler = async () => {
+            const atBottom =
+                document.getElementById('mainSection').getBoundingClientRect().bottom <= window.innerHeight + 150;
             if (atBottom && !fetchStruct.loadingList) {
                 fetchStruct.loadingList = true;
                 await fetchCustomPokedexList(fetchStruct.counter);
                 fetchStruct.loadingList = false;
             }
-        });
+        };
+
+        window.removeEventListener('scroll', fetchStruct.scrollHandler);
+        fetchStruct.scrollHandler = scrollHandler;
+        window.addEventListener('scroll', fetchStruct.scrollHandler);
 
         createCustomSearch('customSearch', 'Search a Pokedex...', true, '');
     },
