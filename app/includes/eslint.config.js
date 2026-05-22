@@ -7,7 +7,13 @@ import simpleImportSort from 'eslint-plugin-simple-import-sort';
 export default defineConfig([
     {
         // Global ignores
-        ignores: ['**/node_modules/**', '**/build/**', 'eslint.config.js'],
+        ignores: [
+            '**/node_modules/**',
+            '**/build/**',
+            'eslint.config.js',
+            '**/test-results/**',
+            '**/playwright-report/**',
+        ],
     },
     eslint.configs.recommended,
 

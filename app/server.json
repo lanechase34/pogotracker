@@ -32,6 +32,9 @@
     "trayEnable":"false",
     "web":{
         "host":"${HTTP_HOST}",
+        "mimeTypes":{
+            "xml":"application/xml"
+        },
         "rewrites":{
             "enable":"true"
         },
