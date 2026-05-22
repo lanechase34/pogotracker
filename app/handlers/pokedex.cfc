@@ -27,6 +27,7 @@ component extends="base" {
     function preHandler(event, rc, prc, action, eventArguments) {
         prc.title           = 'Pokedex - #getSetting('title')#';
         prc.metaDescription = 'Track your Pokemon and Shiny Pokemon collection in the Pokedex.';
+        prc.metaRobots      = 'noindex, nofollow';
     }
 
     /**
@@ -131,8 +132,14 @@ component extends="base" {
         }
 
         if(hasValidationErrors(target = rc, constraints = 'pokedex.getPokedex')) {
+            event.setLayout('basic');
             htmlNotFound(event = event);
             return;
+        }
+
+        // Shadow pokedex is not split up by region
+        if(rc.shadow) {
+            rc.region = '';
         }
 
         prc.trainerid   = parseNumber(rc.trainerid);

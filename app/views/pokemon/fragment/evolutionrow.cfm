@@ -3,7 +3,12 @@
     <td>
         <a href="/pokemon/#args.evolution.getPokemon().getSes()#" class="link-dark link-offset-2 link-underline-opacity-0 link-underline-opacity-100-hover">
             <span class="d-flex justify-content-center">
-                <img class="pokemonSearchIcon" src="/includes/images/sprites/#args.evolution.getPokemon().getSprite()##getSetting('imageExtension')#" loading="lazy">
+                <img 
+                    class="pokemonSearchIcon" 
+                    src="/includes/images/sprites/#args.evolution.getPokemon().getSprite()##getSetting('imageExtension')#" 
+                    loading="lazy"
+                    alt="#args.evolution.getPokemon().getName()# Sprite"
+                >
             </span>
             <span class="fs-6 fw-medium">
                 #args.evolution.getPokemon().getName()#
@@ -15,7 +20,12 @@
     <td>
         <a href="/pokemon/#args.evolution.getEvolution().getSes()#" class="link-dark link-offset-2 link-underline-opacity-0 link-underline-opacity-100-hover">
             <span class="d-flex justify-content-center">
-                <img class="pokemonSearchIcon" src="/includes/images/sprites/#args.evolution.getEvolution().getSprite()##getSetting('imageExtension')#" loading="lazy">
+                <img 
+                    class="pokemonSearchIcon" 
+                    src="/includes/images/sprites/#args.evolution.getEvolution().getSprite()##getSetting('imageExtension')#" 
+                    loading="lazy"
+                    alt="#args.evolution.getEvolution().getName()# Sprite"
+                >
             </span>
             <span class="fs-6 fw-medium">
                 #args.evolution.getEvolution().getName()#

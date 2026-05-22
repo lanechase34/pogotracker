@@ -17,6 +17,7 @@ component extends="base" {
     function preHandler(event, rc, prc, action, eventArguments) {
         prc.title           = 'Profile - #getSetting('title')#';
         prc.metaDescription = 'View your profile, friend requests, Pokedex summary, Stats summary, medal overview, and more.';
+        prc.metaRobots      = 'noindex, nofollow';
     }
 
     /**

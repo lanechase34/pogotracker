@@ -13,4 +13,8 @@ component persistent="true" extends="base" {
     property name="trainer" fieldtype="many-to-one" cfc="trainer" fkcolumn="trainerid" lazy="true";
     property name="comment" fieldtype="one-to-many" cfc="comment" lazy="true";
 
+    string function getOgImage() {
+        return '#application.cbController.getSetting('domain')#/includes/uploads/full/#getImage()#';
+    }
+
 }

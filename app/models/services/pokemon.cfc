@@ -351,6 +351,7 @@ component singleton accessors="true" {
             detail.title     = '#detail.pokemon.getNumber()# - #detail.pokemon.getName()#';
 
             detail.metaDescription = '#ucFirst(detail.pokemon.getName())#''s (###detail.pokemon.getNumber()#) evolutions, CP range, stats, moveset, and events in Pokemon GO.';
+            detail.ogImage         = detail.pokemon.getOgImage();
 
             cacheService.put(
                 cacheKey,

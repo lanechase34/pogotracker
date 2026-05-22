@@ -8,15 +8,31 @@
             </div>
             <div class="card-body d-flex flex-column justify-content-center align-items-center">
                 <div>
-                    <img class="pokemonIcon" src="/includes/images/sprites/#prc.detail.pokemon.getSprite()##getSetting('imageExtension')#">
+                    <img 
+                        class="pokemonIcon" 
+                        src="/includes/images/sprites/#prc.detail.pokemon.getSprite()##getSetting('imageExtension')#"
+                        alt="#prc.detail.pokemon.getName()# Sprite"
+                    >
                     <cfif prc.detail.pokemon.getShiny()>
-                        <img class="pokemonIcon ms-sm-1 ms-md-2 ms-lg-5" src="/includes/images/shinysprites/#prc.detail.pokemon.getSprite()##getSetting('imageExtension')#">
+                        <img 
+                            class="pokemonIcon ms-sm-1 ms-md-2 ms-lg-5" 
+                            src="/includes/images/shinysprites/#prc.detail.pokemon.getSprite()##getSetting('imageExtension')#"
+                            alt="#prc.detail.pokemon.getName()# Shiny Sprite"
+                        >
                     </cfif>
                 </div>
                 <div>
-                    <img class="typeIcon" src="#prc.detail.pokemon.getType1Img()#">
+                    <img 
+                        class="typeIcon" 
+                        src="#prc.detail.pokemon.getType1Img()#"
+                        alt="#prc.detail.pokemon.getType1()# type icon"
+                    >
                     <cfif prc.detail.pokemon.getType2().len()>
-                        <img class="typeIcon" src="#prc.detail.pokemon.getType2Img()#">
+                        <img 
+                            class="typeIcon" 
+                            src="#prc.detail.pokemon.getType2Img()#"
+                            alt="#prc.detail.pokemon.getType1()# type icon"
+                        >
                     </cfif>
                 </div>
             </div>
@@ -91,21 +107,21 @@
                         <!--- starting from base stage, get all evolutions --->
                         <cfloop index="i" item="firstStage" array="#prc.detail.baseStage.getEvolution()#">
                             #view(
-                                view="/views/pokedex/fragment/evolutionrow",
+                                view="/views/pokemon/fragment/evolutionrow",
                                 nolayout=true,
                                 args={evolution: firstStage}
                             )#
                             
                             <cfloop index="j" item="secondStage" array="#firstStage.getEvolution().getEvolution()#">
                                 #view(
-                                    view="/views/pokedex/fragment/evolutionrow",
+                                    view="/views/pokemon/fragment/evolutionrow",
                                     nolayout=true,
                                     args={evolution: secondStage}
                                 )#
 
                                 <cfloop index="k" item="thirdStage" array="#secondStage.getEvolution().getEvolution()#">
                                     #view(
-                                        view="/views/pokedex/fragment/evolutionrow",
+                                        view="/views/pokemon/fragment/evolutionrow",
                                         nolayout=true,
                                         args={evolution: thirdStage}
                                     )#
@@ -141,7 +157,7 @@
                     <tbody>
                         <cfloop index="i" item="currMove" array="#prc.detail.pokemon.getMoves("fast", "normal")#">
                             #view(
-                                view="/views/pokedex/fragment/moverow",
+                                view="/views/pokemon/fragment/moverow",
                                 nolayout=true,
                                 args={move: currMove.getMove()}
                             )#
@@ -161,7 +177,7 @@
                     <tbody>
                         <cfloop index="i" item="currMove" array="#prc.detail.pokemon.getMoves("charge", "normal")#">
                             #view(
-                                view="/views/pokedex/fragment/moverow",
+                                view="/views/pokemon/fragment/moverow",
                                 nolayout=true,
                                 args={move: currMove.getMove()}
                             )#
@@ -183,22 +199,22 @@
                 <table class="table table-striped align-middle mb-0">
                     <tbody>
                         #view(
-                            view="/views/pokedex/fragment/pokemonstatrow", 
+                            view="/views/pokemon/fragment/statrow", 
                             nolayout=true, 
                             args={stat: "Max CP", value: "#prc.detail.cp.lvl50[2]# CP", color: "bg-success", percent: prc.detail.statPercentages.cp}
                         )#
                         #view(
-                            view="/views/pokedex/fragment/pokemonstatrow", 
+                            view="/views/pokemon/fragment/statrow", 
                             nolayout=true, 
                             args={stat: "Attack", value: "#prc.detail.pokemon.getAttack()# ATK", color: "", percent: prc.detail.statPercentages.attack}
                         )#
                         #view(
-                            view="/views/pokedex/fragment/pokemonstatrow", 
+                            view="/views/pokemon/fragment/statrow", 
                             nolayout=true, 
                             args={stat: "Defense", value: "#prc.detail.pokemon.getDefense()# DEF", color: "bg-warning", percent: prc.detail.statPercentages.defense}
                         )#
                         #view(
-                            view="/views/pokedex/fragment/pokemonstatrow", 
+                            view="/views/pokemon/fragment/statrow", 
                             nolayout=true, 
                             args={stat: "Stamina", value: "#prc.detail.pokemon.getHP()# HP", color: "bg-danger", percent: prc.detail.statPercentages.hp}
                         )#

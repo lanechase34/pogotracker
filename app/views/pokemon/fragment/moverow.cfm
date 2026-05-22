@@ -2,7 +2,12 @@
 <tr>
     <td>
         <div class="d-flex align-items-center my-1">
-            <img class="typeIcon" src="#args.move.getTypeImg()#" alt="#args.move.getTypeImgAltText()#" loading="lazy"> 
+            <img 
+                class="typeIcon" 
+                src="#args.move.getTypeImg()#" 
+                alt="#args.move.getTypeImgAltText()#" 
+                loading="lazy"
+            > 
             <span class="mx-3">#args.move.getName()#</span>
         </div>
     </td>

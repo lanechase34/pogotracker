@@ -51,3 +51,5 @@ app/tests/results/*
 !app/tests/results/.gitkeep
 
 app/cflint-results.json
+
+app/includes/sitemap.xml

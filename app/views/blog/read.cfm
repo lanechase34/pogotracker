@@ -8,9 +8,9 @@
                 </div>
             </div>
             <div class="card-body">
-                <h2 class="card-title mb-3">
+                <h1 class="card-title h2 mb-3">
                     #prc.blog.getHeader()#
-                </h2>
+                </h1>
                 #view(
                     view="/views/blog/fragment/trainerinfo", 
                     args={trainer: prc.blog.getTrainer(), date: prc.blog.getBlogFormat()}

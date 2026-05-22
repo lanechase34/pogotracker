@@ -229,7 +229,7 @@ component {
                     entityExists : {entityName: 'trainer', pk: true},
                     securityCheck: {}
                 },
-                region: {required: false, type: 'string'},
+                region: {required: true, type: 'string'},
                 form  : {required: true, type: 'boolean'},
                 shiny : {required: true, type: 'boolean'},
                 hundo : {required: true, type: 'boolean'},

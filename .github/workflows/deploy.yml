@@ -38,6 +38,7 @@ jobs:
             --exclude='includes/.prettierrc'
             --exclude='includes/playwright.config.js'
             --exclude='handlers/dev.cfc'
+            --exclude='includes/sitemap.xml'
             --exclude='coldbox/'
             --include='config/modules/***'
             --exclude='modules/'

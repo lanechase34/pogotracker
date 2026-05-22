@@ -1,5 +1,5 @@
 <cfoutput>
-<div class="row align-items-center mt-5 mt-lg-0 vh-lg-100">
+<div class="row align-items-center mt-5 mt-lg-0 flex-grow-1">
     <div class="col-sm-12 col-md-8 offset-md-2 col-lg-6 offset-lg-3 col-xxl-4 offset-xxl-4">
         <div class="row mb-3 text-center border-bottom">
             <div class="d-flex align-items-center justify-content-center mb-2">

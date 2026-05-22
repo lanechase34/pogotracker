@@ -97,6 +97,7 @@ component extends="base" {
     }
 
     function loginForm(event, rc, prc) {
+        prc.metaDescription = 'Sign in to POGO Tracker to track your Pokémon GO journey — Pokédex, XP, medals, shiny collection, and more.';
         if(prc.keyExists('statusCode')) {
             event.setHTTPHeader(statusCode = 401);
         }
@@ -161,7 +162,8 @@ component extends="base" {
     }
 
     function registrationForm(event, rc, prc) {
-        prc.iconMap = trainerService.getIconMap();
+        prc.metaDescription = 'Create your free POGO Tracker account. Track your Pokémon GO Pokédex, XP, medals, shinies, walking distance, and plan trades with friends.';
+        prc.iconMap         = trainerService.getIconMap();
     }
 
     function register(event, rc, prc) {

@@ -1,5 +1,5 @@
 <cfoutput>
-<div class="d-flex justify-content-center align-items-center text-center errorDiv">
+<div class="d-flex justify-content-center align-items-center text-center flex-grow-1">
     <div class="col-12 col-md-8 col-lg-6">
 
         <div class="mb-4">

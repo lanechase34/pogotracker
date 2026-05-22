@@ -22,6 +22,7 @@ component extends="base" {
     function preHandler(event, rc, prc, action, eventArguments) {
         prc.title           = 'Blog - #getSetting('title')#';
         prc.metaDescription = 'POGO Tracker blog. Read latest news about POGO Tracker.';
+        prc.metaRobots      = 'noindex, nofollow';
     }
 
     /**
@@ -72,12 +73,17 @@ component extends="base" {
 
         // Does not exist
         if(isNull(prc.blog)) {
+            event.setLayout('basic');
             htmlNotFound(event);
             return;
         }
 
         prc.header          = '';
-        prc.metaDescription = !isNull(prc.blog.getMeta()) ? prc.blog.getMeta() : '';
+        prc.title           = '#prc.blog.getHeader()# - #getSetting('title')#';
+        prc.metaDescription = !isNull(prc.blog.getMeta()) && prc.blog.getMeta().len() ? prc.blog.getMeta() : prc.title;
+        prc.metaRobots      = 'index, follow';
+        prc.ogImage         = prc.blog.getOgImage();
+        prc.suppressH1      = true; // article provides its own h1 inside the card
     }
 
     /**

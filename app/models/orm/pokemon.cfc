@@ -101,4 +101,8 @@ component persistent="true" extends="base" {
         return '/includes/images/type#arguments.type#/#lCase(getType2())#.webp';
     }
 
+    string function getOgImage() {
+        return '#application.cbController.getSetting('domain')#/includes/images/sprites/#getSprite()##application.cbController.getSetting('imageExtension')#';
+    }
+
 }

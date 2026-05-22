@@ -26,12 +26,13 @@ component extends="base" {
          */
         prc.detail = pokemonService.getDetail(ses = rc.ses);
         if(!prc.detail.keyExists('pokemon')) {
+            event.setLayout('basic');
             htmlNotFound(event = event);
             return;
         }
 
         prc.metaDescription = prc.detail.metaDescription;
-        prc.title           = prc.detail.title & '- #getSetting('title')#';
+        prc.title           = prc.detail.title & ' - #getSetting('title')#';
     }
 
     /**

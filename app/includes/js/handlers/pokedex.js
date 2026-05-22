@@ -378,6 +378,7 @@ async function switchShadowPokedex() {
     }
     url += `/shiny/${pokedexStruct.shiny}`;
     url += `/shadow/${pokedexStruct.shadow}`;
+    url += '/region/shadowRegion';
 
     return await getWrapper({
         url,

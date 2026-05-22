@@ -1,3 +1,9 @@
 User-agent: *
-Disallow: 
+Disallow: /admin
+Disallow: /logout
+Disallow: /mypokedex
+Disallow: /myshadowpokedex
+Disallow: /overview
+Disallow: /custompokedexlist
+Disallow: /profile
 Sitemap: https://pogotracker.app/sitemap.xml

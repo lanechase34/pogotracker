@@ -26,9 +26,6 @@
                 <a href="/dev/testEventTask" class="list-group-item list-group-item-action d-flex gap-2 py-3">
                     <div class="d-flex gap-2 w-100 justify-content-between">Test Leekduck Event Task</div>
                 </a>
-                <a href="/dev/updateSiteMap" class="list-group-item list-group-item-action d-flex gap-2 py-3">
-                    <div class="d-flex gap-2 w-100 justify-content-between">Update Sitemap</div>
-                </a>
                 <a href="/dev/viewEmail" class="list-group-item list-group-item-action d-flex gap-2 py-3">
                     <div class="d-flex gap-2 w-100 justify-content-between">View Sent Email</div>
                 </a>

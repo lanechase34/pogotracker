@@ -14,6 +14,7 @@ component singleton accessors="true" {
     property name="securityService"   inject="services.security";
 
     property name="concurrency"   inject="coldbox:setting:concurrency";
+    property name="domainProd"    inject="coldbox:setting:domainProd";
     property name="logPath"       inject="coldbox:setting:logPath";
     property name="maxThreads"    inject="coldbox:setting:maxThreads";
     property name="rootPath"      inject="coldbox:setting:rootPath";
@@ -1759,6 +1760,100 @@ component singleton accessors="true" {
         if(!isNumeric(cpuVal)) return null;
         if(cpuVal < 0 || cpuVal > 100) return null;
         return round(cpuVal);
+    }
+
+    /**
+     * Rebuilds the /includes/sitemap.xml with the last info including:
+     * all blogs, accessible pages by un-authorized user, and pokemon detail pages
+     */
+    public void function updateSiteMap() {
+        var filePath     = '#getRootPath()#/includes/sitemap.xml';
+        var nowFormatted = dateFormat(now(), 'yyyy-mm-dd');
+        var domain       = getDomainProd();
+
+        // Helper: returns changefreq and priority based on URL type
+        var getUrlMeta = function(loc) {
+            if(loc.findNoCase('/pokemon/') GT 0) {
+                return {changefreq: 'monthly', priority: '0.8'};
+            }
+            else if(loc.findNoCase('/readblog/') GT 0) {
+                return {changefreq: 'monthly', priority: '0.7'};
+            }
+            else if(loc == '#domain#/') {
+                return {changefreq: 'weekly', priority: '1.0'};
+            }
+            else if(loc == '#domain#/login' || loc == '#domain#/register') {
+                return {changefreq: 'yearly', priority: '0.4'};
+            }
+            else {
+                return {changefreq: 'monthly', priority: '0.5'};
+            }
+        };
+
+        // Build URL -> lastmod map (only public, indexable pages)
+        // Note: auth-required pages are excluded - they are blocked in robots.txt
+        var locModMap        = {};
+        var pokemonNameMap   = {}; // ses -> name for image:title
+        var pokemonSpriteMap = {}; // ses -> sprite filename for image:loc
+
+        locModMap['#domain#/']         = nowFormatted;
+        locModMap['#domain#/login']    = nowFormatted;
+        locModMap['#domain#/register'] = nowFormatted;
+
+        // Pokemon pages - fetch sprite and name for image sitemap entries
+        queryExecute('
+            select ses, name, sprite
+            from pokemon
+            order by generation asc, number asc, form asc, name asc
+        ').each((row) => {
+            locModMap['#domain#/pokemon/#row.ses#'] = nowFormatted;
+            pokemonNameMap[row.ses]                 = row.name;
+            pokemonSpriteMap[row.ses]               = row.sprite;
+        });
+
+        // Blog pages
+        queryExecute('
+            select created, header
+            from blog
+        ').each((row) => {
+            locModMap['#domain#/readblog/#row.header.replace(' ', '-', 'all')#'] = dateFormat(row.created, 'yyyy-mm-dd');
+        });
+
+        // Force welcome blog to always reflect current date
+        locModMap['#domain#/readblog/Welcome-to-POGO-Tracker!'] = nowFormatted;
+
+        // Build sitemap as a string so we can use the image namespace without
+        // fighting CFML's XML API namespace handling
+        var lines = [];
+        lines.append('<?xml version="1.0" encoding="UTF-8"?>');
+        lines.append('<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"');
+        lines.append('        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">');
+
+        locModMap.each((loc, lastmod) => {
+            var meta = getUrlMeta(loc);
+            lines.append('  <url>');
+            lines.append('    <loc>#encodeForXML(loc)#</loc>');
+            lines.append('    <lastmod>#lastmod#</lastmod>');
+            lines.append('    <changefreq>#meta.changefreq#</changefreq>');
+            lines.append('    <priority>#meta.priority#</priority>');
+
+            // Add image entry for pokemon pages
+            if(loc.findNoCase('/pokemon/') GT 0) {
+                var ses       = listLast(loc, '/');
+                var imgSprite = pokemonSpriteMap.keyExists(ses) ? pokemonSpriteMap[ses] : ses;
+                var imgTitle  = pokemonNameMap.keyExists(ses) ? encodeForXML(pokemonNameMap[ses]) : encodeForXML(ses);
+                lines.append('    <image:image>');
+                lines.append('      <image:loc>#encodeForXML(domain)#/includes/images/sprites/#encodeForURL(imgSprite)#.webp</image:loc>');
+                lines.append('      <image:title>#imgTitle#</image:title>');
+                lines.append('    </image:image>');
+            }
+
+            lines.append('  </url>');
+        });
+
+        lines.append('</urlset>');
+
+        fileWrite(filePath, lines.toList(chr(10)), 'UTF-8');
     }
 
 }

@@ -141,10 +141,6 @@ html {
     font-size: 1rem;
 }
 
-.vh-lg-100 {
-    height: 100%;
-}
-
 .btn-adjust {
     --bs-btn-padding-y: 0.25rem;
     --bs-btn-padding-x: 0.5rem;
@@ -217,9 +213,6 @@ pre:has(code) {
     }
     .hfs-5 {
         font-size: 1.25rem;
-    }
-    .vh-lg-100 {
-        height: 100vh !important;
     }
     .btn-adjust {
         --bs-btn-padding-x: 0.75rem;
@@ -351,10 +344,6 @@ body {
 
 .inlineBlock {
     display: inline-block;
-}
-
-.errorDiv {
-    min-height: 60vh;
 }
 
 .errorIcon {

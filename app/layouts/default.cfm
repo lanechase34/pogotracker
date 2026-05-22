@@ -2,45 +2,26 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>#prc.title.len() ? prc.title : getSetting("title")#</title>
-    <meta charset="UTF-8">
-    <meta name="description" content="#encodeForHTMLAttribute(prc.metaDescription.len() ? prc.metaDescription : getSetting('metaDescription'))#">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
-    <meta name="theme-color" content="rgb(33, 37, 41)">
-    <link rel="canonical" href="#prc.canonicalURL#">
-
-    <!--- Favicon --->
-    <link rel="icon" type="image/x-icon" sizes="32x32" href="/includes/images/favicon.ico?v=#getSetting('favIcoVersion')#">
-    <link rel="icon" type="image/svg+xml" href="/includes/images/favicon.svg?v=#getSetting('favIcoVersion')#">
-    <link rel="apple-touch-icon" href="/includes/images/apple-touch-icon.png?v=#getSetting('favIcoVersion')#">
+    #view(view='/layouts/header')#
 
     <!--- CSS Lib --->
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
-    <link rel="preload" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/fonts/bootstrap-icons.woff2" as="font" type="font/woff2" crossorigin>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">    
-    
     <link rel="stylesheet" type="text/css" href="/includes/build/css/lib/multiselect.min.css" media="print" onload="this.media='all'; this.onload=null;"/>
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" crossorigin="anonymous" media="print" onload="this.media='all'; this.onload=null;"/>
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/bs5/dt-2.1.8/b-3.2.0/fh-4.0.1/r-3.0.3/datatables.min.css" crossorigin="anonymous" media="print" onload="this.media='all'; this.onload=null;"/>
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" crossorigin="anonymous" media="print" onload="this.media='all'; this.onload=null;"/>
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" crossorigin="anonymous" media="print" onload="this.media='all'; this.onload=null;"/>
 
-    <!--- Global styles --->
-    <link rel="stylesheet" type="text/css" href="#getSetting('cssPath')#/global#getSetting('minifiedCSS')#.css#getSetting('cacheBuster')#"/>
-
     <!--- Handler styles --->
     <cfif fileExists("#getSetting('rootPath')##getSetting('cssPath')#/#prc.currHandler##getSetting('minifiedCSS')#.css")>
         <link rel="stylesheet" type="text/css" href="#getSetting('cssPath')#/#prc.currHandler##getSetting('minifiedCSS')#.css#getSetting('cacheBuster')#"/>
     </cfif>
 
-    #view(view="/views/fragment/importmap", args={jsPath: getSetting('jsPath'), minifiedJS: getSetting('minifiedJS'), cacheBuster: getSetting('cacheBuster')})#
-
     <script>let globalModals = {'init': true};</script>
 </head>
-<body class="mb-3">
-<div id="mainbody">
+<body>
+<div id="mainbody" class="d-flex flex-column min-vh-100">
     <!--- Navbar and header --->
-    <nav class="bg-dark sticky-top container-fluid d-block">
+    <nav class="bg-dark sticky-top container-fluid d-block" aria-label="Main">
         <div class="mx-lg-3 py-2 py-md-1">
             <div class="row">
                 <!--- offcanvas hamburger --->
@@ -182,14 +163,16 @@
     </nav>
 
     <!--- Main content --->
-    <main class="container-fluid">
-        <div class="row">
-            <div id="mainSection" class="col-12">
-                <div class="mx-sm-1 mx-lg-3">
+    <main class="container-fluid flex-grow-1 d-flex flex-column">
+        <div class="row flex-grow-1">
+            <div id="mainSection" class="col-12 d-flex flex-column">
+                <div class="mx-sm-1 mx-lg-3 flex-grow-1 d-flex flex-column">
                     <cfif prc.keyExists('header') AND prc.header.len()>
-                        <h2 class="text-center hfs-5 m-0 p-0 fw-bold" id="bodyHeader">
+                        <h1 class="text-center hfs-5 m-0 p-0 fw-bold" id="bodyHeader">
                             #prc?.header ?: ''#
-                        </h2>
+                        </h1>
+                    <cfelseif !prc.keyExists('suppressH1')>
+                        <h1 class="visually-hidden">#prc.title.len() ? prc.title : getSetting('title')#</h1>
                     </cfif>
                     #view("/views/fragment/alert")#
                     #view()#
@@ -198,6 +181,8 @@
         </div>
     </main>
     
+    #view(view='/layouts/footer')#
+
     #view(view="/views/modal/loading")#
 
     <div id="confirmModalDiv"></div>
@@ -209,7 +194,7 @@
     <div id="toastsDiv"></div>
     
     <!--- Offcanvas side bar --->
-    <nav class="navbar navbar-dark offcanvas-nav-wrapper">
+    <nav class="navbar navbar-dark offcanvas-nav-wrapper" aria-label="Sidebar">
     <div 
         class="offcanvas offcanvas-start text-bg-dark " 
         data-bs-scroll="false" 
@@ -219,7 +204,7 @@
     >
         <div class="offcanvas-header pe-0 pt-sm-3 pt-md-2 pb-2 d-flex align-items-center">
             <img src="/includes/images/favicon.svg?v=#getSetting('favIcoVersion')#" alt="POGO Tracker Logo" class="logo me-1">
-            <h1 class="fs-4 m-0" id="sideNavbarLabel">POGO Tracker</h1> 
+            <span class="fs-4 m-0" id="sideNavbarLabel">POGO Tracker</span>
             <button type="button" id="closeSideNavbar" class="btn-close btn-close-white ms-auto me-3" data-bs-dismiss="offcanvas" aria-label="Close"></button>
         </div>
         <div class="offcanvas-body d-flex pt-0">
@@ -305,7 +290,6 @@
     </nav> 
 </div>
 #view(view="/views/fragment/data")#
-</body>
 
 <!--- JS Lib --->
 <script type="text/javascript" defer src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
@@ -326,5 +310,6 @@
 <cfelse>
     <script type="module" src="/includes/js/global.js#getSetting('cacheBuster')#"></script>
 </cfif>
+</body>
 </html>
 </cfoutput>

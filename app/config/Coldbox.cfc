@@ -99,6 +99,7 @@ component {
                 defaultPage  : '/'
             },
             domain         : 'https://pogotracker.app',
+            domainProd     : 'https://pogotracker.app',
             eventDaysBefore: 3, // task pulls in events up to 3 days before they start before creating custom entries automatically
             favIcoVersion  : 3,
             fetchCount     : 7, // number of news/leekduck posts to fetch on home page
@@ -112,7 +113,7 @@ component {
             logPath        : logPath,
             logRequests    : false,
             maxThreads     : createObject('java', 'java.lang.Runtime').getRuntime().availableProcessors(),
-            metaDescription: 'POGO Tracker offers in-depth analytics on your Pokémon collection, daily catches, walking distance, medal achievements, and much more',
+            metaDescription: 'Track your Pokémon GO progress. Monitor XP, Pokédex completions, shiny collection, medals, and walking distance. Plan trades with friends and stay on top of events.',
             metaKeywords   : 'Pokémon GO, pogotracker, POGO Tracker, Pokémon GO Pokédex, Pokémon GO stats, Pokémon GO statistics, Pokémon GO daily XP, POGO xp tracker, Pokémon GO Track Pokédex, shiny Pokémon tracker',
             // Minified CSS, JS settings
             minifiedCSS    : '.min',
@@ -169,7 +170,7 @@ component {
             systemTrainer        : 'lanechase34@outlook.com',
             testEmailPath        : '#replace(expandPath('/'), '\', '/', 'all')#/_testemails',
             uploadPath           : '#replace(expandPath('/'), '\', '/', 'all')#/includes/uploads',
-            title                : 'POGO Tracker',
+            title                : 'POGO Tracker - Track Your Pokémon GO Progress',
             useCache             : true,
             useRecaptcha         : true,
             verificationLifespan : 15, // time in minutes the verification link is valid for

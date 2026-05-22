@@ -25,7 +25,8 @@ component extends="base" {
         saveOverrides         : 'POST',
         logViewer             : 'GET',
         requestLog            : 'GET',
-        getRequests           : 'GET'
+        getRequests           : 'GET',
+        updateSiteMap         : 'GET'
     };
 
     property name="auditService"      inject="services.audit";
@@ -44,7 +45,8 @@ component extends="base" {
     property name="trainerService"    inject="services.trainer";
 
     function preHandler(event, rc, prc, action, eventArguments) {
-        prc.title = 'Admin - #getSetting('title')#';
+        prc.title      = 'Admin - #getSetting('title')#';
+        prc.metaRobots = 'noindex, nofollow';
     }
 
     function index(event, rc, prc) {
@@ -390,6 +392,18 @@ component extends="base" {
             );
         }
         relocate(event = 'admin.readOverrides');
+    }
+
+    function updateSiteMap(event, rc, prc) {
+        adminService.updateSiteMap();
+
+        sessionService.setAlert(
+            'success',
+            true,
+            'bi bi-file-earmark-check',
+            'Successfully Updated.'
+        );
+        relocate(event = 'admin');
     }
 
 }
