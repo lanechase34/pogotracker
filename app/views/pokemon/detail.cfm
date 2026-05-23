@@ -1,130 +1,153 @@
 <cfoutput>
-<div class="row pokemonCards">
-    <!--- Main Card --->
-    <div class="col-12 col-lg-6 mt-3 pokemonCard">
-        <div class="card shadow-sm">
-            <div class="card-header h5">
-                <h2 class="h5 m-0 p-0">#prc.detail.pokemon.getNumber()# - #prc.detail.pokemon.getName()#</h2>
-            </div>
-            <div class="card-body d-flex flex-column justify-content-center align-items-center">
-                <div>
-                    <img 
-                        class="pokemonIcon" 
-                        src="/includes/images/sprites/#prc.detail.pokemon.getSprite()##getSetting('imageExtension')#"
-                        alt="#prc.detail.pokemon.getName()# Sprite"
-                    >
-                    <cfif prc.detail.pokemon.getShiny()>
-                        <img 
-                            class="pokemonIcon ms-sm-1 ms-md-2 ms-lg-5" 
-                            src="/includes/images/shinysprites/#prc.detail.pokemon.getSprite()##getSetting('imageExtension')#"
-                            alt="#prc.detail.pokemon.getName()# Shiny Sprite"
-                        >
-                    </cfif>
-                </div>
-                <div>
-                    <img 
-                        class="typeIcon" 
-                        src="#prc.detail.pokemon.getType1Img()#"
-                        alt="#prc.detail.pokemon.getType1()# type icon"
-                    >
-                    <cfif prc.detail.pokemon.getType2().len()>
-                        <img 
-                            class="typeIcon" 
-                            src="#prc.detail.pokemon.getType2Img()#"
-                            alt="#prc.detail.pokemon.getType1()# type icon"
-                        >
-                    </cfif>
+<!--- Hero --->
+<div class="row mt-3">
+    <div class="col-12">
+        <div class="card shadow-sm pokemon-hero">
+            <div class="card-body py-4 px-4">
+                <div class="row align-items-center gy-3">
+                    <div class="col-12 col-sm-auto text-center">
+                        <div class="pokemon-sprite-pair">
+                            <div class="pokemon-sprite-group">
+                                <img
+                                    class="pokemonIcon"
+                                    src="/includes/images/sprites/#prc.detail.pokemon.getSprite()##getSetting('imageExtension')#"
+                                    alt="#prc.detail.pokemon.getName()# Sprite"
+                                >
+                                <span class="badge bg-dark text-white sprite-label">Normal</span>
+                            </div>
+                            <cfif prc.detail.pokemon.getShiny()>
+                            <div class="pokemon-sprite-group">
+                                <img
+                                    class="pokemonIcon"
+                                    src="/includes/images/shinysprites/#prc.detail.pokemon.getSprite()##getSetting('imageExtension')#"
+                                    alt="#prc.detail.pokemon.getName()# Shiny Sprite"
+                                >
+                                <span class="badge bg-dark text-white sprite-label">&##x2728; Shiny</span>
+                            </div>
+                            </cfif>
+                        </div>
+                    </div>
+                    <div class="col-12 col-sm text-center text-sm-start">
+                        <p class="pokemon-hero-number mb-0">No.&nbsp;#prc.detail.pokemon.getNumber()#</p>
+                        <h2 class="pokemon-hero-name">#prc.detail.pokemon.getName()#</h2>
+                        <div class="pokemon-types justify-content-center justify-content-sm-start">
+                            <img
+                                class="typeIcon"
+                                src="#prc.detail.pokemon.getType1Img()#"
+                                alt="#prc.detail.pokemon.getType1()# type"
+                            >
+                            <cfif prc.detail.pokemon.getType2().len()>
+                                <img
+                                    class="typeIcon"
+                                    src="#prc.detail.pokemon.getType2Img()#"
+                                    alt="#prc.detail.pokemon.getType2()# type"
+                                >
+                            </cfif>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-    <!--- CP Card --->
-    <div class="col-12 col-lg-6 mt-3 pokemonCard">
-        <div class="card shadow-sm">
-            <div class="card-header h5">
-                CP Values
+</div>
+
+<!--- CP Values + Base Stats --->
+<div class="row g-3 mt-3">
+    <div class="col-12 col-md-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-header card-header-pokemon">
+                <i class="bi bi-graph-up"></i> CP Values
+            </div>
+            <ul class="list-group list-group-flush cp-list">
+                <li class="list-group-item">
+                    <span class="cp-label">
+                        <i class="bi bi-search text-secondary"></i>
+                        <span>Research <span class="cp-tier">Lvl 15</span></span>
+                    </span>
+                    <span class="cp-value">#prc.detail.cp.lvl15[2]#</span>
+                </li>
+                <li class="list-group-item">
+                    <span class="cp-label">
+                        <i class="bi bi-egg text-secondary"></i>
+                        <span>Raid / Egg <span class="cp-tier">Lvl 20</span></span>
+                    </span>
+                    <span class="cp-value">#prc.detail.cp.lvl20[1]# &ndash; #prc.detail.cp.lvl20[2]#</span>
+                </li>
+                <li class="list-group-item">
+                    <span class="cp-label">
+                        <i class="bi bi-cloud-sun text-secondary"></i>
+                        <span>Weather Boosted <span class="cp-tier">Lvl 25</span></span>
+                    </span>
+                    <span class="cp-value">#prc.detail.cp.lvl25[1]# &ndash; #prc.detail.cp.lvl25[2]#</span>
+                </li>
+                <li class="list-group-item">
+                    <span class="cp-label">
+                        <i class="bi bi-trophy text-secondary"></i>
+                        <span>Max CP <span class="cp-tier">Lvl 50</span></span>
+                    </span>
+                    <span class="cp-value">#prc.detail.cp.lvl50[2]#</span>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <div class="col-12 col-md-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-header card-header-pokemon">
+                <i class="bi bi-bar-chart-line"></i> Base Stats
             </div>
             <div class="card-body">
-                <div class="tableDiv">
-                <table class="table table-striped align-middle mb-0">
-                    <tbody>
-                        <tr class="py-1">
-                            <th scope="row">Research (Lvl15)</th>
-                            <td class="text-center text-primary fw-semibold fs-6">
-                                <div class="my-1">
-                                    #prc.detail.cp.lvl15[2]#
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <th scope="row">Raid / Egg (Lvl20)</th>
-                            <td class="text-center text-primary fw-semibold fs-6">
-                                <div class="my-1">
-                                    #prc.detail.cp.lvl20[1]# - #prc.detail.cp.lvl20[2]#
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <th scope="row">Weather Boosted Raid (Lvl25)</th>
-                            <td class="text-center text-primary fw-semibold fs-6">
-                                <div class="my-1">
-                                    #prc.detail.cp.lvl25[1]# - #prc.detail.cp.lvl25[2]#
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <th scope="row">Max CP (Lvl50)</th>
-                            <td class="text-center text-primary fw-semibold fs-6">
-                                <div class="my-1">
-                                    #prc.detail.cp.lvl50[2]#
-                                </div>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
+                <div class="pt-1">
+                    #view(
+                        view="/views/pokemon/fragment/statrow",
+                        nolayout=true,
+                        args={stat: "Max CP", value: "#prc.detail.cp.lvl50[2]# CP", color: "bg-primary", percent: prc.detail.statPercentages.cp}
+                    )#
+                    #view(
+                        view="/views/pokemon/fragment/statrow",
+                        nolayout=true,
+                        args={stat: "Attack", value: "#prc.detail.pokemon.getAttack()# ATK", color: "bg-danger", percent: prc.detail.statPercentages.attack}
+                    )#
+                    #view(
+                        view="/views/pokemon/fragment/statrow",
+                        nolayout=true,
+                        args={stat: "Defense", value: "#prc.detail.pokemon.getDefense()# DEF", color: "bg-warning", percent: prc.detail.statPercentages.defense}
+                    )#
+                    #view(
+                        view="/views/pokemon/fragment/statrow",
+                        nolayout=true,
+                        args={stat: "Stamina", value: "#prc.detail.pokemon.getHP()# HP", color: "bg-success", percent: prc.detail.statPercentages.hp}
+                    )#
                 </div>
             </div>
         </div>
     </div>
-    <!--- Evolutions Card --->
-    <div class="col-12 col-lg-6 mt-3 pokemonCard">
-        <div class="card shadow-sm">
-            <div class="card-header h5">
-                Evolutions
+</div>
+
+<!--- Evolutions + Moves --->
+<div class="row g-3 mt-3">
+    <div class="col-12 col-md-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-header card-header-pokemon">
+                <i class="bi bi-arrow-right-circle"></i> Evolutions
             </div>
             <div class="card-body">
                 <cfif prc.detail.baseStage.getEvolution().len()>
                 <div class="tableDiv">
                 <table class="table align-middle text-center mb-0">
-                    <thead>
+                    <thead class="table-light">
                         <tr>
-                            <th scope="col" class="col-4">Pokemon</th>
-                            <th scope="col" class="col-4">Requirement</th>
-                            <th scope="col" class="col-4">Evolution</th>
+                            <th class="col-4 small fw-semibold text-muted text-uppercase">From</th>
+                            <th class="col-4 small fw-semibold text-muted text-uppercase">Cost</th>
+                            <th class="col-4 small fw-semibold text-muted text-uppercase">To</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <!--- starting from base stage, get all evolutions --->
                         <cfloop index="i" item="firstStage" array="#prc.detail.baseStage.getEvolution()#">
-                            #view(
-                                view="/views/pokemon/fragment/evolutionrow",
-                                nolayout=true,
-                                args={evolution: firstStage}
-                            )#
-                            
+                            #view(view="/views/pokemon/fragment/evolutionrow", nolayout=true, args={evolution: firstStage})#
                             <cfloop index="j" item="secondStage" array="#firstStage.getEvolution().getEvolution()#">
-                                #view(
-                                    view="/views/pokemon/fragment/evolutionrow",
-                                    nolayout=true,
-                                    args={evolution: secondStage}
-                                )#
-
+                                #view(view="/views/pokemon/fragment/evolutionrow", nolayout=true, args={evolution: secondStage})#
                                 <cfloop index="k" item="thirdStage" array="#secondStage.getEvolution().getEvolution()#">
-                                    #view(
-                                        view="/views/pokemon/fragment/evolutionrow",
-                                        nolayout=true,
-                                        args={evolution: thirdStage}
-                                    )#
+                                    #view(view="/views/pokemon/fragment/evolutionrow", nolayout=true, args={evolution: thirdStage})#
                                 </cfloop>
                             </cfloop>
                         </cfloop>
@@ -132,55 +155,48 @@
                 </table>
                 </div>
                 <cfelse>
-                    <div class="text-center">
-                        No Evolutions
+                    <div class="text-center text-muted py-3">
+                        <i class="bi bi-x-circle fs-3 d-block mb-2 opacity-50"></i>
+                        <span class="small">No Evolutions</span>
                     </div>
                 </cfif>
             </div>
         </div>
     </div>
-    <!--- Move Card --->
-    <div class="col-12 col-lg-6 mt-3 pokemonCard">
-        <div class="card shadow-sm">
-            <div class="card-header h5">
-                Moves
+    <div class="col-12 col-md-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-header card-header-pokemon">
+                <i class="bi bi-lightning-charge"></i> Moves
             </div>
-            <div class="card-body">
-                <div class="tableDiv">
-                <table class="table align-middle mb-3">
-                    <thead>
+            <div class="card-body pb-1">
+                <p class="moves-section-label text-muted mb-2">Fast Moves</p>
+                <div class="tableDiv mb-3">
+                <table class="table align-middle mb-0">
+                    <thead class="table-light">
                         <tr>
-                            <th scope="col" class="col-6">Fast Moves</th>
-                            <th scope="col" class="col-6">Damage, Energy</th>
+                            <th class="small fw-semibold">Move</th>
+                            <th class="small fw-semibold text-end">DMG / Energy</th>
                         </tr>
                     </thead>
                     <tbody>
                         <cfloop index="i" item="currMove" array="#prc.detail.pokemon.getMoves("fast", "normal")#">
-                            #view(
-                                view="/views/pokemon/fragment/moverow",
-                                nolayout=true,
-                                args={move: currMove.getMove()}
-                            )#
+                            #view(view="/views/pokemon/fragment/moverow", nolayout=true, args={move: currMove.getMove()})#
                         </cfloop>
                     </tbody>
                 </table>
                 </div>
-
+                <p class="moves-section-label text-muted mb-2">Charge Moves</p>
                 <div class="tableDiv">
                 <table class="table align-middle mb-0">
-                    <thead>
+                    <thead class="table-light">
                         <tr>
-                            <th scope="col" class="col-6">Charge Moves</th>
-                            <th scope="col" class="col-6">Damage, Energy</th>
+                            <th class="small fw-semibold">Move</th>
+                            <th class="small fw-semibold text-end">DMG / Energy</th>
                         </tr>
                     </thead>
                     <tbody>
                         <cfloop index="i" item="currMove" array="#prc.detail.pokemon.getMoves("charge", "normal")#">
-                            #view(
-                                view="/views/pokemon/fragment/moverow",
-                                nolayout=true,
-                                args={move: currMove.getMove()}
-                            )#
+                            #view(view="/views/pokemon/fragment/moverow", nolayout=true, args={move: currMove.getMove()})#
                         </cfloop>
                     </tbody>
                 </table>
@@ -188,202 +204,168 @@
             </div>
         </div>
     </div>
-    <!--- Stats Card --->
-    <div class="col-12 col-lg-6 mt-3 pokemonCard">
-        <div class="card shadow-sm">
-            <div class="card-header h5">
-                Stats
-            </div>
-            <div class="card-body">
-                <div class="tableDiv">
-                <table class="table table-striped align-middle mb-0">
-                    <tbody>
-                        #view(
-                            view="/views/pokemon/fragment/statrow", 
-                            nolayout=true, 
-                            args={stat: "Max CP", value: "#prc.detail.cp.lvl50[2]# CP", color: "bg-success", percent: prc.detail.statPercentages.cp}
-                        )#
-                        #view(
-                            view="/views/pokemon/fragment/statrow", 
-                            nolayout=true, 
-                            args={stat: "Attack", value: "#prc.detail.pokemon.getAttack()# ATK", color: "", percent: prc.detail.statPercentages.attack}
-                        )#
-                        #view(
-                            view="/views/pokemon/fragment/statrow", 
-                            nolayout=true, 
-                            args={stat: "Defense", value: "#prc.detail.pokemon.getDefense()# DEF", color: "bg-warning", percent: prc.detail.statPercentages.defense}
-                        )#
-                        #view(
-                            view="/views/pokemon/fragment/statrow", 
-                            nolayout=true, 
-                            args={stat: "Stamina", value: "#prc.detail.pokemon.getHP()# HP", color: "bg-danger", percent: prc.detail.statPercentages.hp}
-                        )#
-                    </tbody>
-                    
-                </table>
-                </div>
-            </div>
-        </div>
-    </div>
-    <!--- Events Card --->
-    <div class="col-12 col-lg-6 mt-3 pokemonCard">
-        <div class="card shadow-sm">
-            <div class="card-header h5">
-                Previous Events
+</div>
+
+<!--- Events + Catch Rate --->
+<div class="row g-3 mt-3">
+    <div class="col-12 col-md-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-header card-header-pokemon">
+                <i class="bi bi-calendar-event"></i> Previous Events
             </div>
             <div class="card-body">
                 <cfif prc.detail.events.len()>
                     <div class="tableDiv">
-                        <table class="table table-striped">
-                            <thead>
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
                                 <tr>
-                                    <th scope="col" class="col-6">Event</th>
-                                    <th scope="col" class="col-6">Dates</th>
+                                    <th class="small fw-semibold">Event</th>
+                                    <th class="small fw-semibold text-nowrap">Dates</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <cfloop index="i" item="currEvent" array="#prc.detail.events#">
                                     <tr>
                                         <td>
-                                            <a href="/mycustompokedex/#currEvent.id#" target="_blank" class="link-dark link-offset-2">
+                                            <a href="/mycustompokedex/#currEvent.id#" target="_blank" class="link-dark fw-medium link-underline-opacity-0 link-underline-opacity-100-hover">
                                                 #currEvent.name#
                                             </a>
                                         </td>
-                                        <td>
-                                            #currEvent.begins# - #currEvent.ends#
+                                        <td class="text-muted small text-nowrap">
+                                            #currEvent.begins# &mdash; #currEvent.ends#
                                         </td>
                                     </tr>
                                 </cfloop>
-                            </tbody> 
+                            </tbody>
                         </table>
                     </div>
                 <cfelse>
-                    <p class="card-text fs-6">
-                        Not featured in any events
-                    </p>
+                    <div class="text-center text-muted py-3">
+                        <i class="bi bi-calendar-x fs-3 d-block mb-2 opacity-50"></i>
+                        <span class="small">Not featured in any events</span>
+                    </div>
                 </cfif>
             </div>
         </div>
     </div>
-    <!--- Catch card --->
-    <div class="col-12 col-lg-6 mt-3 pokemonCard">
-        <div class="card shadow-sm">
-            <div class="card-header h5">
-                Catch Rate
+    <div class="col-12 col-md-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-header card-header-pokemon">
+                <i class="bi bi-bullseye"></i> Catch Rate
             </div>
-            <div class="card-body">
-                <p class="card-text fs-6">
-                    Lvl20 raid no modifiers catch rate = #reReplace(numberFormat(prc.detail.catchRate.lvl20, ",.00"), "\.00$", "")#%
-                </p>
+            <div class="card-body d-flex align-items-center justify-content-center">
+                <div class="catch-hero">
+                    <div class="catch-pct">
+                        #reReplace(numberFormat(prc.detail.catchRate.lvl20, ",.00"), "\.00$", "")#<sup>%</sup>
+                    </div>
+                    <p class="catch-sub mb-0">Lvl 20 Raid &bull; No modifiers</p>
+                </div>
             </div>
         </div>
     </div>
-    <!-- Availability -->
-    <div class="col-12 col-lg-6 mt-3 pokemonCard">
+</div>
+
+<!--- Availability + Admin --->
+<div class="row g-3 mt-3 mb-3">
+    <div class="col-12 col-md-6">
         <div class="card shadow-sm h-100">
-            <div class="card-header h5">
-                Availability
-            </div>  
-            
-            <ul class="list-group list-group-flush availability-list">
-                <li class="list-group-item d-flex align-items-center gap-3">
-                    <span class="col-4 flex-grow-0">Normal</span>
+            <div class="card-header card-header-pokemon">
+                <i class="bi bi-check2-circle"></i> Availability
+            </div>
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item avail-item">
+                    <span class="avail-name">Normal</span>
                     <cfif prc.detail.pokemon.getLive()>
-                        <i class="bi bi-check-circle-fill text-success fs-5"></i>
+                        <span class="badge text-bg-success rounded-pill"><i class="bi bi-check-lg me-1"></i>Available</span>
                     <cfelse>
-                        <i class="bi bi-x-circle-fill text-muted fs-5"></i>
+                        <span class="badge text-bg-secondary rounded-pill"><i class="bi bi-dash me-1"></i>Unavailable</span>
                     </cfif>
                 </li>
-
-                <li class="list-group-item d-flex align-items-center gap-3">
-                    <span class="col-4 flex-grow-0">Shiny</span>
+                <li class="list-group-item avail-item">
+                    <span class="avail-name">Shiny</span>
                     <cfif prc.detail.pokemon.getShiny()>
-                        <i class="bi bi-check-circle-fill text-success fs-5"></i>
+                        <span class="badge text-bg-success rounded-pill"><i class="bi bi-check-lg me-1"></i>Available</span>
                     <cfelse>
-                        <i class="bi bi-x-circle-fill text-muted fs-5"></i>
+                        <span class="badge text-bg-secondary rounded-pill"><i class="bi bi-dash me-1"></i>Unavailable</span>
                     </cfif>
                 </li>
-
-                <li class="list-group-item d-flex align-items-center gap-3">
-                    <span class="col-4 flex-grow-0">Shadow</span>
+                <li class="list-group-item avail-item">
+                    <span class="avail-name">Shadow</span>
                     <cfif prc.detail.pokemon.getShadow()>
-                        <i class="bi bi-check-circle-fill text-success fs-5"></i>
+                        <span class="badge text-bg-success rounded-pill"><i class="bi bi-check-lg me-1"></i>Available</span>
                     <cfelse>
-                        <i class="bi bi-x-circle-fill text-muted fs-5"></i>
+                        <span class="badge text-bg-secondary rounded-pill"><i class="bi bi-dash me-1"></i>Unavailable</span>
                     </cfif>
                 </li>
-
-                <li class="list-group-item d-flex align-items-center gap-3">
-                    <span class="col-4 flex-grow-0">Shadow Shiny</span>
+                <li class="list-group-item avail-item">
+                    <span class="avail-name">Shadow Shiny</span>
                     <cfif prc.detail.pokemon.getShadowShiny()>
-                        <i class="bi bi-check-circle-fill text-success fs-5"></i>
+                        <span class="badge text-bg-success rounded-pill"><i class="bi bi-check-lg me-1"></i>Available</span>
                     <cfelse>
-                        <i class="bi bi-x-circle-fill text-muted fs-5"></i>
+                        <span class="badge text-bg-secondary rounded-pill"><i class="bi bi-dash me-1"></i>Unavailable</span>
                     </cfif>
                 </li>
-
-                <li class="list-group-item d-flex align-items-center gap-3">
-                    <span class="col-4 flex-grow-0">Tradable</span>
+                <li class="list-group-item avail-item">
+                    <span class="avail-name">Tradable</span>
                     <cfif prc.detail.pokemon.getTradable()>
-                        <i class="bi bi-check-circle-fill text-success fs-5"></i>
+                        <span class="badge text-bg-success rounded-pill"><i class="bi bi-check-lg me-1"></i>Yes</span>
                     <cfelse>
-                        <i class="bi bi-x-circle-fill text-muted fs-5"></i>
+                        <span class="badge text-bg-secondary rounded-pill"><i class="bi bi-dash me-1"></i>No</span>
                     </cfif>
                 </li>
             </ul>
         </div>
     </div>
     <cfif (session?.securityLevel ?: -10) GTE 50>
-        <!--- Admin panel --->
-        <div class="col-12 col-lg-6 mt-3 pokemonCard">
-            <div class="card shadow-sm">
-                <div class="card-header h5">
-                    Pokemon Detail
-                </div>
-                <div class="card-body mx-1">
-                    <form action="/pokemon/updateDetail" name="pokemonDetailForm" method="post" id="pokemonDetailForm" class="needs-validation p-0 m-0" novalidate>
-                        <input type="hidden" name="pokemonid" value="#prc.detail.pokemon.getId()#"/>
-                        <div class="row d-flex">
-                            <div class="col-12 mb-1">
-                                <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" role="switch" id="liveSwitch" name="liveSwitch" <cfif prc.detail.pokemon.getLive()>checked</cfif>>
-                                    <label class="form-check-label" for="liveSwitch">Live</label>
-                                </div>
-                            </div>
-                            <div class="col-12 mb-1">
-                                <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" role="switch" id="shinySwitch" name="shinySwitch" <cfif prc.detail.pokemon.getShiny()>checked</cfif>>
-                                    <label class="form-check-label" for="shinySwitch">Shiny</label>
-                                </div>
-                            </div>
-                            <div class="col-12 mb-1">
-                                <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" role="switch" id="shadowSwitch" name="shadowSwitch" <cfif prc.detail.pokemon.getShadow()>checked</cfif>>
-                                    <label class="form-check-label" for="shadowSwitch">Shadow</label>
-                                </div>
-                            </div>
-                            <div class="col-12 mb-1">
-                                <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" role="switch" id="shinyShadowSwitch" name="shinyShadowSwitch" <cfif prc.detail.pokemon.getShadowShiny()>checked</cfif>>
-                                    <label class="form-check-label" for="shinyShadowSwitch">Shiny Shadow</label>
-                                </div>
-                            </div>
-                            <div class="col-12 mb-1">
-                                <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" role="switch" id="tradableSwitch" name="tradableSwitch" <cfif prc.detail.pokemon.getTradable()>checked</cfif>>
-                                    <label class="form-check-label" for="tradableSwitch">Tradable</label>
-                                </div>
-                            </div>
-                            <div class="col-12 mt-3">
-                                <button type="submit" class="col-12 col-lg-4 mt-auto btn btn-sm btn-primary">
-                                    Update Detail
-                                </button>
+    <div class="col-12 col-md-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-header card-header-pokemon">
+                <i class="bi bi-tools"></i> Pokemon Detail
+            </div>
+            <div class="card-body mx-1">
+                <form action="/pokemon/updateDetail" name="pokemonDetailForm" method="post" id="pokemonDetailForm" class="needs-validation p-0 m-0" novalidate>
+                    <input type="hidden" name="pokemonid" value="#prc.detail.pokemon.getId()#"/>
+                    <div class="row d-flex">
+                        <div class="col-12 mb-1">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" role="switch" id="liveSwitch" name="liveSwitch" <cfif prc.detail.pokemon.getLive()>checked</cfif>>
+                                <label class="form-check-label" for="liveSwitch">Live</label>
                             </div>
                         </div>
-                    </form>
-                </div>
+                        <div class="col-12 mb-1">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" role="switch" id="shinySwitch" name="shinySwitch" <cfif prc.detail.pokemon.getShiny()>checked</cfif>>
+                                <label class="form-check-label" for="shinySwitch">Shiny</label>
+                            </div>
+                        </div>
+                        <div class="col-12 mb-1">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" role="switch" id="shadowSwitch" name="shadowSwitch" <cfif prc.detail.pokemon.getShadow()>checked</cfif>>
+                                <label class="form-check-label" for="shadowSwitch">Shadow</label>
+                            </div>
+                        </div>
+                        <div class="col-12 mb-1">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" role="switch" id="shinyShadowSwitch" name="shinyShadowSwitch" <cfif prc.detail.pokemon.getShadowShiny()>checked</cfif>>
+                                <label class="form-check-label" for="shinyShadowSwitch">Shiny Shadow</label>
+                            </div>
+                        </div>
+                        <div class="col-12 mb-1">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" role="switch" id="tradableSwitch" name="tradableSwitch" <cfif prc.detail.pokemon.getTradable()>checked</cfif>>
+                                <label class="form-check-label" for="tradableSwitch">Tradable</label>
+                            </div>
+                        </div>
+                        <div class="col-12 mt-3">
+                            <button type="submit" class="col-12 col-lg-4 mt-auto btn btn-sm btn-primary">
+                                Update Detail
+                            </button>
+                        </div>
+                    </div>
+                </form>
             </div>
         </div>
+    </div>
     </cfif>
 </div>
 </cfoutput>

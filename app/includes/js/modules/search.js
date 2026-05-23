@@ -1,3 +1,20 @@
+function escapeHtml(str) {
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+}
+
+function encodePath(path) {
+    // encodeURIComponent intentionally skips ' (apostrophe), so replace it manually
+    return path
+        .split('/')
+        .map((s) => encodeURIComponent(s).replace(/'/g, '%27'))
+        .join('/');
+}
+
 function pokemonSearch(params, data) {
     // data.text.toLowerCase().indexOf(params.term.toLowerCase()) == 0 beings with search
     if (data.text.toLowerCase().includes(params.term.toLowerCase())) {
@@ -12,7 +29,7 @@ function formatPokemonSearch(option) {
     }
 
     return $(
-        `<span class='pokemonSearchOption'><img class='pokemonSearchIcon me-1' src='/includes/images/sprites/${option.image}' alt='${option.alt}' loading='lazy'>${option.text}</span>`
+        `<span class='pokemonSearchOption'><img class='pokemonSearchIcon me-1' src='/includes/images/sprites/${encodePath(option.image)}' alt='${escapeHtml(option.alt)}' loading='lazy'>${option.text}</span>`
     );
 }
 
@@ -20,7 +37,7 @@ function formatFriendSearchResults(option) {
     if (option.loading) return;
 
     return $(
-        `<span><img class='searchIcon me-1' src='/includes/images/icons/${option.img}.webp' alt='${option.alt}' loading='lazy'>${option.text}</span>`
+        `<span class='trainerSearchOption'><img class='searchIcon me-1' src='/includes/images/icons/${encodePath(option.img)}.webp' alt='${escapeHtml(option.alt)}' loading='lazy'>${option.text}</span>`
     );
 }
 

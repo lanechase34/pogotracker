@@ -1,19 +1,25 @@
 <cfoutput>
 <tr>
     <td>
-        <div class="d-flex align-items-center my-1">
-            <img 
-                class="typeIcon" 
-                src="#args.move.getTypeImg()#" 
-                alt="#args.move.getTypeImgAltText()#" 
+        <div class="d-flex align-items-center gap-2 my-1">
+            <img
+                class="typeIcon flex-shrink-0"
+                src="#args.move.getTypeImg()#"
+                alt="#args.move.getTypeImgAltText()#"
                 loading="lazy"
-            > 
-            <span class="mx-3">#args.move.getName()#</span>
+            >
+            <span class="fw-medium">#args.move.getName()#</span>
         </div>
     </td>
-    <td>
-        <span><i class="bi bi-shield-slash me-1"></i>#args.move.getDamage()#</span>
-        <span><i class="bi bi-lightning-charge me-1"></i>#args.move.getEnergy()#</span>
+    <td class="text-end">
+        <div class="d-flex justify-content-end gap-1 flex-wrap">
+            <span class="move-stat-badge">
+                <i class="bi bi-shield-slash text-danger"></i>#args.move.getDamage()#
+            </span>
+            <span class="move-stat-badge">
+                <i class="bi bi-lightning-charge text-warning"></i>#args.move.getEnergy()#
+            </span>
+        </div>
     </td>
 </tr>
 </cfoutput>
