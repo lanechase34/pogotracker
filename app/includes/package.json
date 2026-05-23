@@ -27,7 +27,7 @@
         "test:debug": "playwright test --debug",
         "test:report": "playwright show-report",
         "minJS": "run-p minAdmin minBlog minHome minLogin minPokedex minPokemon minStats minTrade minTrainer minAlert minContact minCookie minCopy minDisplay minFetch minForm minLoading minModals minMultiselect minSocket minSearch minToast minGlobal minRuntime",
-        "minCSS": "run-p cleanAdmin cleanBlog cleanGlobal cleanPokedex cleanTrade cleanTrainer cleanMultiselect",
+        "minCSS": "run-p cleanAdmin cleanBlog cleanGlobal cleanPokedex cleanPokemon cleanTrade cleanTrainer cleanMultiselect",
         "minAdmin": "terser js/handlers/admin.js --config-file .terser.json --output build/js/handlers/admin.min.js",
         "minBlog": "terser js/handlers/blog.js --config-file .terser.json --output build/js/handlers/blog.min.js",
         "minHome": "terser js/handlers/home.js --config-file .terser.json --output build/js/handlers/home.min.js",
@@ -56,6 +56,7 @@
         "cleanBlog": "cleancss -o build/css/blog.min.css css/blog.css",
         "cleanGlobal": "cleancss -o build/css/global.min.css css/global.css",
         "cleanPokedex": "cleancss -o build/css/pokedex.min.css css/pokedex.css",
+        "cleanPokemon": "cleancss -o build/css/pokemon.min.css css/pokemon.css",
         "cleanTrade": "cleancss -o build/css/trade.min.css css/trade.css",
         "cleanTrainer": "cleancss -o build/css/trainer.min.css css/trainer.css",
         "cleanMultiselect": "cleancss -o build/css/lib/multiselect.min.css css/lib/multiselect.css"
