@@ -28,6 +28,7 @@ const fetchStruct = {
     counter: 0,
     loadingList: false,
     scrollHandler: () => {},
+    resizeHandler: () => {},
 };
 
 const pokedexStruct = {
@@ -559,9 +560,16 @@ export const runtime = {
             }
         };
 
+        // Remove old listeners before adding new ones
         window.removeEventListener('scroll', fetchStruct.scrollHandler);
+        window.removeEventListener('resize', fetchStruct.resizeHandler);
+
         fetchStruct.scrollHandler = scrollHandler;
+        fetchStruct.resizeHandler = scrollHandler;
+
+        // Listen on scroll and window resize
         window.addEventListener('scroll', fetchStruct.scrollHandler);
+        window.addEventListener('resize', fetchStruct.resizeHandler);
 
         createCustomSearch('customSearch', 'Search a Pokedex...', true, '');
     },
