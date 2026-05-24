@@ -119,6 +119,12 @@ component extends="base" {
         rc.shadow    = rc?.shadow ?: false;
         rc.trainerid = rc?.trainerid ?: session.trainerid;
 
+        if(hasValidationErrors(target = rc, constraints = 'pokedex.getPokedex')) {
+            event.setLayout('basic');
+            htmlNotFound(event = event);
+            return;
+        }
+
         // Handle mega/giga classification
         prc.mega = false;
         prc.giga = false;
@@ -129,12 +135,6 @@ component extends="base" {
         else if(rc.region == 'Giga') {
             prc.giga  = true;
             rc.region = '';
-        }
-
-        if(hasValidationErrors(target = rc, constraints = 'pokedex.getPokedex')) {
-            event.setLayout('basic');
-            htmlNotFound(event = event);
-            return;
         }
 
         // Shadow pokedex is not split up by region
