@@ -122,7 +122,7 @@ component extends="base" {
             auditInfo = prc.auditInfo
         );
 
-        relocate(uri = request?.linkedEvent ?: '/');
+        relocate(uri = prc?.linkedEvent ?: '/');
     }
 
     function doLogin(event, rc, prc) {

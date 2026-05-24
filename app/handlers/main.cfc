@@ -128,6 +128,7 @@ component extends="base" {
             // Override event with the persistLogin page
             rc.persistCookie                 = persistService.getCookie();
             rc[getSetting('csrfTokenField')] = csrfGenerateToken(forceNew = true);
+            prc.linkedEvent                  = '/#prc.currRoute#';
             event.overrideEvent('login.persistLogin');
             return;
         }
@@ -154,8 +155,8 @@ component extends="base" {
             // If the user is not authenticated, lead them to the login page
             if(!session.authenticated) {
                 // Clicked on of the links available on sidebar
-                if('mypokedex,myshadowpokedex,custompokedexlist,buildtradeplan,overview'.contains(prc.currAction)) {
-                    session.linkedEvent = '/#prc.currAction#';
+                if('mypokedex,myshadowpokedex,custompokedexlist,buildtradeplan,overview'.contains(prc.currRoute)) {
+                    session.linkedEvent = '/#prc.currRoute#';
                 }
 
                 relocate(uri = '/login', persistStruct = {statusCode: 401});
