@@ -125,6 +125,240 @@ component extends="tests.resources.baseTest" asyncAll="true" {
                     expect(checkStage2.len()).toBe(0);
                 });
             });
+
+            describe('getSearchArray()', () => {
+                it('Returns a non-empty array', () => {
+                    var arr = pokemonService.getSearchArray();
+                    expect(arr).toBeArray();
+                    expect(arr.len()).toBeGT(0);
+                });
+
+                it('Array length matches the total pokemon count in the database', () => {
+                    var arr   = pokemonService.getSearchArray();
+                    var count = queryExecute('select count(id) as c from pokemon').c;
+                    expect(arr.len()).toBe(count);
+                });
+
+                it('Each entry has the five fields required by select2 (id, text, image, alt, ses)', () => {
+                    var arr   = pokemonService.getSearchArray();
+                    var entry = arr[1];
+                    expect(entry).toHaveKey('id');
+                    expect(entry).toHaveKey('text');
+                    expect(entry).toHaveKey('image');
+                    expect(entry).toHaveKey('alt');
+                    expect(entry).toHaveKey('ses');
+                });
+
+                it('id is numeric', () => {
+                    var arr = pokemonService.getSearchArray();
+                    expect(arr[1].id).toBeNumeric();
+                });
+
+                it('text is a non-empty string', () => {
+                    var arr = pokemonService.getSearchArray();
+                    expect(arr[1].text).toBeString();
+                    expect(arr[1].text.len()).toBeGT(0);
+                });
+
+                it('ses is a non-empty string (used to build the detail URL)', () => {
+                    var arr = pokemonService.getSearchArray();
+                    expect(arr[1].ses).toBeString();
+                    expect(arr[1].ses.len()).toBeGT(0);
+                });
+
+                it('Returns the same data on a second call (cached)', () => {
+                    var arr1 = pokemonService.getSearchArray();
+                    var arr2 = pokemonService.getSearchArray();
+                    expect(arr1.len()).toBe(arr2.len());
+                    expect(arr1[1].id).toBe(arr2[1].id);
+                });
+            });
+
+            describe('searchPokemon()', () => {
+                describe('Return structure', () => {
+                    it('Always returns a struct with results and pagination keys', () => {
+                        var result = pokemonService.searchPokemon(search = 'Bulbasaur', page = 1);
+                        expect(result).toBeStruct();
+                        expect(result).toHaveKey('results');
+                        expect(result).toHaveKey('pagination');
+                        expect(result.results).toBeArray();
+                        expect(result.pagination).toBeStruct();
+                        expect(result.pagination).toHaveKey('more');
+                    });
+
+                    it('Each result entry carries all five select2 fields', () => {
+                        var result = pokemonService.searchPokemon(search = 'Bulbasaur', page = 1);
+                        expect(result.results.len()).toBeGT(0);
+                        var entry = result.results[1];
+                        expect(entry).toHaveKey('id');
+                        expect(entry).toHaveKey('text');
+                        expect(entry).toHaveKey('image');
+                        expect(entry).toHaveKey('alt');
+                        expect(entry).toHaveKey('ses');
+                    });
+
+                    it('ses is non-empty on every result (needed for client-side navigation)', () => {
+                        var result = pokemonService.searchPokemon(search = 'Bulbasaur', page = 1);
+                        result.results.each((r) => {
+                            expect(r.ses.len()).toBeGT(0);
+                        });
+                    });
+                });
+
+                describe('Exact name match', () => {
+                    it('Finds Bulbasaur by its exact name', () => {
+                        var result  = pokemonService.searchPokemon(search = 'Bulbasaur', page = 1);
+                        var matched = result.results.filter((r) => r.text == 'Bulbasaur');
+                        expect(matched.len()).toBe(1);
+                    });
+
+                    it('pagination.more is false when the full result set fits on one page', () => {
+                        var result = pokemonService.searchPokemon(search = 'Bulbasaur', page = 1);
+                        expect(result.pagination.more).toBeFalse();
+                    });
+                });
+
+                describe('No-match search', () => {
+                    it('Returns an empty results array for a nonexistent name', () => {
+                        var result = pokemonService.searchPokemon(search = 'NotARealPokemon', page = 1);
+                        expect(result.results).toBeArray();
+                        expect(result.results.len()).toBe(0);
+                    });
+
+                    it('pagination.more is false when there are no results', () => {
+                        var result = pokemonService.searchPokemon(search = 'NotARealPokemon', page = 1);
+                        expect(result.pagination.more).toBeFalse();
+                    });
+
+                    it('Random gibberish returns no results', () => {
+                        var result = pokemonService.searchPokemon(search = 'xQzJkWpLmN', page = 1);
+                        expect(result.results.len()).toBe(0);
+                        expect(result.pagination.more).toBeFalse();
+                    });
+                });
+
+                describe('Broad match (generic term)', () => {
+                    it('Returns results for the generic term ''a''', () => {
+                        var result = pokemonService.searchPokemon(search = 'a', page = 1);
+                        expect(result.results).toBeArray();
+                        expect(result.results.len()).toBeGT(0);
+                    });
+
+                    it('pagination.more is true because hundreds of pokemon contain ''a''', () => {
+                        var result = pokemonService.searchPokemon(search = 'a', page = 1);
+                        expect(result.pagination.more).toBeTrue();
+                    });
+
+                    it('Default page size returns at most 20 results', () => {
+                        var result = pokemonService.searchPokemon(search = 'a', page = 1);
+                        expect(result.results.len()).toBeLTE(20);
+                    });
+                });
+
+                describe('Case insensitivity', () => {
+                    it('Uppercase ''BULBASAUR'' matches the same pokemon as lowercase', () => {
+                        var upper = pokemonService.searchPokemon(search = 'BULBASAUR', page = 1);
+                        var lower = pokemonService.searchPokemon(search = 'bulbasaur', page = 1);
+                        expect(upper.results.len()).toBe(lower.results.len());
+                    });
+
+                    it('Uppercase result confirms Bulbasaur is found', () => {
+                        var result  = pokemonService.searchPokemon(search = 'BULBASAUR', page = 1);
+                        var matched = result.results.filter((r) => r.text == 'Bulbasaur');
+                        expect(matched.len()).toBe(1);
+                    });
+
+                    it('Mixed-case ''ChArIzArD'' still matches Charizard', () => {
+                        var result  = pokemonService.searchPokemon(search = 'ChArIzArD', page = 1);
+                        var matched = result.results.filter((r) => r.text == 'Charizard');
+                        expect(matched.len()).toBe(1);
+                    });
+                });
+
+                describe('Substring (mid-string) matching', () => {
+                    it('''saur'' matches Bulbasaur, Ivysaur, and Venusaur', () => {
+                        var result = pokemonService.searchPokemon(search = 'saur', page = 1);
+                        expect(result.results.len()).toBeGT(1);
+
+                        var names = result.results.map((r) => r.text);
+                        expect(names.find('Bulbasaur')).toBeGT(0);
+                        expect(names.find('Ivysaur')).toBeGT(0);
+                        expect(names.find('Venusaur')).toBeGT(0);
+                    });
+
+                    it('Search term at the end of a name still matches', () => {
+                        // ''zard'' is the suffix of Charizard and Charmeleon-adjacent, but definitely Charizard
+                        var result  = pokemonService.searchPokemon(search = 'zard', page = 1);
+                        var matched = result.results.filter((r) => r.text == 'Charizard');
+                        expect(matched.len()).toBe(1);
+                    });
+                });
+
+                describe('Pagination', () => {
+                    it('Page 2 returns different results than page 1 (no overlap)', () => {
+                        var page1 = pokemonService.searchPokemon(search = 'a', page = 1, pageSize = 5);
+                        var page2 = pokemonService.searchPokemon(search = 'a', page = 2, pageSize = 5);
+
+                        expect(page1.results.len()).toBe(5);
+                        expect(page2.results.len()).toBeGT(0);
+
+                        var ids1    = page1.results.map((r) => r.id);
+                        var overlap = page2.results.filter((r) => ids1.contains(r.id));
+                        expect(overlap.len()).toBe(0);
+                    });
+
+                    it('pagination.more is false on the final page', () => {
+                        // 'Bulbasaur' matches 1 pokemon; with pageSize=1, page 1 has more=false
+                        var page1 = pokemonService.searchPokemon(search = 'Bulbasaur', page = 1, pageSize = 1);
+                        expect(page1.results.len()).toBe(1);
+                        expect(page1.pagination.more).toBeFalse();
+                    });
+
+                    it('pagination.more is true when results exceed pageSize', () => {
+                        // 'saur' matches at least 3 pokemon; pageSize=1 forces more=true on page 1
+                        var page1 = pokemonService.searchPokemon(search = 'saur', page = 1, pageSize = 1);
+                        expect(page1.results.len()).toBe(1);
+                        expect(page1.pagination.more).toBeTrue();
+                    });
+
+                    it('Paginating through all results yields no duplicates and all match the term', () => {
+                        var allResults = [];
+                        var page       = 1;
+                        var hasMore    = true;
+
+                        while(hasMore) {
+                            var curr = pokemonService.searchPokemon(search = 'saur', page = page, pageSize = 2);
+                            curr.results.each((r) => allResults.append(r));
+                            hasMore = curr.pagination.more;
+                            page++;
+                        }
+
+                        // Every result must contain 'saur'
+                        var allContainTerm = allResults.every((r) => {
+                            return lCase(r.text).find('saur') > 0;
+                        });
+                        expect(allContainTerm).toBeTrue();
+
+                        // No duplicate ids across pages
+                        var seenIds = {};
+                        var hasDupe = false;
+                        allResults.each((r) => {
+                            if(seenIds.keyExists(r.id)) {
+                                hasDupe = true;
+                            }
+                            seenIds[r.id] = true;
+                        });
+                        expect(hasDupe).toBeFalse();
+                    });
+
+                    it('An out-of-bounds page returns empty results with more:false', () => {
+                        var result = pokemonService.searchPokemon(search = 'Bulbasaur', page = 9999);
+                        expect(result.results).toBeArray();
+                        expect(result.results.len()).toBe(0);
+                        expect(result.pagination.more).toBeFalse();
+                    });
+                });
+            });
         });
     }
 

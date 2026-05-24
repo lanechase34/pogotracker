@@ -1,6 +1,10 @@
 component extends="base" {
 
-    this.allowedMethods = {detail: 'GET', updateDetail: 'POST'};
+    this.allowedMethods = {
+        detail      : 'GET',
+        updateDetail: 'POST',
+        search      : 'GET'
+    };
 
     property name="pokemonService" inject="services.pokemon";
 
@@ -19,8 +23,6 @@ component extends="base" {
             return;
         }
 
-        prc.pokemonSearch = pokemonService.getSearch();
-
         /**
          * Attempt to load detail based on ses
          */
@@ -33,6 +35,7 @@ component extends="base" {
 
         prc.metaDescription = prc.detail.metaDescription;
         prc.title           = prc.detail.title & ' - #getSetting('title')#';
+        prc.suppressH1      = true; // pokemon's name is h1
     }
 
     /**
@@ -63,6 +66,23 @@ component extends="base" {
         );
 
         relocate(uri = '/pokemon/#prc.pokemon.getSes()#');
+    }
+
+    /**
+     * Paginated search of pokemon filtered against the cached search array
+     *
+     * @rc.search (optional) search term
+     * @rc.page   numeric page number
+     */
+    function search(event, rc, prc) {
+        if(hasValidationErrors(target = rc, constraints = 'pokemon.search')) {
+            jsonValidationFailure(event = event, message = 'Invalid Pokemon Search');
+            return;
+        }
+
+        prc.responseObj.data = pokemonService.searchPokemon(search = rc?.search ?: '', page = rc.page);
+
+        jsonOk(event = event, data = prc.responseObj.data);
     }
 
 }

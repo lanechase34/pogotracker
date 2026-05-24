@@ -821,7 +821,7 @@ component singleton accessors="true" {
         // Cache the pokemon data
         var allPokemon = pokemonService.getAll();
         pokemonService.getMaxStats();
-        pokemonService.getSearch();
+        pokemonService.getSearchArray();
         return;
     }
 

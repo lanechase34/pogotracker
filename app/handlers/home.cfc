@@ -7,8 +7,7 @@ component extends="base" {
         contact    : 'POST'
     };
 
-    property name="emailService"   inject="services.email";
-    property name="pokemonService" inject="services.pokemon";
+    property name="emailService" inject="services.email";
 
     function index(event, rc, prc) {
         relocate(uri = '/');
@@ -18,7 +17,6 @@ component extends="base" {
      * Home Page
      */
     function home(event, rc, prc) {
-        prc.pokemonSearch = pokemonService.getSearch();
     }
 
     /**

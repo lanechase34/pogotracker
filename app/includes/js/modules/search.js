@@ -15,14 +15,6 @@ function encodePath(path) {
         .join('/');
 }
 
-function pokemonSearch(params, data) {
-    // data.text.toLowerCase().indexOf(params.term.toLowerCase()) == 0 beings with search
-    if (data.text.toLowerCase().includes(params.term.toLowerCase())) {
-        return data;
-    }
-    return null;
-}
-
 function formatPokemonSearch(option) {
     if (!option.image?.length) {
         return option.text;
@@ -57,14 +49,26 @@ export function createPokemonSearch(elementid) {
     const element = $(`#${elementid}`);
 
     element.select2({
+        ajax: {
+            url: '/pokemon/search',
+            dataType: 'json',
+            data(params) {
+                return {
+                    search: params.term,
+                    page: params.page || 1,
+                };
+            },
+            processResults(data) {
+                return data.data;
+            },
+            cache: true,
+            delay: 150,
+        },
         minimumInputLength: 1,
-        maximumResultsForSearch: 20,
         maximumInputLength: 20,
         placeholder: 'Search a Pokemon...',
-        matcher: pokemonSearch,
         theme: 'bootstrap-5',
         templateResult: formatPokemonSearch,
-        data: pokemonSearchArray,
         width: '100%',
     });
 

@@ -80,7 +80,7 @@ component extends="base" {
                         return pokemonService.getMaxStats();
                     },
                     () => {
-                        return pokemonService.getSearch();
+                        return pokemonService.getSearchArray();
                     },
                     () => {
                         return statsService.getLeaderboard(now(), 'xp');

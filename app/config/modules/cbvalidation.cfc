@@ -504,6 +504,7 @@ component {
         };
 
         var pokemonHandler = {
+            'pokemon.search': {search: {required: false, type: 'string'}, page: {required: true, type: 'numeric'}},
             'pokemon.detail': {
                 ses: {
                     required: true,

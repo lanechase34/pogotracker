@@ -59,7 +59,6 @@ export default defineConfig([
                 bodyJson: 'readonly',
                 // cfm to js vars
                 statDataset: 'readonly',
-                pokemonSearchArray: 'readonly',
             },
         },
         rules: {

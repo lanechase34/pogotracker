@@ -29,7 +29,7 @@
                     </div>
                     <div class="col-12 col-sm text-center text-sm-start">
                         <p class="pokemon-hero-number mb-0">No.&nbsp;#prc.detail.pokemon.getNumber()#</p>
-                        <h2 class="pokemon-hero-name">#prc.detail.pokemon.getName()#</h2>
+                        <h1 class="pokemon-hero-name">#prc.detail.pokemon.getName()#</h1>
                         <div class="pokemon-types justify-content-center justify-content-sm-start">
                             <img
                                 class="typeIcon"
@@ -55,9 +55,9 @@
 <div class="row g-3 mt-3">
     <div class="col-12 col-md-6">
         <div class="card shadow-sm h-100">
-            <div class="card-header card-header-pokemon">
+            <h2 class="card-header card-header-pokemon">
                 <i class="bi bi-graph-up"></i> CP Values
-            </div>
+            </h2>
             <ul class="list-group list-group-flush cp-list">
                 <li class="list-group-item">
                     <span class="cp-label">
@@ -92,9 +92,9 @@
     </div>
     <div class="col-12 col-md-6">
         <div class="card shadow-sm h-100">
-            <div class="card-header card-header-pokemon">
+            <h2 class="card-header card-header-pokemon">
                 <i class="bi bi-bar-chart-line"></i> Base Stats
-            </div>
+            </h2>
             <div class="card-body">
                 <div class="pt-1">
                     #view(
@@ -127,9 +127,9 @@
 <div class="row g-3 mt-3">
     <div class="col-12 col-md-6">
         <div class="card shadow-sm h-100">
-            <div class="card-header card-header-pokemon">
+            <h2 class="card-header card-header-pokemon">
                 <i class="bi bi-arrow-right-circle"></i> Evolutions
-            </div>
+            </h2>
             <div class="card-body">
                 <cfif prc.detail.baseStage.getEvolution().len()>
                 <div class="tableDiv">
@@ -165,9 +165,9 @@
     </div>
     <div class="col-12 col-md-6">
         <div class="card shadow-sm h-100">
-            <div class="card-header card-header-pokemon">
+            <h2 class="card-header card-header-pokemon">
                 <i class="bi bi-lightning-charge"></i> Moves
-            </div>
+            </h2>
             <div class="card-body pb-1">
                 <p class="moves-section-label text-muted mb-2">Fast Moves</p>
                 <div class="tableDiv mb-3">
@@ -210,9 +210,9 @@
 <div class="row g-3 mt-3">
     <div class="col-12 col-md-6">
         <div class="card shadow-sm h-100">
-            <div class="card-header card-header-pokemon">
+            <h2 class="card-header card-header-pokemon">
                 <i class="bi bi-calendar-event"></i> Previous Events
-            </div>
+            </h2>
             <div class="card-body">
                 <cfif prc.detail.events.len()>
                     <div class="tableDiv">
@@ -250,9 +250,9 @@
     </div>
     <div class="col-12 col-md-6">
         <div class="card shadow-sm h-100">
-            <div class="card-header card-header-pokemon">
+            <h2 class="card-header card-header-pokemon">
                 <i class="bi bi-bullseye"></i> Catch Rate
-            </div>
+            </h2>
             <div class="card-body d-flex align-items-center justify-content-center">
                 <div class="catch-hero">
                     <div class="catch-pct">
@@ -269,9 +269,9 @@
 <div class="row g-3 mt-3 mb-3">
     <div class="col-12 col-md-6">
         <div class="card shadow-sm h-100">
-            <div class="card-header card-header-pokemon">
+            <h2 class="card-header card-header-pokemon">
                 <i class="bi bi-check2-circle"></i> Availability
-            </div>
+            </h2>
             <ul class="list-group list-group-flush">
                 <li class="list-group-item avail-item">
                     <span class="avail-name">Normal</span>
@@ -319,9 +319,9 @@
     <cfif (session?.securityLevel ?: -10) GTE 50>
     <div class="col-12 col-md-6">
         <div class="card shadow-sm h-100">
-            <div class="card-header card-header-pokemon">
+            <h2 class="card-header card-header-pokemon">
                 <i class="bi bi-tools"></i> Pokemon Detail
-            </div>
+            </h2>
             <div class="card-body mx-1">
                 <form action="/pokemon/updateDetail" name="pokemonDetailForm" method="post" id="pokemonDetailForm" class="needs-validation p-0 m-0" novalidate>
                     <input type="hidden" name="pokemonid" value="#prc.detail.pokemon.getId()#"/>

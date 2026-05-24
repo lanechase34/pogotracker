@@ -405,14 +405,13 @@ component singleton accessors="true" {
     }
 
     /**
-     * Build JSON for pokemon search box
+     * Build array for pokemon search box
      */
-    public string function getSearch() {
-        var cacheKey = 'pokemon.getSearch';
-        var search   = cacheService.get(cacheKey);
-        if(isNull(search)) {
-            var pokemon = getAll();
-            search      = getAll().map((pokemon) => {
+    public array function getSearchArray() {
+        var cacheKey    = 'pokemon.getSearchArray';
+        var searchArray = cacheService.get(cacheKey);
+        if(isNull(searchArray)) {
+            searchArray = getAll().map((pokemon) => {
                 return {
                     id   : pokemon.getId(),
                     text : '#pokemon.getGender().len() ? pokemon.getGender() & ' ' : ''##pokemon.getName()#',
@@ -421,11 +420,47 @@ component singleton accessors="true" {
                     ses  : '#pokemon.getSes()#'
                 };
             });
-
-            search = serializeJSON(search);
-            cacheService.put(cacheKey, search, getCacheTime(), getCacheTime());
+            cacheService.put(
+                cacheKey,
+                searchArray,
+                getCacheTime(),
+                getCacheTime()
+            );
         }
-        return search;
+        return searchArray;
+    }
+
+    /**
+     * Filter the cached pokemon search array by term with pagination
+     *
+     * @search   search term
+     * @page     current page number
+     * @pageSize records per page
+     */
+    public struct function searchPokemon(
+        required string search,
+        required numeric page,
+        numeric pageSize = 20
+    ) {
+        var searchLower = lCase(search);
+        var filtered    = getSearchArray().filter((item) => {
+            return lCase(item.text).find(searchLower) > 0;
+        });
+
+        var offset   = (page - 1) * pageSize;
+        var rowCount = filtered.len();
+        var results  = [];
+
+        // Slice the correct page from the filtered result
+        if(rowCount && offset < rowCount) {
+            var startPosition = offset + 1; // slice offset is 1-based
+            var remaining     = rowCount - offset; // how many elements remaining after startPosition
+
+            var length = min(remaining, pageSize); // clamp the records returned to not go out of bounds
+            results    = filtered.slice(startPosition, length);
+        }
+
+        return {results: results, pagination: {more: filtered.len() > offset + pageSize}};
     }
 
     /**

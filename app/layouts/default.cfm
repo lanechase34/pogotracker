@@ -302,9 +302,6 @@
 <script type="text/javascript" defer src="https://cdn.datatables.net/v/bs5/dt-2.1.8/b-3.2.0/fh-4.0.1/r-3.0.3/datatables.min.js"></script>
 <script type="text/javascript" defer src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
-<cfif prc.keyExists('pokemonSearch')>
-    <script>var pokemonSearchArray = JSON.parse('#encodeForJavaScript(prc.pokemonSearch)#');</script>
-</cfif>
 <cfif getSetting('minifiedJS').len()>
     <script type="module" src="/includes/build/js/global.min.js#getSetting('cacheBuster')#"></script>
 <cfelse>

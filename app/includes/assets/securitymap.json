@@ -47,7 +47,8 @@
     },
     "pokemon": {
         "detail": 0,
-        "updateDetail": 50
+        "updateDetail": 50,
+        "search": 0
     },
     "stats": {
         "overview": 10,
