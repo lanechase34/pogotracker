@@ -263,10 +263,6 @@ component singleton accessors="true" {
                 return (a.delta - b.delta) > 0 ? -1 : 1;
             });
 
-            if(!leaderboard.len()) {
-                leaderboard.append({username: 'Start tracking your stats!', delta: ''});
-            }
-
             cacheService.put(cacheKey, leaderboard, 15, 15);
         }
         return leaderboard;

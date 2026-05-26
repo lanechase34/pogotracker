@@ -1,7 +1,7 @@
 <cfoutput>
 <!--- Hero --->
 <div class="row mt-3">
-    <div class="col-12">
+    <div class="col-12 mb-4">
         <div class="card shadow-sm pokemon-hero">
             <div class="card-body py-4 px-4">
                 <div class="row align-items-center gy-3">
@@ -52,8 +52,8 @@
 </div>
 
 <!--- CP Values + Base Stats --->
-<div class="row g-3 mt-3">
-    <div class="col-12 col-md-6">
+<div class="row">
+    <div class="col-12 col-md-6 mb-4">
         <div class="card shadow-sm h-100">
             <h2 class="card-header card-header-pokemon">
                 <i class="bi bi-graph-up"></i> CP Values
@@ -90,7 +90,7 @@
             </ul>
         </div>
     </div>
-    <div class="col-12 col-md-6">
+    <div class="col-12 col-md-6 mb-4">
         <div class="card shadow-sm h-100">
             <h2 class="card-header card-header-pokemon">
                 <i class="bi bi-bar-chart-line"></i> Base Stats
@@ -124,8 +124,8 @@
 </div>
 
 <!--- Evolutions + Moves --->
-<div class="row g-3 mt-3">
-    <div class="col-12 col-md-6">
+<div class="row">
+    <div class="col-12 col-md-6 mb-4">
         <div class="card shadow-sm h-100">
             <h2 class="card-header card-header-pokemon">
                 <i class="bi bi-arrow-right-circle"></i> Evolutions
@@ -163,14 +163,14 @@
             </div>
         </div>
     </div>
-    <div class="col-12 col-md-6">
+    <div class="col-12 col-md-6 mb-4">
         <div class="card shadow-sm h-100">
             <h2 class="card-header card-header-pokemon">
                 <i class="bi bi-lightning-charge"></i> Moves
             </h2>
             <div class="card-body pb-1">
                 <p class="moves-section-label text-muted mb-2">Fast Moves</p>
-                <div class="tableDiv mb-3">
+                <div class="tableDiv mb-4">
                 <table class="table align-middle mb-0">
                     <thead class="table-light">
                         <tr>
@@ -207,8 +207,8 @@
 </div>
 
 <!--- Events + Catch Rate --->
-<div class="row g-3 mt-3">
-    <div class="col-12 col-md-6">
+<div class="row">
+    <div class="col-12 col-md-6 mb-4">
         <div class="card shadow-sm h-100">
             <h2 class="card-header card-header-pokemon">
                 <i class="bi bi-calendar-event"></i> Previous Events
@@ -248,7 +248,7 @@
             </div>
         </div>
     </div>
-    <div class="col-12 col-md-6">
+    <div class="col-12 col-md-6 mb-4">
         <div class="card shadow-sm h-100">
             <h2 class="card-header card-header-pokemon">
                 <i class="bi bi-bullseye"></i> Catch Rate
@@ -266,8 +266,8 @@
 </div>
 
 <!--- Availability + Admin --->
-<div class="row g-3 mt-3 mb-3">
-    <div class="col-12 col-md-6">
+<div class="row mb-4">
+    <div class="col-12 col-md-6 mb-4 mb-md-0">
         <div class="card shadow-sm h-100">
             <h2 class="card-header card-header-pokemon">
                 <i class="bi bi-check2-circle"></i> Availability
@@ -317,7 +317,7 @@
         </div>
     </div>
     <cfif (session?.securityLevel ?: -10) GTE 50>
-    <div class="col-12 col-md-6">
+    <div class="col-12 col-md-6 mb-4 mb-md-0">
         <div class="card shadow-sm h-100">
             <h2 class="card-header card-header-pokemon">
                 <i class="bi bi-tools"></i> Pokemon Detail

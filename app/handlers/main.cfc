@@ -159,7 +159,7 @@ component extends="base" {
                     session.linkedEvent = '/#prc.currRoute#';
                 }
 
-                relocate(uri = '/login', persistStruct = {statusCode: 401});
+                relocate(uri = '/login');
             }
             // Immediately stop the current event and process the unauthorized page
             else {

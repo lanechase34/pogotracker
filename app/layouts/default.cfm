@@ -215,27 +215,27 @@
                     </a>
                 </li>
                 <li class="nav-item d-flex">
-                    <a class="nav-link fs-6 w-100 iconHover text-start d-flex align-items-center <cfif prc.currEvent EQ "pokedex.mypokedex">active</cfif>" href="/mypokedex">
+                    <a class="nav-link fs-6 w-100 iconHover text-start d-flex align-items-center <cfif prc.currEvent EQ "pokedex.mypokedex">active</cfif>" href="/mypokedex" <cfif !(session?.authenticated ?: false)>rel="nofollow"</cfif>>
                         <i class="bi bi-ui-checks-grid me-2 navIcon"></i>Pokedex
                     </a>
                 </li>
                 <li class="nav-item d-flex">
-                    <a class="nav-link fs-6 w-100 iconHover text-start d-flex align-items-center <cfif prc.currEvent EQ "pokedex.myshadowpokedex">active</cfif>" href="/myshadowpokedex">
+                    <a class="nav-link fs-6 w-100 iconHover text-start d-flex align-items-center <cfif prc.currEvent EQ "pokedex.myshadowpokedex">active</cfif>" href="/myshadowpokedex" <cfif !(session?.authenticated ?: false)>rel="nofollow"</cfif>>
                         <i class="bi bi-fire me-2 navIcon"></i>Shadow Pokedex
                     </a>
                 </li>
                 <li class="nav-item d-flex">
-                    <a class="nav-link fs-6 w-100 iconHover text-start d-flex align-items-center <cfif prc.currEvent EQ "pokedex.custompokedexlist" OR prc.currEvent EQ "pokedex.mycustompokedex">active</cfif>" href="/custompokedexlist">
+                    <a class="nav-link fs-6 w-100 iconHover text-start d-flex align-items-center <cfif prc.currEvent EQ "pokedex.custompokedexlist" OR prc.currEvent EQ "pokedex.mycustompokedex">active</cfif>" href="/custompokedexlist" <cfif !(session?.authenticated ?: false)>rel="nofollow"</cfif>>
                         <i class="bi bi-pencil-fill me-2 navIcon"></i>Custom Pokedex
                     </a>
                 </li>
                 <li class="nav-item d-flex">
-                    <a class="nav-link fs-6 w-100 iconHover text-start d-flex align-items-center <cfif prc.currHandler EQ "trade">active</cfif>" href="/buildtradeplan">
+                    <a class="nav-link fs-6 w-100 iconHover text-start d-flex align-items-center <cfif prc.currHandler EQ "trade">active</cfif>" href="/buildtradeplan" <cfif !(session?.authenticated ?: false)>rel="nofollow"</cfif>>
                         <i class="bi bi-arrow-left-right me-2 navIcon"></i>Trade Plan
                     </a>
                 </li>
                 <li class="nav-item d-flex">
-                    <a class="nav-link fs-6 w-100 iconHover text-start d-flex align-items-center <cfif prc.currHandler EQ "stats">active</cfif>" href="/overview">
+                    <a class="nav-link fs-6 w-100 iconHover text-start d-flex align-items-center <cfif prc.currHandler EQ "stats">active</cfif>" href="/overview" <cfif !(session?.authenticated ?: false)>rel="nofollow"</cfif>>
                         <i class="bi bi-graph-up me-2 navIcon"></i>Stats
                     </a>
                 </li>

@@ -2,8 +2,8 @@
 <cfif args.sidebar>
     <div class="row row-cols-1">
         <cfif args.offset EQ 0>
-            <div class="text-center">
-                <h5><i class="bi bi-book-half me-1"></i>Recent Blogs</h5>
+            <div class="home-section-label">
+                <i class="bi bi-book-half fs-5"></i>Recent Blogs
             </div>
         </cfif>
 <cfelse>
@@ -13,28 +13,30 @@
     <cfif args.exclude EQ currBlog.getId()><cfcontinue></cfif>
     <div class="d-flex justify-content-center col mb-3">
         <a href="/readblog/#replace(currBlog.getHeader(), " ", "-", "all")#" class="h-100 w-100 link-underline link-underline-opacity-0">
-        <div class="card h-100 w-100 blogCard shadow-sm" data-linkto="/readblog/#currBlog.getId()#">
+        <div class="card h-100 w-100 blogCard" data-linkto="/readblog/#currBlog.getId()#">
             <cfif args.showImage>
-                <img 
-                    src="/includes/uploads/cards/#currBlog.getImage()#" 
-                    alt="#currBlog.getAltText()#" 
+                <img
+                    src="/includes/uploads/cards/#currBlog.getImage()#"
+                    alt="#currBlog.getAltText()#"
                     <cfif args.offset EQ 0 AND i EQ 0>fetchpriority="high"</cfif>
-                    <cfif args.offset NEQ 0 OR i GT 3>loading="lazy"</cfif> 
-                    class="blogImage rounded"
+                    <cfif args.offset NEQ 0 OR i GT 3>loading="lazy"</cfif>
+                    class="blogImage rounded-top"
                 >
             </cfif>
-            <article class="d-flex flex-column card-body">
-                <p class="card-text text-secondary mb-1">
-                    #dateFormat(currBlog.getCreated(), "mmm d, yyyy")#
+            <article class="d-flex flex-column card-body blog-card-body">
+                <p class="blog-card-date">
+                    <i class="bi bi-calendar3 me-1"></i>#dateFormat(currBlog.getCreated(), "mmm d, yyyy")#
                 </p>
-                <h4 class="card-title mb-3">
+                <h4 class="blog-card-title">
                     #currBlog.getHeader()#
                 </h4>
-                <p class="card-text">
-                    #left(reReplaceNoCase(replace(replace(replace(currBlog.getBody(), "<p></p>", ". ", "all"), "<ul><li>", " ", "all"), "</li><li>", ". ", "all"), "<[^>]*>", " ", "all"), 100)#...
+                <p class="blog-card-excerpt">
+                    #left(reReplaceNoCase(replace(replace(replace(currBlog.getBody(), "<p></p>", ". ", "all"), "<ul><li>", " ", "all"), "</li><li>", ". ", "all"), "<[^>]*>", " ", "all"), 110)#&hellip;
                 </p>
-                <div class="mt-auto blogLink">
-                    Continue reading <i class="bi bi-chevron-right ms-2"></i>
+                <div class="mt-auto pt-2 blogLink">
+                    <span class="blog-read-more">
+                        Continue reading <i class="bi bi-arrow-right ms-1"></i>
+                    </span>
                 </div>
             </article>
         </div>

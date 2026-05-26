@@ -191,19 +191,11 @@ pre:has(code) {
         flex: 0 0 auto;
         width: 14.2857143%;
     }
-
-    .blogLink {
-        display: flex !important;
-    }
 }
 @media (min-width: 768px) {
     .row-cols-md-7 {
         flex: 0 0 auto;
         width: 14.2857143%;
-    }
-
-    .blogLink {
-        display: none !important;
     }
 }
 @media (min-width: 992px) {
@@ -292,23 +284,74 @@ pre:has(code) {
 
 .blogImage {
     display: block;
-    height: 250px;
+    height: 220px;
     width: 100%;
     object-fit: cover;
+    border-bottom: 3px solid var(--bs-dark);
 }
 
 .blogCard {
-    transition: all 0.2s ease;
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
     cursor: pointer;
+    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.07);
 }
 
 .blogCard:hover {
-    box-shadow: 5px 6px 6px 2px #e9ecef;
-    transform: scale(1.05);
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.12);
+    transform: translateY(-4px);
 }
 
-.newsLink {
-    font-size: 1.1rem;
+/* Blog card typography */
+.blog-card-body {
+    padding: 1rem 1.1rem 1rem;
+}
+
+.blog-card-date {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #6c757d;
+    margin-bottom: 0.45rem;
+}
+
+.blog-card-title {
+    font-size: 1rem;
+    font-weight: 700;
+    line-height: 1.35;
+    color: #212529;
+    margin-bottom: 0.5rem;
+}
+
+.blog-card-excerpt {
+    font-size: 0.85rem;
+    color: #6c757d;
+    line-height: 1.55;
+    margin-bottom: 0;
+}
+
+.blog-read-more {
+    display: inline-flex;
+    align-items: center;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: #212529;
+    border: 1.5px solid #212529;
+    border-radius: 2rem;
+    padding: 0.25rem 0.75rem;
+    transition:
+        background 0.15s,
+        color 0.15s;
+    text-decoration: none;
+}
+
+.blogCard:hover .blog-read-more {
+    background: #212529;
+    color: #fff;
 }
 
 .navbar-nav .dropdown-menu {
@@ -322,6 +365,7 @@ pre:has(code) {
 
 body {
     overflow-y: scroll;
+    background-color: #f8f9fa;
 }
 
 .dropdown-menu-start[data-bs-popper] {
@@ -403,4 +447,23 @@ body {
 .select2-container--bootstrap-5 .select2-results__option {
     border-radius: 0.375rem;
     padding: 0.3rem 0.5rem;
+}
+
+/* ---- Section Label (blog, events, news, leaderboard) ---- */
+.home-section-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding-bottom: 0.55rem;
+    margin-bottom: 0.75rem;
+    font-weight: 700;
+    font-size: 1rem;
+    letter-spacing: 0.01em;
+    color: #343a40;
+    border-bottom: 2px solid #212529;
+}
+
+.home-section-label i {
+    opacity: 0.6;
+    font-size: 1rem;
 }

@@ -5,5 +5,7 @@ Disallow: /mypokedex
 Disallow: /myshadowpokedex
 Disallow: /overview
 Disallow: /custompokedexlist
+Disallow: /buildtradeplan
+Disallow: /mycustompokedex
 Disallow: /profile
 Sitemap: https://pogotracker.app/sitemap.xml

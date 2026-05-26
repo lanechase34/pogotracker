@@ -98,9 +98,6 @@ component extends="base" {
 
     function loginForm(event, rc, prc) {
         prc.metaDescription = 'Sign in to POGO Tracker to track your Pokémon GO journey — Pokédex, XP, medals, shiny collection, and more.';
-        if(prc.keyExists('statusCode')) {
-            event.setHTTPHeader(statusCode = 401);
-        }
     }
 
     function persistLogin(event, rc, prc) {
