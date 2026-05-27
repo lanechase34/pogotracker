@@ -91,12 +91,14 @@ component extends="base" {
             relocate(uri = '/login');
         }
 
-        prc.title = 'Login - #getSetting('title')#';
+        prc.title      = 'Sign In | #getSetting('title')#';
+        prc.metaRobots = 'noindex, nofollow';
 
         event.setLayout('basic');
     }
 
     function loginForm(event, rc, prc) {
+        prc.title           = 'Sign In | #getSetting('title')#';
         prc.metaDescription = 'Sign in to POGO Tracker to track your Pokémon GO journey — Pokédex, XP, medals, shiny collection, and more.';
     }
 
@@ -112,7 +114,7 @@ component extends="base" {
             relocate(uri = '/login');
         }
 
-        prc.auditInfo.detail = 'Successful Persist Login';
+        prc.auditInfo.detail = 'Successful Persist Login from #prc?.linkedEvent ?: '/'#';
         sessionService.create(
             email     = prc.loginStruct.email,
             persist   = false,
@@ -159,6 +161,7 @@ component extends="base" {
     }
 
     function registrationForm(event, rc, prc) {
+        prc.title           = 'Create Account | #getSetting('title')#';
         prc.metaDescription = 'Create your free POGO Tracker account. Track your Pokémon GO Pokédex, XP, medals, shinies, walking distance, and plan trades with friends.';
         prc.iconMap         = trainerService.getIconMap();
     }
@@ -176,7 +179,8 @@ component extends="base" {
                 'danger',
                 true,
                 'bi-exclamation-diamond-fill',
-                'Invalid registration. Username/email/friendcode already taken, please try again.'
+                'Invalid registration. Username/email/friendcode already taken, please try again.',
+                0
             );
             relocate(event = 'register');
         }
@@ -212,6 +216,9 @@ component extends="base" {
         if(session.verified) relocate(uri = '/');
         if(!session.authenticated) relocate(uri = '/login');
 
+        prc.title           = 'Verify Your Account | #getSetting('title')#';
+        prc.metaDescription = 'Verify your POGO Tracker account with the confirmation code sent to your email address.';
+
         param name="rc.resend" type="boolean" default="false";
 
         if(isBoolean(rc.resend) && booleanFormat(rc.resend)) {
@@ -233,7 +240,8 @@ component extends="base" {
                 'danger',
                 true,
                 'bi-exclamation-diamond-fill',
-                'Invalid verification code. Please try again.'
+                'Invalid verification code. Please try again.',
+                0
             );
             relocate(uri = '/verify');
         }
@@ -244,7 +252,8 @@ component extends="base" {
                 'danger',
                 true,
                 'bi-exclamation-diamond-fill',
-                'Invalid verification code. Please try again.'
+                'Invalid verification code. Please try again.',
+                0
             );
             relocate(uri = '/verify');
         }
@@ -264,6 +273,8 @@ component extends="base" {
     }
 
     function forgotPasswordForm(event, rc, prc) {
+        prc.title           = 'Reset Password | #getSetting('title')#';
+        prc.metaDescription = 'Forgot your POGO Tracker password? Enter your email and we will send you a link to reset it.';
     }
 
     function forgotPassword(event, rc, prc) {
@@ -286,7 +297,8 @@ component extends="base" {
             'success',
             true,
             'bi-check-square-fill',
-            'Reset password email sent. Please check your email.'
+            'Reset password email sent. Please check your email.',
+            0
         );
         relocate(uri = '/login');
     }
@@ -330,7 +342,8 @@ component extends="base" {
             'success',
             true,
             'bi-check-square-fill',
-            'Successfully reset password.'
+            'Successfully reset password.',
+            0
         );
         relocate(uri = '/login');
     }

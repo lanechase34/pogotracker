@@ -45,7 +45,7 @@ component extends="base" {
     property name="trainerService"    inject="services.trainer";
 
     function preHandler(event, rc, prc, action, eventArguments) {
-        prc.title      = 'Admin - #getSetting('title')#';
+        prc.title      = 'Admin | #getSetting('title')#';
         prc.metaRobots = 'noindex, nofollow';
     }
 

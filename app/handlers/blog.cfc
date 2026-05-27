@@ -20,7 +20,7 @@ component extends="base" {
     this.prehandler_only = 'read,writeForm,editForm';
 
     function preHandler(event, rc, prc, action, eventArguments) {
-        prc.title           = 'Blog - #getSetting('title')#';
+        prc.title           = 'Blog | #getSetting('title')#';
         prc.metaDescription = 'POGO Tracker blog. Read latest news about POGO Tracker.';
         prc.metaRobots      = 'noindex, nofollow';
     }
@@ -79,7 +79,7 @@ component extends="base" {
         }
 
         prc.header          = '';
-        prc.title           = '#prc.blog.getHeader()# - #getSetting('title')#';
+        prc.title           = '#prc.blog.getHeader()# | #getSetting('title')#';
         prc.metaDescription = !isNull(prc.blog.getMeta()) && prc.blog.getMeta().len() ? prc.blog.getMeta() : prc.title;
         prc.metaRobots      = 'index, follow';
         prc.ogImage         = prc.blog.getOgImage();

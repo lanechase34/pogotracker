@@ -7,12 +7,14 @@ import { resetHandler, submitHandler } from 'modals';
 export const $leaderboardDiv = document.getElementById('leaderboardDiv');
 
 const $trackStatsBtn = document.getElementById('trackStats');
+const $deltaDiv = document.getElementById('deltaDiv');
 const $medalProgressDiv = document.getElementById('medalProgressDiv');
 const statLineChartCanvas = document.getElementById('statLineChart');
 const chartStruct = {
     currStat: 'xp',
     statLineChart: null,
 };
+const $chartLabel = document.getElementById('chartLabel');
 const lineColor = '#0d6efd'; //'#333333'; //'rgb(75, 192, 192)';
 
 const $statsLoading = {
@@ -157,7 +159,7 @@ function renderStat(rows, stat) {
                 <div class="d-flex align-items-center gap-2 px-3 py-2 rounded shadow-sm bg-body-secondary">
                     <span class="text-muted small" style="min-width: 1rem; text-align: right;">${i + 1}.</span>
                     <span class="text-muted small flex-grow-1">${row.date}</span>
-                    <span class="fw-semibold small">${row.delta.toLocaleString()}${unit}</span>
+                    <span class="fw-semibold small">${fmtStatValue(row.delta)}${unit}</span>
                 </div>
             `
         )
@@ -268,24 +270,68 @@ async function loadStatCards() {
     resizeStatCards();
 }
 
+function statLabel(stat) {
+    return stat === 'xp' ? 'XP' : stat.charAt(0).toUpperCase() + stat.slice(1);
+}
+
+function fmtStatValue(v) {
+    const n = Number(v);
+    return v !== null && v !== undefined && v !== '' && !isNaN(n)
+        ? n.toLocaleString(undefined, { maximumFractionDigits: 0 })
+        : (v ?? '--');
+}
+
+function renderDeltaTable(stat) {
+    const label = statLabel(stat);
+    document.getElementById('deltaLabel').textContent = `Delta ${label}`;
+    document.getElementById('deltaStatHeader').textContent = label;
+
+    document.getElementById('deltaTableBody').innerHTML = statDataset.labels
+        .map((date) => {
+            const val = statDataset.data[date][stat];
+            const delta = statDataset.data[date][`delta${stat}`];
+            return `<tr><td>${date}</td><td>${fmtStatValue(val)}</td><td>${fmtStatValue(delta)}</td></tr>`;
+        })
+        .join('');
+}
+
 function changeStat(stat) {
     if (chartStruct.statLineChart) {
         chartStruct.statLineChart.destroy();
     }
 
     renderChart(statLineChartCanvas, stat);
+    renderDeltaTable(stat);
 
-    document.getElementById(`delta${chartStruct.currStat}div`).classList.add('d-none');
-    document.getElementById(`delta${stat}div`).classList.remove('d-none');
+    $chartLabel.textContent = `${statLabel(stat)} Overview`;
 
     chartStruct.currStat = stat;
 }
 
 function resizeStatCards() {
-    new Masonry('.statCards', {
+    const msnry = new Masonry('.statCards', {
         itemSelector: '.statCard',
         columnWidth: '.col-xl-4', // define min column width if not all card columns have same width
     });
+
+    // Relayout after Bootstrap collapse animations complete so Masonry
+    // recalculates card positions when a card is expanded/collapsed.
+    // Also swap the chevron icon direction to reflect the new state.
+    function onCollapseShown(e) {
+        msnry.layout();
+        const icon = document.querySelector(`[data-bs-target="#${e.target.id}"] .collapse-chevron`);
+        icon?.classList.replace('bi-chevron-down', 'bi-chevron-up');
+    }
+    function onCollapseHidden(e) {
+        msnry.layout();
+        const icon = document.querySelector(`[data-bs-target="#${e.target.id}"] .collapse-chevron`);
+        icon?.classList.replace('bi-chevron-up', 'bi-chevron-down');
+    }
+
+    $deltaDiv.addEventListener('shown.bs.collapse', onCollapseShown);
+    $deltaDiv.addEventListener('hidden.bs.collapse', onCollapseHidden);
+    $medalProgressDiv.addEventListener('shown.bs.collapse', onCollapseShown);
+    $medalProgressDiv.addEventListener('hidden.bs.collapse', onCollapseHidden);
 }
 
 async function submitTrackStats(packet, $btn, $modal) {
@@ -376,10 +422,7 @@ async function trackMedalProgress($input) {
 
 function renderChart(canvas, stat) {
     const labels = statDataset.labels;
-    const data = [];
-    for (let i = 0; i < labels.length; i++) {
-        data.push(statDataset.data[labels[i]][stat]);
-    }
+    const data = labels.map((l) => statDataset.data[l][stat]);
     chartStruct.statLineChart = new Chart(canvas, {
         type: 'line',
         data: {

@@ -24,7 +24,7 @@ component extends="base" {
     this.prehandler_only = 'overview';
 
     function preHandler(event, rc, prc, action, eventArguments) {
-        prc.title           = 'Stats - #getSetting('title')#';
+        prc.title           = 'Stats | #getSetting('title')#';
         prc.metaDescription = 'Keep an eye on your progress with detailed tracking of your total XP, Pokemon caught, PokeStops spun, distance walked, and medals.';
         prc.metaRobots      = 'noindex, nofollow';
     }

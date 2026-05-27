@@ -12,7 +12,7 @@ component extends="base" {
     this.prehandler_only = 'tradePlanForm';
 
     function preHandler(event, rc, prc, action, eventArguments) {
-        prc.title           = 'Trade - #getSetting('title')#';
+        prc.title           = 'Trade | #getSetting('title')#';
         prc.metaDescription = 'Compare your Pokedex with a friend''s and find Pokemon to trade.';
         prc.metaRobots      = 'noindex, nofollow';
     }

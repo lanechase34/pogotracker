@@ -31,7 +31,7 @@
                     #currBlog.getHeader()#
                 </h4>
                 <p class="blog-card-excerpt">
-                    #left(reReplaceNoCase(replace(replace(replace(currBlog.getBody(), "<p></p>", ". ", "all"), "<ul><li>", " ", "all"), "</li><li>", ". ", "all"), "<[^>]*>", " ", "all"), 110)#&hellip;
+                    #currBlog.getExcerpt(200)#&hellip;
                 </p>
                 <div class="mt-auto pt-2 blogLink">
                     <span class="blog-read-more">

@@ -17,4 +17,21 @@ component persistent="true" extends="base" {
         return '#application.cbController.getSetting('domain')#/includes/uploads/full/#getImage()#';
     }
 
+    /**
+     * Returns a plain-text excerpt of the blog body, stripped of all HTML.
+     * Jsoup handles tag removal, entity decoding, and whitespace collapsing.
+     *
+     * @length Maximum number of characters to return)
+     */
+    string function getExcerpt(numeric length = 200) {
+        var rawBody = getBody();
+        if(isNull(rawBody) || !len(rawBody)) {
+            return '';
+        }
+
+        var jsoup = application.cbController.getWireBox().getInstance('javaloader:org.jsoup.Jsoup');
+        var text  = jsoup.parse(rawBody).text();
+        return left(text, arguments.length);
+    }
+
 }

@@ -15,7 +15,7 @@ component extends="base" {
     property name="trainerService"    inject="services.trainer";
 
     function preHandler(event, rc, prc, action, eventArguments) {
-        prc.title           = 'Profile - #getSetting('title')#';
+        prc.title           = 'Profile | #getSetting('title')#';
         prc.metaDescription = 'View your profile, friend requests, Pokedex summary, Stats summary, medal overview, and more.';
         prc.metaRobots      = 'noindex, nofollow';
     }

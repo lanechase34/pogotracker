@@ -34,7 +34,7 @@ component extends="base" {
         }
 
         prc.metaDescription = prc.detail.metaDescription;
-        prc.title           = prc.detail.title & ' - #getSetting('title')#';
+        prc.title           = '#prc.detail.title# | #getSetting('title')#';
         prc.suppressH1      = true; // pokemon's name is h1
     }
 

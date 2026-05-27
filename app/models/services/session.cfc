@@ -139,13 +139,15 @@ component singleton accessors="true" {
         required string type,
         required boolean dismissible,
         required string icon,
-        required string message
+        required string message,
+        numeric margin = 3
     ) {
         session.alert = {
             'type'       : arguments.type,
             'dismissible': arguments.dismissible,
             'icon'       : arguments.icon,
-            'message'    : arguments.message
+            'message'    : arguments.message,
+            'margin'     : arguments.margin
         };
         return;
     }

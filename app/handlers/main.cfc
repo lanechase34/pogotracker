@@ -123,7 +123,9 @@ component extends="base" {
 
         // If this user has the persist cookie and not authenticated
         if(
-            (prc.currHandler != 'login' || prc.currEvent == 'login.loginform') && !session.authenticated && persistService.checkCookie()
+            (prc.currHandler != 'login' || prc.currEvent == 'login.loginform')
+            && !session.authenticated
+            && persistService.checkCookie()
         ) {
             // Override event with the persistLogin page
             rc.persistCookie                 = persistService.getCookie();

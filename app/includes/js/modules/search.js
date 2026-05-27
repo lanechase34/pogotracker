@@ -62,7 +62,7 @@ export function createPokemonSearch(elementid) {
                 return data.data;
             },
             cache: true,
-            delay: 150,
+            delay: 100,
         },
         minimumInputLength: 1,
         maximumInputLength: 20,

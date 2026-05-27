@@ -25,7 +25,7 @@ component extends="base" {
     this.prehandler_only = 'myPokedex,myCustomPokedex,customPokedexList,myShadowPokedex';
 
     function preHandler(event, rc, prc, action, eventArguments) {
-        prc.title           = 'Pokedex - #getSetting('title')#';
+        prc.title           = 'Pokedex | #getSetting('title')#';
         prc.metaDescription = 'Track your Pokemon and Shiny Pokemon collection in the Pokedex.';
         prc.metaRobots      = 'noindex, nofollow';
     }
@@ -419,7 +419,7 @@ component extends="base" {
         }
 
         prc.trainerid       = session.trainerid;
-        prc.title           = 'Shadow Pokedex - #getSetting('title')#';
+        prc.title           = 'Shadow Pokedex | #getSetting('title')#';
         prc.metaDescription = 'Track your Shadow Pokemon and Shiny Shadow Pokemon collection in the Pokedex.';
     }
 
