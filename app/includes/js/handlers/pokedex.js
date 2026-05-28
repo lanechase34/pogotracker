@@ -1,5 +1,5 @@
 import { getCookie, setCookie } from 'cookie';
-import { copyString } from 'copy';
+import { copyString, lockButtonWidth, lockCopyButtonWidth } from 'copy';
 import { getWrapper, postWrapper } from 'fetch';
 import { $loading, $loadingModal } from 'loading';
 import { confirmModal, submitHandler } from 'modals';
@@ -470,18 +470,21 @@ function copySearchString($btns, missing) {
 export const runtime = {
     all: () => {
         Array.from($copySearchStringBtn).forEach((btn) => {
+            lockCopyButtonWidth(btn);
             btn.addEventListener('click', () => {
                 copySearchString($copySearchStringBtn, false);
             });
         });
 
         Array.from($copyMissingSearchStringBtn).forEach((btn) => {
+            lockCopyButtonWidth(btn);
             btn.addEventListener('click', () => {
                 copySearchString($copyMissingSearchStringBtn, true);
             });
         });
 
         Array.from($pokedexLock).forEach((btn) => {
+            lockButtonWidth(btn, '<i class="bi bi-unlock me-1"></i>Unlocked');
             btn.addEventListener('click', () => {
                 toggleLock();
             });

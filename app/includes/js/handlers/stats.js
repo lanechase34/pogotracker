@@ -1,5 +1,5 @@
 import { createAlert } from 'alert';
-import { copyString } from 'copy';
+import { copyString, lockCopyButtonWidth } from 'copy';
 import { getWrapper, postWrapper } from 'fetch';
 import { $loading, $loadingCard, $submitBtn } from 'loading';
 import { resetHandler, submitHandler } from 'modals';
@@ -79,11 +79,17 @@ export async function getPokedexStats(trainerid, $div) {
 
             // Add copy missing string handlers
             const $pokedexStatsCard = document.getElementById('pokedexStatsCard');
-            document.getElementById('copyMissingString').addEventListener('click', (e) => {
+            const $copyMissing = document.getElementById('copyMissingString');
+            const $copyMissingShiny = document.getElementById('copyMissingShinyString');
+
+            lockCopyButtonWidth($copyMissing);
+            lockCopyButtonWidth($copyMissingShiny);
+
+            $copyMissing.addEventListener('click', (e) => {
                 copyString([e.currentTarget], $pokedexStatsCard.dataset.missingstring);
             });
 
-            document.getElementById('copyMissingShinyString').addEventListener('click', (e) => {
+            $copyMissingShiny.addEventListener('click', (e) => {
                 copyString([e.currentTarget], $pokedexStatsCard.dataset.missingshinystring);
             });
         },

@@ -1,4 +1,4 @@
-const $copied = `<i class="bi bi-check2 me-2"></i>Copied!`;
+const $copied = `<i class="bi bi-check2 me-1"></i>Copied`;
 
 export function initCopyIcons() {
     const copyIcons = document.querySelectorAll('.copyIcon');
@@ -11,6 +11,17 @@ export function initCopyIcons() {
             evt.currentTarget.innerHTML = $copied;
         });
     });
+}
+
+export function lockButtonWidth($btn, html) {
+    const orig = $btn.innerHTML;
+    $btn.innerHTML = html;
+    $btn.style.minWidth = `${$btn.offsetWidth}px`;
+    $btn.innerHTML = orig;
+}
+
+export function lockCopyButtonWidth($btn) {
+    lockButtonWidth($btn, $copied);
 }
 
 export function copyString($btns, string) {
