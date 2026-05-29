@@ -7,7 +7,7 @@ test.describe('Login Page Navigation', () => {
         test('Sidebar is visible without interaction', async ({ page }, testInfo) => {
             test.skip(isMobile(testInfo.project.name), 'Desktop only');
 
-            await page.goto('/');
+            await page.goto('/', { waitUntil: 'domcontentloaded' });
 
             const sidebar = page.locator('#sideNavbar');
             await expect(sidebar).toBeVisible();
@@ -16,7 +16,7 @@ test.describe('Login Page Navigation', () => {
         test('Hamburger button is not visible on desktop', async ({ page }, testInfo) => {
             test.skip(isMobile(testInfo.project.name), 'Desktop only');
 
-            await page.goto('/');
+            await page.goto('/', { waitUntil: 'domcontentloaded' });
 
             const hamburger = page.locator('button.hamburgerButton');
             await expect(hamburger).not.toBeVisible();
@@ -25,7 +25,7 @@ test.describe('Login Page Navigation', () => {
         test('Login button is visible in sidebar without interaction', async ({ page }, testInfo) => {
             test.skip(isMobile(testInfo.project.name), 'Desktop only');
 
-            await page.goto('/');
+            await page.goto('/', { waitUntil: 'domcontentloaded' });
 
             const loginBtn = page.locator('#loginBtn');
             await expect(loginBtn).toBeVisible();
@@ -35,7 +35,7 @@ test.describe('Login Page Navigation', () => {
         test('login button navigates to /login', async ({ page }, testInfo) => {
             test.skip(isMobile(testInfo.project.name), 'Desktop only');
 
-            await page.goto('/');
+            await page.goto('/', { waitUntil: 'domcontentloaded' });
 
             await page.locator('#loginBtn').click();
             await expect(page).toHaveURL('/login');
@@ -46,7 +46,7 @@ test.describe('Login Page Navigation', () => {
         test('Hamburger button is visible on mobile', async ({ page }, testInfo) => {
             test.skip(!isMobile(testInfo.project.name), 'Mobile only');
 
-            await page.goto('/');
+            await page.goto('/', { waitUntil: 'domcontentloaded' });
 
             const hamburger = page.locator('button.hamburgerButton');
             await expect(hamburger).toBeVisible();
@@ -55,7 +55,7 @@ test.describe('Login Page Navigation', () => {
         test('Sidebar is hidden before opening hamburger menu', async ({ page }, testInfo) => {
             test.skip(!isMobile(testInfo.project.name), 'Mobile only');
 
-            await page.goto('/');
+            await page.goto('/', { waitUntil: 'domcontentloaded' });
 
             const sidebar = page.locator('#sideNavbar');
             await expect(sidebar).not.toBeVisible();
@@ -64,7 +64,7 @@ test.describe('Login Page Navigation', () => {
         test('Login button is not visible before opening hamburger menu', async ({ page }, testInfo) => {
             test.skip(!isMobile(testInfo.project.name), 'Mobile only');
 
-            await page.goto('/');
+            await page.goto('/', { waitUntil: 'domcontentloaded' });
 
             const loginBtn = page.locator('#loginBtn');
             await expect(loginBtn).not.toBeVisible();
@@ -73,7 +73,7 @@ test.describe('Login Page Navigation', () => {
         test('Hamburger opens the sidebar', async ({ page }, testInfo) => {
             test.skip(!isMobile(testInfo.project.name), 'Mobile only');
 
-            await page.goto('/');
+            await page.goto('/', { waitUntil: 'domcontentloaded' });
 
             await page.locator('button.hamburgerButton').click();
 
@@ -84,7 +84,7 @@ test.describe('Login Page Navigation', () => {
         test('Login button is visible after opening hamburger menu', async ({ page }, testInfo) => {
             test.skip(!isMobile(testInfo.project.name), 'Mobile only');
 
-            await page.goto('/');
+            await page.goto('/', { waitUntil: 'domcontentloaded' });
 
             await page.locator('button.hamburgerButton').click();
 
@@ -96,7 +96,7 @@ test.describe('Login Page Navigation', () => {
         test('Login button navigates to /login after opening hamburger menu', async ({ page }, testInfo) => {
             test.skip(!isMobile(testInfo.project.name), 'Mobile only');
 
-            await page.goto('/');
+            await page.goto('/', { waitUntil: 'domcontentloaded' });
 
             await page.locator('button.hamburgerButton').click();
             await expect(page.locator('#sideNavbar')).toBeVisible();
@@ -108,7 +108,7 @@ test.describe('Login Page Navigation', () => {
         test('Sidebar closes when close button is clicked', async ({ page }, testInfo) => {
             test.skip(!isMobile(testInfo.project.name), 'Mobile only');
 
-            await page.goto('/');
+            await page.goto('/', { waitUntil: 'domcontentloaded' });
 
             await page.locator('button.hamburgerButton').click();
             await expect(page.locator('#sideNavbar')).toBeVisible();
@@ -120,7 +120,7 @@ test.describe('Login Page Navigation', () => {
         test('Login button is no longer visible after closing sidebar', async ({ page }, testInfo) => {
             test.skip(!isMobile(testInfo.project.name), 'Mobile only');
 
-            await page.goto('/');
+            await page.goto('/', { waitUntil: 'domcontentloaded' });
 
             await page.locator('button.hamburgerButton').click();
             await expect(page.locator('#sideNavbar')).toBeVisible();
@@ -132,11 +132,12 @@ test.describe('Login Page Navigation', () => {
         test('Sidebar can be reopened after closing', async ({ page }, testInfo) => {
             test.skip(!isMobile(testInfo.project.name), 'Mobile only');
 
-            await page.goto('/');
+            await page.goto('/', { waitUntil: 'domcontentloaded' });
 
-            // Open
+            // Open — wait for Bootstrap's open animation to fully complete before closing
             await page.locator('button.hamburgerButton').click();
             await expect(page.locator('#sideNavbar')).toBeVisible();
+            await expect(page.locator('#sideNavbar')).not.toHaveClass(/showing/);
 
             // Close
             await page.locator('#closeSideNavbar').click();
@@ -151,12 +152,12 @@ test.describe('Login Page Navigation', () => {
 
     test.describe('Shared', () => {
         test('Page title is correct', async ({ page }) => {
-            await page.goto('/');
+            await page.goto('/', { waitUntil: 'domcontentloaded' });
             await expect(page).toHaveTitle(/POGO Tracker/);
         });
 
         test('Login button has correct href', async ({ page }, testInfo) => {
-            await page.goto('/');
+            await page.goto('/', { waitUntil: 'domcontentloaded' });
 
             if (isMobile(testInfo.project.name)) {
                 await page.locator('button.hamburgerButton').click();
@@ -168,7 +169,7 @@ test.describe('Login Page Navigation', () => {
         });
 
         test('Login button contains person icon', async ({ page }, testInfo) => {
-            await page.goto('/');
+            await page.goto('/', { waitUntil: 'domcontentloaded' });
 
             if (isMobile(testInfo.project.name)) {
                 await page.locator('button.hamburgerButton').click();

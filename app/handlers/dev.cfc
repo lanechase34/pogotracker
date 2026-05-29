@@ -225,7 +225,7 @@ component {
 
         prc.mailContent = '';
         if(rc.filename.len()) {
-            var safeFilename = reReplace(rc.filename, '[^a-zA-Z0-9_-]', '', 'all');
+            var safeFilename = reReplace(rc.filename, '[^a-zA-Z0-9._-]', '', 'all');
             var fullPath     = '#getSetting('testEmailPath')#/#safeFilename#.html';
             if(fileExists(fullPath)) {
                 prc.mailContent = fileRead(fullPath);

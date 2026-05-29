@@ -25,11 +25,11 @@ async function loginAsTestUser(page) {
         });
     });
 
-    await page.goto('/login');
+    await page.goto('/login', { waitUntil: 'load' });
     await page.locator('#inputEmail').fill('test_1@gmail.com');
     await page.locator('#inputPassword').fill('aaaaaaaaaaaaaa');
     await page.locator('#submitForm').click();
-    await page.waitForURL('/', { timeout: 10000 });
+    await page.waitForURL('/', { timeout: 10000, waitUntil: 'domcontentloaded' });
 }
 
 // Reusable helper to ensure the sidebar is open
@@ -56,7 +56,7 @@ test.describe('Authenticated session', () => {
         });
 
         test('Visiting /login while authenticated redirects away from login', async ({ page }) => {
-            await page.goto('/login');
+            await page.goto('/login', { waitUntil: 'domcontentloaded' });
             await expect(page).not.toHaveURL('/login');
         });
     });
@@ -194,7 +194,7 @@ test.describe('Authenticated session', () => {
             await openSidebarIfMobile(page, testInfo);
             await page.locator('#profileGroup').click();
             await page.locator('#logoutBtn').click();
-            await page.goto('/');
+            await page.goto('/', { waitUntil: 'domcontentloaded' });
             const isAuthenticated = await page.locator('#currentEvent').getAttribute('data-userauthenticated');
             expect(isAuthenticated).toBe('false');
         });
@@ -203,7 +203,7 @@ test.describe('Authenticated session', () => {
             await openSidebarIfMobile(page, testInfo);
             await page.locator('#profileGroup').click();
             await page.locator('#logoutBtn').click();
-            await page.goto('/');
+            await page.goto('/', { waitUntil: 'domcontentloaded' });
 
             await openSidebarIfMobile(page, testInfo);
             await expect(page.locator('#loginBtn')).toBeVisible();
@@ -213,7 +213,7 @@ test.describe('Authenticated session', () => {
             await openSidebarIfMobile(page, testInfo);
             await page.locator('#profileGroup').click();
             await page.locator('#logoutBtn').click();
-            await page.goto('/');
+            await page.goto('/', { waitUntil: 'domcontentloaded' });
             await expect(page.locator('#sidebarUsername')).not.toBeAttached();
         });
     });

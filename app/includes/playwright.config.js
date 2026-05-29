@@ -12,6 +12,7 @@ export default defineConfig({
     use: {
         baseURL: process.env.BASE_URL || 'http://localhost:8081',
         trace: 'on-first-retry',
+        navigationTimeout: 30000,
     },
     timeout: 30000,
     expect: {

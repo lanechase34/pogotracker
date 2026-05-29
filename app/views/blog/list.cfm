@@ -1,11 +1,6 @@
 <cfoutput>
 <cfif args.sidebar>
     <div class="row row-cols-1">
-        <cfif args.offset EQ 0>
-            <div class="home-section-label">
-                <i class="bi bi-book-half fs-5"></i>Recent Blogs
-            </div>
-        </cfif>
 <cfelse>
     <div class="row row-cols-1 row-cols-lg-2">
 </cfif>
