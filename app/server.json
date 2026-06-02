@@ -50,7 +50,6 @@
             "path(/robots.txt) -> rewrite('/includes/robots.txt')",
             "path(/sitemap.xml) -> rewrite('/includes/sitemap.xml')",
             "regex-nocase('.*(box\\.json|Dockerfile|cfconfig\\.json|server\\.json)') or path-suffix-nocase(.env) or path-suffix-nocase(.md) or path-prefix-nocase(/includes/assets/) or path-suffix-nocase(.cfc) or path-prefix-nocase(/.well-known/) or path-prefix-nocase('/app') -> set-error(404)",
-            "regex-nocase('.*\\.(webp|css|js|ico|txt|woff|woff2|ttf|svg)$') or regex-nocase('.*\\?v=[a-zA-Z0-9]{10}$') -> set(attribute='%{o,Cache-Control}', value='public, max-age=25552000')",
             "samesite-cookie(mode=Lax)"
         ],
         "maxRequests":"50",

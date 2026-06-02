@@ -42,6 +42,11 @@
 
     `server start`
 
+### NGINX
+
+- Test current configuration `sudo nginx -t`
+- Reload configuration `sudo systemctl reload nginx`
+
 ## Server Setup
 
 Stack:
