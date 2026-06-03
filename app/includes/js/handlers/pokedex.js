@@ -136,6 +136,7 @@ async function getCustomPokedexModal(type, customidLoad) {
 function toggleLock() {
     pokedexStruct.lock = pokedexStruct.lock === 'true' ? 'false' : 'true';
     setCookie('pokedexLock', pokedexStruct.lock, 100);
+    document.body.classList.toggle('pokedex-locked', pokedexStruct.lock === 'true');
 
     Array.from($pokedexLock).forEach((btn) => {
         if (pokedexStruct.lock === 'true') {
@@ -270,6 +271,7 @@ async function register(evt) {
         cell.classList.remove('caught');
         pokedexStruct.registered--;
     }
+    cell.setAttribute('aria-checked', cell.classList.contains('caught') ? 'true' : 'false');
     updateRegistered();
 
     await postWrapper({
@@ -290,28 +292,37 @@ async function register(evt) {
 
 function createRegisterEvent(pokemonCells) {
     pokemonCells.forEach((cell) => {
-        ['mousedown', 'ontouchstart'].forEach((event) => {
+        ['mousedown'].forEach((event) => {
             cell.addEventListener(event, async (evt) => {
                 evt.preventDefault();
                 if (pokedexStruct.lock === 'false') {
-                    // only allow updates while unlocked
                     pokedexStruct.mousedown = true;
                     pokedexStruct.catching = await register(evt);
                 }
             });
         });
 
-        ['mouseenter'].forEach((event) => {
-            cell.addEventListener(event, (evt) => {
+        cell.addEventListener('mouseenter', (evt) => {
+            evt.preventDefault();
+            if (
+                pokedexStruct.lock === 'false' &&
+                pokedexStruct.mousedown &&
+                pokedexStruct.catching === !evt.currentTarget.classList.contains('caught')
+            ) {
+                evt.currentTarget.classList.add('registering');
+                register(evt);
+            }
+        });
+
+        cell.addEventListener('mouseleave', (evt) => {
+            evt.currentTarget.classList.remove('registering');
+        });
+
+        cell.addEventListener('keydown', async (evt) => {
+            if ((evt.key === ' ' || evt.key === 'Enter') && pokedexStruct.lock === 'false') {
                 evt.preventDefault();
-                if (
-                    pokedexStruct.lock === 'false' &&
-                    pokedexStruct.mousedown &&
-                    pokedexStruct.catching === !evt.currentTarget.classList.contains('caught')
-                ) {
-                    register(evt);
-                }
-            });
+                await register(evt);
+            }
         });
     });
 }
@@ -483,6 +494,8 @@ export const runtime = {
             });
         });
 
+        document.body.classList.toggle('pokedex-locked', pokedexStruct.lock === 'true');
+
         Array.from($pokedexLock).forEach((btn) => {
             lockButtonWidth(btn, '<i class="bi bi-unlock me-1"></i>Unlocked');
             btn.addEventListener('click', () => {
@@ -502,7 +515,7 @@ export const runtime = {
             });
         });
 
-        ['mouseup', 'ontouchend'].forEach((event) => {
+        ['mouseup'].forEach((event) => {
             document.addEventListener(event, (evt) => {
                 evt.preventDefault();
                 pokedexStruct.mousedown = false;

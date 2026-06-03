@@ -1,8 +1,8 @@
 <cfoutput>
-<div 
-    id="pokedexGrid" 
-    data-view="#args.pokedexView#" 
-    class="row mt-3 mb-3 align-items-center gx-0"
+<div
+    id="pokedexGrid"
+    data-view="#encodeForHTMLAttribute(args.pokedexView)#"
+    class="row mb-3 align-items-center gx-0"
 >
     <cfset registered = 0/>
     <cfset total = 0/>
@@ -31,14 +31,20 @@
                 data-tradable="#currEntry[1].getTradable()#"
                 data-caught="#!isNull(currEntry[2]) ? currEntry[2].getCaught() : false#"
                 data-shiny="#!isNull(currEntry[2]) ? currEntry[2].getShiny() : false#"
-                data-hundo="#!isNull(currEntry[2]) ? currEntry[2].getHundo() : false#" 
+                data-hundo="#!isNull(currEntry[2]) ? currEntry[2].getHundo() : false#"
                 data-shadow="#!isNull(currEntry[2]) ? currEntry[2].getShadow() : false#"
                 data-shadowshiny="#!isNull(currEntry[2]) ? currEntry[2].getShadowShiny() : false#"
+                title="#encodeForHTMLAttribute(currEntry[1].getName())#"
+                role="checkbox"
+                aria-checked="#caught ? 'true' : 'false'#"
+                aria-label="#encodeForHTMLAttribute(currEntry[1].getName())#"
+                tabindex="0"
             >
                 <img class="pokemonIcon" <cfif i GT 10>loading="lazy"</cfif> src="/includes/images/<cfif args.shiny>shinysprites<cfelse>sprites</cfif>/#currEntry[1].getSprite()##getSetting('imageExtension')#">
                 <cfif args.shadow>
                     <img src="/includes/images/shadow-pokemon#getSetting('imageExtension')#" <cfif i GT 10>loading="lazy"</cfif> class="shadowIcon">
                 </cfif>
+                <span class="dex-number">#currEntry[1].getNumber()#</span>
             </div>
         </cfif>
     </cfloop>

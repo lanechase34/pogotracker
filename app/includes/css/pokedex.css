@@ -1,10 +1,48 @@
 .pokemonCell {
-    background-color: lightgray;
+    background-color: #e9ecef;
     border: 1px solid white;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    user-select: none;
+}
+
+body.pokedex-locked .pokemonCell {
+    cursor: default;
+}
+
+body:not(.pokedex-locked) .pokemonCell:hover {
+    transform: scale(1.04);
+    z-index: 1;
 }
 
 .caught {
-    background-color: lightgreen;
+    background-color: #8fd9a8;
+}
+
+.pokemonCell.caught:hover {
+    background-color: #6dcc8e;
+}
+
+.pokemonCell.registering {
+    outline: 2px solid rgba(40, 130, 40, 0.5);
+    outline-offset: -2px;
+}
+
+.dex-number {
+    position: absolute;
+    bottom: 3px;
+    right: 4px;
+    font-size: 0.65rem;
+    color: rgba(0, 0, 0, 0.55);
+    line-height: 1;
+    pointer-events: none;
+    user-select: none;
+}
+
+.pokedex-link.active {
+    background-color: var(--bs-secondary) !important;
+    border-color: var(--bs-secondary) !important;
+    color: #fff !important;
 }
 
 .basic {
@@ -12,7 +50,7 @@
 }
 
 .bronze {
-    color: #cd7f32 !important;
+    color: #ce8946 !important;
 }
 
 .silver {

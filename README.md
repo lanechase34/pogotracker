@@ -1,6 +1,8 @@
 # POGO Tracker
 
-POGO Tracker offers in-depth analytics on your Pokemon collection, catches, walking distance, medal achievements, and much more
+POGO Tracker offers in-depth analytics on your Pokemon collection, catches, walking distance, medal achievements, and much more.
+
+![POGO Tracker Preview](app/includes/images/preview.webp)
 
 ## Features
 

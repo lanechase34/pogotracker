@@ -13,10 +13,15 @@ export function initCopyIcons() {
     });
 }
 
+/**
+ * Used when a button changes text
+ * Locks the button to the width of largest of the text (original or what it changes to)
+ */
 export function lockButtonWidth($btn, html) {
     const orig = $btn.innerHTML;
+    const origWidth = $btn.offsetWidth;
     $btn.innerHTML = html;
-    $btn.style.minWidth = `${$btn.offsetWidth}px`;
+    $btn.style.minWidth = `${Math.max(origWidth, $btn.offsetWidth)}px`;
     $btn.innerHTML = orig;
 }
 
