@@ -5,6 +5,7 @@
             "alert": "#args.jsPath#/modules/alert#args.minifiedJS#.js#args.cacheBuster#",
             "contact": "#args.jsPath#/modules/contact#args.minifiedJS#.js#args.cacheBuster#",
             "cookie": "#args.jsPath#/modules/cookie#args.minifiedJS#.js#args.cacheBuster#",
+            "localstorage": "#args.jsPath#/modules/localstorage#args.minifiedJS#.js#args.cacheBuster#",
             "copy": "#args.jsPath#/modules/copy#args.minifiedJS#.js#args.cacheBuster#",
             "display": "#args.jsPath#/modules/display#args.minifiedJS#.js#args.cacheBuster#",
             "fetch": "#args.jsPath#/modules/fetch#args.minifiedJS#.js#args.cacheBuster#",

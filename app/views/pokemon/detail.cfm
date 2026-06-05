@@ -357,7 +357,7 @@
                             </div>
                         </div>
                         <div class="col-12 mt-3">
-                            <button type="submit" class="col-12 col-lg-4 mt-auto btn btn-sm btn-primary">
+                            <button type="submit" class="col-12 col-lg-4 mt-auto btn btn-sm btn-dark">
                                 Update Detail
                             </button>
                         </div>

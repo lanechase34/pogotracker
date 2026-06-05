@@ -24,7 +24,7 @@
                     </cfloop>
                 </select>
 
-                <button type="submit" class="mt-3 col-2 btn btn-primary">
+                <button type="submit" class="mt-3 col-2 btn btn-dark">
                     Calculate
                 </button>
             </form>

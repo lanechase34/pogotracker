@@ -36,7 +36,7 @@
             <div class="modal-footer">
                 <div class="btn-group" role="group">
                     <button type="button" id="closeContactForm" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="submit" id="submitContactForm" class="btn btn-primary">
+                    <button type="submit" id="submitContactForm" class="btn btn-dark">
                         <i class="bi bi-mailbox me-1"></i>
                         Send
                     </button>

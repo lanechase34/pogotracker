@@ -111,7 +111,7 @@
             <div class="modal-footer">
                 <div class="btn-group" role="group">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="submit" id="submitEditProfileForm" class="btn btn-primary">
+                    <button type="submit" id="submitEditProfileForm" class="btn btn-dark">
                         <i class="bi bi-check2-square me-1"></i>
                         Submit
                     </button>

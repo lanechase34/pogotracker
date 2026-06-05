@@ -57,7 +57,7 @@
                             Delete
                         </button>
                     </cfif>
-                    <button type="submit" id="submitCustomForm" class="btn btn-primary">
+                    <button type="submit" id="submitCustomForm" class="btn btn-dark">
                         <cfif args.edit>
                             <i class="bi bi-pencil-square me-1"></i>
                             Edit

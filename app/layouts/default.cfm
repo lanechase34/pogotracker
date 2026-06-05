@@ -5,7 +5,7 @@
     #view(view='/layouts/header')#
 
     <!--- CSS Lib --->
-    <link rel="stylesheet" type="text/css" href="/includes/build/css/lib/multiselect.min.css" media="print" onload="this.media='all'; this.onload=null;"/>
+    <link rel="stylesheet" type="text/css" href="#getSetting('cssPath')#/multiselect#getSetting('minifiedCSS')#.css#getSetting('cacheBuster')#" media="print" onload="this.media='all'; this.onload=null;"/>
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" crossorigin="anonymous" media="print" onload="this.media='all'; this.onload=null;"/>
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/bs5/dt-2.1.8/b-3.2.0/fh-4.0.1/r-3.0.3/datatables.min.css" crossorigin="anonymous" media="print" onload="this.media='all'; this.onload=null;"/>
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" crossorigin="anonymous" media="print" onload="this.media='all'; this.onload=null;"/>
@@ -82,8 +82,7 @@
                                 </cfif>
                                 <li>
                                     <button class="pokedexLock dropdown-item">
-                                        <i class="bi bi-<cfif cookie.keyExists('pokedexLock') AND cookie.pokedexLock EQ true>lock<cfelse>unlock</cfif>"></i>
-                                        <cfif cookie.keyExists('pokedexLock') AND cookie.pokedexLock EQ true>Locked<cfelse>Unlocked</cfif>
+                                        <i class="bi bi-unlock me-1"></i>Unlocked
                                     </button>
                                 </li>
                                 <li><hr class="dropdown-divider"></li>
@@ -114,8 +113,7 @@
                                 </a>
                             </cfif>
                             <button class="pokedexLock btn btn-adjust btn-secondary" type="button">
-                                <i class="bi bi-<cfif cookie.keyExists('pokedexLock') AND cookie.pokedexLock EQ true>lock<cfelse>unlock</cfif>"></i>
-                                <cfif cookie.keyExists('pokedexLock') AND cookie.pokedexLock EQ true>Locked<cfelse>Unlocked</cfif>
+                                <i class="bi bi-unlock me-1"></i>Unlocked
                             </button>
                             <button class="shinyToggle btn btn-adjust <cfif rc.keyExists('shiny') AND rc.shiny>btn-success<cfelse>btn-danger</cfif>" type="button">
                                 <i class="bi bi-stars me-2"></i>Shiny
@@ -171,6 +169,7 @@
                         <h1 class="text-center hfs-5 m-0 p-0 fw-bold" id="bodyHeader">
                             #prc?.header ?: ''#
                         </h1>
+                        <hr class="smallDisplayOnly">
                     <cfelseif !prc.keyExists('suppressH1')>
                         <h1 class="visually-hidden">#prc.title.len() ? prc.title : getSetting('title')#</h1>
                     </cfif>
@@ -293,7 +292,6 @@
 
 <!--- JS Lib --->
 <script type="text/javascript" defer src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
-<script type="text/javascript" defer src="/includes/build/js/lib/multiselect.min.js"></script>
 <script type="text/javascript" defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 <script type="text/javascript" defer src="https://cdnjs.cloudflare.com/ajax/libs/masonry/4.2.2/masonry.pkgd.min.js" integrity="sha512-JRlcvSZAXT8+5SQQAvklXGJuxXTouyq8oIMaYERZQasB8SBDHZaUbeASsJWpk0UUrf89DP3/aefPPrlMR1h1yQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script type="text/javascript" defer src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
@@ -302,11 +300,7 @@
 <script type="text/javascript" defer src="https://cdn.datatables.net/v/bs5/dt-2.1.8/b-3.2.0/fh-4.0.1/r-3.0.3/datatables.min.js"></script>
 <script type="text/javascript" defer src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
-<cfif getSetting('minifiedJS').len()>
-    <script type="module" src="/includes/build/js/global.min.js#getSetting('cacheBuster')#"></script>
-<cfelse>
-    <script type="module" src="/includes/js/global.js#getSetting('cacheBuster')#"></script>
-</cfif>
+<script type="module" src="#getSetting('jsPath')#/global#getSetting('minifiedJS')##getSetting('minifiedJS')#.js#getSetting('cacheBuster')#"></script>
 </body>
 </html>
 </cfoutput>

@@ -1,7 +1,7 @@
 <cfoutput>
 <div 
     id="customPokedexTable" 
-    class="mt-3" 
+    class="mt-xl-3" 
     data-trainerid="#encodeForHTMLAttribute(prc.trainerid)#" 
     data-customid="#encodeForHTMLAttribute(prc.customid)#" 
     data-shiny="#encodeForHTMLAttribute(rc.shiny)#"

@@ -25,7 +25,7 @@
             <div class="modal-footer">
                 <div class="btn-group" role="group">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="submit" id="submitAddFriendForm" class="btn btn-primary">
+                    <button type="submit" id="submitAddFriendForm" class="btn btn-dark">
                         <i class="bi bi-person-add me-1"></i>
                         Send Friend Request
                     </button>

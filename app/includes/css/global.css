@@ -186,6 +186,10 @@ pre:has(code) {
     margin-top: 1rem !important;
 }
 
+.smallDisplayOnly {
+    display: block;
+}
+
 @media (min-width: 576px) {
     .row-cols-sm-7 {
         flex: 0 0 auto;
@@ -247,6 +251,9 @@ pre:has(code) {
     #bodyHeader {
         display: none;
         margin-top: 0 !important;
+    }
+    .smallDisplayOnly {
+        display: none;
     }
 }
 @media (min-width: 1400px) {

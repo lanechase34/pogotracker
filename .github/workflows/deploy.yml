@@ -16,6 +16,20 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Setup Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: "24"
+          cache: "npm"
+          cache-dependency-path: app/includes/package-lock.json
+
+      - name: Build JS and CSS assets
+        working-directory: ./app/includes
+        run: |
+          npm ci
+          npm run minJS
+          npm run minCSS
+
       - name: Update backend code
         uses: burnett01/rsync-deployments@70ff22f5b4c2bb0e08d0bf20de693389e5552047 #v8
         # a - archive preserve permissions, ownership, and symbolic links, v - verbose, z - compress

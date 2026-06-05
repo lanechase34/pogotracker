@@ -108,6 +108,7 @@ export default defineConfig([
                         ['alert', './js/modules/alert.js'],
                         ['contact', './js/modules/contact.js'],
                         ['cookie', './js/modules/cookie.js'],
+                        ['localstorage', './js/modules/localstorage.js'],
                         ['copy', './js/modules/copy.js'],
                         ['display', './js/modules/display.js'],
                         ['fetch', './js/modules/fetch.js'],

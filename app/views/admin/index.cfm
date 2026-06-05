@@ -108,7 +108,7 @@
                             </div>
                         </div>
                         <div class="col-12">
-                            <button type="submit" class="col-12 col-lg-4 btn btn-primary">
+                            <button type="submit" class="col-12 col-lg-4 btn btn-dark">
                                 Save State
                             </button>
                         </div>

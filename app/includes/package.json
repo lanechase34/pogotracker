@@ -26,7 +26,7 @@
         "test:ui": "playwright test --ui",
         "test:debug": "playwright test --debug",
         "test:report": "playwright show-report",
-        "minJS": "run-p minAdmin minBlog minHome minLogin minPokedex minPokemon minStats minTrade minTrainer minAlert minContact minCookie minCopy minDisplay minFetch minForm minLoading minModals minMultiselect minSocket minSearch minToast minGlobal minRuntime",
+        "minJS": "run-p minAdmin minBlog minHome minLogin minPokedex minPokemon minStats minTrade minTrainer minAlert minContact minCookie minLocalstorage minCopy minDisplay minFetch minForm minLoading minModals minMultiselect minSocket minSearch minToast minGlobal minRuntime",
         "minCSS": "run-p cleanAdmin cleanBlog cleanGlobal cleanHome cleanPokedex cleanPokemon cleanTrade cleanTrainer cleanMultiselect",
         "minAdmin": "terser js/handlers/admin.js --config-file .terser.json --output build/js/handlers/admin.min.js",
         "minBlog": "terser js/handlers/blog.js --config-file .terser.json --output build/js/handlers/blog.min.js",
@@ -40,6 +40,7 @@
         "minAlert": "terser js/modules/alert.js --config-file .terser.json --output build/js/modules/alert.min.js",
         "minContact": "terser js/modules/contact.js --config-file .terser.json --output build/js/modules/contact.min.js",
         "minCookie": "terser js/modules/cookie.js --config-file .terser.json --output build/js/modules/cookie.min.js",
+        "minLocalstorage": "terser js/modules/localstorage.js --config-file .terser.json --output build/js/modules/localstorage.min.js",
         "minCopy": "terser js/modules/copy.js --config-file .terser.json --output build/js/modules/copy.min.js",
         "minDisplay": "terser js/modules/display.js --config-file .terser.json --output build/js/modules/display.min.js",
         "minFetch": "terser js/modules/fetch.js --config-file .terser.json --output build/js/modules/fetch.min.js",
@@ -60,6 +61,6 @@
         "cleanPokemon": "cleancss -o build/css/pokemon.min.css css/pokemon.css",
         "cleanTrade": "cleancss -o build/css/trade.min.css css/trade.css",
         "cleanTrainer": "cleancss -o build/css/trainer.min.css css/trainer.css",
-        "cleanMultiselect": "cleancss -o build/css/lib/multiselect.min.css css/lib/multiselect.css"
+        "cleanMultiselect": "cleancss -o build/css/multiselect.min.css css/multiselect.css"
     }
 }

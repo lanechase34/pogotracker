@@ -1,7 +1,7 @@
-import { getCookie, setCookie } from 'cookie';
 import { copyString, lockButtonWidth, lockCopyButtonWidth } from 'copy';
 import { getWrapper, postWrapper } from 'fetch';
 import { $loading, $loadingModal } from 'loading';
+import { getLocalStorage, setLocalStorage } from 'localstorage';
 import { confirmModal, submitHandler } from 'modals';
 import { createMultiSelect } from 'multiselect';
 import { createCustomSearch } from 'search';
@@ -38,7 +38,7 @@ const pokedexStruct = {
     view: '',
     registered: 0,
     total: 0,
-    lock: getCookie('pokedexLock') ?? 'false',
+    lock: getLocalStorage('pokedexLock') ?? 'false',
     mousedown: false,
     catching: false,
     active: '',
@@ -135,7 +135,7 @@ async function getCustomPokedexModal(type, customidLoad) {
 
 function toggleLock() {
     pokedexStruct.lock = pokedexStruct.lock === 'true' ? 'false' : 'true';
-    setCookie('pokedexLock', pokedexStruct.lock, 100);
+    setLocalStorage('pokedexLock', pokedexStruct.lock);
     document.body.classList.toggle('pokedex-locked', pokedexStruct.lock === 'true');
 
     Array.from($pokedexLock).forEach((btn) => {
@@ -497,7 +497,10 @@ export const runtime = {
         document.body.classList.toggle('pokedex-locked', pokedexStruct.lock === 'true');
 
         Array.from($pokedexLock).forEach((btn) => {
-            lockButtonWidth(btn, '<i class="bi bi-unlock me-1"></i>Unlocked');
+            lockButtonWidth(btn, '<i class="bi bi-lock me-1"></i>Unlocked');
+            if (pokedexStruct.lock === 'true') {
+                btn.innerHTML = '<i class="bi bi-lock me-1"></i>Locked';
+            }
             btn.addEventListener('click', () => {
                 toggleLock();
             });

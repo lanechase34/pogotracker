@@ -53,3 +53,6 @@ app/tests/results/*
 app/cflint-results.json
 
 app/includes/sitemap.xml
+
+app/includes/build/
+app/includes/build/**
