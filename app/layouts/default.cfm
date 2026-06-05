@@ -300,7 +300,7 @@
 <script type="text/javascript" defer src="https://cdn.datatables.net/v/bs5/dt-2.1.8/b-3.2.0/fh-4.0.1/r-3.0.3/datatables.min.js"></script>
 <script type="text/javascript" defer src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
-<script type="module" src="#getSetting('jsPath')#/global#getSetting('minifiedJS')##getSetting('minifiedJS')#.js#getSetting('cacheBuster')#"></script>
+<script type="module" src="#getSetting('jsPath')#/global#getSetting('minifiedJS')#.js#getSetting('cacheBuster')#"></script>
 </body>
 </html>
 </cfoutput>
