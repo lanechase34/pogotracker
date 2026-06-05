@@ -14,7 +14,6 @@ export function createMultiSelect(element, placeholder, max, search) {
  *
  * Released under the MIT license
  */
-// eslint-disable-next-line no-unused-vars
 class MultiSelect {
     constructor(element, options = {}) {
         const defaults = {
