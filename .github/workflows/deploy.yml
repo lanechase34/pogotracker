@@ -73,10 +73,7 @@ jobs:
           username: ${{ secrets.LIGHTSAIL_USERNAME }}
           key: "${{ secrets.LIGHTSAIL_SSH_KEY }}"
           script: |
-            cd /var/www/wwwroot/pogotracker/
-            sudo box server stop
             sudo sh -c 'echo "$(date)" > /var/www/wwwroot/pogotracker/version.html'
-            sudo box update --force
-            sudo box install --production
-            sudo box migrate up
-            sudo box server start
+            cd /var/www/wwwroot/pogotracker/
+            sudo box recipe scripts/deploy.boxr
+          timeout-minutes: 10

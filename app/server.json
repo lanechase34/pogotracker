@@ -49,7 +49,7 @@
             "path(/WebSocket.cfc) -> done",
             "path(/robots.txt) -> rewrite('/includes/robots.txt')",
             "path(/sitemap.xml) -> rewrite('/includes/sitemap.xml')",
-            "regex-nocase('.*(box\\.json|Dockerfile|cfconfig\\.json|server\\.json)') or path-suffix-nocase(.env) or path-suffix-nocase(.md) or path-prefix-nocase(/includes/assets/) or path-suffix-nocase(.cfc) or path-prefix-nocase(/.well-known/) or path-prefix-nocase('/app') -> set-error(404)",
+            "regex-nocase('.*(box\\.json|Dockerfile|cfconfig\\.json|server\\.json)') or path-suffix-nocase(.env) or path-suffix-nocase(.md) or path-prefix-nocase(/includes/assets/) or path-suffix-nocase(.cfc) or path-prefix-nocase(/.well-known/) or path-prefix-nocase('/app') or path-prefix-nocase(/views/) or path-prefix-nocase(/layouts/) or path-prefix-nocase(/database/) or path-prefix-nocase(/scripts/) -> set-error(404)",
             "samesite-cookie(mode=Lax)"
         ],
         "maxRequests":"50",
