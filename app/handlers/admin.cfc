@@ -26,7 +26,8 @@ component extends="base" {
         logViewer             : 'GET',
         requestLog            : 'GET',
         getRequests           : 'GET',
-        updateSiteMap         : 'GET'
+        updateSiteMap         : 'GET',
+        buildCostumeData      : 'GET'
     };
 
     property name="auditService"      inject="services.audit";
@@ -404,6 +405,12 @@ component extends="base" {
             'Successfully Updated.'
         );
         relocate(event = 'admin');
+    }
+
+    function buildCostumeData(event, rc, prc) {
+        cfsetting(requestTimeout = 600);
+        adminService.buildCostumeData();
+        relocate(event = 'admin.listPokemon');
     }
 
 }

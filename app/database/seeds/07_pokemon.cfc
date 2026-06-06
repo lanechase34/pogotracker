@@ -29,7 +29,9 @@ component extends="base" {
                         'shadowshiny': pokemon.shadowshiny,
                         'giga'       : pokemon.giga,
                         'formtype'   : pokemon.keyExists('formtype') ? pokemon.formtype : '',
-                        'ses'        : pokemon.ses
+                        'ses'        : pokemon.ses,
+                        'costume'    : false,
+                        'costumetype': ''
                     });
             },
             true,

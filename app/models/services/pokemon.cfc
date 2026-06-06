@@ -60,11 +60,13 @@ component singleton accessors="true" {
         required array moves,
         required array evolutions
     ) {
-        // This assumes these three properties cannot be changed
+        // This assumes these properties cannot be changed
         var currPokemon = get({
-            number: arguments.pokemonProperties.number,
-            name  : arguments.pokemonProperties.name,
-            gender: arguments.pokemonProperties.gender
+            number     : arguments.pokemonProperties.number,
+            name       : arguments.pokemonProperties.name,
+            gender     : arguments.pokemonProperties.gender,
+            costume    : arguments.pokemonProperties.costume,
+            costumetype: arguments.pokemonProperties.costumetype
         });
 
         // If this is a new pokemon, create
@@ -94,11 +96,14 @@ component singleton accessors="true" {
         return;
     }
 
+    /**
+     * Get all non-costume pokemon
+     */
     public array function getAll() {
         var cacheKey   = 'pokemon.getAll';
         var allPokemon = cacheService.get(cacheKey);
         if(isNull(allPokemon)) {
-            allPokemon = get({}, 'generation asc, number asc, form asc');
+            allPokemon = get({'costume': false}, 'generation asc, number asc, form asc');
 
             // Make sure relationships are loaded before being cached
             allPokemon.each((pokemon) => {
@@ -154,9 +159,10 @@ component singleton accessors="true" {
         evolutions.each((evolution) => {
             // Attempt to load the evolution pokemon trying to be made
             var evolvedPokemon = get({
-                'number': evolution.number,
-                'name'  : evolution.name,
-                'gender': evolution.gender
+                'number' : evolution.number,
+                'name'   : evolution.name,
+                'gender' : evolution.gender,
+                'costume': false
             });
 
             // have to skip since the evolved pokemon hasn't been created yet
@@ -504,10 +510,13 @@ component singleton accessors="true" {
                     '
                     select pokemon
                     from pokemon as pokemon
-                    where upper(pokemon.generation.region) like :search
+                    where costume = false
+                    and ( 
+                        upper(pokemon.generation.region) like :search
                         or upper(pokemon.gender) like :search
                         or upper(pokemon.name) like :search
                         #numericSearch#
+                    )
                     #orderBy#
                     ',
                     params,
@@ -534,10 +543,13 @@ component singleton accessors="true" {
                     '
                     select count(pokemon.id)
                     from pokemon as pokemon
-                    where upper(pokemon.generation.region) like :search
+                    where costume = false
+                    and ( 
+                        upper(pokemon.generation.region) like :search
                         or upper(pokemon.gender) like :search
                         or upper(pokemon.name) like :search
                         #numericSearch#
+                    )
                     ',
                     params,
                     true

@@ -13,14 +13,15 @@ component singleton accessors="true" {
     property name="scraperService"    inject="services.scraper";
     property name="securityService"   inject="services.security";
 
-    property name="concurrency"   inject="coldbox:setting:concurrency";
-    property name="domainProd"    inject="coldbox:setting:domainProd";
-    property name="logPath"       inject="coldbox:setting:logPath";
-    property name="maxThreads"    inject="coldbox:setting:maxThreads";
-    property name="rootPath"      inject="coldbox:setting:rootPath";
-    property name="shadowData"    inject="coldbox:setting:shadowData";
-    property name="systemTrainer" inject="coldbox:setting:systemTrainer";
-    property name="writeJson"     inject="coldbox:setting:writeJson";
+    property name="concurrency"    inject="coldbox:setting:concurrency";
+    property name="domainProd"     inject="coldbox:setting:domainProd";
+    property name="logPath"        inject="coldbox:setting:logPath";
+    property name="imageExtension" inject="coldbox:setting:imageExtension";
+    property name="maxThreads"     inject="coldbox:setting:maxThreads";
+    property name="rootPath"       inject="coldbox:setting:rootPath";
+    property name="shadowData"     inject="coldbox:setting:shadowData";
+    property name="systemTrainer"  inject="coldbox:setting:systemTrainer";
+    property name="writeJson"      inject="coldbox:setting:writeJson";
 
     property name="leekduckNameMap" type="struct";
     property name="regionalForms"   type="array";
@@ -806,7 +807,9 @@ component singleton accessors="true" {
                     'shadowshiny': pokemon.shadowshiny,
                     'giga'       : pokemon.giga,
                     'formtype'   : pokemon?.formtype ?: '',
-                    'ses'        : pokemon.ses
+                    'ses'        : pokemon.ses,
+                    'costume'    : pokemon?.costume ?: false,
+                    'costumetype': pokemon?.costumetype ?: ''
                 },
                 moves,
                 pokemon.evolutions
@@ -1697,6 +1700,11 @@ component singleton accessors="true" {
             ses &= '-#pokemon.formType#';
         }
 
+        // 3. costume
+        if(pokemon.keyExists('costumetype') && pokemon.costumetype.len()) {
+            ses &= '-#pokemon.costumetype#';
+        }
+
         return ses;
     }
 
@@ -1854,6 +1862,108 @@ component singleton accessors="true" {
         lines.append('</urlset>');
 
         fileWrite(filePath, lines.toList(chr(10)), 'UTF-8');
+    }
+
+    /**
+     * Builds the costume data
+     */
+    public void function buildCostumeData() {
+        var costumes = {};
+        var doc      = scraperService.getData('https://pokemongo.fandom.com/wiki/Event_Pok%C3%A9mon');
+
+        var items = doc
+            .body()
+            .select('.pogo-list-container')
+            .select('.pogo-list-item');
+
+        items.each((item, idx) => {
+            var nameEl = item.selectFirst('.pogo-list-item-name');
+            var numEl  = item.selectFirst('.pogo-list-item-number');
+            var formEl = item.selectFirst('.pogo-list-item-form');
+
+            if(isNull(nameEl) || isNull(numEl)) return;
+
+            var name    = trim(nameEl.text());
+            var costume = isNull(formEl) ? '' : trim(formEl.text());
+
+            var number = val(reReplace(numEl.text(), '[^0-9]', '', 'all'));
+
+            var imgEl  = item.selectFirst('.pogo-list-item-image-r img');
+            var imgSrc = '';
+            if(!isNull(imgEl)) {
+                // Lazy rows store the real url in data-src and a base64
+                // placeholder in src - eager rows store it directly in src.
+                var dataSrc = imgEl.attr('data-src');
+                var src     = imgEl.attr('src');
+                imgSrc      = len(dataSrc) && dataSrc.startsWith('http') ? dataSrc : src;
+
+                // Pull full resolution instead of the 98px thumbnail.
+                imgSrc = reReplace(imgSrc, '/scale-to-width-down/[0-9]+', '', 'one');
+            }
+
+            var safeCostume = reReplace(costume, '[^A-Za-z0-9]+', '-', 'all');
+            safeCostume     = reReplace(safeCostume, '(^-+|-+$)', '', 'all');
+            var fileName    = '#number#_#name#_#safeCostume#';
+
+            // Normal sprite
+            var spritePath = '/includes/images/sprites/#filename##getImageExtension()#'; // actual path '/includes/images/sprites/#fileName#'
+            if(len(imgSrc) && imgSrc.startsWith('http') && !fileExists('#getRootPath()##spritePath#')) {
+                cfhttp(
+                    url    = imgSrc,
+                    result = "imgResult",
+                    method = "GET"
+                );
+                var img = imageNew(imgResult.filecontent);
+                img.write(spritePath);
+            }
+
+            // Shiny sprite TODO
+
+            var curr = {
+                number     : number,
+                name       : name,
+                costume    : true,
+                costumetype: safeCostume,
+                sprite     : filename,
+                shiny      : false,
+                generation : getGeneration(name, number),
+                imgSrc     : imgSrc,
+                released   : true,
+                live       : true,
+                flee       : 0,
+                catch      : 0,
+                shadowshiny: false,
+                giga       : false,
+                evolutions : [],
+                form       : false,
+                mega       : false,
+                attack     : 0,
+                hp         : 0,
+                shadow     : false,
+                gender     : '',
+                tradable   : true,
+                type       : ['Normal'],
+                formtype   : '',
+                ses        : '',
+                moves      : [],
+                defense    : 0
+            };
+
+            // Create ses
+            curr.ses           = createSes(curr);
+            costumes[curr.ses] = curr;
+        });
+
+        if(getWriteJson()) {
+            fileWrite(
+                '#getRootPath()#/includes/assets/costumes.json',
+                serializeJSON(costumes),
+                'UTF-8'
+            );
+        }
+
+        updatePokemonData(costumes);
+        return;
     }
 
 }
