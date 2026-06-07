@@ -1937,6 +1937,7 @@ component singleton accessors="true" {
 
             // Create ses
             curr.ses           = createSes(curr);
+            curr.costumetype   = costume;
             costumes[curr.ses] = curr;
         });
 

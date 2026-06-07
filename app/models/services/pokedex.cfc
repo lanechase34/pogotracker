@@ -20,7 +20,7 @@ component singleton accessors="true" {
         var cacheKey   = '#arguments.trainer.getId()#|pokedex.getRegistered|region=#arguments.region#|form=#arguments.form#|mega=#arguments.mega#|shadow=#arguments.shadow#|giga=#arguments.giga#';
         var registered = cacheService.get(cacheKey);
         if(isNull(registered)) {
-            var whereClause = 'WHERE pokemon.mega = :mega AND pokemon.giga = :giga';
+            var whereClause = 'WHERE pokemon.costume = false AND pokemon.mega = :mega AND pokemon.giga = :giga';
             var params      = {
                 'trainer': arguments.trainer,
                 'mega'   : arguments.mega,
@@ -221,7 +221,8 @@ component singleton accessors="true" {
                     coalesce(string_agg(case when (d.shiny is not true and p.shiny = true) then cast(p.number as text) end, '','' order by p.number asc), '''') as missingShiny
                 from pokemon p
                 left outer join pokedex d on p.id = d.pokemonid and d.trainerid = :trainerid
-                where p.mega = false
+                where p.costume = false
+                    and p.mega = false
                     and p.giga = false
                     and p.number != 201 -- exclude unown
                     and p.tradable = true

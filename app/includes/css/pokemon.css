@@ -212,12 +212,33 @@
 
 /*  Costume icons  */
 .costumeIcon {
+    width: 100px;
+    height: 100px;
     filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.1));
     transition: transform 0.2s ease;
 }
 
 .costumeIcon:hover {
-    transform: scale(1.08);
+    transform: scale(1.1);
+}
+
+/*  Individual costume tile  */
+.costume-entry {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 0.75rem;
+    padding: 1rem 1.25rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transition:
+        box-shadow 0.2s ease,
+        border-color 0.2s ease;
+}
+
+.costume-entry:hover {
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
+    border-color: #adb5bd;
 }
 
 /*  Availability list  */

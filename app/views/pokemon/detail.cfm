@@ -272,16 +272,26 @@
         <div class="card shadow-sm">
             <h2 class="card-header card-header-pokemon">
                 <i class="bi bi-star"></i> Costumes
+                <button
+                    class="btn btn-sm p-0 border-0 ms-auto text-muted"
+                    type="button"
+                    data-bs-toggle="collapse"
+                    data-bs-target="##costumesCollapse"
+                    aria-expanded="true"
+                    aria-controls="costumesCollapse"
+                >
+                    <i class="bi bi-chevron-up collapse-chevron"></i>
+                </button>
             </h2>
+            <div class="collapse show" id="costumesCollapse">
             <div class="card-body">
-                <div class="d-flex flex-wrap gap-4">
+                <div class="d-flex flex-wrap gap-3 justify-content-center">
                     <cfloop index="i" item="costume" array="#prc.detail.costumes#">
-                    <div class="d-flex flex-column align-items-center">
+                    <div class="costume-entry">
                         <div class="pokemon-sprite-pair">
                             <div class="pokemon-sprite-group">
                                 <img
                                     class="costumeIcon"
-                                    style="width:80px;height:80px"
                                     src="/includes/images/sprites/#costume.getSprite()##getSetting('imageExtension')#"
                                     alt="#costume.getCostumeType()# Normal Sprite"
                                 >
@@ -291,18 +301,18 @@
                             <div class="pokemon-sprite-group">
                                 <img
                                     class="costumeIcon"
-                                    style="width:80px;height:80px"
                                     src="/includes/images/shinysprites/#costume.getSprite()##getSetting('imageExtension')#"
                                     alt="#costume.getCostumeType()# Shiny Sprite"
                                 >
-                                <span class="badge bg-dark text-white sprite-label">&##x2728; Shiny</span>
+                               <span class="badge bg-dark text-white sprite-label">&##x2728; Shiny</span>
                             </div>
                             </cfif>
                         </div>
-                        <p class="mt-2 mb-0 small fw-semibold text-center text-capitalize text-secondary">#costume.getCostumeType()#</p>
+                        <p class="mt-2 mb-0 small fw-semibold text-center text-capitalize">#costume.getCostumeType()#</p>
                     </div>
                     </cfloop>
                 </div>
+            </div>
             </div>
         </div>
     </div>
