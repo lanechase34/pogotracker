@@ -12,6 +12,7 @@ component singleton accessors="true" {
     property name="schedulerService"  inject="coldbox:schedulerService";
     property name="scraperService"    inject="services.scraper";
     property name="securityService"   inject="services.security";
+    property name="utilService"       inject="services.util";
 
     property name="concurrency"    inject="coldbox:setting:concurrency";
     property name="costumeData"    inject="coldbox:setting:costumeData";
@@ -2030,7 +2031,7 @@ component singleton accessors="true" {
 
         // Build ses using safe costume name, then replace to full costume
         curr.ses         = createSes(curr);
-        curr.costumetype = costume;
+        curr.costumetype = utilService.capitalizeWords(costume);
         return curr;
     }
 

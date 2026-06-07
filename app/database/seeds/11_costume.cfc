@@ -31,7 +31,7 @@ component extends="base" {
                         'formtype'   : {value: pokemon.keyExists('formtype') ? pokemon.formtype : '', cfsqltype: 'varchar'},
                         'ses'        : {value: pokemon.ses, cfsqltype: 'varchar'},
                         'costume'    : pokemon.costume,
-                        'costumetype': {value: pokemon.costumetype, cfsqltype: 'varchar'}
+                        'costumetype': {value: toUTF8(pokemon.costumetype), cfsqltype: 'varchar'}
                     });
             },
             true,

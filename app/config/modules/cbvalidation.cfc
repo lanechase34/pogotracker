@@ -221,19 +221,21 @@ component {
                 },
                 shiny: {required: true, type: 'boolean'}
             },
-            'pokedex.myShadowPokedex': {shiny: {required: true, type: 'boolean'}},
-            'pokedex.getPokedex'     : {
+            'pokedex.myShadowPokedex' : {shiny: {required: true, type: 'boolean'}},
+            'pokedex.myCostumePokedex': {shiny: {required: true, type: 'boolean'}},
+            'pokedex.getPokedex'      : {
                 trainerid: {
                     required     : true,
                     type         : 'numeric',
                     entityExists : {entityName: 'trainer', pk: true},
                     securityCheck: {}
                 },
-                region: {required: true, type: 'string'},
-                form  : {required: true, type: 'boolean'},
-                shiny : {required: true, type: 'boolean'},
-                hundo : {required: true, type: 'boolean'},
-                shadow: {required: true, type: 'boolean'}
+                region : {required: true, type: 'string'},
+                form   : {required: true, type: 'boolean'},
+                shiny  : {required: true, type: 'boolean'},
+                hundo  : {required: true, type: 'boolean'},
+                shadow : {required: true, type: 'boolean'},
+                costume: {required: true, type: 'boolean'}
             },
             'pokedex.myCustomPokedex': {
                 trainerid: {

@@ -2,12 +2,14 @@
 <div
     id="pokedexGrid"
     data-view="#encodeForHTMLAttribute(args.pokedexView)#"
-    class="row mb-3 align-items-center gx-0"
+    class="row mb-3 align-items-stretch gx-0"
 >
     <cfset registered = 0/>
     <cfset total = 0/>
     <cfloop index="i" item="currEntry" array="#args.pokedex#">
         <cfif 
+            (args.pokedexView == "costumeshiny" && currEntry[1].getShiny()) ||
+            (args.pokedexView == "costume" && currEntry[1].getLive()) ||
             (args.pokedexView == "shadowshiny" && currEntry[1].getShadowShiny()) ||
             (args.pokedexView == "shadow" && currEntry[1].getShadow()) ||
             (args.pokedexView == "shiny" && currEntry[1].getShiny()) ||
@@ -15,6 +17,8 @@
         >
             <cfset total++/>
             <cfset caught = !isNull(currEntry[2]) && (
+                    (args.pokedexView == "costumeshiny" && currEntry[2].getShiny()) ||
+                    (args.pokedexView == "costume" && currEntry[2].getCaught()) ||
                     (args.pokedexView == "shadowshiny" && currEntry[2].getShadowShiny()) ||
                     (args.pokedexView == "shadow" && currEntry[2].getShadow()) ||
                     (args.pokedexView == "shiny" && currEntry[2].getShiny()) || 
@@ -23,7 +27,7 @@
                 )
             />
             <cfif caught><cfset registered++></cfif>
-            <div class="col d-flex justify-content-center col-6 col-sm-6 col-md-4 col-lg-3 col-xl-2 col-xxl-1 pokemonCell <cfif caught>caught</cfif> parent"
+            <div class="col d-flex justify-content-center col-6 col-sm-6 col-md-4 col-lg-3 col-xl-2 col-xxl-1 pokemonCell <cfif caught>caught</cfif> parent <cfif currEntry[1].getCostume()>costume-entry</cfif>"
                 data-id="#currEntry[1].getId()#"
                 data-number="#currEntry[1].getNumber()#"
                 data-name="#currEntry[1].getName()#"
@@ -34,15 +38,22 @@
                 data-hundo="#!isNull(currEntry[2]) ? currEntry[2].getHundo() : false#"
                 data-shadow="#!isNull(currEntry[2]) ? currEntry[2].getShadow() : false#"
                 data-shadowshiny="#!isNull(currEntry[2]) ? currEntry[2].getShadowShiny() : false#"
-                title="#encodeForHTMLAttribute(currEntry[1].getName())#"
+                title="#encodeForHTMLAttribute("#currEntry[1].getName()##currEntry[1].getCostumeType().len() ? ' #currEntry[1].getCostumeType()#' : ''#")#"
                 role="checkbox"
                 aria-checked="#caught ? 'true' : 'false'#"
-                aria-label="#encodeForHTMLAttribute(currEntry[1].getName())#"
+                aria-label="#encodeForHTMLAttribute("#currEntry[1].getName()##currEntry[1].getCostumeType().len() ? ' #currEntry[1].getCostumeType()#' : ''#")#"
                 tabindex="0"
             >
-                <img class="pokemonIcon" <cfif i GT 10>loading="lazy"</cfif> src="/includes/images/<cfif args.shiny>shinysprites<cfelse>sprites</cfif>/#currEntry[1].getSprite()##getSetting('imageExtension')#">
+                <img 
+                    class="pokemonIcon" 
+                    <cfif i GT 10>loading="lazy"</cfif> 
+                    src="/includes/images/<cfif args.shiny>shinysprites<cfelse>sprites</cfif>/#currEntry[1].getSprite()##getSetting('imageExtension')#"
+                >
                 <cfif args.shadow>
                     <img src="/includes/images/shadow-pokemon#getSetting('imageExtension')#" <cfif i GT 10>loading="lazy"</cfif> class="shadowIcon">
+                </cfif>
+                <cfif currEntry[1].getCostume()>
+                    <p class="mt-2 mb-0 small fw-semibold text-center text-capitalize">#currEntry[1].getCostumeType()#</p>
                 </cfif>
                 <span class="dex-number">#currEntry[1].getNumber()#</span>
             </div>

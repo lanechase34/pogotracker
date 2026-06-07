@@ -11,18 +11,20 @@ component singleton accessors="true" {
      */
     public array function getRegistered(
         required component trainer,
-        string region  = '',
-        boolean form   = false,
-        boolean mega   = false,
-        boolean shadow = false,
-        boolean giga   = false
+        string region   = '',
+        boolean form    = false,
+        boolean mega    = false,
+        boolean shadow  = false,
+        boolean giga    = false,
+        boolean costume = false
     ) {
-        var cacheKey   = '#arguments.trainer.getId()#|pokedex.getRegistered|region=#arguments.region#|form=#arguments.form#|mega=#arguments.mega#|shadow=#arguments.shadow#|giga=#arguments.giga#';
+        var cacheKey   = '#arguments.trainer.getId()#|pokedex.getRegistered|region=#arguments.region#|form=#arguments.form#|mega=#arguments.mega#|shadow=#arguments.shadow#|giga=#arguments.giga#|costume=#arguments.costume#';
         var registered = cacheService.get(cacheKey);
         if(isNull(registered)) {
-            var whereClause = 'WHERE pokemon.costume = false AND pokemon.mega = :mega AND pokemon.giga = :giga';
+            var whereClause = 'WHERE pokemon.costume = :costume AND pokemon.mega = :mega AND pokemon.giga = :giga';
             var params      = {
                 'trainer': arguments.trainer,
+                'costume': arguments.costume,
                 'mega'   : arguments.mega,
                 'giga'   : arguments.giga
             };

@@ -361,6 +361,43 @@ component extends="tests.resources.baseTest" asyncAll="true" {
                     });
                 });
             });
+
+            describe('getCostumes()', () => {
+                it('Can retrieve Charmander''s costumes', () => {
+                    var charmander = validatePokemonRecord(number = 4, name = 'Charmander', gender = '');
+
+                    var costumes = pokemonService.getCostumes(charmander);
+                    expect(costumes).toBeArray();
+                    expect(costumes.len()).toBeGTE(3); // at least 3 costumes
+
+                    // Check each individual costume form
+                    var loadedCostumes = {};
+                    costumes.each((costume) => {
+                        loadedCostumes[costume.getCostumeType()] = true;
+
+                        validatePokemonRecord(
+                            number      = 4,
+                            name        = 'Charmander',
+                            gender      = '',
+                            costume     = true,
+                            costumeType = costume.getCostumeType()
+                        );
+                    });
+
+                    var expected = ['Party Hat', 'Halloween', 'Pikachu Visor'];
+                    expected.each((item) => {
+                        expect(loadedCostumes).toHaveKey(item);
+                    });
+                });
+
+                it('Can retrieve Tropius''s costumes', () => {
+                    var tropius = validatePokemonRecord(number = 357, name = 'Tropius', gender = '');
+
+                    var costumes = pokemonService.getCostumes(tropius);
+                    expect(costumes).toBeArray();
+                    expect(costumes.len()).toBe(0); // has no costumes
+                });
+            });
         });
     }
 
@@ -368,7 +405,8 @@ component extends="tests.resources.baseTest" asyncAll="true" {
         required numeric number,
         required string name,
         required string gender,
-        boolean costume = false
+        boolean costume    = false,
+        string costumeType = ''
     ) {
         return queryExecute(
             '
@@ -378,22 +416,25 @@ component extends="tests.resources.baseTest" asyncAll="true" {
             and number = :number
             and gender = :gender
             and costume = :costume
+            and costumetype = :costumetype
             ',
             {
-                name   : {value: arguments.name, cfsqltype: 'varchar'},
-                number : {value: arguments.number, cfsqltype: 'numeric'},
-                gender : {value: arguments.gender, cfsqltype: 'varchar'},
-                costume: {value: arguments.costume, cfsqltype: 'boolean'}
+                name       : {value: arguments.name, cfsqltype: 'varchar'},
+                number     : {value: arguments.number, cfsqltype: 'numeric'},
+                gender     : {value: arguments.gender, cfsqltype: 'varchar'},
+                costume    : {value: arguments.costume, cfsqltype: 'boolean'},
+                costumetype: {value: arguments.costumetype, cfsqltype: 'varchar'}
             }
         );
     }
 
     // Validate our orm function pulls a record that matches the db
-    private function validatePokemonRecord(
+    private component function validatePokemonRecord(
         required numeric number,
         required string name,
         required string gender,
-        boolean costume = false
+        boolean costume    = false,
+        string costumeType = ''
     ) {
         var pokemonCfc = pokemonService.get(params = arguments);
         expect(pokemonCfc).toBeArray();
@@ -404,6 +445,8 @@ component extends="tests.resources.baseTest" asyncAll="true" {
         var pokemonQuery = queryPokemon(argumentCollection = arguments);
         expect(pokemonQuery.recordCount()).toBe(1);
         expect(pokemonCfc.getId()).toBe(pokemonQuery.id);
+
+        return pokemonCfc;
     }
 
 }

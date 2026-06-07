@@ -43,7 +43,7 @@
 
                 <!--- custom header buttons section --->
                 <div class="col-10 col-xl-8 d-flex align-items-center justify-content-end">
-                    <cfif "pokedex.mycustompokedex,pokedex.mypokedex,pokedex.myshadowpokedex".contains(prc.currEvent)>
+                    <cfif "pokedex.mycustompokedex,pokedex.mypokedex,pokedex.myshadowpokedex,pokedex.mycostumepokedex".contains(prc.currEvent)>
                         <div id="monsRegistered" class="ms-auto basic me-3 my-auto hfs-6">-- Registered</div>
 
                         <!--- btn dropdown for small screens --->
@@ -221,6 +221,11 @@
                 <li class="nav-item d-flex">
                     <a class="nav-link fs-6 w-100 iconHover text-start d-flex align-items-center <cfif prc.currEvent EQ "pokedex.mypokedex">active</cfif>" href="/mypokedex" <cfif !(session?.authenticated ?: false)>rel="nofollow"</cfif>>
                         <i class="bi bi-ui-checks-grid me-2 navIcon"></i>Pokedex
+                    </a>
+                </li>
+                <li class="nav-item d-flex">
+                    <a class="nav-link fs-6 w-100 iconHover text-start d-flex align-items-center <cfif prc.currEvent EQ "pokedex.mycostumepokedex">active</cfif>" href="/mycostumepokedex" <cfif !(session?.authenticated ?: false)>rel="nofollow"</cfif>>
+                        <i class="bi bi-star me-2 navIcon"></i>Costume Pokedex
                     </a>
                 </li>
                 <li class="nav-item d-flex">

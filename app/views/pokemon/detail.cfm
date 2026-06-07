@@ -271,7 +271,7 @@
     <div class="col-12">
         <div class="card shadow-sm">
             <h2 class="card-header card-header-pokemon">
-                <i class="bi bi-star"></i> Costumes
+                <i class="bi bi-star"></i> Costumes <span class="badge text-bg-dark">#prc.detail.costumes.len()#</span>
                 <button
                     class="btn btn-sm p-0 border-0 ms-auto text-muted"
                     type="button"
@@ -285,7 +285,7 @@
             </h2>
             <div class="collapse show" id="costumesCollapse">
             <div class="card-body">
-                <div class="d-flex flex-wrap gap-3 justify-content-center">
+                <div class="d-flex flex-wrap gap-3">
                     <cfloop index="i" item="costume" array="#prc.detail.costumes#">
                     <div class="costume-entry">
                         <div class="pokemon-sprite-pair">

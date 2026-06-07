@@ -44,6 +44,7 @@ component {
 
         // Pokedex
         route('/mypokedex').to('pokedex.myPokedex');
+        route('/mycostumepokedex').to('pokedex.myCostumePokedex');
         route('/myshadowpokedex').to('pokedex.myShadowPokedex');
         route('/custompokedexlist').to('pokedex.customPokedexList');
         route('/mycustompokedex/:customid').to('pokedex.myCustomPokedex');

@@ -1,4 +1,4 @@
-import { copyString, lockButtonWidth, lockCopyButtonWidth } from 'copy';
+import { copyString, lockButtonWidth, lockCopyButtonWidth, removeDuplicates } from 'copy';
 import { getWrapper, postWrapper } from 'fetch';
 import { $loading, $loadingModal } from 'loading';
 import { getLocalStorage, setLocalStorage } from 'localstorage';
@@ -9,6 +9,7 @@ import { createCustomSearch } from 'search';
 const $pokedexTable = document.getElementById('pokedexTable');
 const $customPokedexTable = document.getElementById('customPokedexTable');
 const $shadowPokedexTable = document.getElementById('shadowPokedexTable');
+const $costumePokedexTable = document.getElementById('costumePokedexTable');
 
 const $addCustomPokedexBtn = document.getElementById('addCustomPokedex');
 const customtrainerid = $customPokedexTable?.dataset?.trainerid ?? -1;
@@ -35,6 +36,7 @@ const pokedexStruct = {
     shiny: false,
     mega: false,
     shadow: false,
+    costume: false,
     view: '',
     registered: 0,
     total: 0,
@@ -150,11 +152,24 @@ function toggleLock() {
 async function toggleShiny() {
     pokedexStruct.shiny = !pokedexStruct.shiny;
     if ($pokedexTable) {
-        await switchPokedex(pokedexStruct.region);
+        await switchPokedex({
+            region: pokedexStruct.region,
+            $tableDiv: $pokedexTable,
+        });
     } else if ($customPokedexTable) {
         await switchCustomPokedex();
     } else if ($shadowPokedexTable) {
-        await switchShadowPokedex();
+        await switchPokedex({
+            region: 'shadowRegion',
+            $tableDiv: $shadowPokedexTable,
+            shadow: true,
+        });
+    } else if ($costumePokedexTable) {
+        await switchPokedex({
+            region: 'costumeRegion',
+            $tableDiv: $costumePokedexTable,
+            costume: true,
+        });
     }
 
     Array.from($shinyToggle).forEach((btn) => {
@@ -246,6 +261,9 @@ async function switchCustomPokedex() {
     });
 }
 
+/**
+ * Calls /register endpoint to mark a pokemon caught/not caught
+ */
 async function register(evt) {
     const cell = evt.currentTarget;
     const dataset = cell.dataset;
@@ -258,13 +276,17 @@ async function register(evt) {
         shadowshiny: dataset.shadowshiny,
     };
 
+    let currView = pokedexStruct.view;
+    if (currView === 'costumeshiny') currView = 'shiny';
+    if (currView === 'costume') currView = 'caught';
+
     // Depending on view, this flips that respective flag aka 'catch' / 'uncatch'
-    body[pokedexStruct.view] = body[pokedexStruct.view] === 'true' ? false : true;
+    body[currView] = body[currView] === 'true' ? false : true;
 
     // Always show positive feedback and process in the background
     // Update the cell's dataset, mark caught/remove caught, and update register tally
-    dataset[pokedexStruct.view] = body[pokedexStruct.view];
-    if (dataset[pokedexStruct.view] === 'true') {
+    dataset[currView] = body[currView];
+    if (dataset[currView] === 'true') {
         cell.classList.add('caught');
         pokedexStruct.registered++;
     } else {
@@ -287,7 +309,7 @@ async function register(evt) {
         },
     });
 
-    return body[pokedexStruct.view];
+    return body[currView];
 }
 
 function createRegisterEvent(pokemonCells) {
@@ -327,7 +349,15 @@ function createRegisterEvent(pokemonCells) {
     });
 }
 
-async function switchPokedex(region) {
+/**
+ * Switches the current pokedex view
+ *
+ * @region region to load
+ * @$tableDiv where to put loaded data
+ * @shadow optional, if this is shadow view
+ * @costume optional, if this is costume view
+ */
+async function switchPokedex({ region, $tableDiv, shadow = false, costume = false } = {}) {
     // Register all btn disabled for mega, giga
     Array.from($registerAllBtn).forEach((btn) => {
         btn.disabled = region === 'mega' || region === 'giga';
@@ -350,11 +380,13 @@ async function switchPokedex(region) {
         pokedexStruct.shiny = pokedexStruct.temp.shiny;
     }
 
+    // If there are navigation buttons for the region supplied
     const activeNavButton = document.querySelector('.pokedex-link.active');
     if (activeNavButton) activeNavButton.classList.remove('active');
     const navButton = document.querySelector(`.${region}link`);
-    navButton.classList.add('active');
+    if (navButton) navButton.classList.add('active');
 
+    // Build the url dynamically based on the params
     let url = `/pokedex/getPokedex`;
     if (region.length) {
         url += `/region/${region}`;
@@ -363,51 +395,28 @@ async function switchPokedex(region) {
         url += `/trainerid/${trainerid}`;
     }
     url += `/shiny/${pokedexStruct.shiny}`;
-
-    return await getWrapper({
-        url,
-        $loadingDiv: $pokedexTable,
-        loading: $loading,
-        dataHandler: (data) => {
-            $pokedexTable.innerHTML = data;
-
-            pokedexStruct.view = document.querySelector('#pokedexGrid')?.dataset?.view ?? 'none';
-            const $pokemonCells = document.querySelectorAll('#pokedexGrid>.pokemonCell');
-            createRegisterEvent($pokemonCells);
-
-            const currRegistered = document.getElementById('registeredCount').dataset;
-            pokedexStruct.registered = currRegistered.registered;
-            pokedexStruct.total = currRegistered.total;
-
-            updateRegistered();
-        },
-    });
-}
-
-async function switchShadowPokedex() {
-    let url = `/pokedex/getPokedex`;
-    if (trainerid.length) {
-        url += `/trainerid/${trainerid}`;
+    if (shadow) {
+        url += `/shadow/${pokedexStruct.shadow}`;
     }
-    url += `/shiny/${pokedexStruct.shiny}`;
-    url += `/shadow/${pokedexStruct.shadow}`;
-    url += '/region/shadowRegion';
+    if (costume) {
+        url += `/costume/${pokedexStruct.costume}`;
+    }
 
     return await getWrapper({
         url,
-        $loadingDiv: $shadowPokedexTable,
+        $loadingDiv: $tableDiv,
         loading: $loading,
         dataHandler: (data) => {
-            $shadowPokedexTable.innerHTML = data;
+            $tableDiv.innerHTML = data;
 
             pokedexStruct.view = document.querySelector('#pokedexGrid')?.dataset?.view ?? 'none';
             const $pokemonCells = document.querySelectorAll('#pokedexGrid>.pokemonCell');
             createRegisterEvent($pokemonCells);
 
             const currRegistered = document.getElementById('registeredCount').dataset;
-
             pokedexStruct.registered = currRegistered.registered;
             pokedexStruct.total = currRegistered.total;
+
             updateRegistered();
         },
     });
@@ -456,7 +465,13 @@ function copySearchString($btns, missing) {
         string += `${pokedexStruct.region}&`;
     }
 
-    if (pokedexStruct.view === 'shadowshiny') {
+    if (pokedexStruct.view === 'costumeshiny') {
+        if (missing) condition = `[data-shiny=false]`;
+        string += 'costume&shiny&';
+    } else if (pokedexStruct.view === 'costume') {
+        if (missing) condition = `[data-caught=false]`;
+        string += 'costume&';
+    } else if (pokedexStruct.view === 'shadowshiny') {
         if (missing) condition = `[data-shadowshiny=false]`;
         string += 'shadow&shiny&';
     } else if (pokedexStruct.view === 'shadow') {
@@ -471,10 +486,13 @@ function copySearchString($btns, missing) {
     }
 
     const cells = document.querySelectorAll(`div.pokemonCell${condition}`);
+    let cellString = '';
     cells.forEach((cell) => {
-        string += `${cell.dataset.number},`;
+        cellString += `${cell.dataset.number},`;
     });
 
+    // Remove duplicate cells from string
+    string += removeDuplicates(cellString);
     copyString(Array.from($btns), string);
 }
 
@@ -529,7 +547,10 @@ export const runtime = {
     mypokedex: () => {
         pokedexStruct.region = $pokedexTable.dataset.region;
         pokedexStruct.shiny = $pokedexTable.dataset.shiny === 'true';
-        switchPokedex(pokedexStruct.region);
+        switchPokedex({
+            region: pokedexStruct.region,
+            $tableDiv: $pokedexTable,
+        });
 
         Array.from(document.querySelectorAll('.pokedex-link')).forEach((navBtn) => {
             navBtn.addEventListener('click', () => {
@@ -539,7 +560,10 @@ export const runtime = {
                     pokedexStruct.region !== navBtn.dataset.region
                 ) {
                     pokedexStruct.region = navBtn.dataset.region;
-                    switchPokedex(pokedexStruct.region);
+                    switchPokedex({
+                        region: pokedexStruct.region,
+                        $tableDiv: $pokedexTable,
+                    });
                 }
             });
         });
@@ -592,9 +616,22 @@ export const runtime = {
 
         createCustomSearch('customSearch', 'Search a Pokedex...', true, '');
     },
+    mycostumepokedex: () => {
+        pokedexStruct.shiny = $costumePokedexTable.dataset.shiny === 'true';
+        pokedexStruct.costume = true;
+        switchPokedex({
+            region: 'costumeRegion',
+            $tableDiv: $costumePokedexTable,
+            costume: true,
+        });
+    },
     myshadowpokedex: () => {
         pokedexStruct.shiny = $shadowPokedexTable.dataset.shiny === 'true';
         pokedexStruct.shadow = true;
-        switchShadowPokedex();
+        switchPokedex({
+            region: 'shadowRegion',
+            $tableDiv: $shadowPokedexTable,
+            shadow: true,
+        });
     },
 };

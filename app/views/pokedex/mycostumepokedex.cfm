@@ -1,0 +1,10 @@
+<cfoutput>
+<div 
+    id="costumePokedexTable" 
+    class="mt-3" 
+    data-trainerid="#encodeForHTMLAttribute(prc.trainerid)#" 
+    data-costume="true"
+    data-shiny="#encodeForHTMLAttribute(rc.shiny)#"
+>
+</div>  
+</cfoutput>

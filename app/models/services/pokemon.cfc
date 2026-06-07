@@ -142,7 +142,7 @@ component singleton accessors="true" {
     }
 
     public any function getFromSes(required string ses) {
-        return entityLoad('pokemon', {ses: ses}, true);
+        return entityLoad('pokemon', {ses: ses, costume: false}, true);
     }
 
     public array function getEvolution(required component pokemon, component evolution) {
@@ -291,7 +291,7 @@ component singleton accessors="true" {
      *
      * @pokemon 
      */
-    private array function getCostumes(required component pokemon) {
+    public array function getCostumes(required component pokemon) {
         return ormExecuteQuery(
             '
             select pokemon
@@ -552,6 +552,11 @@ component singleton accessors="true" {
                     params,
                     {offset: offset, maxResults: records}
                 ).map((currPokemon) => {
+                    var currSes = currPokemon.getSes();
+                    if(currPokemon.getCostume()) {
+                        currSes = listToArray(currSes, '-')[1];
+                    }
+
                     return {
                         pokemonid    : currPokemon.getId(),
                         generation   : currPokemon.getGeneration().getRegion(),
@@ -567,7 +572,7 @@ component singleton accessors="true" {
                         chargemoves  : currPokemon.getMovesText('charge', 'all'),
                         evolutiontext: currPokemon.getEvolutionText(),
                         shadowicon   : '/includes/images/shadow-pokemon#getImageExtension()#',
-                        ses          : currPokemon.getSes()
+                        ses          : currSes
                     };
                 }),
                 () => ormExecuteQuery(
