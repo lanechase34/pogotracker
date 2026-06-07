@@ -28,10 +28,10 @@ component extends="base" {
                         'shadow'     : pokemon.shadow,
                         'shadowshiny': pokemon.shadowshiny,
                         'giga'       : pokemon.giga,
-                        'formtype'   : pokemon.keyExists('formtype') ? pokemon.formtype : '',
-                        'ses'        : pokemon.ses,
+                        'formtype'   : {value: pokemon.keyExists('formtype') ? pokemon.formtype : '', cfsqltype: 'varchar'},
+                        'ses'        : {value: pokemon.ses, cfsqltype: 'varchar'},
                         'costume'    : false,
-                        'costumetype': ''
+                        'costumetype': {value: '', cfsqltype: 'varchar'}
                     });
             },
             true,

@@ -1905,20 +1905,6 @@ component singleton accessors="true" {
             safeCostume     = reReplace(safeCostume, '(^-+|-+$)', '', 'all');
             var fileName    = '#number#_#name#_#safeCostume#';
 
-            // Normal sprite
-            var spritePath = '/includes/images/sprites/#filename##getImageExtension()#'; // actual path '/includes/images/sprites/#fileName#'
-            if(len(imgSrc) && imgSrc.startsWith('http') && !fileExists('#getRootPath()##spritePath#')) {
-                cfhttp(
-                    url    = imgSrc,
-                    result = "imgResult",
-                    method = "GET"
-                );
-                var img = imageNew(imgResult.filecontent);
-                img.write(spritePath);
-            }
-
-            // Shiny sprite TODO
-
             var curr = {
                 number     : number,
                 name       : name,
@@ -1926,8 +1912,8 @@ component singleton accessors="true" {
                 costumetype: safeCostume,
                 sprite     : filename,
                 shiny      : false,
+                spriteSrc  : imgSrc,
                 generation : getGeneration(name, number),
-                imgSrc     : imgSrc,
                 released   : true,
                 live       : true,
                 flee       : 0,
@@ -1952,6 +1938,102 @@ component singleton accessors="true" {
             // Create ses
             curr.ses           = createSes(curr);
             costumes[curr.ses] = curr;
+        });
+
+        // Load the shiny doc and get the shiny images
+        var shinyDoc = scraperService.getData('https://pokemongo.fandom.com/wiki/Event_Pok%C3%A9mon%23Shiny_(289_of_303)');
+
+        var shinyItems = doc
+            .body()
+            .select('.pogo-list-container')
+            .select('.pogo-list-item');
+
+        shinyItems.each((item, idx) => {
+            var nameEl = item.selectFirst('.pogo-list-item-name');
+            var numEl  = item.selectFirst('.pogo-list-item-number');
+            var formEl = item.selectFirst('.pogo-list-item-form');
+
+            if(isNull(nameEl) || isNull(numEl)) return;
+
+            var name    = trim(nameEl.text());
+            var costume = isNull(formEl) ? '' : trim(formEl.text());
+
+            var number = val(reReplace(numEl.text(), '[^0-9]', '', 'all'));
+
+            var imgEl  = item.selectFirst('.pogo-list-item-image-r img');
+            var imgSrc = '';
+            if(!isNull(imgEl)) {
+                // Lazy rows store the real url in data-src and a base64
+                // placeholder in src - eager rows store it directly in src.
+                var dataSrc = imgEl.attr('data-src');
+                var src     = imgEl.attr('src');
+                imgSrc      = len(dataSrc) && dataSrc.startsWith('http') ? dataSrc : src;
+
+                // Pull full resolution instead of the 98px thumbnail.
+                imgSrc = reReplace(imgSrc, '/scale-to-width-down/[0-9]+', '', 'one');
+            }
+
+            var safeCostume = reReplace(costume, '[^A-Za-z0-9]+', '-', 'all');
+            safeCostume     = reReplace(safeCostume, '(^-+|-+$)', '', 'all');
+            var fileName    = '#number#_#name#_#safeCostume#';
+
+            var curr = {
+                number     : number,
+                name       : name,
+                costume    : true,
+                costumetype: safeCostume
+            };
+
+            var ses = createSes(curr);
+
+            costumes[ses].shinySpriteSrc = imgSrc;
+        });
+
+        // Download images
+        costumes.each((key, costume) => {
+            // Somehow these keys get scrambled when the page loads - determine which one is actually shiny and which is regular
+            var normalSprite = costume?.spriteSrc ?: '';
+            var shinySprite  = costume?.shinySpriteSrc ?: '';
+
+            if(normalSprite.findNoCase('shiny')) {
+                var temp     = shinySprite;
+                shinySprite  = normalSprite;
+                normalSprite = temp;
+            }
+
+            // Normal sprite
+            var spritePath = '/includes/images/sprites/#costume.sprite##getImageExtension()#';
+            if(len(normalSprite) && normalSprite.startsWith('http') && !fileExists('#getRootPath()##spritePath#')) {
+                cfhttp(
+                    url    = normalSprite,
+                    result = "imgResult",
+                    method = "GET"
+                );
+                var img = imageNew(imgResult.filecontent);
+                img.write(spritePath);
+            }
+
+            // Determine if this has a shiny
+            if(shinySprite.findNoCase('none')) {
+                costume.shiny = false;
+            }
+            else {
+                costume.shiny = true;
+            }
+
+            // Shiny sprite
+            var shinySpritePath = '/includes/images/shinysprites/#costume.sprite##getImageExtension()#';
+            if(
+                costume.shiny && len(shinySprite) && shinySprite.startsWith('http') && !fileExists('#getRootPath()##shinySpritePath#')
+            ) {
+                cfhttp(
+                    url    = shinySprite,
+                    result = "imgResult",
+                    method = "GET"
+                );
+                var img = imageNew(imgResult.filecontent);
+                img.write(shinySpritePath);
+            }
         });
 
         if(getWriteJson()) {

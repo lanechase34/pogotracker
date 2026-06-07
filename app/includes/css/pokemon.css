@@ -210,6 +210,16 @@
     letter-spacing: 0.08em;
 }
 
+/*  Costume icons  */
+.costumeIcon {
+    filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.1));
+    transition: transform 0.2s ease;
+}
+
+.costumeIcon:hover {
+    transform: scale(1.08);
+}
+
 /*  Availability list  */
 .avail-item {
     display: flex;

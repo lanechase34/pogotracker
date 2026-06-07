@@ -265,6 +265,50 @@
     </div>
 </div>
 
+<!--- Costumes --->
+<cfif prc.detail.costumes.len()>
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card shadow-sm">
+            <h2 class="card-header card-header-pokemon">
+                <i class="bi bi-star"></i> Costumes
+            </h2>
+            <div class="card-body">
+                <div class="d-flex flex-wrap gap-4">
+                    <cfloop index="i" item="costume" array="#prc.detail.costumes#">
+                    <div class="d-flex flex-column align-items-center">
+                        <div class="pokemon-sprite-pair">
+                            <div class="pokemon-sprite-group">
+                                <img
+                                    class="costumeIcon"
+                                    style="width:80px;height:80px"
+                                    src="/includes/images/sprites/#costume.getSprite()##getSetting('imageExtension')#"
+                                    alt="#costume.getCostumeType()# Normal Sprite"
+                                >
+                                <span class="badge bg-dark text-white sprite-label">Normal</span>
+                            </div>
+                            <cfif costume.getShiny()>
+                            <div class="pokemon-sprite-group">
+                                <img
+                                    class="costumeIcon"
+                                    style="width:80px;height:80px"
+                                    src="/includes/images/shinysprites/#costume.getSprite()##getSetting('imageExtension')#"
+                                    alt="#costume.getCostumeType()# Shiny Sprite"
+                                >
+                                <span class="badge bg-dark text-white sprite-label">&##x2728; Shiny</span>
+                            </div>
+                            </cfif>
+                        </div>
+                        <p class="mt-2 mb-0 small fw-semibold text-center text-capitalize text-secondary">#costume.getCostumeType()#</p>
+                    </div>
+                    </cfloop>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</cfif>
+
 <!--- Availability + Admin --->
 <div class="row mb-4">
     <div class="col-12 col-md-6 mb-4 mb-md-0">

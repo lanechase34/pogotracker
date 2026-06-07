@@ -7,6 +7,7 @@
             <th class="text-center">Number</th>
             <th class="text-center">Gender</th>
             <th class="text-center">Pokemon</th>
+            <th class="text-center">Costume Type</th>
             <th class="text-center">Sprite</th>
             <th class="text-center">Shiny Sprite</th>
             <th class="text-center">Shadow</th>

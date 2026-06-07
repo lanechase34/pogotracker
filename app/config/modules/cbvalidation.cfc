@@ -580,6 +580,7 @@ component {
                     type    : 'numeric',
                     min     : 0
                 },
+                costume           : {required: false, type: 'boolean'},
                 'search[value]'   : {required: false, type: 'string'},
                 'order[0][column]': {
                     required: false,

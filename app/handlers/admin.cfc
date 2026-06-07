@@ -66,6 +66,7 @@ component extends="base" {
         param name="rc.draw"                default="1";
         param name="rc.length"              default="50";
         param name="rc.start"               default="0";
+        param name="rc.costume"             default="false";
         param name="rc['search[value]']"    default="";
         param name="rc['order[0][column]']" default="";
         param name="rc['order[0][dir]']"    default="";
@@ -84,7 +85,8 @@ component extends="base" {
             rc['order[0][column]'],
             rc['order[0][dir]'],
             rc['order[1][column]'],
-            rc['order[1][dir]']
+            rc['order[1][dir]'],
+            rc.costume == 'true'
         );
         prc.responseObj.data.draw  = rc.draw;
         prc.responseObj.statusCode = 200;

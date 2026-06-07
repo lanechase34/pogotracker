@@ -223,17 +223,26 @@ export const runtime = {
         });
     },
     listpokemon: () => {
-        new DataTable($listPokemon, {
+        let isCostume = false;
+        const $pokemonViewBtn = document.getElementById('pokemonViewBtn');
+        const $costumeViewBtn = document.getElementById('costumeViewBtn');
+
+        const dt = new DataTable($listPokemon, {
             ajax: {
                 url: '/admin/getPokemon',
                 type: 'GET',
                 dataSrc: 'data',
+                data: (d) => {
+                    d.costume = isCostume;
+                    return d;
+                },
             },
             columns: [
                 { data: 'generation' },
                 { data: 'number' },
                 { data: 'gender' },
                 { data: 'name' },
+                { data: 'costumetype' },
                 { data: 'sprite' },
                 { data: 'shiny' },
                 { data: 'shadow' },
@@ -249,21 +258,25 @@ export const runtime = {
             ],
             columnDefs: [
                 {
-                    targets: [4, 5, 6, 7, 8, 9, 10],
+                    targets: [5, 6, 7, 8, 9, 10, 11],
                     orderable: false,
                     searchable: false,
+                },
+                {
+                    targets: 4,
+                    visible: false,
                 },
                 {
                     targets: 3,
                     render: (data, type, full) => `<a href='/pokemon/${full.ses}' target='_blank'>${full.name}</a>`,
                 },
                 {
-                    targets: 4,
+                    targets: 5,
                     className: 'text-center',
                     render: (data, type, full) => `<img class='pokemonIcon' src='${full.sprite}' loading='lazy'>`,
                 },
                 {
-                    target: 5,
+                    targets: 6,
                     className: 'text-center',
                     render: (data, type, full) => {
                         if (!full.shiny.length) return '';
@@ -271,7 +284,7 @@ export const runtime = {
                     },
                 },
                 {
-                    target: 6,
+                    targets: 7,
                     className: 'text-center parent',
                     render: (data, type, full) => {
                         if (!full.shadow) return '';
@@ -282,7 +295,7 @@ export const runtime = {
                     },
                 },
                 {
-                    target: 7,
+                    targets: 8,
                     className: 'text-center parent',
                     render: (data, type, full) => {
                         if (!full.shadowshiny) return '';
@@ -297,6 +310,26 @@ export const runtime = {
             pageLength: 25,
             lengthMenu: [25, 50, 100],
             scrollY: 'calc(100vh - 250px)',
+        });
+
+        $pokemonViewBtn?.addEventListener('click', () => {
+            if (isCostume) {
+                isCostume = false;
+                dt.column(4).visible(false);
+                dt.ajax.reload();
+                $pokemonViewBtn.classList.add('active');
+                $costumeViewBtn.classList.remove('active');
+            }
+        });
+
+        $costumeViewBtn?.addEventListener('click', () => {
+            if (!isCostume) {
+                isCostume = true;
+                dt.column(4).visible(true);
+                dt.ajax.reload();
+                $costumeViewBtn.classList.add('active');
+                $pokemonViewBtn.classList.remove('active');
+            }
         });
     },
     requestlog: () => {

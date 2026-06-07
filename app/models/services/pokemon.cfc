@@ -29,6 +29,7 @@ component singleton accessors="true" {
             'pokemon.number',
             'pokemon.gender',
             'pokemon.name',
+            'pokemon.costumetype',
             '',
             '',
             '',
@@ -49,7 +50,7 @@ component singleton accessors="true" {
             ip      = 'localhost',
             event   = 'pokemonService.create',
             referer = '',
-            detail  = 'Created Pokemon: #arguments.pokemonProperties.number# | #arguments.pokemonProperties.name# | #arguments.pokemonProperties.gender#',
+            detail  = 'Created Pokemon: #arguments.pokemonProperties.number# | #arguments.pokemonProperties.name# | #arguments.pokemonProperties.gender# | #arguments.pokemonProperties.costumetype#',
             agent   = ''
         );
         return newPokemon;
@@ -286,6 +287,29 @@ component singleton accessors="true" {
     }
 
     /**
+     * Get the costume forms of this pokemon
+     *
+     * @pokemon 
+     */
+    private array function getCostumes(required component pokemon) {
+        return ormExecuteQuery(
+            '
+            select pokemon
+            from pokemon as pokemon
+            where pokemon.costume = true
+            and pokemon.name = :name
+            and pokemon.number = :number
+            and pokemon.gender = :gender
+            ',
+            {
+                name  : pokemon.getName(),
+                number: pokemon.getNumber(),
+                gender: pokemon.getGender()
+            }
+        );
+    }
+
+    /**
      * Get detail about a pokemon
      */
     public struct function getDetail(required string ses) {
@@ -338,6 +362,9 @@ component singleton accessors="true" {
                     },
                     () => {
                         return getPreviousEvents(detail.pokemon);
+                    },
+                    () => {
+                        return getCostumes(detail.pokemon);
                     }
                 )
                 .get();
@@ -354,6 +381,7 @@ component singleton accessors="true" {
             };
             detail.baseStage = entityMerge(info[4]);
             detail.events    = info[5];
+            detail.costumes  = info[6];
             detail.title     = '#detail.pokemon.getNumber()# - #detail.pokemon.getName()#';
 
             detail.metaDescription = '#ucFirst(detail.pokemon.getName())#''s (###detail.pokemon.getNumber()#) evolutions, CP range, stats, moveset, and events in Pokemon GO.';
@@ -479,9 +507,10 @@ component singleton accessors="true" {
         required string orderCol1 = '',
         required string orderDir1 = '',
         string orderCol2          = '',
-        string orderDir2          = ''
+        string orderDir2          = '',
+        boolean costume           = false
     ) {
-        var params = {search: '%#uCase(search)#%'};
+        var params = {search: '%#uCase(search)#%', costume: costume};
 
         // Default order by
         var orderBy = '';
@@ -510,11 +539,12 @@ component singleton accessors="true" {
                     '
                     select pokemon
                     from pokemon as pokemon
-                    where costume = false
-                    and ( 
+                    where costume = :costume
+                    and (
                         upper(pokemon.generation.region) like :search
                         or upper(pokemon.gender) like :search
                         or upper(pokemon.name) like :search
+                        or upper(pokemon.costumetype) like :search
                         #numericSearch#
                     )
                     #orderBy#
@@ -528,6 +558,7 @@ component singleton accessors="true" {
                         number       : currPokemon.getNumber(),
                         gender       : currPokemon.getGender(),
                         name         : currPokemon.getName(),
+                        costumetype  : currPokemon.getCostumetype() ?: '',
                         sprite       : '/includes/images/sprites/#currPokemon.getSprite()##getImageExtension()#',
                         shiny        : currPokemon.getShiny() ? '/includes/images/shinysprites/#currPokemon.getSprite()##getImageExtension()#' : '',
                         shadow       : currPokemon.getShadow(),
@@ -543,18 +574,23 @@ component singleton accessors="true" {
                     '
                     select count(pokemon.id)
                     from pokemon as pokemon
-                    where costume = false
-                    and ( 
+                    where costume = :costume
+                    and (
                         upper(pokemon.generation.region) like :search
                         or upper(pokemon.gender) like :search
                         or upper(pokemon.name) like :search
+                        or upper(pokemon.costumetype) like :search
                         #numericSearch#
                     )
                     ',
                     params,
                     true
                 ),
-                () => getAll().len()
+                () => ormExecuteQuery(
+                    'select count(pokemon.id) from pokemon as pokemon where costume = :costume',
+                    {costume: costume},
+                    true
+                )
             )
             .get();
 

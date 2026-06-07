@@ -146,6 +146,11 @@
                                 <option></option>
                             </select>
                         </div>
+                    <cfelseif prc.currEvent EQ "admin.listpokemon">
+                        <div class="btn-group" role="group" aria-label="Pokemon view toggle">
+                            <button id="pokemonViewBtn" class="btn btn-primary active" type="button">Pokemon</button>
+                            <button id="costumeViewBtn" class="btn btn-primary" type="button">Costume</button>
+                        </div>
                     <cfelseif prc.currEvent EQ "admin.serverinfo">
                         <button id="showServerInfo" class="btn btn-secondary" role="button" data-bs-toggle="modal" data-bs-target="##serverInfoModal">
                             More Info
