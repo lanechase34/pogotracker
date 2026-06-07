@@ -31,29 +31,34 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                     public : false,
                     pokemon: [
                         pokemonService.get({
-                            number: 324,
-                            name  : 'Torkoal',
-                            gender: ''
+                            number : 324,
+                            name   : 'Torkoal',
+                            gender : '',
+                            costume: false
                         })[1].getId(),
                         pokemonService.get({
-                            number: 369,
-                            name  : 'Relicanth',
-                            gender: ''
+                            number : 369,
+                            name   : 'Relicanth',
+                            gender : '',
+                            costume: false
                         })[1].getId(),
                         pokemonService.get({
-                            number: 352,
-                            name  : 'Kecleon',
-                            gender: ''
+                            number : 352,
+                            name   : 'Kecleon',
+                            gender : '',
+                            costume: false
                         })[1].getId(),
                         pokemonService.get({
-                            number: 360,
-                            name  : 'Wynaut',
-                            gender: ''
+                            number : 360,
+                            name   : 'Wynaut',
+                            gender : '',
+                            costume: false
                         })[1].getId(),
                         pokemonService.get({
-                            number: 357,
-                            name  : 'Tropius',
-                            gender: ''
+                            number : 357,
+                            name   : 'Tropius',
+                            gender : '',
+                            costume: false
                         })[1].getId()
                     ]
                 };
@@ -95,24 +100,28 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                     public  : false,
                     pokemon : [
                         pokemonService.get({
-                            number: 352,
-                            name  : 'Kecleon',
-                            gender: ''
+                            number : 352,
+                            name   : 'Kecleon',
+                            gender : '',
+                            costume: false
                         })[1].getId(),
                         pokemonService.get({
-                            number: 360,
-                            name  : 'Wynaut',
-                            gender: ''
+                            number : 360,
+                            name   : 'Wynaut',
+                            gender : '',
+                            costume: false
                         })[1].getId(),
                         pokemonService.get({
-                            number: 357,
-                            name  : 'Tropius',
-                            gender: ''
+                            number : 357,
+                            name   : 'Tropius',
+                            gender : '',
+                            costume: false
                         })[1].getId(),
                         pokemonService.get({
-                            number: 358,
-                            name  : 'Chimecho',
-                            gender: ''
+                            number : 358,
+                            name   : 'Chimecho',
+                            gender : '',
+                            costume: false
                         })[1].getId()
                     ]
                 };

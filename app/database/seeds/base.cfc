@@ -23,7 +23,7 @@ component {
 
     /**
      * Get the pokemon data json struct
-     * Store in applicatio scope to be shared throughout seeder
+     * Store in application scope to be shared throughout seeder
      */
     function getPokemonData() {
         if(!application.keyExists('pokemonData')) {
@@ -38,6 +38,20 @@ component {
             application.pokemonData = pokemonData;
         }
         return application.pokemonData;
+    }
+
+    /**
+     * Get the costum data json struct
+     */
+    function getCostumeData() {
+        var costumeFile = fileOpen(
+            file    = '../../includes/assets/costumes.json',
+            mode    = 'read',
+            charset = 'UTF-8'
+        );
+
+        var costumeData = deserializeJSON(fileRead(costumeFile));
+        return costumeData;
     }
 
 }

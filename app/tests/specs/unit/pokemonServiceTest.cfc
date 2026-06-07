@@ -21,23 +21,23 @@ component extends="tests.resources.baseTest" asyncAll="true" {
             });
 
             it('Retrieve all pokemon', () => {
-                var allPokemon = pokemonService.getAll();
+                var allPokemon = pokemonService.getAll(); // Costume forms aren't included as unique pokemon in getAll()
                 expect(allPokemon).toBeArray();
 
-                var countPokemon = queryExecute('select count(id) as count from pokemon');
+                var countPokemon = queryExecute('select count(id) as count from pokemon where costume = false');
                 expect(allPokemon.len()).toBe(countPokemon.count);
             });
 
             describe('Retrieve pokemon', () => {
                 it('Retrieve all Kanto Pokemon', () => {
                     var generation   = generationService.getFromRegion('Kanto');
-                    var kantoPokemon = pokemonService.get({generation: generation});
+                    var kantoPokemon = pokemonService.get({generation: generation, costume: false});
                     expect(kantoPokemon).toBeArray();
 
                     var countKantoPokemon = queryExecute('
                         select count(p.id) as count
                         from pokemon p inner join generation g on p.generation = g.generation
-                        where g.region = ''Kanto''
+                        where g.region = ''Kanto'' and p.costume = false
                     ');
 
                     expect(kantoPokemon.len()).toBe(countKantoPokemon.count);
@@ -79,9 +79,10 @@ component extends="tests.resources.baseTest" asyncAll="true" {
             describe('Retrieve evolutions', () => {
                 it('Retrieve Bulbasaur''s Evolutions', () => {
                     var bulbasaur = pokemonService.get({
-                        number: 1,
-                        name  : 'Bulbasaur',
-                        gender: ''
+                        number : 1,
+                        name   : 'Bulbasaur',
+                        gender : '',
+                        costume: false
                     });
                     expect(bulbasaur).toBeArray();
                     expect(bulbasaur.len()).toBe(1);
@@ -97,9 +98,10 @@ component extends="tests.resources.baseTest" asyncAll="true" {
 
                 it('Retrieve Wurmple''s Evolutions', () => {
                     var wurmple = pokemonService.get({
-                        number: 265,
-                        name  : 'Wurmple',
-                        gender: ''
+                        number : 265,
+                        name   : 'Wurmple',
+                        gender : '',
+                        costume: false
                     });
                     expect(wurmple).toBeArray();
                     expect(wurmple.len()).toBe(1);
@@ -134,8 +136,8 @@ component extends="tests.resources.baseTest" asyncAll="true" {
                 });
 
                 it('Array length matches the total pokemon count in the database', () => {
-                    var arr   = pokemonService.getSearchArray();
-                    var count = queryExecute('select count(id) as c from pokemon').c;
+                    var arr   = pokemonService.getSearchArray(); // Costume pokemon excluded from search array
+                    var count = queryExecute('select count(id) as c from pokemon where costume = false').c;
                     expect(arr.len()).toBe(count);
                 });
 
@@ -365,7 +367,8 @@ component extends="tests.resources.baseTest" asyncAll="true" {
     private function queryPokemon(
         required numeric number,
         required string name,
-        required string gender
+        required string gender,
+        boolean costume = false
     ) {
         return queryExecute(
             '
@@ -374,11 +377,13 @@ component extends="tests.resources.baseTest" asyncAll="true" {
             where name = :name
             and number = :number
             and gender = :gender
+            and costume = :costume
             ',
             {
-                name  : {value: arguments.name, cfsqltype: 'varchar'},
-                number: {value: arguments.number, cfsqltype: 'numeric'},
-                gender: {value: arguments.gender, cfsqltype: 'varchar'}
+                name   : {value: arguments.name, cfsqltype: 'varchar'},
+                number : {value: arguments.number, cfsqltype: 'numeric'},
+                gender : {value: arguments.gender, cfsqltype: 'varchar'},
+                costume: {value: arguments.costume, cfsqltype: 'boolean'}
             }
         );
     }
@@ -387,7 +392,8 @@ component extends="tests.resources.baseTest" asyncAll="true" {
     private function validatePokemonRecord(
         required numeric number,
         required string name,
-        required string gender
+        required string gender,
+        boolean costume = false
     ) {
         var pokemonCfc = pokemonService.get(params = arguments);
         expect(pokemonCfc).toBeArray();

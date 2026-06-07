@@ -148,9 +148,10 @@ component extends="tests.resources.baseTest" asyncAll="false" {
         boolean shiny = false
     ) {
         var pokemon = pokemonService.get({
-            number: arguments.number,
-            name  : arguments.name,
-            gender: ''
+            number : arguments.number,
+            name   : arguments.name,
+            gender : '',
+            costume: false
         });
 
         expect(pokemon).toBeArray();

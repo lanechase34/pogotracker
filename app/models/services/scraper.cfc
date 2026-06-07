@@ -127,4 +127,18 @@ component singleton accessors="true" {
         return response;
     }
 
+    /**
+     * CFHTTP to download an image from the url and write to the destination
+     */
+    public void function downloadImage(required string url, required string destination) {
+        cfhttp(
+            url    = arguments.url,
+            result = "imgResult",
+            method = "GET"
+        );
+        var img = imageNew(imgResult.filecontent);
+        img.write(arguments.destination);
+        return;
+    }
+
 }

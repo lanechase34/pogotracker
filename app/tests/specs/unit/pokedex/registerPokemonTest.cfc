@@ -24,9 +24,10 @@ component extends="tests.resources.baseTest" asyncAll="true" {
 
             it('Can register a pokemon (gyarados)', () => {
                 gyaradosCfc = pokemonService.get({
-                    number: 130,
-                    name  : 'Gyarados',
-                    gender: ''
+                    number : 130,
+                    name   : 'Gyarados',
+                    gender : '',
+                    costume: false
                 })[1];
                 expect(gyaradosCfc).toBeComponent();
                 pokedexService.register(
@@ -51,9 +52,10 @@ component extends="tests.resources.baseTest" asyncAll="true" {
 
             it('Can register a pokemon (mewtwo) normal and then also shiny', () => {
                 mewtwoCfc = pokemonService.get({
-                    number: 150,
-                    name  : 'Mewtwo',
-                    gender: ''
+                    number : 150,
+                    name   : 'Mewtwo',
+                    gender : '',
+                    costume: false
                 })[1];
                 expect(mewtwoCfc).toBeComponent();
                 // Normal entry
