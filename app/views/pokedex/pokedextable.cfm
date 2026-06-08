@@ -38,10 +38,10 @@
                 data-hundo="#!isNull(currEntry[2]) ? currEntry[2].getHundo() : false#"
                 data-shadow="#!isNull(currEntry[2]) ? currEntry[2].getShadow() : false#"
                 data-shadowshiny="#!isNull(currEntry[2]) ? currEntry[2].getShadowShiny() : false#"
-                title="#encodeForHTMLAttribute("#currEntry[1].getName()##currEntry[1].getCostumeType().len() ? ' #currEntry[1].getCostumeType()#' : ''#")#"
+                title="#encodeForHTMLAttribute("#currEntry[1].getName()##currEntry[1].getCostume() ? ' #currEntry[1].getCostumeType()#' : ''#")#"
                 role="checkbox"
                 aria-checked="#caught ? 'true' : 'false'#"
-                aria-label="#encodeForHTMLAttribute("#currEntry[1].getName()##currEntry[1].getCostumeType().len() ? ' #currEntry[1].getCostumeType()#' : ''#")#"
+                aria-label="#encodeForHTMLAttribute("#currEntry[1].getName()##currEntry[1].getCostume() ? ' #currEntry[1].getCostumeType()#' : ''#")#"
                 tabindex="0"
             >
                 <img 
