@@ -21,23 +21,23 @@ component extends="tests.resources.baseTest" asyncAll="true" {
             });
 
             it('Retrieve all pokemon', () => {
-                var allPokemon = pokemonService.getAll();
+                var allPokemon = pokemonService.getAll(); // Costume forms aren't included as unique pokemon in getAll()
                 expect(allPokemon).toBeArray();
 
-                var countPokemon = queryExecute('select count(id) as count from pokemon');
+                var countPokemon = queryExecute('select count(id) as count from pokemon where costume = false');
                 expect(allPokemon.len()).toBe(countPokemon.count);
             });
 
             describe('Retrieve pokemon', () => {
                 it('Retrieve all Kanto Pokemon', () => {
                     var generation   = generationService.getFromRegion('Kanto');
-                    var kantoPokemon = pokemonService.get({generation: generation});
+                    var kantoPokemon = pokemonService.get({generation: generation, costume: false});
                     expect(kantoPokemon).toBeArray();
 
                     var countKantoPokemon = queryExecute('
                         select count(p.id) as count
                         from pokemon p inner join generation g on p.generation = g.generation
-                        where g.region = ''Kanto''
+                        where g.region = ''Kanto'' and p.costume = false
                     ');
 
                     expect(kantoPokemon.len()).toBe(countKantoPokemon.count);
@@ -79,9 +79,10 @@ component extends="tests.resources.baseTest" asyncAll="true" {
             describe('Retrieve evolutions', () => {
                 it('Retrieve Bulbasaur''s Evolutions', () => {
                     var bulbasaur = pokemonService.get({
-                        number: 1,
-                        name  : 'Bulbasaur',
-                        gender: ''
+                        number : 1,
+                        name   : 'Bulbasaur',
+                        gender : '',
+                        costume: false
                     });
                     expect(bulbasaur).toBeArray();
                     expect(bulbasaur.len()).toBe(1);
@@ -97,9 +98,10 @@ component extends="tests.resources.baseTest" asyncAll="true" {
 
                 it('Retrieve Wurmple''s Evolutions', () => {
                     var wurmple = pokemonService.get({
-                        number: 265,
-                        name  : 'Wurmple',
-                        gender: ''
+                        number : 265,
+                        name   : 'Wurmple',
+                        gender : '',
+                        costume: false
                     });
                     expect(wurmple).toBeArray();
                     expect(wurmple.len()).toBe(1);
@@ -134,8 +136,8 @@ component extends="tests.resources.baseTest" asyncAll="true" {
                 });
 
                 it('Array length matches the total pokemon count in the database', () => {
-                    var arr   = pokemonService.getSearchArray();
-                    var count = queryExecute('select count(id) as c from pokemon').c;
+                    var arr   = pokemonService.getSearchArray(); // Costume pokemon excluded from search array
+                    var count = queryExecute('select count(id) as c from pokemon where costume = false').c;
                     expect(arr.len()).toBe(count);
                 });
 
@@ -359,13 +361,110 @@ component extends="tests.resources.baseTest" asyncAll="true" {
                     });
                 });
             });
+
+            describe('getCostumes()', () => {
+                it('Can retrieve Charmander''s costumes', () => {
+                    var charmander = validatePokemonRecord(number = 4, name = 'Charmander', gender = '');
+
+                    var costumes = pokemonService.getCostumes(charmander);
+                    expect(costumes).toBeArray();
+                    expect(costumes.len()).toBeGTE(3); // at least 3 costumes
+
+                    // Check each individual costume form
+                    var loadedCostumes = {};
+                    costumes.each((costume) => {
+                        loadedCostumes[costume.getCostumeType()] = true;
+
+                        validatePokemonRecord(
+                            number      = 4,
+                            name        = 'Charmander',
+                            gender      = '',
+                            costume     = true,
+                            costumeType = costume.getCostumeType()
+                        );
+                    });
+
+                    var expected = ['Party Hat', 'Halloween', 'Pikachu Visor'];
+                    expected.each((item) => {
+                        expect(loadedCostumes).toHaveKey(item);
+                    });
+                });
+
+                it('Can retrieve Tropius''s costumes', () => {
+                    var tropius = validatePokemonRecord(number = 357, name = 'Tropius', gender = '');
+
+                    var costumes = pokemonService.getCostumes(tropius);
+                    expect(costumes).toBeArray();
+                    expect(costumes.len()).toBe(0); // has no costumes
+                });
+            });
+
+            describe('getEvolvers()', () => {
+                it('Can retrieve Persian''s evolvers', () => {
+                    var persian = validatePokemonRecord(number = 53, name = 'Persian', gender = '');
+
+                    var evolvers = pokemonService.getEvolvers(persian);
+                    expect(evolvers).toBeArray();
+                    expect(evolvers.len()).toBe(1);
+                    expect(evolvers[1].getName()).toBe('Meowth');
+                    expect(evolvers[1].getNumber()).toBe(52);
+                });
+
+                it('Can retrieve Gigantamax Meowth''s evolvers', () => {
+                    var gmaxMeowth = validatePokemonRecord(
+                        number = 52,
+                        name   = 'Gigantamax Meowth',
+                        gender = ''
+                    );
+
+                    var evolvers = pokemonService.getEvolvers(gmaxMeowth);
+                    expect(evolvers).toBeArray();
+                    expect(evolvers.len()).toBe(1);
+                    expect(evolvers[1].getName()).toBe('Meowth');
+                    expect(evolvers[1].getNumber()).toBe(52);
+                });
+
+                it('Can retrieve Mega Charizard Y evolvers', () => {
+                    var megaZard = validatePokemonRecord(
+                        number = 6,
+                        name   = 'Mega Charizard Y',
+                        gender = ''
+                    );
+
+                    var evolvers = pokemonService.getEvolvers(megaZard);
+                    expect(evolvers).toBeArray();
+                    expect(evolvers.len()).toBe(1);
+                    expect(evolvers[1].getName()).toBe('Charizard');
+                    expect(evolvers[1].getNumber()).toBe(6);
+                });
+
+                it('Can ensure Pikachu''s evolves', () => {
+                    var pikachu = validatePokemonRecord(number = 25, name = 'Pikachu', gender = '');
+
+                    // gmax, raichu
+                    expect(pikachu.getEvolution().len()).toBe(2);
+
+                    var expected = {'Raichu': true, 'Gigantamax Pikachu': true};
+
+                    pikachu
+                        .getEvolution()
+                        .each((evolution) => {
+                            expect(expected).toHaveKey(evolution.getEvolution().getName());
+                            expected.delete(evolution.getEvolution().getName());
+                        });
+
+                    expect(expected.count()).toBe(0);
+                });
+            });
         });
     }
 
     private function queryPokemon(
         required numeric number,
         required string name,
-        required string gender
+        required string gender,
+        boolean costume    = false,
+        string costumeType = ''
     ) {
         return queryExecute(
             '
@@ -374,20 +473,26 @@ component extends="tests.resources.baseTest" asyncAll="true" {
             where name = :name
             and number = :number
             and gender = :gender
+            and costume = :costume
+            and costumetype = :costumetype
             ',
             {
-                name  : {value: arguments.name, cfsqltype: 'varchar'},
-                number: {value: arguments.number, cfsqltype: 'numeric'},
-                gender: {value: arguments.gender, cfsqltype: 'varchar'}
+                name       : {value: arguments.name, cfsqltype: 'varchar'},
+                number     : {value: arguments.number, cfsqltype: 'numeric'},
+                gender     : {value: arguments.gender, cfsqltype: 'varchar'},
+                costume    : {value: arguments.costume, cfsqltype: 'boolean'},
+                costumetype: {value: arguments.costumetype, cfsqltype: 'varchar'}
             }
         );
     }
 
     // Validate our orm function pulls a record that matches the db
-    private function validatePokemonRecord(
+    private component function validatePokemonRecord(
         required numeric number,
         required string name,
-        required string gender
+        required string gender,
+        boolean costume    = false,
+        string costumeType = ''
     ) {
         var pokemonCfc = pokemonService.get(params = arguments);
         expect(pokemonCfc).toBeArray();
@@ -398,6 +503,8 @@ component extends="tests.resources.baseTest" asyncAll="true" {
         var pokemonQuery = queryPokemon(argumentCollection = arguments);
         expect(pokemonQuery.recordCount()).toBe(1);
         expect(pokemonCfc.getId()).toBe(pokemonQuery.id);
+
+        return pokemonCfc;
     }
 
 }

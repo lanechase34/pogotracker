@@ -4,6 +4,7 @@ component singleton accessors="true" {
     property name="generationService" inject="services.generation";
     property name="maxThreads"        inject="coldbox:setting:maxThreads";
     property name="pokemonService"    inject="services.pokemon";
+    property name="utilService"       inject="services.util";
 
     /**
      * Get registered pokemon for a trainer
@@ -11,18 +12,20 @@ component singleton accessors="true" {
      */
     public array function getRegistered(
         required component trainer,
-        string region  = '',
-        boolean form   = false,
-        boolean mega   = false,
-        boolean shadow = false,
-        boolean giga   = false
+        string region   = '',
+        boolean form    = false,
+        boolean mega    = false,
+        boolean shadow  = false,
+        boolean giga    = false,
+        boolean costume = false
     ) {
-        var cacheKey   = '#arguments.trainer.getId()#|pokedex.getRegistered|region=#arguments.region#|form=#arguments.form#|mega=#arguments.mega#|shadow=#arguments.shadow#|giga=#arguments.giga#';
+        var cacheKey   = '#arguments.trainer.getId()#|pokedex.getRegistered|region=#arguments.region#|form=#arguments.form#|mega=#arguments.mega#|shadow=#arguments.shadow#|giga=#arguments.giga#|costume=#arguments.costume#';
         var registered = cacheService.get(cacheKey);
         if(isNull(registered)) {
-            var whereClause = 'WHERE pokemon.mega = :mega AND pokemon.giga = :giga';
+            var whereClause = 'WHERE pokemon.costume = :costume AND pokemon.mega = :mega AND pokemon.giga = :giga';
             var params      = {
                 'trainer': arguments.trainer,
+                'costume': arguments.costume,
                 'mega'   : arguments.mega,
                 'giga'   : arguments.giga
             };
@@ -221,7 +224,8 @@ component singleton accessors="true" {
                     coalesce(string_agg(case when (d.shiny is not true and p.shiny = true) then cast(p.number as text) end, '','' order by p.number asc), '''') as missingShiny
                 from pokemon p
                 left outer join pokedex d on p.id = d.pokemonid and d.trainerid = :trainerid
-                where p.mega = false
+                where p.costume = false
+                    and p.mega = false
                     and p.giga = false
                     and p.number != 201 -- exclude unown
                     and p.tradable = true
@@ -229,7 +233,10 @@ component singleton accessors="true" {
                 {trainerid: {value: arguments.trainer.getId(), cfsqltype: 'integer'}}
             );
 
-            missingStrings = {caught: q.missingCaught, shiny: 'shiny&#q.missingShiny#'};
+            missingStrings = {
+                caught: utilService.removeDuplicates(q.missingCaught),
+                shiny : 'shiny&#utilService.removeDuplicates(q.missingShiny)#'
+            };
 
             cacheService.put(cacheKey, missingStrings, 10, 10);
         }

@@ -29,7 +29,7 @@ component singleton accessors="true" {
         var params = {'leftTrainer': arguments.leftTrainer, 'rightTrainer': arguments.rightTrainer};
 
         if(!isNull(arguments.generation)) {
-            whereClause &= ' and pokemon.generation = :generation';
+            whereClause &= ' and pokemon.generation = :generation and pokemon.costume = false';
             params.insert('generation', arguments.generation);
         }
 

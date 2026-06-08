@@ -5,7 +5,13 @@ component extends="tests.resources.baseTest" asyncAll="false" {
         mockTrainer    = getInstance('tests.resources.mocktrainer');
         pokemonService = getInstance('services.pokemon');
         trainer        = mockTrainer.make();
-        customTitle    = createUUID();
+        customTitle    = left(createUUID(), 50);
+        onePokemonId   = pokemonService.get({
+            number : 324,
+            name   : 'Torkoal',
+            gender : '',
+            costume: false
+        })[1].getId();
     }
 
     function afterAll() {
@@ -31,29 +37,34 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                     public : false,
                     pokemon: [
                         pokemonService.get({
-                            number: 324,
-                            name  : 'Torkoal',
-                            gender: ''
+                            number : 324,
+                            name   : 'Torkoal',
+                            gender : '',
+                            costume: false
                         })[1].getId(),
                         pokemonService.get({
-                            number: 369,
-                            name  : 'Relicanth',
-                            gender: ''
+                            number : 369,
+                            name   : 'Relicanth',
+                            gender : '',
+                            costume: false
                         })[1].getId(),
                         pokemonService.get({
-                            number: 352,
-                            name  : 'Kecleon',
-                            gender: ''
+                            number : 352,
+                            name   : 'Kecleon',
+                            gender : '',
+                            costume: false
                         })[1].getId(),
                         pokemonService.get({
-                            number: 360,
-                            name  : 'Wynaut',
-                            gender: ''
+                            number : 360,
+                            name   : 'Wynaut',
+                            gender : '',
+                            costume: false
                         })[1].getId(),
                         pokemonService.get({
-                            number: 357,
-                            name  : 'Tropius',
-                            gender: ''
+                            number : 357,
+                            name   : 'Tropius',
+                            gender : '',
+                            costume: false
                         })[1].getId()
                     ]
                 };
@@ -79,8 +90,6 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                 // Verify the custom pokedex properties
                 expect(custom).toBeComponent();
 
-                entityReload(custom); // Why do I need this?
-
                 expect(custom.getName()).toBe(data.name);
                 expect(custom.getPublic()).toBe(data.public);
                 expect(custom.getCustomPokedex()).toBeArray();
@@ -95,24 +104,28 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                     public  : false,
                     pokemon : [
                         pokemonService.get({
-                            number: 352,
-                            name  : 'Kecleon',
-                            gender: ''
+                            number : 352,
+                            name   : 'Kecleon',
+                            gender : '',
+                            costume: false
                         })[1].getId(),
                         pokemonService.get({
-                            number: 360,
-                            name  : 'Wynaut',
-                            gender: ''
+                            number : 360,
+                            name   : 'Wynaut',
+                            gender : '',
+                            costume: false
                         })[1].getId(),
                         pokemonService.get({
-                            number: 357,
-                            name  : 'Tropius',
-                            gender: ''
+                            number : 357,
+                            name   : 'Tropius',
+                            gender : '',
+                            costume: false
                         })[1].getId(),
                         pokemonService.get({
-                            number: 358,
-                            name  : 'Chimecho',
-                            gender: ''
+                            number : 358,
+                            name   : 'Chimecho',
+                            gender : '',
+                            costume: false
                         })[1].getId()
                     ]
                 };
@@ -129,9 +142,6 @@ component extends="tests.resources.baseTest" asyncAll="false" {
 
                 var response = deserializeJSON(event.getRenderedContent());
                 expect(response.success).toBeTrue();
-
-                // Check the properties
-                entityReload(custom);
 
                 expect(custom.getName()).toBe(data.name);
                 expect(custom.getPublic()).toBe(data.public);
@@ -187,6 +197,222 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                 expect(event.getRenderedContent()).toContain('data-name="Wynaut"');
                 expect(event.getRenderedContent()).toContain('data-name="Tropius"');
                 expect(event.getRenderedContent()).toContain('data-name="Chimecho"');
+            });
+
+            describe('pokedex.addCustomPokedex validation', () => {
+                it('Rejects when name is missing', () => {
+                    event        = post(route = '/pokedex/addCustomPokedex', params = {public: false, pokemon: [onePokemonId]});
+                    var response = deserializeJSON(event.getRenderedContent());
+                    expect(event.getStatusCode()).toBe(400);
+                    expect(response.success).toBeFalse();
+                    expect(response.message).toBe('Invalid Custom Pokedex');
+                });
+
+                it('Rejects when name is shorter than 5 characters', () => {
+                    event = post(
+                        route  = '/pokedex/addCustomPokedex',
+                        params = {
+                            name   : 'TooS',
+                            public : false,
+                            pokemon: [onePokemonId]
+                        }
+                    );
+                    var response = deserializeJSON(event.getRenderedContent());
+                    expect(event.getStatusCode()).toBe(400);
+                    expect(response.success).toBeFalse();
+                    expect(response.message).toBe('Invalid Custom Pokedex');
+                });
+
+                it('Rejects when name is longer than 100 characters', () => {
+                    event = post(
+                        route  = '/pokedex/addCustomPokedex',
+                        params = {
+                            name   : repeatString('a', 101),
+                            public : false,
+                            pokemon: [onePokemonId]
+                        }
+                    );
+                    var response = deserializeJSON(event.getRenderedContent());
+                    expect(event.getStatusCode()).toBe(400);
+                    expect(response.success).toBeFalse();
+                    expect(response.message).toBe('Invalid Custom Pokedex');
+                });
+
+                it('Rejects when public is missing', () => {
+                    event = post(
+                        route  = '/pokedex/addCustomPokedex',
+                        params = {name: 'Valid Name Here', pokemon: [onePokemonId]}
+                    );
+                    var response = deserializeJSON(event.getRenderedContent());
+                    expect(event.getStatusCode()).toBe(400);
+                    expect(response.success).toBeFalse();
+                    expect(response.message).toBe('Invalid Custom Pokedex');
+                });
+
+                it('Rejects when pokemon array is missing', () => {
+                    event        = post(route = '/pokedex/addCustomPokedex', params = {name: 'Valid Name Here', public: false});
+                    var response = deserializeJSON(event.getRenderedContent());
+                    expect(event.getStatusCode()).toBe(400);
+                    expect(response.success).toBeFalse();
+                    expect(response.message).toBe('Invalid Custom Pokedex');
+                });
+
+                it('Rejects when pokemon array is empty', () => {
+                    event = post(
+                        route  = '/pokedex/addCustomPokedex',
+                        params = {
+                            name   : 'Valid Name Here',
+                            public : false,
+                            pokemon: []
+                        }
+                    );
+                    var response = deserializeJSON(event.getRenderedContent());
+                    expect(event.getStatusCode()).toBe(400);
+                    expect(response.success).toBeFalse();
+                    expect(response.message).toBe('Invalid Custom Pokedex');
+                });
+            });
+
+            describe('pokedex.editCustomPokedex validation', () => {
+                it('Rejects when customid is missing', () => {
+                    event = post(
+                        route  = '/pokedex/editCustomPokedex',
+                        params = {
+                            name   : 'Valid Name Here',
+                            public : false,
+                            pokemon: [onePokemonId]
+                        }
+                    );
+                    var response = deserializeJSON(event.getRenderedContent());
+                    expect(event.getStatusCode()).toBe(400);
+                    expect(response.success).toBeFalse();
+                    expect(response.message).toBe('Invalid Custom Pokedex');
+                });
+
+                it('Rejects when customid is not numeric', () => {
+                    event = post(
+                        route  = '/pokedex/editCustomPokedex',
+                        params = {
+                            customid: 'notanumber',
+                            name    : 'Valid Name Here',
+                            public  : false,
+                            pokemon : [onePokemonId]
+                        }
+                    );
+                    var response = deserializeJSON(event.getRenderedContent());
+                    expect(event.getStatusCode()).toBe(400);
+                    expect(response.success).toBeFalse();
+                    expect(response.message).toBe('Invalid Custom Pokedex');
+                });
+
+                it('Rejects when customid does not exist', () => {
+                    event = post(
+                        route  = '/pokedex/editCustomPokedex',
+                        params = {
+                            customid: 999999,
+                            name    : 'Valid Name Here',
+                            public  : false,
+                            pokemon : [onePokemonId]
+                        }
+                    );
+                    var response = deserializeJSON(event.getRenderedContent());
+                    expect(event.getStatusCode()).toBe(400);
+                    expect(response.success).toBeFalse();
+                    expect(response.message).toBe('Invalid Custom Pokedex');
+                });
+
+                it('Rejects when name is missing', () => {
+                    event = post(
+                        route  = '/pokedex/editCustomPokedex',
+                        params = {
+                            customid: customid,
+                            public  : false,
+                            pokemon : [onePokemonId]
+                        }
+                    );
+                    var response = deserializeJSON(event.getRenderedContent());
+                    expect(event.getStatusCode()).toBe(400);
+                    expect(response.success).toBeFalse();
+                    expect(response.message).toBe('Invalid Custom Pokedex');
+                });
+
+                it('Rejects when name is shorter than 5 characters', () => {
+                    event = post(
+                        route  = '/pokedex/editCustomPokedex',
+                        params = {
+                            customid: customid,
+                            name    : 'Too',
+                            public  : false,
+                            pokemon : [onePokemonId]
+                        }
+                    );
+                    var response = deserializeJSON(event.getRenderedContent());
+                    expect(event.getStatusCode()).toBe(400);
+                    expect(response.success).toBeFalse();
+                    expect(response.message).toBe('Invalid Custom Pokedex');
+                });
+
+                it('Rejects when name is longer than 100 characters', () => {
+                    event = post(
+                        route  = '/pokedex/editCustomPokedex',
+                        params = {
+                            customid: customid,
+                            name    : repeatString('a', 101),
+                            public  : false,
+                            pokemon : [onePokemonId]
+                        }
+                    );
+                    var response = deserializeJSON(event.getRenderedContent());
+                    expect(event.getStatusCode()).toBe(400);
+                    expect(response.success).toBeFalse();
+                    expect(response.message).toBe('Invalid Custom Pokedex');
+                });
+
+                it('Rejects when public is missing', () => {
+                    event = post(
+                        route  = '/pokedex/editCustomPokedex',
+                        params = {
+                            customid: customid,
+                            name    : 'Valid Name Here',
+                            pokemon : [onePokemonId]
+                        }
+                    );
+                    var response = deserializeJSON(event.getRenderedContent());
+                    expect(event.getStatusCode()).toBe(400);
+                    expect(response.success).toBeFalse();
+                    expect(response.message).toBe('Invalid Custom Pokedex');
+                });
+
+                it('Rejects when pokemon array is missing', () => {
+                    event = post(
+                        route  = '/pokedex/editCustomPokedex',
+                        params = {
+                            customid: customid,
+                            name    : 'Valid Name Here',
+                            public  : false
+                        }
+                    );
+                    var response = deserializeJSON(event.getRenderedContent());
+                    expect(event.getStatusCode()).toBe(400);
+                    expect(response.success).toBeFalse();
+                    expect(response.message).toBe('Invalid Custom Pokedex');
+                });
+
+                it('Rejects when pokemon array is empty', () => {
+                    event = post(
+                        route  = '/pokedex/editCustomPokedex',
+                        params = {
+                            customid: customid,
+                            name    : 'Valid Name Here',
+                            public  : false,
+                            pokemon : []
+                        }
+                    );
+                    var response = deserializeJSON(event.getRenderedContent());
+                    expect(event.getStatusCode()).toBe(400);
+                    expect(response.success).toBeFalse();
+                    expect(response.message).toBe('Invalid Custom Pokedex');
+                });
             });
 
             it('Can delete a custom pokedex by posting data to pokedex.deleteCustomPokedex', () => {

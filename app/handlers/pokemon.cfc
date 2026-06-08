@@ -1,9 +1,10 @@
 component extends="base" {
 
     this.allowedMethods = {
-        detail      : 'GET',
-        updateDetail: 'POST',
-        search      : 'GET'
+        detail           : 'GET',
+        updateDetail     : 'POST',
+        search           : 'GET',
+        getPreviousEvents: 'GET'
     };
 
     property name="pokemonService" inject="services.pokemon";
@@ -66,6 +67,42 @@ component extends="base" {
         );
 
         relocate(uri = '/pokemon/#prc.pokemon.getSes()#');
+    }
+
+    /**
+     * Load more previous events for a pokemon's detail page
+     *
+     * @rc.ses    pokemon SES key
+     * @rc.offset number of events already shown
+     */
+    function getPreviousEvents(event, rc, prc) {
+        if(hasValidationErrors(target = rc, constraints = 'pokemon.getPreviousEvents')) {
+            htmlValidationFailure(event = event);
+            return;
+        }
+
+        prc.detail = pokemonService.getDetail(ses = rc.ses);
+        if(!prc.detail.keyExists('pokemon')) {
+            htmlValidationFailure(event = event);
+            return;
+        }
+
+        prc.events = pokemonService.getPreviousEvents(
+            pokemon = prc.detail.pokemon,
+            limit   = 5,
+            offset  = rc.offset
+        );
+
+        event.setView(
+            view     = '/views/pokemon/fragment/eventrows',
+            nolayout = true,
+            args     = {
+                events: prc.events,
+                ses   : rc.ses,
+                offset: rc.offset + 5,
+                limit : 5
+            }
+        );
     }
 
     /**

@@ -43,3 +43,10 @@ export function copyString($btns, string) {
         }, 4 * 1000);
     });
 }
+
+/**
+ * Remove duplicates in a comma delimited string
+ */
+export function removeDuplicates(str) {
+    return [...new Set(str.split(',').map((s) => s.trim()))].join(',');
+}

@@ -76,4 +76,4 @@ jobs:
             sudo sh -c 'echo "$(date)" > /var/www/wwwroot/pogotracker/version.html'
             cd /var/www/wwwroot/pogotracker/
             sudo box recipe scripts/deploy.boxr
-          timeout-minutes: 10
+          timeout: 10

@@ -73,6 +73,7 @@ component {
                 slowRequests  : []
             },
             contactEmail: 'chaselane@pogotracker.app',
+            costumeData : false, // get costume data from wiki
             csrfChecks  : {
                 // Validate the CSRF Token for these actions
                 persistlogin  : true,
@@ -354,7 +355,8 @@ component {
 
         // settings.debugging     = true;
         // settings.useCache      = false;
-        settings.shadowData = true;
+        settings.shadowData  = true;
+        settings.costumeData = true;
         // settings.warmedup      = true;
 
         // Comment to use minified files

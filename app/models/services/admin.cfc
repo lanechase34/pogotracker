@@ -12,15 +12,18 @@ component singleton accessors="true" {
     property name="schedulerService"  inject="coldbox:schedulerService";
     property name="scraperService"    inject="services.scraper";
     property name="securityService"   inject="services.security";
+    property name="utilService"       inject="services.util";
 
-    property name="concurrency"   inject="coldbox:setting:concurrency";
-    property name="domainProd"    inject="coldbox:setting:domainProd";
-    property name="logPath"       inject="coldbox:setting:logPath";
-    property name="maxThreads"    inject="coldbox:setting:maxThreads";
-    property name="rootPath"      inject="coldbox:setting:rootPath";
-    property name="shadowData"    inject="coldbox:setting:shadowData";
-    property name="systemTrainer" inject="coldbox:setting:systemTrainer";
-    property name="writeJson"     inject="coldbox:setting:writeJson";
+    property name="concurrency"    inject="coldbox:setting:concurrency";
+    property name="costumeData"    inject="coldbox:setting:costumeData";
+    property name="domainProd"     inject="coldbox:setting:domainProd";
+    property name="logPath"        inject="coldbox:setting:logPath";
+    property name="imageExtension" inject="coldbox:setting:imageExtension";
+    property name="maxThreads"     inject="coldbox:setting:maxThreads";
+    property name="rootPath"       inject="coldbox:setting:rootPath";
+    property name="shadowData"     inject="coldbox:setting:shadowData";
+    property name="systemTrainer"  inject="coldbox:setting:systemTrainer";
+    property name="writeJson"      inject="coldbox:setting:writeJson";
 
     property name="leekduckNameMap" type="struct";
     property name="regionalForms"   type="array";
@@ -806,7 +809,9 @@ component singleton accessors="true" {
                     'shadowshiny': pokemon.shadowshiny,
                     'giga'       : pokemon.giga,
                     'formtype'   : pokemon?.formtype ?: '',
-                    'ses'        : pokemon.ses
+                    'ses'        : pokemon.ses,
+                    'costume'    : pokemon?.costume ?: false,
+                    'costumetype': pokemon?.costumetype ?: ''
                 },
                 moves,
                 pokemon.evolutions
@@ -1248,17 +1253,35 @@ component singleton accessors="true" {
         var pokemon = []; // Create array of pokemon ids
         var map     = {}; // use map to not double enter pokemon
         spawns.each((name, value) => {
+            var costumetype = '';
+
             // Check the name map
             if(getLeekduckNameMap().keyExists(name)) {
-                name = getLeekduckNameMap()[name];
+                // Check if this is a costume mon
+                if(isStruct(getLeekduckNameMap()[name])) {
+                    costumetype = getLeekduckNameMap()[name].costumetype;
+                    name        = getLeekduckNameMap()[name].name;
+                }
+                else {
+                    name = getLeekduckNameMap()[name];
+                }
             }
 
             var genderCheck = listToArray(name, ' ');
             if(genderCheck.len() == 2 && (genderCheck[2] == 'Male' || genderCheck[2] == 'Female')) {
-                var currPokemon = pokemonService.get({'name': genderCheck[1], 'gender': genderCheck[2]});
+                var currPokemon = pokemonService.get({
+                    'name'       : genderCheck[1],
+                    'gender'     : genderCheck[2],
+                    'costume'    : costumetype.len(),
+                    'costumetype': costumetype
+                });
             }
             else {
-                var currPokemon = pokemonService.get({'name': name});
+                var currPokemon = pokemonService.get({
+                    'name'       : name,
+                    'costume'    : costumetype.len(),
+                    'costumetype': costumetype
+                });
             }
 
             currPokemon.each((curr) => {
@@ -1697,6 +1720,11 @@ component singleton accessors="true" {
             ses &= '-#pokemon.formType#';
         }
 
+        // 3. costume
+        if(pokemon.keyExists('costumetype') && pokemon.costumetype.len()) {
+            ses &= '-#pokemon.costumetype#';
+        }
+
         return ses;
     }
 
@@ -1854,6 +1882,227 @@ component singleton accessors="true" {
         lines.append('</urlset>');
 
         fileWrite(filePath, lines.toList(chr(10)), 'UTF-8');
+    }
+
+    /**
+     * Builds the costume data
+     */
+    public void function buildCostumeData() {
+        var costumes = deserializeJSON(fileRead('/includes/assets/costumes.json'));
+
+        if(getCostumeData()) {
+            costumes = {};
+            var doc  = scraperService.getData('https://pokemongo.fandom.com/wiki/Event_Pok%C3%A9mon');
+
+            var items = doc
+                .body()
+                .select('.pogo-list-container')
+                .select('.pogo-list-item');
+
+            items.each((item, idx) => {
+                var curr    = extractCustomData(item);
+                var costume = curr.fullcostume;
+
+                curr = {
+                    number     : curr.number,
+                    name       : curr.name,
+                    costume    : true,
+                    costumetype: curr.costumetype,
+                    sprite     : curr.filename,
+                    shiny      : false,
+                    spriteSrc  : curr.imgSrc,
+                    generation : getGeneration(curr.name, curr.number),
+                    released   : true,
+                    live       : true,
+                    flee       : 0,
+                    catch      : 0,
+                    shadowshiny: false,
+                    giga       : false,
+                    evolutions : [],
+                    form       : false,
+                    mega       : false,
+                    attack     : 0,
+                    hp         : 0,
+                    shadow     : false,
+                    gender     : '',
+                    tradable   : true,
+                    type       : ['Normal'],
+                    formtype   : '',
+                    ses        : curr.ses,
+                    moves      : [],
+                    defense    : 0
+                };
+
+                costumes[curr.ses] = curr;
+            });
+
+            // Load the shiny doc and get the shiny images
+            var shinyDoc = scraperService.getData('https://pokemongo.fandom.com/wiki/Event_Pok%C3%A9mon%23Shiny_(289_of_303)');
+
+            var shinyItems = doc
+                .body()
+                .select('.pogo-list-container')
+                .select('.pogo-list-item');
+
+            shinyItems.each((item, idx) => {
+                var curr = extractCustomData(item);
+                costumes[curr.ses].shinySpriteSrc = curr.imgSrc;
+            });
+
+            // Download images
+            costumes.each((key, costume) => {
+                // Somehow these keys get scrambled when the page loads - determine which one is actually shiny and which is regular
+                var normalSprite = costume?.spriteSrc ?: '';
+                var shinySprite  = costume?.shinySpriteSrc ?: '';
+                if(normalSprite.findNoCase('shiny')) {
+                    var temp     = shinySprite;
+                    shinySprite  = normalSprite;
+                    normalSprite = temp;
+                }
+
+                // Normal sprite
+                var spritePath = '/includes/images/sprites/#costume.sprite##getImageExtension()#';
+                if(
+                    len(normalSprite)
+                    && normalSprite.startsWith('http')
+                    && !fileExists('#getRootPath()##spritePath#')
+                ) {
+                    scraperService.downloadImage(url = normalSprite, destination = spritePath);
+                }
+
+                // Determine if this has a shiny
+                if(shinySprite.findNoCase('none')) {
+                    costume.shiny = false;
+                }
+                else {
+                    costume.shiny = true;
+                }
+
+                // Shiny sprite
+                var shinySpritePath = '/includes/images/shinysprites/#costume.sprite##getImageExtension()#';
+                if(
+                    costume.shiny
+                    && len(shinySprite)
+                    && shinySprite.startsWith('http')
+                    && !fileExists('#getRootPath()##shinySpritePath#')
+                ) {
+                    scraperService.downloadImage(url = shinySprite, destination = shinySpritePath);
+                }
+
+                costume.delete('spriteSrc');
+                costume.delete('shinySpriteSrc');
+            });
+
+            // Determine the evolution lines based on existing evolution and using the costume type
+            costumes.each((key, costume) => {
+                var pokemon = pokemonService.get({
+                    name   : costume.name,
+                    number : costume.number,
+                    gender : costume.gender,
+                    costume: false
+                });
+
+                if(!pokemon.len()) continue;
+
+                var evolutions = pokemon[1].getEvolution();
+                if(!evolutions.len()) continue;
+
+                // Check if evolution(s) has the same costume type
+                evolutions.each((evolution) => {
+                    var evolvedMon = evolution.getEvolution();
+
+                    // Search costume records
+                    var evolvedCostume = costumes.filter((key, filterCostume) => {
+                        return (
+                            filterCostume.name == evolvedMon.getName()
+                            && filterCostume.number == evolvedMon.getNumber()
+                            && filterCostume.gender == evolvedMon.getGender()
+                            && filterCostume.costumeType == costume.costumeType // match base stage
+                            && !evolvedMon.getMega()
+                            && !evolvedMon.getGiga()
+                            && !evolvedMon.getFormType().len()
+                        );
+                    });
+
+                    if(!evolvedCostume.count()) continue;
+
+                    // Add to evolutions
+                    evolvedCostume.each((key, eCostume) => {
+                        costume.evolutions.append({
+                            condition  : '',
+                            number     : eCostume.number,
+                            gender     : eCostume.gender,
+                            cost       : evolution.getCost(),
+                            name       : eCostume.name,
+                            special    : false,
+                            costume    : true,
+                            costumetype: eCostume.costumeType
+                        });
+                    });
+                });
+            });
+        }
+
+        if(getWriteJson()) {
+            fileWrite(
+                '#getRootPath()#/includes/assets/costumes.json',
+                serializeJSON(costumes),
+                'UTF-8'
+            );
+        }
+
+        updatePokemonData(costumes);
+        return;
+    }
+
+    /**
+     * Extract the custom data from the jsoup pogo-list-item object
+     *
+     * @item jsoup selected item
+     */
+    private struct function extractCustomData(required any item) {
+        var nameEl = item.selectFirst('.pogo-list-item-name');
+        var numEl  = item.selectFirst('.pogo-list-item-number');
+        var formEl = item.selectFirst('.pogo-list-item-form');
+
+        if(isNull(nameEl) || isNull(numEl)) return;
+
+        var name    = trim(nameEl.text());
+        var costume = isNull(formEl) ? '' : trim(formEl.text());
+
+        var number = val(reReplace(numEl.text(), '[^0-9]', '', 'all'));
+
+        var imgEl  = item.selectFirst('.pogo-list-item-image-r img');
+        var imgSrc = '';
+        if(!isNull(imgEl)) {
+            // Lazy rows store the real url in data-src and a base64
+            // placeholder in src - eager rows store it directly in src.
+            var dataSrc = imgEl.attr('data-src');
+            var src     = imgEl.attr('src');
+            imgSrc      = len(dataSrc) && dataSrc.startsWith('http') ? dataSrc : src;
+
+            // Pull full resolution instead of the 98px thumbnail.
+            imgSrc = reReplace(imgSrc, '/scale-to-width-down/[0-9]+', '', 'one');
+        }
+
+        var safeCostume = reReplace(costume, '[^A-Za-z0-9]+', '-', 'all');
+        safeCostume     = reReplace(safeCostume, '(^-+|-+$)', '', 'all');
+        var fileName    = '#number#_#name#_#safeCostume#';
+
+        var curr = {
+            number     : number,
+            name       : name,
+            costume    : true,
+            costumetype: safeCostume,
+            fullcostume: costume,
+            filename   : filename,
+            imgSrc     : imgSrc
+        };
+
+        // Build ses using safe costume name, then replace to full costume
+        curr.ses         = createSes(curr);
+        curr.costumetype = utilService.capitalizeWords(costume);
+        return curr;
     }
 
 }

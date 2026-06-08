@@ -73,6 +73,7 @@ component extends="coldbox.system.testing.BaseTestCase" {
                 string_agg(cast(number as text), '','') as numberList
             from pokemon
             where generation = :generation
+            and costume = false
             and mega = false
             and giga = false
             ',

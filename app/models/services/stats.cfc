@@ -288,7 +288,9 @@ component singleton accessors="true" {
                 from pokemon as pokemon
                 left outer join pokemon.pokedex as pokedexC with pokedexC.trainer = :trainer and pokedexC.caught = true
                 left outer join pokemon.pokedex as pokedexS with pokedexS.trainer = :trainer and pokedexS.shiny = true
-                where pokemon.mega = false and pokemon.giga = false
+                where pokemon.mega = false 
+                    and pokemon.giga = false 
+                    and pokemon.costume = false
                 group by pokemon.generation.region, pokemon.generation.generation
                 order by pokemon.generation.generation asc
                 ',

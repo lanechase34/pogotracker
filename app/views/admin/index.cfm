@@ -57,6 +57,9 @@
             <a href="/admin/buildPokemonData" class="list-group-item list-group-item-action d-flex gap-2 py-3">
                 <div class="d-flex gap-2 w-100 justify-content-between">Build Pokemon</div>
             </a>
+            <a href="/admin/buildCostumeData" class="list-group-item list-group-item-action d-flex gap-2 py-3">
+                <div class="d-flex gap-2 w-100 justify-content-between">Build Costume Pokemon</div>
+            </a>
         </div>
     </div>
     <div class="col-12 col-md-6 d-flex mt-3">

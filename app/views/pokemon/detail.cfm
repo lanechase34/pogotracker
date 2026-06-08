@@ -223,19 +223,13 @@
                                     <th class="small fw-semibold text-nowrap">Dates</th>
                                 </tr>
                             </thead>
-                            <tbody>
-                                <cfloop index="i" item="currEvent" array="#prc.detail.events#">
-                                    <tr>
-                                        <td>
-                                            <a href="/mycustompokedex/#currEvent.id#" target="_blank" class="link-dark fw-medium link-underline-opacity-0 link-underline-opacity-100-hover">
-                                                #currEvent.name#
-                                            </a>
-                                        </td>
-                                        <td class="text-muted small text-nowrap">
-                                            #currEvent.begins# &mdash; #currEvent.ends#
-                                        </td>
-                                    </tr>
-                                </cfloop>
+                            <tbody id="eventRows">
+                                #view(view='/views/pokemon/fragment/eventrows', args={
+                                    events: prc.detail.events,
+                                    ses   : prc.detail.pokemon.getSes(),
+                                    offset: 5,
+                                    limit : 5
+                                })#
                             </tbody>
                         </table>
                     </div>
@@ -264,6 +258,60 @@
         </div>
     </div>
 </div>
+
+<!--- Costumes --->
+<cfif prc.detail.costumes.len()>
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card shadow-sm">
+            <h2 class="card-header card-header-pokemon">
+                <i class="bi bi-star"></i> Costumes <span class="badge text-bg-dark">#prc.detail.costumes.len()#</span>
+                <button
+                    class="btn btn-sm p-0 border-0 ms-auto text-muted"
+                    type="button"
+                    data-bs-toggle="collapse"
+                    data-bs-target="##costumesCollapse"
+                    aria-expanded="true"
+                    aria-controls="costumesCollapse"
+                >
+                    <i class="bi bi-chevron-up collapse-chevron"></i>
+                </button>
+            </h2>
+            <div class="collapse show" id="costumesCollapse">
+            <div class="card-body">
+                <div class="d-flex flex-wrap gap-3">
+                    <cfloop index="i" item="costume" array="#prc.detail.costumes#">
+                    <div class="pokemon-entry costume-entry">
+                        <div class="pokemon-sprite-pair">
+                            <div class="pokemon-sprite-group">
+                                <img
+                                    class="costumeIcon"
+                                    src="/includes/images/sprites/#costume.getSprite()##getSetting('imageExtension')#"
+                                    alt="#costume.getCostumeType()# Normal Sprite"
+                                >
+                                <span class="badge bg-dark text-white sprite-label">Normal</span>
+                            </div>
+                            <cfif costume.getShiny()>
+                            <div class="pokemon-sprite-group">
+                                <img
+                                    class="costumeIcon"
+                                    src="/includes/images/shinysprites/#costume.getSprite()##getSetting('imageExtension')#"
+                                    alt="#costume.getCostumeType()# Shiny Sprite"
+                                >
+                               <span class="badge bg-dark text-white sprite-label">&##x2728; Shiny</span>
+                            </div>
+                            </cfif>
+                        </div>
+                        <p class="mt-2 mb-0 small fw-semibold text-center text-capitalize">#costume.getCostumeType()#</p>
+                    </div>
+                    </cfloop>
+                </div>
+            </div>
+            </div>
+        </div>
+    </div>
+</div>
+</cfif>
 
 <!--- Availability + Admin --->
 <div class="row mb-4">

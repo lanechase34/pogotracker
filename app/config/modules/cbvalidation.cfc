@@ -221,19 +221,21 @@ component {
                 },
                 shiny: {required: true, type: 'boolean'}
             },
-            'pokedex.myShadowPokedex': {shiny: {required: true, type: 'boolean'}},
-            'pokedex.getPokedex'     : {
+            'pokedex.myShadowPokedex' : {shiny: {required: true, type: 'boolean'}},
+            'pokedex.myCostumePokedex': {shiny: {required: true, type: 'boolean'}},
+            'pokedex.getPokedex'      : {
                 trainerid: {
                     required     : true,
                     type         : 'numeric',
                     entityExists : {entityName: 'trainer', pk: true},
                     securityCheck: {}
                 },
-                region: {required: true, type: 'string'},
-                form  : {required: true, type: 'boolean'},
-                shiny : {required: true, type: 'boolean'},
-                hundo : {required: true, type: 'boolean'},
-                shadow: {required: true, type: 'boolean'}
+                region : {required: true, type: 'string'},
+                form   : {required: true, type: 'boolean'},
+                shiny  : {required: true, type: 'boolean'},
+                hundo  : {required: true, type: 'boolean'},
+                shadow : {required: true, type: 'boolean'},
+                costume: {required: true, type: 'boolean'}
             },
             'pokedex.myCustomPokedex': {
                 trainerid: {
@@ -275,7 +277,7 @@ component {
                 name: {
                     required: true,
                     type    : 'string',
-                    min     : 10
+                    size    : '5..100'
                 },
                 public : {required: true, type: 'boolean'},
                 pokemon: {
@@ -308,7 +310,7 @@ component {
                 name: {
                     required: true,
                     type    : 'string',
-                    min     : 10
+                    size    : '5..100'
                 },
                 public : {required: true, type: 'boolean'},
                 pokemon: {
@@ -504,7 +506,19 @@ component {
         };
 
         var pokemonHandler = {
-            'pokemon.search': {search: {required: false, type: 'string'}, page: {required: true, type: 'numeric'}},
+            'pokemon.search'           : {search: {required: false, type: 'string'}, page: {required: true, type: 'numeric'}},
+            'pokemon.getPreviousEvents': {
+                ses: {
+                    required: true,
+                    type    : 'string',
+                    size    : '1..150'
+                },
+                offset: {
+                    required: true,
+                    type    : 'numeric',
+                    min     : 0
+                }
+            },
             'pokemon.detail': {
                 ses: {
                     required: true,
@@ -580,6 +594,7 @@ component {
                     type    : 'numeric',
                     min     : 0
                 },
+                costume           : {required: false, type: 'boolean'},
                 'search[value]'   : {required: false, type: 'string'},
                 'order[0][column]': {
                     required: false,

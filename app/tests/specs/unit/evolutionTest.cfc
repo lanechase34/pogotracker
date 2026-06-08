@@ -17,9 +17,10 @@ component extends="tests.resources.baseTest" asyncAll="true" {
 
             it('Retrieve Wurmple''s Evolutions', () => {
                 var wurmple = pokemonService.get({
-                    number: 265,
-                    name  : 'Wurmple',
-                    gender: ''
+                    number : 265,
+                    name   : 'Wurmple',
+                    gender : '',
+                    costume: false
                 });
                 expect(wurmple).toBeArray();
                 expect(wurmple.len()).toBe(1);
@@ -46,7 +47,12 @@ component extends="tests.resources.baseTest" asyncAll="true" {
             });
 
             it('Retrieve Oddish''s Evolutions', () => {
-                var oddish = pokemonService.get({number: 43, name: 'Oddish', gender: ''});
+                var oddish = pokemonService.get({
+                    number : 43,
+                    name   : 'Oddish',
+                    gender : '',
+                    costume: false
+                });
                 expect(oddish).toBeArray();
                 expect(oddish.len()).toBe(1);
                 oddish = oddish[1];
@@ -69,9 +75,10 @@ component extends="tests.resources.baseTest" asyncAll="true" {
 
             it('Retrieve Poliwag''s Evolutions', () => {
                 var poliwag = pokemonService.get({
-                    number: 60,
-                    name  : 'Poliwag',
-                    gender: ''
+                    number : 60,
+                    name   : 'Poliwag',
+                    gender : '',
+                    costume: false
                 });
                 expect(poliwag).toBeArray();
                 expect(poliwag.len()).toBe(1);
@@ -95,9 +102,10 @@ component extends="tests.resources.baseTest" asyncAll="true" {
 
             it('Retrieve Slowpoke''s Evolutions', () => {
                 var slowpoke = pokemonService.get({
-                    number: 79,
-                    name  : 'Slowpoke',
-                    gender: ''
+                    number : 79,
+                    name   : 'Slowpoke',
+                    gender : '',
+                    costume: false
                 });
                 expect(slowpoke).toBeArray();
                 expect(slowpoke.len()).toBe(1);
@@ -116,9 +124,10 @@ component extends="tests.resources.baseTest" asyncAll="true" {
 
             it('Retrieve Galarian Slowpoke''s Evolutions', () => {
                 var slowpoke = pokemonService.get({
-                    number: 79,
-                    name  : 'Galarian Slowpoke',
-                    gender: ''
+                    number : 79,
+                    name   : 'Galarian Slowpoke',
+                    gender : '',
+                    costume: false
                 });
                 expect(slowpoke).toBeArray();
                 expect(slowpoke.len()).toBe(1);
@@ -136,7 +145,12 @@ component extends="tests.resources.baseTest" asyncAll="true" {
             });
 
             it('Retrieve Eevee''s Evolutions', () => {
-                var eevee = pokemonService.get({number: 133, name: 'Eevee', gender: ''});
+                var eevee = pokemonService.get({
+                    number : 133,
+                    name   : 'Eevee',
+                    gender : '',
+                    costume: false
+                });
                 expect(eevee).toBeArray();
                 expect(eevee.len()).toBe(1);
                 eevee = eevee[1];
@@ -163,9 +177,10 @@ component extends="tests.resources.baseTest" asyncAll="true" {
 
             it('Retrieve Tyrogue''s Evolutions', () => {
                 var tyrogue = pokemonService.get({
-                    number: 236,
-                    name  : 'Tyrogue',
-                    gender: ''
+                    number : 236,
+                    name   : 'Tyrogue',
+                    gender : '',
+                    costume: false
                 });
                 expect(tyrogue).toBeArray();
                 expect(tyrogue.len()).toBe(1);
@@ -183,7 +198,12 @@ component extends="tests.resources.baseTest" asyncAll="true" {
             });
 
             it('Retrieve Ralts''s Evolutions', () => {
-                var ralts = pokemonService.get({number: 280, name: 'Ralts', gender: ''});
+                var ralts = pokemonService.get({
+                    number : 280,
+                    name   : 'Ralts',
+                    gender : '',
+                    costume: false
+                });
                 expect(ralts).toBeArray();
                 expect(ralts.len()).toBe(1);
                 ralts = ralts[1];
@@ -206,9 +226,10 @@ component extends="tests.resources.baseTest" asyncAll="true" {
 
             it('Retrieve Nincada''s Evolutions', () => {
                 var nincada = pokemonService.get({
-                    number: 290,
-                    name  : 'Nincada',
-                    gender: ''
+                    number : 290,
+                    name   : 'Nincada',
+                    gender : '',
+                    costume: false
                 });
                 expect(nincada).toBeArray();
                 expect(nincada.len()).toBe(1);
@@ -229,9 +250,10 @@ component extends="tests.resources.baseTest" asyncAll="true" {
 
             it('Retrieve Burmy (Plant Cloak)''s Evolutions', () => {
                 var burmy = pokemonService.get({
-                    number: 412,
-                    name  : 'Burmy Plant Cloak',
-                    gender: ''
+                    number : 412,
+                    name   : 'Burmy Plant Cloak',
+                    gender : '',
+                    costume: false
                 });
                 expect(burmy).toBeArray();
                 expect(burmy.len()).toBe(1);
@@ -250,9 +272,10 @@ component extends="tests.resources.baseTest" asyncAll="true" {
 
             it('Retrieve Burmy (Sandy Cloak)''s Evolutions', () => {
                 var burmy = pokemonService.get({
-                    number: 412,
-                    name  : 'Burmy Sandy Cloak',
-                    gender: ''
+                    number : 412,
+                    name   : 'Burmy Sandy Cloak',
+                    gender : '',
+                    costume: false
                 });
                 expect(burmy).toBeArray();
                 expect(burmy.len()).toBe(1);
@@ -271,9 +294,10 @@ component extends="tests.resources.baseTest" asyncAll="true" {
 
             it('Retrieve Burmy (Trash Cloak)''s Evolutions', () => {
                 var burmy = pokemonService.get({
-                    number: 412,
-                    name  : 'Burmy Trash Cloak',
-                    gender: ''
+                    number : 412,
+                    name   : 'Burmy Trash Cloak',
+                    gender : '',
+                    costume: false
                 });
                 expect(burmy).toBeArray();
                 expect(burmy.len()).toBe(1);
@@ -292,9 +316,10 @@ component extends="tests.resources.baseTest" asyncAll="true" {
 
             it('Retrieve Snorunt''s Evolutions', () => {
                 var snorunt = pokemonService.get({
-                    number: 361,
-                    name  : 'Snorunt',
-                    gender: ''
+                    number : 361,
+                    name   : 'Snorunt',
+                    gender : '',
+                    costume: false
                 });
                 expect(snorunt).toBeArray();
                 expect(snorunt.len()).toBe(1);
@@ -313,9 +338,10 @@ component extends="tests.resources.baseTest" asyncAll="true" {
 
             it('Retrieve Clamperl''s Evolutions', () => {
                 var clamperl = pokemonService.get({
-                    number: 366,
-                    name  : 'Clamperl',
-                    gender: ''
+                    number : 366,
+                    name   : 'Clamperl',
+                    gender : '',
+                    costume: false
                 });
                 expect(clamperl).toBeArray();
                 expect(clamperl.len()).toBe(1);
@@ -334,9 +360,10 @@ component extends="tests.resources.baseTest" asyncAll="true" {
 
             it('Retrieve Cosmog''s Evolutions', () => {
                 var cosmog = pokemonService.get({
-                    number: 789,
-                    name  : 'Cosmog',
-                    gender: ''
+                    number : 789,
+                    name   : 'Cosmog',
+                    gender : '',
+                    costume: false
                 });
                 expect(cosmog).toBeArray();
                 expect(cosmog.len()).toBe(1);
@@ -360,9 +387,10 @@ component extends="tests.resources.baseTest" asyncAll="true" {
 
             it('Retrieve Rockruff''s Evolutions', () => {
                 var rockruff = pokemonService.get({
-                    number: 744,
-                    name  : 'Rockruff',
-                    gender: ''
+                    number : 744,
+                    name   : 'Rockruff',
+                    gender : '',
+                    costume: false
                 });
                 expect(rockruff).toBeArray();
                 expect(rockruff.len()).toBe(1);
@@ -384,7 +412,12 @@ component extends="tests.resources.baseTest" asyncAll="true" {
             });
 
             it('Retrieve Toxel''s Evolutions', () => {
-                var toxel = pokemonService.get({number: 848, name: 'Toxel', gender: ''});
+                var toxel = pokemonService.get({
+                    number : 848,
+                    name   : 'Toxel',
+                    gender : '',
+                    costume: false
+                });
                 expect(toxel).toBeArray();
                 expect(toxel.len()).toBe(1);
                 toxel = toxel[1];
@@ -405,9 +438,10 @@ component extends="tests.resources.baseTest" asyncAll="true" {
 
             it('Retrieve Applin''s Evolutions', () => {
                 var applin = pokemonService.get({
-                    number: 840,
-                    name  : 'Applin',
-                    gender: ''
+                    number : 840,
+                    name   : 'Applin',
+                    gender : '',
+                    costume: false
                 });
                 expect(applin).toBeArray();
                 expect(applin.len()).toBe(1);
@@ -426,9 +460,10 @@ component extends="tests.resources.baseTest" asyncAll="true" {
 
             it('Retrieve Dipplin''s Evolutions', () => {
                 var dipplin = pokemonService.get({
-                    number: 1011,
-                    name  : 'Dipplin',
-                    gender: ''
+                    number : 1011,
+                    name   : 'Dipplin',
+                    gender : '',
+                    costume: false
                 });
                 expect(dipplin).toBeArray();
                 expect(dipplin.len()).toBe(1);
@@ -441,7 +476,12 @@ component extends="tests.resources.baseTest" asyncAll="true" {
             });
 
             it('Retrieve Kubfu''s Evolutions', () => {
-                var cubfu = pokemonService.get({number: 891, name: 'Kubfu', gender: ''});
+                var cubfu = pokemonService.get({
+                    number : 891,
+                    name   : 'Kubfu',
+                    gender : '',
+                    costume: false
+                });
                 expect(cubfu).toBeArray();
                 expect(cubfu.len()).toBe(1);
                 cubfu = cubfu[1];
@@ -462,9 +502,10 @@ component extends="tests.resources.baseTest" asyncAll="true" {
 
             it('Retrieve Clobbopus''s Evolutions', () => {
                 var clobbopus = pokemonService.get({
-                    number: 852,
-                    name  : 'Clobbopus',
-                    gender: ''
+                    number : 852,
+                    name   : 'Clobbopus',
+                    gender : '',
+                    costume: false
                 });
                 expect(clobbopus).toBeArray();
                 expect(clobbopus.len()).toBe(1);
@@ -478,9 +519,10 @@ component extends="tests.resources.baseTest" asyncAll="true" {
 
             it('Retrieve Yungoos''s Evolutions', () => {
                 var yungoos = pokemonService.get({
-                    number: 734,
-                    name  : 'Yungoos',
-                    gender: ''
+                    number : 734,
+                    name   : 'Yungoos',
+                    gender : '',
+                    costume: false
                 });
                 expect(yungoos).toBeArray();
                 expect(yungoos.len()).toBe(1);
@@ -490,6 +532,33 @@ component extends="tests.resources.baseTest" asyncAll="true" {
                 expect(evolutions).toBeArray();
                 expect(evolutions.len()).toBe(1);
                 expect(evolutions[1].getEvolution().getName()).toBe('Gumshoos');
+            });
+
+            it('Retrieve Pichu Santa Hat evolutions', () => {
+                var santaPichu = pokemonService.get({
+                    number     : 172,
+                    name       : 'Pichu',
+                    gender     : '',
+                    costume    : true,
+                    costumetype: 'Santa Hat'
+                });
+                expect(santaPichu).toBeArray();
+                expect(santaPichu.len()).toBe(1);
+                santaPichu = santaPichu[1];
+
+                var stage1 = pokemonService.getEvolution(santaPichu);
+                expect(stage1).toBeArray();
+                expect(stage1.len()).toBe(1);
+                expect(stage1[1].getEvolution().getName()).toBe('Pikachu');
+                expect(stage1[1].getEvolution().getCostume()).toBeTrue();
+                expect(stage1[1].getEvolution().getCostumeType()).toBe('Santa Hat');
+
+                var stage2 = pokemonService.getEvolution(stage1[1].getEvolution());
+                expect(stage2).toBeArray();
+                expect(stage2.len()).toBe(1);
+                expect(stage2[1].getEvolution().getName()).toBe('Raichu');
+                expect(stage2[1].getEvolution().getCostume()).toBeTrue();
+                expect(stage2[1].getEvolution().getCostumeType()).toBe('Santa Hat');
             });
         });
     }

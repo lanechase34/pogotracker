@@ -1,6 +1,6 @@
 <cfoutput> 
-    <div class="row py-3 row-cols-lg-2 row-cols-xl-4 gx-4">
-        <div class="col d-flex align-items-start">
+    <div class="row">
+        <div class="col-12 col-md-3 d-flex align-items-start mt-3">
             <div class="list-group w-100">
                 <a href="/dev/cpCalculator" class="list-group-item list-group-item-action d-flex gap-2 py-3">
                     <div class="d-flex gap-2 w-100 justify-content-between">CP Calculator</div>
@@ -31,7 +31,7 @@
                 </a>
             </div>
         </div>
-        <div class="col d-flex align-items-start">
+        <div class="col-12 col-md-3 d-flex align-items-start mt-3">
             <div class="list-group w-100">
                 <a href="/dev/createBlog" class="list-group-item list-group-item-action d-flex gap-2 py-3">
                     <div class="d-flex gap-2 w-100 justify-content-between">Create Blog</div>
@@ -56,5 +56,28 @@
                 </a>
             </div>
         </div>
+        <div class="col-12 col-md-6 d-flex mt-3">
+            <div class="d-flex h-100 w-100 card">
+                <div class="card-header">
+                    Download Image
+                </div>
+                <div class="card-body mx-1">
+                    <form action="/dev/downloadImage" method="post" class="needs-validation h-100 w-100 p-0 m-0" novalidate autocomplete="off">
+                        <div class="row d-flex w-100">
+                            <div class="col-12 mb-3">
+                                <label for="imageUrl" class="form-label">Image URL</label>
+                                <input type="url" class="form-control" id="imageUrl" name="imageUrl" placeholder="https://" required>
+                                <div class="invalid-feedback">Please provide a valid URL.</div>
+                            </div>
+                            <div class="col-12">
+                                <button type="submit" class="col-12 col-lg-4 btn btn-dark">
+                                    Download
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
     </div>
-    </cfoutput>
+</cfoutput>

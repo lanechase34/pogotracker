@@ -10,7 +10,8 @@ component extends="tests.resources.baseTest" asyncAll="false" {
             'Psychic Spectacular: Taken Over',
             'Cozy Companions',
             'Steeled Resolve',
-            'Steeled Resolve 2026'
+            'Steeled Resolve 2026',
+            'Spring Marathon 2026'
         ];
         eventNames.each((name) => {
             customHelperFunctions.deleteByName(name);
@@ -47,8 +48,6 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                 customid = customHelperFunctions.getMostRecentCreated();
                 custom   = customService.getFromId(customid);
                 expect(custom).toBeComponent();
-
-                entityReload(custom); // Why do I need this?
 
                 // Verify the contents of the custom pokedex
                 expect(custom.getName()).toBe('Cozy Companions');
@@ -149,8 +148,6 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                 custom   = customService.getFromId(customid);
                 expect(custom).toBeComponent();
 
-                entityReload(custom); // Why do I need this?
-
                 // Verify the contents of the custom pokedex
                 expect(custom.getName()).toBe('Psychic Spectacular: Taken Over');
                 expect(custom.getPublic()).toBeTrue();
@@ -235,7 +232,6 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                 customid = customHelperFunctions.getMostRecentCreated();
                 custom   = customService.getFromId(customid);
                 expect(custom).toBeComponent();
-                entityReload(custom);
                 expect(custom.getName()).toBe('Steeled Resolve');
 
                 // Create the second event with the same name - should have year appended
@@ -247,11 +243,76 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                 customid2 = customHelperFunctions.getMostRecentCreated();
                 custom2   = customService.getFromId(customid2);
                 expect(custom2).toBeComponent();
-                entityReload(custom2);
                 expect(custom2.getName()).toBe('Steeled Resolve 2026');
 
                 // Clean up second event - first is handled by afterEach
                 customService.delete(custom2);
+            });
+
+            it('Can create custom pokedex event with normal and costume pokemon from leekduck', () => {
+                eventLink   = 'https://leekduck.com/events/spring-marathon-2026/';
+                beforeCount = customHelperFunctions.count();
+
+                adminService.createEvent(eventLink);
+
+                // Verify a custom pokedex was created for the event
+                afterCount = customHelperFunctions.count();
+                expect(afterCount).toBe(beforeCount + 1);
+                customid = customHelperFunctions.getMostRecentCreated();
+                custom   = customService.getFromId(customid);
+                expect(custom).toBeComponent();
+
+                // Verify the contents of the custom pokedex
+                expect(custom.getName()).toBe('Spring Marathon 2026');
+                expect(custom.getPublic()).toBeTrue();
+                expect(custom.getTrainer().getId()).toBe(1); // defaults to administrator since this is a scheduled task typically
+                expect(custom.getLink()).toBe(eventLink);
+                expect(custom.getBegins()).toBe(createDate(2026, 5, 12));
+                expect(custom.getEnds()).toBe(createDate(2026, 5, 18));
+
+                // Verify the pokedex for the custom pokedex
+                customPokedex  = custom.getCustomPokedex();
+                // This is the list of expected spawns for the event
+                expectedSpawns = {
+                    'Flower Crown Blissey'   : 1,
+                    'Flower Crown Buneary'   : 1,
+                    'Flower Crown Chansey'   : 1,
+                    'Flower Crown Cottonee'  : 1,
+                    'Cherry Blossom Eevee'   : 1,
+                    'Espathra'               : 1,
+                    'Cherry Blossom Espeon'  : 1,
+                    'Cherry Blossom Flareon' : 1,
+                    'Flittle'                : 1,
+                    'Cherry Blossom Glaceon' : 1,
+                    'Flower Crown Happiny'   : 1,
+                    'Cherry Blossom Jolteon' : 1,
+                    'Cherry Blossom Leafeon' : 1,
+                    'Flower Crown Lopunny'   : 1,
+                    'Flower Crown Pichu'     : 1,
+                    'Flower Crown Pikachu'   : 1,
+                    'Flower Crown Raichu'    : 1,
+                    'Cherry Blossom Sylveon' : 1,
+                    'Flower Crown Togekiss'  : 1,
+                    'Flower Crown Togepi'    : 1,
+                    'Flower Crown Togetic'   : 1,
+                    'Cherry Blossom Umbreon' : 1,
+                    'Cherry Blossom Vaporeon': 1,
+                    'Flower Crown Whimsicott': 1
+                };
+
+                expect(customPokedex.len()).toBe(expectedSpawns.count());
+
+                customPokedex.each((entry) => {
+                    // Build the pokemon key using costumetype too
+                    var curr = entry.getPokemon().getName();
+                    if(entry.getPokemon().getCostume()) {
+                        curr = '#entry.getPokemon().getCostumeType()# #curr#';
+                    }
+                    expect(expectedSpawns).toHaveKey(curr);
+                    structDelete(expectedSpawns, curr);
+                });
+
+                expect(expectedSpawns.count()).toBe(0);
             });
 
             afterEach(() => {

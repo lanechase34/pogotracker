@@ -384,6 +384,32 @@ component {
         );
     }
 
+    function downloadImage(event, rc, prc) {
+        param name="rc.imageUrl" default="";
+
+        if(!rc.imageUrl.len() || !rc.imageUrl.startsWith('http')) {
+            sessionService.setAlert(
+                'danger',
+                true,
+                'bi bi-exclamation-triangle',
+                'Please provide a valid image URL.'
+            );
+            relocate(event = 'dev');
+            return;
+        }
+
+        var destination = '/includes/#createUUID()##getSetting('imageExtension')#';
+        scraperService.downloadImage(url = rc.imageUrl, destination = destination);
+
+        sessionService.setAlert(
+            'success',
+            true,
+            'bi bi-image-fill',
+            'Image saved to #destination#'
+        );
+        relocate(event = 'dev');
+    }
+
     function debugInfo(event, rc, prc) {
     }
 

@@ -26,7 +26,8 @@ component extends="base" {
         logViewer             : 'GET',
         requestLog            : 'GET',
         getRequests           : 'GET',
-        updateSiteMap         : 'GET'
+        updateSiteMap         : 'GET',
+        buildCostumeData      : 'GET'
     };
 
     property name="auditService"      inject="services.audit";
@@ -65,6 +66,7 @@ component extends="base" {
         param name="rc.draw"                default="1";
         param name="rc.length"              default="50";
         param name="rc.start"               default="0";
+        param name="rc.costume"             default="false";
         param name="rc['search[value]']"    default="";
         param name="rc['order[0][column]']" default="";
         param name="rc['order[0][dir]']"    default="";
@@ -83,7 +85,8 @@ component extends="base" {
             rc['order[0][column]'],
             rc['order[0][dir]'],
             rc['order[1][column]'],
-            rc['order[1][dir]']
+            rc['order[1][dir]'],
+            rc.costume == 'true'
         );
         prc.responseObj.data.draw  = rc.draw;
         prc.responseObj.statusCode = 200;
@@ -281,7 +284,7 @@ component extends="base" {
         prc.cacheData   = cacheService.getData();
         prc.cacheStats  = cacheService.getStats();
         prc.securityMap = securityService.getSecurityMap();
-        prc.baseURL     = getSetting('environment') != 'production' ? getSetting('osType') == 'linux' ? 'localhost' : '127.0.0.1' : '';
+        prc.baseURL     = getSetting('environment') != 'production' ? 'localhost' : '';
     }
 
     function buildMedalData(event, rc, prc) {
@@ -404,6 +407,12 @@ component extends="base" {
             'Successfully Updated.'
         );
         relocate(event = 'admin');
+    }
+
+    function buildCostumeData(event, rc, prc) {
+        cfsetting(requestTimeout = 600);
+        adminService.buildCostumeData();
+        relocate(event = 'admin.listPokemon');
     }
 
 }

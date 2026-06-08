@@ -23,13 +23,15 @@ component extends="base" {
                         'flee'       : {value: pokemon.flee, cfsqltype: 'numeric'},
                         'form'       : pokemon.form,
                         'mega'       : pokemon.mega,
-                        'sprite'     : pokemon.sprite,
+                        'sprite'     : {value: toUTF8(pokemon.sprite), cfsqltype: 'varchar'},
                         'tradable'   : pokemon.tradable,
                         'shadow'     : pokemon.shadow,
                         'shadowshiny': pokemon.shadowshiny,
                         'giga'       : pokemon.giga,
-                        'formtype'   : pokemon.keyExists('formtype') ? pokemon.formtype : '',
-                        'ses'        : pokemon.ses
+                        'formtype'   : {value: pokemon.keyExists('formtype') ? pokemon.formtype : '', cfsqltype: 'varchar'},
+                        'ses'        : {value: pokemon.ses, cfsqltype: 'varchar'},
+                        'costume'    : false,
+                        'costumetype': {value: '', cfsqltype: 'varchar'}
                     });
             },
             true,

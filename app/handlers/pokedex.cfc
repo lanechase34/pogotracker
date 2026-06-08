@@ -13,7 +13,9 @@ component extends="base" {
         addCustomPokedex       : 'POST',
         editCustomPokedex      : 'POST',
         deleteCustomPokedex    : 'POST',
-        searchCustomPokedexList: 'GET'
+        searchCustomPokedexList: 'GET',
+        myCostumePokedex       : 'GET',
+        myShadowPokedex        : 'GET'
     };
 
     property name="customService"     inject="services.custom";
@@ -117,6 +119,7 @@ component extends="base" {
         rc.shiny     = rc?.shiny ?: session.settings.defaultView == 'shiny';
         rc.hundo     = rc?.hundo ?: false;
         rc.shadow    = rc?.shadow ?: false;
+        rc.costume   = rc?.costume ?: false;
         rc.trainerid = rc?.trainerid ?: session.trainerid;
 
         if(hasValidationErrors(target = rc, constraints = 'pokedex.getPokedex')) {
@@ -142,9 +145,16 @@ component extends="base" {
             rc.region = '';
         }
 
+        // Costume pokedex is not split up by region
+        if(rc.costume) {
+            rc.region = '';
+        }
+
         prc.trainerid   = parseNumber(rc.trainerid);
         prc.pokedexView =
-        rc.shadow && rc.shiny ? 'shadowshiny'
+        rc.costume && rc.shiny ? 'costumeshiny'
+         : rc.costume ? 'costume'
+         : rc.shadow && rc.shiny ? 'shadowshiny'
          : rc.shadow ? 'shadow'
          : rc.shiny ? 'shiny'
          : rc.hundo ? 'hundo'
@@ -157,7 +167,8 @@ component extends="base" {
             form    = rc.form,
             mega    = prc.mega,
             shadow  = rc.shadow,
-            giga    = prc.giga
+            giga    = prc.giga,
+            costume = rc.costume
         );
 
         event.setView(
@@ -421,6 +432,24 @@ component extends="base" {
         prc.trainerid       = session.trainerid;
         prc.title           = 'Shadow Pokedex | #getSetting('title')#';
         prc.metaDescription = 'Track your Shadow Pokemon and Shiny Shadow Pokemon collection in the Pokedex.';
+    }
+
+    /**
+     * Costume pokedex view
+     *
+     * @rc.shiny t/f, defaults to session defaultView type
+     */
+    function myCostumePokedex(event, rc, prc) {
+        rc.shiny = rc?.shiny ?: session.settings.defaultView == 'shiny';
+
+        if(hasValidationErrors(target = rc, constraints = 'pokedex.myCostumePokedex')) {
+            htmlValidationFailure(event = event, redirectEvent = 'home');
+            return;
+        }
+
+        prc.trainerid       = session.trainerid;
+        prc.title           = 'Costume Pokedex | #getSetting('title')#';
+        prc.metaDescription = 'Track your Costume Pokemon and Shiny Costume Pokemon collection in the Pokedex.';
     }
 
     /**

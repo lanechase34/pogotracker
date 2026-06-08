@@ -44,6 +44,7 @@ component {
 
         // Pokedex
         route('/mypokedex').to('pokedex.myPokedex');
+        route('/mycostumepokedex').to('pokedex.myCostumePokedex');
         route('/myshadowpokedex').to('pokedex.myShadowPokedex');
         route('/custompokedexlist').to('pokedex.customPokedexList');
         route('/mycustompokedex/:customid').to('pokedex.myCustomPokedex');
@@ -63,6 +64,7 @@ component {
         // Pokemon
         route('/pokemon/updateDetail').to('pokemon.updateDetail');
         route('/pokemon/search').to('pokemon.search');
+        route('/pokemon/getPreviousEvents').to('pokemon.getPreviousEvents');
         route('/pokemon/:ses').to('pokemon.detail');
         route('/pokemon/:action?').toHandler('pokemon');
 

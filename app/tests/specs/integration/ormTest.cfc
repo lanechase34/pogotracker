@@ -24,7 +24,7 @@ component extends="tests.resources.baseTest" {
                 });
 
                 it('Can load by col', () => {
-                    var charizard = entityLoad('pokemon', {name: 'Charizard'});
+                    var charizard = entityLoad('pokemon', {name: 'Charizard', costume: false});
                     expect(charizard).toBeArray();
                     expect(charizard.len()).toBe(1);
                 });

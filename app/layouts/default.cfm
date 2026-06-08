@@ -43,7 +43,7 @@
 
                 <!--- custom header buttons section --->
                 <div class="col-10 col-xl-8 d-flex align-items-center justify-content-end">
-                    <cfif "pokedex.mycustompokedex,pokedex.mypokedex,pokedex.myshadowpokedex".contains(prc.currEvent)>
+                    <cfif "pokedex.mycustompokedex,pokedex.mypokedex,pokedex.myshadowpokedex,pokedex.mycostumepokedex".contains(prc.currEvent)>
                         <div id="monsRegistered" class="ms-auto basic me-3 my-auto hfs-6">-- Registered</div>
 
                         <!--- btn dropdown for small screens --->
@@ -146,6 +146,11 @@
                                 <option></option>
                             </select>
                         </div>
+                    <cfelseif prc.currEvent EQ "admin.listpokemon">
+                        <div class="btn-group" role="group" aria-label="Pokemon view toggle">
+                            <button id="pokemonViewBtn" class="btn btn-primary active" type="button">Pokemon</button>
+                            <button id="costumeViewBtn" class="btn btn-primary" type="button">Costume</button>
+                        </div>
                     <cfelseif prc.currEvent EQ "admin.serverinfo">
                         <button id="showServerInfo" class="btn btn-secondary" role="button" data-bs-toggle="modal" data-bs-target="##serverInfoModal">
                             More Info
@@ -219,6 +224,11 @@
                     </a>
                 </li>
                 <li class="nav-item d-flex">
+                    <a class="nav-link fs-6 w-100 iconHover text-start d-flex align-items-center <cfif prc.currEvent EQ "pokedex.mycostumepokedex">active</cfif>" href="/mycostumepokedex" <cfif !(session?.authenticated ?: false)>rel="nofollow"</cfif>>
+                        <i class="bi bi-star me-2 navIcon"></i>Costume Pokedex
+                    </a>
+                </li>
+                <li class="nav-item d-flex">
                     <a class="nav-link fs-6 w-100 iconHover text-start d-flex align-items-center <cfif prc.currEvent EQ "pokedex.myshadowpokedex">active</cfif>" href="/myshadowpokedex" <cfif !(session?.authenticated ?: false)>rel="nofollow"</cfif>>
                         <i class="bi bi-fire me-2 navIcon"></i>Shadow Pokedex
                     </a>
@@ -255,13 +265,6 @@
                         <a class="nav-link fs-6 w-100 iconHover text-start d-flex align-items-center <cfif prc.currHandler EQ "dev">active</cfif>" href="/dev">
                             <i class="bi bi-code-slash me-2 navIcon"></i>Dev
                         </a>
-                    </li>
-                </cfif>
-                <cfif session?.authenticated ?: false>
-                    <li class="nav-item d-flex">
-                        <button role="button" id="contactBtn" class="nav-link fs-6 w-100 iconHover text-start d-flex align-items-center">
-                            <i class="bi bi-mailbox me-2 navIcon"></i>Contact
-                        </button>
                     </li>
                 </cfif>
                 <cfif session?.authenticated ?: false>

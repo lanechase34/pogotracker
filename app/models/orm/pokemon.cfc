@@ -22,6 +22,8 @@ component persistent="true" extends="base" {
     property name="giga" ormtype="boolean" default="0";
     property name="formtype" ormtype="string" length="50";
     property name="ses"      ormtype="string" length="150";
+    property name="costume" ormtype="boolean" default="0";
+    property name="costumetype" ormtype="string" length="150";
 
     // relations
     property
@@ -38,15 +40,20 @@ component persistent="true" extends="base" {
 
     /**
      * Get names of evolutions
+     * If the pokemon has a costume type, that comes before the name
      */
     string function getEvolutionText() {
         if(isNull(getEvolution())) return '';
 
         return getEvolution().reduce((result, evolution, index) => {
-            if(index > 1) {
-                return '#result#, #evolution.getEvolution().getName()#';
+            var currItem = evolution.getEvolution().getName();
+            if(evolution.getEvolution().getCostume()) {
+                currItem = '#evolution.getEvolution().getCostumeType()# #currItem#';
             }
-            return evolution.getEvolution().getName();
+            if(index > 1) {
+                return '#result#, #currItem#';
+            }
+            return currItem;
         });
     }
 
