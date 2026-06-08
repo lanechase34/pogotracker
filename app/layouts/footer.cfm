@@ -13,6 +13,13 @@
             Pok&eacute;mon and all related names and trademarks are &copy;1995&ndash;#year(now())# Nintendo, Creatures, Inc., and GAMEFREAK Inc.
             All Pok&eacute;mon images, names, and data are property of their respective owners.
         </p>
+        <cfif session?.authenticated ?: false>
+            <p class="mb-0 mt-2 text-center">
+                <button role="button" id="contactBtn" class="btn btn-outline-dark">
+                    <i class="bi bi-mailbox me-2"></i>Contact
+                </button>
+            </p>
+        </cfif>
     </div>
 </footer>
 </div>

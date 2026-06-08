@@ -223,19 +223,13 @@
                                     <th class="small fw-semibold text-nowrap">Dates</th>
                                 </tr>
                             </thead>
-                            <tbody>
-                                <cfloop index="i" item="currEvent" array="#prc.detail.events#">
-                                    <tr>
-                                        <td>
-                                            <a href="/mycustompokedex/#currEvent.id#" target="_blank" class="link-dark fw-medium link-underline-opacity-0 link-underline-opacity-100-hover">
-                                                #currEvent.name#
-                                            </a>
-                                        </td>
-                                        <td class="text-muted small text-nowrap">
-                                            #currEvent.begins# &mdash; #currEvent.ends#
-                                        </td>
-                                    </tr>
-                                </cfloop>
+                            <tbody id="eventRows">
+                                #view(view='/views/pokemon/fragment/eventrows', args={
+                                    events: prc.detail.events,
+                                    ses   : prc.detail.pokemon.getSes(),
+                                    offset: 5,
+                                    limit : 5
+                                })#
                             </tbody>
                         </table>
                     </div>
@@ -287,7 +281,7 @@
             <div class="card-body">
                 <div class="d-flex flex-wrap gap-3">
                     <cfloop index="i" item="costume" array="#prc.detail.costumes#">
-                    <div class="costume-entry">
+                    <div class="pokemon-entry costume-entry">
                         <div class="pokemon-sprite-pair">
                             <div class="pokemon-sprite-group">
                                 <img

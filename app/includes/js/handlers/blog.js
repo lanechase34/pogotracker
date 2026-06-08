@@ -14,10 +14,51 @@ export const blogFetchStruct = {
     loadingBlogs: false,
     currOffset: 0,
     count: 4,
-    max: 20,
+    max: 8,
     scrollHandler: () => {},
     resizeHandler: () => {},
 };
+
+function showLoadMoreButton($div, { showImage, exclude, sidebar }) {
+    document.getElementById('blogLoadMoreBtn')?.remove();
+
+    const $btn = document.createElement('button');
+    $btn.id = 'blogLoadMoreBtn';
+    $btn.type = 'button';
+    $btn.className = 'btn btn-outline-dark w-100 mt-2';
+    $btn.innerHTML = '<i class="bi bi-arrow-down-circle me-2"></i>Load More';
+
+    $btn.addEventListener('click', async () => {
+        $btn.disabled = true;
+        $btn.innerHTML =
+            '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Loading...';
+
+        const offset = blogFetchStruct.currOffset;
+
+        await getWrapper({
+            url: `/blog/get/count/${blogFetchStruct.count}/offset/${offset}/showimage/${showImage}/exclude/${exclude}/sidebar/${sidebar}`,
+            dataHandler: (data) => {
+                const newDiv = document.createElement('div');
+                newDiv.innerHTML = data;
+                $div.appendChild(newDiv);
+                blogFetchStruct.currOffset = offset + blogFetchStruct.count;
+
+                if (document.getElementById('homeCards')) {
+                    resizeHomeCards();
+                }
+
+                if (newDiv.querySelector('.blogCard')) {
+                    $btn.disabled = false;
+                    $btn.innerHTML = '<i class="bi bi-arrow-down-circle me-2"></i>Load More';
+                } else {
+                    $btn.remove();
+                }
+            },
+        });
+    });
+
+    $div.after($btn);
+}
 
 export async function getBlogs({ $div, count, offset, showImage, exclude, sidebar }) {
     return await getWrapper({
@@ -26,11 +67,10 @@ export async function getBlogs({ $div, count, offset, showImage, exclude, sideba
         loading: $loading,
         dataHandler: async (data) => {
             if (offset === 0) {
-                // Blank the loading spinner
                 $div.innerHTML = '';
+                document.getElementById('blogLoadMoreBtn')?.remove();
             }
 
-            // Append the blog
             const newDiv = document.createElement('div');
             newDiv.innerHTML = data;
             $div.appendChild(newDiv);
@@ -41,9 +81,11 @@ export async function getBlogs({ $div, count, offset, showImage, exclude, sideba
 
             blogFetchStruct.currOffset = offset + count;
 
-            const fetchMoreBlogs = async (currentMax) => {
-                if (blogFetchStruct.loadingBlogs || blogFetchStruct.currOffset >= currentMax) return;
+            const isDesktop = !isMobileDisplay();
+            const currentMax = isDesktop ? blogFetchStruct.max : 4;
 
+            const fetchMoreBlogs = async () => {
+                if (blogFetchStruct.loadingBlogs || blogFetchStruct.currOffset >= currentMax) return;
                 blogFetchStruct.loadingBlogs = true;
                 await getBlogs({
                     $div,
@@ -52,19 +94,25 @@ export async function getBlogs({ $div, count, offset, showImage, exclude, sideba
                     showImage,
                     exclude,
                     sidebar,
-                    max: currentMax,
                 });
                 blogFetchStruct.loadingBlogs = false;
             };
 
-            // Check if the current blogs fill the current window size or we are near the bottom of page
             const checkAndLoad = async () => {
-                const currentMax = isMobileDisplay() ? 4 : blogFetchStruct.max;
+                if (blogFetchStruct.currOffset >= currentMax) {
+                    window.removeEventListener('scroll', blogFetchStruct.scrollHandler);
+                    window.removeEventListener('resize', blogFetchStruct.resizeHandler);
+                    if (isDesktop && !sidebar) {
+                        showLoadMoreButton($div, { showImage, exclude, sidebar });
+                    }
+                    return;
+                }
+
                 const nearBottom = window.innerHeight + window.scrollY >= $blogList.scrollHeight - 500;
                 const contentFillsWindow = $div.offsetHeight >= window.innerHeight;
 
                 if (!contentFillsWindow || nearBottom) {
-                    await fetchMoreBlogs(currentMax);
+                    await fetchMoreBlogs();
                 }
             };
 

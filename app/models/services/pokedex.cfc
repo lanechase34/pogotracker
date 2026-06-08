@@ -4,6 +4,7 @@ component singleton accessors="true" {
     property name="generationService" inject="services.generation";
     property name="maxThreads"        inject="coldbox:setting:maxThreads";
     property name="pokemonService"    inject="services.pokemon";
+    property name="utilService"       inject="services.util";
 
     /**
      * Get registered pokemon for a trainer
@@ -232,7 +233,10 @@ component singleton accessors="true" {
                 {trainerid: {value: arguments.trainer.getId(), cfsqltype: 'integer'}}
             );
 
-            missingStrings = {caught: q.missingCaught, shiny: 'shiny&#q.missingShiny#'};
+            missingStrings = {
+                caught: utilService.removeDuplicates(q.missingCaught),
+                shiny : 'shiny&#utilService.removeDuplicates(q.missingShiny)#'
+            };
 
             cacheService.put(cacheKey, missingStrings, 10, 10);
         }

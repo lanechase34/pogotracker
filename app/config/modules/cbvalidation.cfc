@@ -277,7 +277,7 @@ component {
                 name: {
                     required: true,
                     type    : 'string',
-                    min     : 10
+                    size    : '5..100'
                 },
                 public : {required: true, type: 'boolean'},
                 pokemon: {
@@ -310,7 +310,7 @@ component {
                 name: {
                     required: true,
                     type    : 'string',
-                    min     : 10
+                    size    : '5..100'
                 },
                 public : {required: true, type: 'boolean'},
                 pokemon: {
@@ -506,7 +506,19 @@ component {
         };
 
         var pokemonHandler = {
-            'pokemon.search': {search: {required: false, type: 'string'}, page: {required: true, type: 'numeric'}},
+            'pokemon.search'           : {search: {required: false, type: 'string'}, page: {required: true, type: 'numeric'}},
+            'pokemon.getPreviousEvents': {
+                ses: {
+                    required: true,
+                    type    : 'string',
+                    size    : '1..150'
+                },
+                offset: {
+                    required: true,
+                    type    : 'numeric',
+                    min     : 0
+                }
+            },
             'pokemon.detail': {
                 ses: {
                     required: true,

@@ -374,6 +374,17 @@ pre:has(code) {
     font-size: 1.75rem;
 }
 
+@media (max-width: 575.98px) {
+    #sideNavbar .nav-link,
+    #sideNavbar #profileGroup {
+        padding-top: 0.25rem;
+        padding-bottom: 0.25rem;
+    }
+    #sideNavbar .navIcon {
+        font-size: 1.5rem;
+    }
+}
+
 body {
     overflow-y: scroll;
     background-color: #f8f9fa;
@@ -520,14 +531,16 @@ body {
     box-shadow: 0 0 0 2px rgba(205, 127, 50, 0.3);
 }
 
-/*  Costume tile — shared by detail card and costume pokedex grid  */
-.costume-entry {
-    background: #f8f9fa;
-    border: 1px solid #dee2e6;
-    padding: 1rem 1.25rem;
+.pokemon-entry {
+    padding: 1rem;
     display: flex;
     flex-direction: column;
     align-items: center;
+}
+
+.costume-entry {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
     transition:
         box-shadow 0.2s ease,
         border-color 0.2s ease;

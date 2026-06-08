@@ -262,7 +262,11 @@ component singleton accessors="true" {
      * @pokemon pokemon cfc
      * @limit   record limit
      */
-    private array function getPreviousEvents(required component pokemon, numeric limit = 5) {
+    public array function getPreviousEvents(
+        required component pokemon,
+        numeric limit  = 5,
+        numeric offset = 0
+    ) {
         var events = ormExecuteQuery(
             '
             select custom
@@ -273,7 +277,7 @@ component singleton accessors="true" {
             order by custom.id desc
             ',
             {pokemon: arguments.pokemon},
-            {maxResults: arguments.limit}
+            {maxResults: arguments.limit, offset: arguments.offset}
         );
 
         return events.map((event) => {

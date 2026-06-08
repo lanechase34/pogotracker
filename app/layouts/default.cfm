@@ -268,13 +268,6 @@
                     </li>
                 </cfif>
                 <cfif session?.authenticated ?: false>
-                    <li class="nav-item d-flex">
-                        <button role="button" id="contactBtn" class="nav-link fs-6 w-100 iconHover text-start d-flex align-items-center">
-                            <i class="bi bi-mailbox me-2 navIcon"></i>Contact
-                        </button>
-                    </li>
-                </cfif>
-                <cfif session?.authenticated ?: false>
                     <li class="nav-item mt-auto dropup" data-bs-theme="dark">
                         <div id="profileGroup" class="d-flex align-items-center iconHover" data-bs-toggle="dropdown" aria-expanded="false">
                             <img class="profileIcon me-2" id="sidebarIcon" src="#session.iconPath#" alt="#session.iconAlt#">

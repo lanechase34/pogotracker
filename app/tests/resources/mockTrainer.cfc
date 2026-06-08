@@ -30,10 +30,12 @@ component extends="coldbox.system.testing.BaseTestCase" {
             login(trainer);
         }
         else {
+            setup();
             execute(route = '/', renderResults = true);
             expect(session.authenticated).toBeFalse();
         }
 
+        setup();
         session.mocktrainerid = trainer.getId();
         return trainerService.getFromId(session.mocktrainerid);
     }
@@ -93,6 +95,7 @@ component extends="coldbox.system.testing.BaseTestCase" {
         };
 
         // Mock submitting login form
+        setup();
         event = post(
             route  = '/login/doLogin',
             params = {
@@ -114,6 +117,7 @@ component extends="coldbox.system.testing.BaseTestCase" {
         }
 
         // Force the session rotate to work
+        setup();
         execute(route = '/', renderResults = true);
 
         // Verify session data

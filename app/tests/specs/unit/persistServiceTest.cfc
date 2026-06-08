@@ -5,7 +5,7 @@ component extends="tests.resources.baseTest" {
 
         mockTrainer = getInstance('tests.resources.mocktrainer');
         // Set up trainer to be shared throughout test suite
-        trainer     = mockTrainer.make();
+        trainer     = mockTrainer.make(autoLogin = false);
 
         loopCount       = 100;
         range           = 5;
@@ -15,7 +15,7 @@ component extends="tests.resources.baseTest" {
 
     function afterAll() {
         super.afterAll();
-        mockTrainer.delete();
+        mockTrainer.delete(trainer.getId());
     }
 
     function run() {
@@ -131,18 +131,94 @@ component extends="tests.resources.baseTest" {
             // Life cycle
             describe('User persist login life cycle tests', () => {
                 it('Can submit login form with remember me option and get a persist token', () => {
+                    countBefore = countPersist(trainerid = trainer.getId());
+
+                    session.recaptcha = {
+                        token    : 'a',
+                        valid    : true,
+                        timestamp: now(),
+                        action   : 'doLogin'
+                    };
+
+                    setup();
+                    event = post(
+                        route  = '/login/doLogin',
+                        params = {
+                            '#application.cbController.getSetting('csrfTokenField')#': csrfGenerateToken(
+                                forceNew = true
+                            ),
+                            email   : trainer.getEmail(),
+                            password: createUUID(),
+                            persist : 'on'
+                        }
+                    );
+
+                    // Successful login redirects home
+                    expect(event.getValue('relocate_uri')).toBe('/');
+                    expect(session.authenticated).toBeTrue();
+                    expect(session.trainerid).toBe(trainer.getId());
+
+                    // Persist cookie record created in DB and cookie set in browser
+                    expect(persistService.checkCookie()).toBeTrue();
+                    expect(countPersist(trainerid = trainer.getId())).toBe(countBefore + 1);
                 });
 
                 it('Can have an ''idle'' logout and automatically persist log back in', () => {
+                    // Logged in with persist cookie from previous test
+                    expect(session.authenticated).toBeTrue();
+                    expect(persistService.checkCookie()).toBeTrue();
+
+                    // Idle logout - session is destroyed but cookie is preserved
+                    event = get(route = '/logout', params = {idle: true});
+                    expect(session).notToHaveKey('trainerid');
+                    expect(persistService.checkCookie()).toBeTrue();
+
+                    // Next request: main.preHandler detects unauthenticated + cookie -> overrides to persistLogin
+                    setup();
+                    event = get(route = '/', renderResults = true);
+
+                    // Auto-login succeeded
+                    expect(session.authenticated).toBeTrue();
+                    expect(session.trainerid).toBe(trainer.getId());
                 });
 
                 it('Can persist login when session becomes invalidated (jsessionid deleted)', () => {
+                    // Logged in with persist cookie from the auto-login above
+                    expect(session.authenticated).toBeTrue();
+                    expect(persistService.checkCookie()).toBeTrue();
+
+                    // Simulate server-side session expiry without a formal logout
+                    sessionInvalidate();
+
+                    // Next request: no valid session but cookie is still in browser -> auto-login
+                    setup();
+                    event = get(route = '/', renderResults = true);
+
+                    expect(session.authenticated).toBeTrue();
+                    expect(session.trainerid).toBe(trainer.getId());
                 });
 
                 it('Clicking logout deletes the persist cookie', () => {
+                    // Logged in with persist cookie from the auto-login above
+                    expect(session.authenticated).toBeTrue();
+                    expect(persistService.checkCookie()).toBeTrue();
+
+                    // Full logout (not idle) - session AND browser cookie are both destroyed
+                    event = get(route = '/logout');
+
+                    expect(session).notToHaveKey('trainerid');
+                    expect(persistService.checkCookie()).toBeFalse();
                 });
 
                 it('Clicking logout does nothing if no persist cookie', () => {
+                    // No persist cookie following the full logout above
+                    expect(persistService.checkCookie()).toBeFalse();
+
+                    // Logout should not throw even without a cookie
+                    event = get(route = '/logout');
+
+                    expect(session).notToHaveKey('trainerid');
+                    expect(persistService.checkCookie()).toBeFalse();
                 });
             })
         });

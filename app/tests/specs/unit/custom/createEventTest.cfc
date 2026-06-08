@@ -49,8 +49,6 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                 custom   = customService.getFromId(customid);
                 expect(custom).toBeComponent();
 
-                entityReload(custom); // Why do I need this?
-
                 // Verify the contents of the custom pokedex
                 expect(custom.getName()).toBe('Cozy Companions');
                 expect(custom.getPublic()).toBeTrue();
@@ -150,8 +148,6 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                 custom   = customService.getFromId(customid);
                 expect(custom).toBeComponent();
 
-                entityReload(custom); // Why do I need this?
-
                 // Verify the contents of the custom pokedex
                 expect(custom.getName()).toBe('Psychic Spectacular: Taken Over');
                 expect(custom.getPublic()).toBeTrue();
@@ -236,7 +232,6 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                 customid = customHelperFunctions.getMostRecentCreated();
                 custom   = customService.getFromId(customid);
                 expect(custom).toBeComponent();
-                entityReload(custom);
                 expect(custom.getName()).toBe('Steeled Resolve');
 
                 // Create the second event with the same name - should have year appended
@@ -248,7 +243,6 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                 customid2 = customHelperFunctions.getMostRecentCreated();
                 custom2   = customService.getFromId(customid2);
                 expect(custom2).toBeComponent();
-                entityReload(custom2);
                 expect(custom2.getName()).toBe('Steeled Resolve 2026');
 
                 // Clean up second event - first is handled by afterEach
@@ -267,8 +261,6 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                 customid = customHelperFunctions.getMostRecentCreated();
                 custom   = customService.getFromId(customid);
                 expect(custom).toBeComponent();
-
-                entityReload(custom);
 
                 // Verify the contents of the custom pokedex
                 expect(custom.getName()).toBe('Spring Marathon 2026');

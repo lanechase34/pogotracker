@@ -64,6 +64,7 @@ component {
         // Pokemon
         route('/pokemon/updateDetail').to('pokemon.updateDetail');
         route('/pokemon/search').to('pokemon.search');
+        route('/pokemon/getPreviousEvents').to('pokemon.getPreviousEvents');
         route('/pokemon/:ses').to('pokemon.detail');
         route('/pokemon/:action?').toHandler('pokemon');
 

@@ -284,7 +284,7 @@ component extends="base" {
         prc.cacheData   = cacheService.getData();
         prc.cacheStats  = cacheService.getStats();
         prc.securityMap = securityService.getSecurityMap();
-        prc.baseURL     = getSetting('environment') != 'production' ? getSetting('osType') == 'linux' ? 'localhost' : '127.0.0.1' : '';
+        prc.baseURL     = getSetting('environment') != 'production' ? 'localhost' : '';
     }
 
     function buildMedalData(event, rc, prc) {

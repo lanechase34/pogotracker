@@ -27,7 +27,7 @@
                 )
             />
             <cfif caught><cfset registered++></cfif>
-            <div class="col d-flex justify-content-center align-items-center col-6 col-sm-6 col-md-4 col-lg-3 col-xl-2 col-xxl-1 pokemonCell <cfif caught>caught</cfif> parent <cfif currEntry[1].getCostume()>costume-entry</cfif>"
+            <div class="col d-flex justify-content-center align-items-center col-6 col-sm-6 col-md-4 col-lg-3 col-xl-2 col-xxl-1 pokemonCell <cfif caught>caught</cfif> parent pokemon-entry"
                 data-id="#currEntry[1].getId()#"
                 data-number="#currEntry[1].getNumber()#"
                 data-name="#currEntry[1].getName()#"
@@ -52,9 +52,19 @@
                 <cfif args.shadow>
                     <img src="/includes/images/shadow-pokemon#getSetting('imageExtension')#" <cfif i GT 10>loading="lazy"</cfif> class="shadowIcon">
                 </cfif>
+
+                <p class="mt-1 mb-0 small fw-semibold text-center text-capitalize">
+                    <cfif currEntry[1].getCostume()>
+                        #currEntry[1].getCostumeType()#
+                    <cfelse>
+                        #currEntry[1].getName()#
+                    </cfif>
+                </p>
+
+<!---                 
                 <cfif currEntry[1].getCostume()>
                     <p class="mt-1 mb-0 small fw-semibold text-center text-capitalize">#currEntry[1].getCostumeType()#</p>
-                </cfif>
+                </cfif> --->
                 <span class="dex-number">#currEntry[1].getNumber()#</span>
             </div>
         </cfif>

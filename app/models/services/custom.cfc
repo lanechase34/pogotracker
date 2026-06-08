@@ -37,7 +37,7 @@ component singleton accessors="true" {
         ormFlush();
 
         // Clear the custom list cache
-        cacheService.clear('#arguments.trainer.getId()#|custom.getMine');
+        cacheService.clear('custom.getMine');
         return newCustom.getId();
     }
 
@@ -55,7 +55,7 @@ component singleton accessors="true" {
         entitySave(custom);
         ormFlush();
 
-        cacheService.clear('#session.trainerid#|custom.getMine');
+        cacheService.clear('custom.getMine');
         cacheService.clear('|pokedex.getCustomRegistered|custom=#arguments.customid#');
         return;
     }
@@ -106,6 +106,7 @@ component singleton accessors="true" {
         }
 
         ormFlush();
+        entityReload(custom);
         return;
     }
 
@@ -150,6 +151,12 @@ component singleton accessors="true" {
         return custom;
     }
 
+    /**
+     * Get a custom pokedex by id that is public OR created by the trainer
+     *
+     * @id      customid
+     * @trainer trainer
+     */
     public any function get(required numeric id, required component trainer) {
         return ormExecuteQuery(
             '
@@ -161,6 +168,12 @@ component singleton accessors="true" {
         );
     }
 
+    /**
+     * Get a custom pokedex by id created by the trainer
+     *
+     * @id      customid
+     * @trainer trainer
+     */
     public any function getCreated(required numeric id, required component trainer) {
         return entityLoad(
             'custom',
@@ -173,7 +186,7 @@ component singleton accessors="true" {
      * Delete the supplied custom pokedex
      * Deletes the custom entity and sub customPokedex entities
      *
-     * @custom 
+     * @custom custom object
      */
     public void function delete(required component custom) {
         arguments.custom
@@ -185,7 +198,7 @@ component singleton accessors="true" {
 
         entityDelete(arguments.custom);
         ormFlush();
-        cacheService.clear('#session.trainerid#|custom.getMine');
+        cacheService.clear('custom.getMine');
         return;
     }
 

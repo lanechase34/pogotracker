@@ -533,6 +533,33 @@ component extends="tests.resources.baseTest" asyncAll="true" {
                 expect(evolutions.len()).toBe(1);
                 expect(evolutions[1].getEvolution().getName()).toBe('Gumshoos');
             });
+
+            it('Retrieve Pichu Santa Hat evolutions', () => {
+                var santaPichu = pokemonService.get({
+                    number     : 172,
+                    name       : 'Pichu',
+                    gender     : '',
+                    costume    : true,
+                    costumetype: 'Santa Hat'
+                });
+                expect(santaPichu).toBeArray();
+                expect(santaPichu.len()).toBe(1);
+                santaPichu = santaPichu[1];
+
+                var stage1 = pokemonService.getEvolution(santaPichu);
+                expect(stage1).toBeArray();
+                expect(stage1.len()).toBe(1);
+                expect(stage1[1].getEvolution().getName()).toBe('Pikachu');
+                expect(stage1[1].getEvolution().getCostume()).toBeTrue();
+                expect(stage1[1].getEvolution().getCostumeType()).toBe('Santa Hat');
+
+                var stage2 = pokemonService.getEvolution(stage1[1].getEvolution());
+                expect(stage2).toBeArray();
+                expect(stage2.len()).toBe(1);
+                expect(stage2[1].getEvolution().getName()).toBe('Raichu');
+                expect(stage2[1].getEvolution().getCostume()).toBeTrue();
+                expect(stage2[1].getEvolution().getCostumeType()).toBe('Santa Hat');
+            });
         });
     }
 
