@@ -67,6 +67,7 @@ jobs:
           remote_key: ${{ secrets.LIGHTSAIL_SSH_KEY }}
 
       - name: Restart, update backend db, and dependencies
+        timeout-minutes: 10
         uses: appleboy/ssh-action@0ff4204d59e8e51228ff73bce53f80d53301dee2 # v1.2.5
         with:
           host: ${{ secrets.LIGHTSAIL_IP }}
@@ -76,4 +77,4 @@ jobs:
             sudo sh -c 'echo "$(date)" > /var/www/wwwroot/pogotracker/version.html'
             cd /var/www/wwwroot/pogotracker/
             sudo box recipe scripts/deploy.boxr
-          timeout: 10
+          timeout: 10m
