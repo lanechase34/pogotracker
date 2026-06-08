@@ -4427,6 +4427,38 @@
                 "name": "Gigantamax Pikachu",
                 "special": true,
                 "stage": 0
+            },
+            {
+                "condition": "",
+                "number": 26,
+                "gender": "",
+                "cost": "50",
+                "name": "Raichu",
+                "special": false,
+                "stage": 3
+            }
+        ]
+    },
+    "Meowth": {
+        "evolutions": [
+            {
+                "condition": "",
+                "number": 53,
+                "cost": 50,
+                "gender": "",
+                "name": "Persian",
+                "special": false,
+                "region": "",
+                "stage": 2
+            },
+            {
+                "condition": "Gigantamax Form",
+                "number": 52,
+                "gender": "",
+                "cost": "",
+                "name": "Gigantamax Meowth",
+                "special": true,
+                "stage": 0
             }
         ]
     },

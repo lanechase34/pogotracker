@@ -43,5 +43,45 @@
     "Origin Forme Palkia": "Palkia Origin Forme",
     "Paldean Tauros (Blaze)": "Tauros Blaze Breed",
     "Paldean Tauros (Aqua)": "Tauros Aqua Breed",
-    "Paldean Tauros (Combat)": "Tauros Combat Breed"
+    "Paldean Tauros (Combat)": "Tauros Combat Breed",
+    "Flower Crown Buneary": {
+        "name": "Buneary",
+        "costumetype": "Flower Crown"
+    },
+    "Cherry Blossom Eevee": {
+        "name": "Eevee",
+        "costumetype": "Cherry Blossom"
+    },
+    "Flower Crown Cottonee": {
+        "name": "Cottonee",
+        "costumetype": "Flower Crown"
+    },
+    "Flower Crown Happiny": {
+        "name": "Happiny",
+        "costumetype": "Flower Crown"
+    },
+    "Flower Crown Pichu": {
+        "name": "Pichu",
+        "costumetype": "Flower Crown"
+    },
+    "Flower Crown Togepi": {
+        "name": "Togepi",
+        "costumetype": "Flower Crown"
+    },
+    "Marathon Visor Pikachu": {
+        "name": "Pikachu",
+        "costumetype": "Marathon Visor"
+    },
+    "Caterpie wearing a Poké Ball hat": {
+        "name": "Caterpie",
+        "costumetype": "Poké Ball Hat"
+    },
+    "Pikachu Visor Bulbasaur": {
+        "name": "Bulbasaur",
+        "costumetype": "Pikachu Visor"
+    },
+    "Pikachu wearing a Team Instinct hat": {
+        "name": "Pikachu",
+        "costumetype": "Team Instinct Hat"
+    }
 }

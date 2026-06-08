@@ -160,10 +160,11 @@ component singleton accessors="true" {
         evolutions.each((evolution) => {
             // Attempt to load the evolution pokemon trying to be made
             var evolvedPokemon = get({
-                'number' : evolution.number,
-                'name'   : evolution.name,
-                'gender' : evolution.gender,
-                'costume': false
+                'number'     : evolution.number,
+                'name'       : evolution.name,
+                'gender'     : evolution.gender,
+                'costume'    : evolution?.costume ?: false,
+                'costumetype': evolution?.costumetype ?: ''
             });
 
             // have to skip since the evolved pokemon hasn't been created yet
@@ -218,7 +219,7 @@ component singleton accessors="true" {
     /**
      * Get the pokemon that evolve into the argument pokemon
      */
-    private array function getEvolvers(required component pokemon) {
+    public array function getEvolvers(required component pokemon) {
         return ormExecuteQuery(
             '
             select evolution.pokemon

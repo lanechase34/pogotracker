@@ -398,6 +398,64 @@ component extends="tests.resources.baseTest" asyncAll="true" {
                     expect(costumes.len()).toBe(0); // has no costumes
                 });
             });
+
+            describe('getEvolvers()', () => {
+                it('Can retrieve Persian''s evolvers', () => {
+                    var persian = validatePokemonRecord(number = 53, name = 'Persian', gender = '');
+
+                    var evolvers = pokemonService.getEvolvers(persian);
+                    expect(evolvers).toBeArray();
+                    expect(evolvers.len()).toBe(1);
+                    expect(evolvers[1].getName()).toBe('Meowth');
+                    expect(evolvers[1].getNumber()).toBe(52);
+                });
+
+                it('Can retrieve Gigantamax Meowth''s evolvers', () => {
+                    var gmaxMeowth = validatePokemonRecord(
+                        number = 52,
+                        name   = 'Gigantamax Meowth',
+                        gender = ''
+                    );
+
+                    var evolvers = pokemonService.getEvolvers(gmaxMeowth);
+                    expect(evolvers).toBeArray();
+                    expect(evolvers.len()).toBe(1);
+                    expect(evolvers[1].getName()).toBe('Meowth');
+                    expect(evolvers[1].getNumber()).toBe(52);
+                });
+
+                it('Can retrieve Mega Charizard Y evolvers', () => {
+                    var megaZard = validatePokemonRecord(
+                        number = 6,
+                        name   = 'Mega Charizard Y',
+                        gender = ''
+                    );
+
+                    var evolvers = pokemonService.getEvolvers(megaZard);
+                    expect(evolvers).toBeArray();
+                    expect(evolvers.len()).toBe(1);
+                    expect(evolvers[1].getName()).toBe('Charizard');
+                    expect(evolvers[1].getNumber()).toBe(6);
+                });
+
+                it('Can ensure Pikachu''s evolves', () => {
+                    var pikachu = validatePokemonRecord(number = 25, name = 'Pikachu', gender = '');
+
+                    // gmax, raichu
+                    expect(pikachu.getEvolution().len()).toBe(2);
+
+                    var expected = {'Raichu': true, 'Gigantamax Pikachu': true};
+
+                    pikachu
+                        .getEvolution()
+                        .each((evolution) => {
+                            expect(expected).toHaveKey(evolution.getEvolution().getName());
+                            expected.delete(evolution.getEvolution().getName());
+                        });
+
+                    expect(expected.count()).toBe(0);
+                });
+            });
         });
     }
 

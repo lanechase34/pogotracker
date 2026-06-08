@@ -308,7 +308,7 @@ export const runtime = {
             ],
             serverSide: true,
             pageLength: 25,
-            lengthMenu: [25, 50, 100],
+            lengthMenu: [10, 25, 50, 100],
             scrollY: 'calc(100vh - 250px)',
         });
 
@@ -316,6 +316,7 @@ export const runtime = {
             if (isCostume) {
                 isCostume = false;
                 dt.column(4).visible(false);
+                dt.columns([7, 8, 9, 10]).visible(true);
                 dt.ajax.reload();
                 $pokemonViewBtn.classList.add('active');
                 $costumeViewBtn.classList.remove('active');
@@ -326,6 +327,7 @@ export const runtime = {
             if (!isCostume) {
                 isCostume = true;
                 dt.column(4).visible(true);
+                dt.columns([7, 8, 9, 10]).visible(false);
                 dt.ajax.reload();
                 $costumeViewBtn.classList.add('active');
                 $pokemonViewBtn.classList.remove('active');

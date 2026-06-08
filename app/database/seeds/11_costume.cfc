@@ -37,6 +37,48 @@ component extends="base" {
             true,
             50
         );
+
+        // Add evolutions
+        costumeData.each((name, pokemon) => {
+            pokemon.evolutions.each((evolution) => {
+                // Select the pokemon id
+                var pokemonQb     = qb.newQuery();
+                var pokemonRecord = pokemonQb
+                    .from('pokemon')
+                    .where('number', {value: pokemon.number, cfsqltype: 'numeric'})
+                    .andWhere('name', {value: toUTF8(pokemon.name), cfsqltype: 'varchar'})
+                    .andWhere('gender', {value: pokemon.gender, cfsqltype: 'varchar'})
+                    .andWhere('costume', {value: true, cfsqltype: 'boolean'})
+                    .andWhere('costumetype', {value: toUTF8(pokemon.costumetype), cfsqltype: 'varchar'})
+                    .first();
+
+                if(!pokemonRecord.keyExists('id')) continue; // safeguard, but this shouldn't happen
+
+                // Select the evolution id
+                var evoQb = qb.newQuery();
+                var evo   = evoQb
+                    .from('pokemon')
+                    .where('number', {value: evolution.number, cfsqltype: 'numeric'})
+                    .andWhere('name', {value: toUTF8(evolution.name), cfsqltype: 'varchar'})
+                    .andWhere('gender', {value: evolution.gender, cfsqltype: 'varchar'})
+                    .andWhere('costume', {value: true, cfsqltype: 'boolean'})
+                    .andWhere('costumetype', {value: toUTF8(evolution.costumetype), cfsqltype: 'varchar'})
+                    .first();
+
+                if(evo.keyExists('id')) {
+                    var freshQB = qb.newQuery();
+                    freshQB
+                        .table('evolution')
+                        .insert({
+                            'pokemonid'  : {value: pokemonRecord.id, cfsqltype: 'numeric'},
+                            'evolutionid': {value: evo.id, cfsqltype: 'numeric'},
+                            'special'    : {value: evolution.special, cfsqltype: 'boolean'},
+                            'cost'       : {value: evolution.cost, cfsqltype: 'numeric'},
+                            'condition'  : {value: evolution.condition, cfsqltype: 'varchar'}
+                        });
+                }
+            });
+        });
     }
 
 }

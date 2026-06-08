@@ -1253,17 +1253,35 @@ component singleton accessors="true" {
         var pokemon = []; // Create array of pokemon ids
         var map     = {}; // use map to not double enter pokemon
         spawns.each((name, value) => {
+            var costumetype = '';
+
             // Check the name map
             if(getLeekduckNameMap().keyExists(name)) {
-                name = getLeekduckNameMap()[name];
+                // Check if this is a costume mon
+                if(isStruct(getLeekduckNameMap()[name])) {
+                    costumetype = getLeekduckNameMap()[name].costumetype;
+                    name        = getLeekduckNameMap()[name].name;
+                }
+                else {
+                    name = getLeekduckNameMap()[name];
+                }
             }
 
             var genderCheck = listToArray(name, ' ');
             if(genderCheck.len() == 2 && (genderCheck[2] == 'Male' || genderCheck[2] == 'Female')) {
-                var currPokemon = pokemonService.get({'name': genderCheck[1], 'gender': genderCheck[2]});
+                var currPokemon = pokemonService.get({
+                    'name'       : genderCheck[1],
+                    'gender'     : genderCheck[2],
+                    'costume'    : costumetype.len(),
+                    'costumetype': costumetype
+                });
             }
             else {
-                var currPokemon = pokemonService.get({'name': name});
+                var currPokemon = pokemonService.get({
+                    'name'       : name,
+                    'costume'    : costumetype.len(),
+                    'costumetype': costumetype
+                });
             }
 
             currPokemon.each((curr) => {
@@ -1970,6 +1988,58 @@ component singleton accessors="true" {
                 ) {
                     scraperService.downloadImage(url = shinySprite, destination = shinySpritePath);
                 }
+
+                costume.delete('spriteSrc');
+                costume.delete('shinySpriteSrc');
+            });
+
+            // Determine the evolution lines based on existing evolution and using the costume type
+            costumes.each((key, costume) => {
+                var pokemon = pokemonService.get({
+                    name   : costume.name,
+                    number : costume.number,
+                    gender : costume.gender,
+                    costume: false
+                });
+
+                if(!pokemon.len()) continue;
+
+                var evolutions = pokemon[1].getEvolution();
+                if(!evolutions.len()) continue;
+
+                // Check if evolution(s) has the same costume type
+                evolutions.each((evolution) => {
+                    var evolvedMon = evolution.getEvolution();
+
+                    // Search costume records
+                    var evolvedCostume = costumes.filter((key, filterCostume) => {
+                        return (
+                            filterCostume.name == evolvedMon.getName()
+                            && filterCostume.number == evolvedMon.getNumber()
+                            && filterCostume.gender == evolvedMon.getGender()
+                            && filterCostume.costumeType == costume.costumeType // match base stage
+                            && !evolvedMon.getMega()
+                            && !evolvedMon.getGiga()
+                            && !evolvedMon.getFormType().len()
+                        );
+                    });
+
+                    if(!evolvedCostume.count()) continue;
+
+                    // Add to evolutions
+                    evolvedCostume.each((key, eCostume) => {
+                        costume.evolutions.append({
+                            condition  : '',
+                            number     : eCostume.number,
+                            gender     : eCostume.gender,
+                            cost       : evolution.getCost(),
+                            name       : eCostume.name,
+                            special    : false,
+                            costume    : true,
+                            costumetype: eCostume.costumeType
+                        });
+                    });
+                });
             });
         }
 
