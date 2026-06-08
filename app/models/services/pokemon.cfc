@@ -274,6 +274,7 @@ component singleton accessors="true" {
             left outer join custom.custompokedex as custompokedex
             where custompokedex.pokemon = :pokemon
             and custom.link is not null
+            and custom.link <> ''''
             order by custom.id desc
             ',
             {pokemon: arguments.pokemon},
