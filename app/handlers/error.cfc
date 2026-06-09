@@ -5,6 +5,7 @@ component extends="base" {
     property name="bugService"      inject="services.bug";
     property name="emailService"    inject="services.email";
     property name="securityService" inject="services.security";
+    property name="utilService"     inject="services.util";
 
     this.prehandler_only  = 'unauthorized,invalidHTTPMethod,notFound';
     this.posthandler_only = 'unauthorized,invalidHTTPMethod,notFound';
@@ -55,7 +56,7 @@ component extends="base" {
         prc.auditInfo.event  = left(event.getFullPath(), 250);
         prc.auditInfo.detail = 'Invalid HTTP Method #event.getHTTPMethod()#';
 
-        if(securityService.isJsonRequest()) {
+        if(utilService.isJsonRequest()) {
             prc.responseObj.statusCode = 405;
             prc.responseObj.message    = 'Method Not Allowed';
             renderJson(event = event, response = prc.responseObj);

@@ -1,33 +1,8 @@
 component singleton accessors="true" {
 
-    property name="async"        inject="asyncManager@coldbox";
-    property name="cacheService" inject="services.cache";
-
-    /**
-     * Returns timestamp of date at 00:00:00
-     *
-     * @low date
-     */
-    private date function makeLowDate(required date low) {
-        return createDateTime(year(low), month(low), day(low), 0, 0, 0);
-    }
-
-    /**
-     * Returns timestamp of date at 23:59:59
-     *
-     * @high date
-     */
-    private date function makeHighDate(required date high) {
-        return dateAdd(
-            's',
-            -1,
-            dateAdd(
-                'd',
-                1,
-                createDateTime(year(high), month(high), day(high), 0, 0, 0)
-            )
-        );
-    }
+    property name="async" inject="asyncManager@coldbox";
+    property name="cache" inject="cachebox:appCache";
+    property name="utilService" inject="services.util";
 
     /**
      * Get stats for the supplied day
@@ -42,8 +17,8 @@ component singleton accessors="true" {
         ',
             {
                 'trainer': arguments.trainer,
-                'low'    : makeLowDate(arguments.suppliedDate),
-                'high'   : makeHighDate(arguments.suppliedDate)
+                'low'    : utilService.makeLowDate(arguments.suppliedDate),
+                'high'   : utilService.makeHighDate(arguments.suppliedDate)
             },
             true
         );
@@ -74,7 +49,7 @@ component singleton accessors="true" {
         ormFlush();
 
         // Clears the trainer's stat cache entries whenever they track stats
-        cacheService.clear(filter = '#arguments.trainer.getId()#|stats.getStats');
+        cache.clearByKeySnippet('#arguments.trainer.getId()#|stats.getStats');
         return;
     }
 
@@ -110,7 +85,7 @@ component singleton accessors="true" {
             )
         ) {
             cachekey = '#arguments.trainer.getId()#|stats.getStats|startDate=#dateFormat(arguments.startDate, 'short')#|endDate=#dateFormat(arguments.endDate, 'short')#';
-            stats    = cacheService.get(cacheKey);
+            stats    = cache.get(cacheKey);
         }
 
         if(!cacheKey.len() || isNull(stats)) {
@@ -139,8 +114,8 @@ component singleton accessors="true" {
             ',
                 {
                     'trainer'  : arguments.trainer,
-                    'startDate': makeLowDate(arguments.startDate),
-                    'endDate'  : makeHighDate(arguments.endDate)
+                    'startDate': utilService.makeLowDate(arguments.startDate),
+                    'endDate'  : utilService.makeHighDate(arguments.endDate)
                 }
             );
 
@@ -209,7 +184,7 @@ component singleton accessors="true" {
             }
 
             if(cacheKey.len()) {
-                cacheService.put(cacheKey, stats, 10, 10);
+                cache.set(cacheKey, stats, 10, 10);
             }
         }
 
@@ -224,7 +199,7 @@ component singleton accessors="true" {
      */
     public array function getLeaderboard(required date date, string stat = 'xp') {
         var cacheKey    = 'stats.getLeaderboard|date=#month(arguments.date)#|stat=#arguments.stat#';
-        var leaderboard = cacheService.get(cacheKey);
+        var leaderboard = cache.get(cacheKey);
 
         if(isNull(leaderboard)) {
             var low = createDateTime(
@@ -263,7 +238,7 @@ component singleton accessors="true" {
                 return (a.delta - b.delta) > 0 ? -1 : 1;
             });
 
-            cacheService.put(cacheKey, leaderboard, 15, 15);
+            cache.set(cacheKey, leaderboard, 15, 15);
         }
         return leaderboard;
     }
@@ -274,7 +249,7 @@ component singleton accessors="true" {
      */
     public array function getPokedexStats(required component trainer) {
         var cacheKey     = '#arguments.trainer.getId()#|stats.getPokedexStats';
-        var pokedexStats = cacheService.get(cacheKey);
+        var pokedexStats = cache.get(cacheKey);
 
         if(isNull(pokedexStats)) {
             pokedexStats = ormExecuteQuery(
@@ -297,7 +272,7 @@ component singleton accessors="true" {
                 {'trainer': arguments.trainer}
             );
 
-            cacheService.put(cacheKey, pokedexStats, 10, 10);
+            cache.set(cacheKey, pokedexStats, 10, 10);
         }
 
         return pokedexStats;
@@ -313,7 +288,7 @@ component singleton accessors="true" {
      */
     public struct function getTopDeltas(required component trainer, numeric records = 5) {
         var cacheKey  = '#arguments.trainer.getId()#|stats.getTopDeltas';
-        var topDeltas = cacheService.get(cacheKey);
+        var topDeltas = cache.get(cacheKey);
 
         if(!isNull(topDeltas)) {
             return topDeltas;
@@ -381,7 +356,7 @@ component singleton accessors="true" {
             });
         });
 
-        cacheService.put(cacheKey, topDeltas, 60, 60);
+        cache.set(cacheKey, topDeltas, 60, 60);
 
         return topDeltas;
     }

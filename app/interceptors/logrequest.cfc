@@ -5,6 +5,7 @@ component extends="coldbox.system.Interceptor" {
 
     property name="auditService"    inject="provider:services.audit";
     property name="securityService" inject="provider:services.security";
+    property name="utilService"     inject="provider:services.util";
 
     // Request Log Settings
     property name="REQUEST_LOG_SETTINGS" inject="coldbox:setting:requestLog";
@@ -57,7 +58,7 @@ component extends="coldbox.system.Interceptor" {
         prc.requestAudit.delta = getTickCount() - prc.requestAudit.start;
 
         // If this was a json request
-        if(securityService.isJsonRequest()) {
+        if(utilService.isJsonRequest()) {
             prc.requestAudit.statuscode = prc?.responseObj?.statuscode ?: -1;
             prc.requestAudit.response   = serializeJSON(prc?.responseObj ?: {});
         }

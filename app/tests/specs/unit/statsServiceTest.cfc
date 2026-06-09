@@ -120,11 +120,9 @@ component extends="tests.resources.baseTest" asyncAll="false" {
 
                 expect(getStats).toHaveKey('summary');
 
-                if(application.cbController.getSetting('useCache')) {
-                    // Check the cache for key
-                    cacheKey = '#trainer.getId()#|stats.getStats|startDate=#dateFormat(startDate, 'short')#|endDate=#dateFormat(endDate, 'short')#';
-                    expect(getInstance('services.cache').get(cacheKey)).notToBeNull();
-                }
+                // Check the cache for key
+                cacheKey = '#trainer.getId()#|stats.getStats|startDate=#dateFormat(startDate, 'short')#|endDate=#dateFormat(endDate, 'short')#';
+                expect(getInstance('cachebox:appCache').get(cacheKey)).notToBeNull();
             });
 
             it('Can get the leaderboard', () => {

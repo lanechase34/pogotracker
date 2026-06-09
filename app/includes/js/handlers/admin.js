@@ -352,12 +352,6 @@ export const runtime = {
         });
     },
     serverinfo: () => {
-        new DataTable($cacheData, {
-            order: [[0, 'asc']],
-            pageLength: 50,
-            scrollY: 'calc(30vh)',
-        });
-
         startMetricsSocket();
 
         const loadingSpinners = document.querySelectorAll('.metricsLoading');
@@ -377,6 +371,12 @@ export const runtime = {
         let requestChart;
 
         /**
+         * appCache donut chart
+         */
+        const appCacheChartCanvas = document.getElementById('appCacheChart');
+        let appCacheChart;
+
+        /**
          * Slow requests table
          */
         const slowRequestsTableBody = document.getElementById('slowRequestsBody');
@@ -387,6 +387,93 @@ export const runtime = {
         const coresMetric = document.getElementById('coresMetric');
         const processMetric = document.getElementById('processMetric');
         const systemMetric = document.getElementById('systemMetric');
+
+        /**
+         * Cache DataTable
+         */
+        const cacheTable = new DataTable($cacheData, {
+            columns: [
+                { data: 'storage' },
+                { data: 'key' },
+                { data: 'created' },
+                { data: 'hits', className: 'text-center' },
+                { data: 'expired', className: 'text-center', render: (data) => (data ? 'Yes' : 'No') },
+                { data: 'lastaccessed' },
+                { data: 'lastaccesstimeout', className: 'text-center' },
+                { data: 'timeout', className: 'text-center' },
+            ],
+            order: [[0, 'asc']],
+            pageLength: 50,
+            scrollY: 'calc(30vh)',
+        });
+
+        /**
+         * Modal stats elements
+         */
+        const statLastReap = document.getElementById('statLastReap');
+        const statHits = document.getElementById('statHits');
+        const statMisses = document.getElementById('statMisses');
+        const statEvictions = document.getElementById('statEvictions');
+        const statGC = document.getElementById('statGarbageCollections');
+
+        /**
+         * Fetch cache data and update table, chart, and modal stats
+         */
+        async function updateCacheData() {
+            try {
+                const response = await fetch('/admin/getCacheData');
+                const data = await response.json();
+
+                cacheTable.clear().rows.add(data.data).draw(false);
+
+                const appKeyCount = data.data.filter((d) => d.storage === 'appCache').length;
+                const available = data.maxObjects - appKeyCount;
+
+                if (!appCacheChart) {
+                    appCacheChart = new Chart(appCacheChartCanvas, {
+                        type: 'doughnut',
+                        data: {
+                            labels: ['Used', 'Available'],
+                            datasets: [
+                                {
+                                    label: 'appCache Keys',
+                                    data: [appKeyCount, available],
+                                    backgroundColor: ['rgba(255, 99, 132, 0.8)', 'rgba(54, 162, 235, 0.8)'],
+                                    hoverOffset: 4,
+                                    borderWidth: 0,
+                                },
+                            ],
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: {
+                                legend: {
+                                    position: 'top',
+                                    labels: { color: '#000000' },
+                                },
+                            },
+                            maintainAspectRatio: false,
+                            devicePixelRatio: 3,
+                            cutout: '50%',
+                        },
+                    });
+                } else {
+                    appCacheChart.data.datasets[0].data = [appKeyCount, available];
+                    appCacheChart.update('none');
+                }
+
+                if (statLastReap) statLastReap.textContent = data.lastReapDateTime;
+                if (statHits) statHits.textContent = data.hits;
+                if (statMisses) statMisses.textContent = data.misses;
+                if (statEvictions) statEvictions.textContent = data.evictionCount;
+                if (statGC) statGC.textContent = data.garbageCollections;
+            } catch (e) {
+                console.error('Error fetching cache data', e);
+            }
+        }
+
+        updateCacheData();
+        setInterval(updateCacheData, 10000);
 
         /**
          * Listener for when metrics is updated

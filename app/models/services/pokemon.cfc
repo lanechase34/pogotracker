@@ -2,7 +2,7 @@ component singleton accessors="true" {
 
     property name="async"        inject="asyncManager@coldbox";
     property name="auditService" inject="services.audit";
-    property name="cacheService" inject="services.cache";
+    property name="cache"        inject="cachebox:appCache";
     property name="moveService"  inject="services.move";
 
     property name="maxThreads"     inject="coldbox:setting:maxThreads";
@@ -102,7 +102,7 @@ component singleton accessors="true" {
      */
     public array function getAll() {
         var cacheKey   = 'pokemon.getAll';
-        var allPokemon = cacheService.get(cacheKey);
+        var allPokemon = cache.get(cacheKey);
         if(isNull(allPokemon)) {
             allPokemon = get({'costume': false}, 'generation asc, number asc, form asc');
 
@@ -114,7 +114,7 @@ component singleton accessors="true" {
                 pokemon.getGeneration().getRegion();
             });
 
-            cacheService.put(
+            cache.set(
                 cacheKey,
                 allPokemon,
                 getCacheTime(),
@@ -196,7 +196,7 @@ component singleton accessors="true" {
      */
     public struct function getMaxStats() {
         var cacheKey = 'pokemon.getMaxStats';
-        var max      = cacheService.get(cacheKey);
+        var max      = cache.get(cacheKey);
         if(isNull(max)) {
             var stats = ormExecuteQuery('
                 select max(attack), max(defense), max(hp)
@@ -210,7 +210,7 @@ component singleton accessors="true" {
                 cp     : 7000
             };
 
-            cacheService.put(cacheKey, max, getCacheTime(), getCacheTime());
+            cache.set(cacheKey, max, getCacheTime(), getCacheTime());
         }
 
         return max;
@@ -321,7 +321,7 @@ component singleton accessors="true" {
     public struct function getDetail(required string ses) {
         // Check cache first
         var cacheKey = 'pokemon.getDetail|pokemonses=#ses#';
-        var detail   = cacheService.get(cacheKey);
+        var detail   = cache.get(cacheKey);
         if(isNull(detail)) {
             /**
              * Attempt to load pokemon based on ses
@@ -393,7 +393,7 @@ component singleton accessors="true" {
             detail.metaDescription = '#ucFirst(detail.pokemon.getName())#''s (###detail.pokemon.getNumber()#) evolutions, CP range, stats, moveset, and events in Pokemon GO.';
             detail.ogImage         = detail.pokemon.getOgImage();
 
-            cacheService.put(
+            cache.set(
                 cacheKey,
                 detail,
                 getCacheTime() * 15,
@@ -440,7 +440,7 @@ component singleton accessors="true" {
         entitySave(pokemon);
         ormFlush();
 
-        cacheService.remove('pokemon.getDetail|pokemonses=#pokemon.getSes()#');
+        cache.clear('pokemon.getDetail|pokemonses=#pokemon.getSes()#');
         return;
     }
 
@@ -449,7 +449,7 @@ component singleton accessors="true" {
      */
     public array function getSearchArray() {
         var cacheKey    = 'pokemon.getSearchArray';
-        var searchArray = cacheService.get(cacheKey);
+        var searchArray = cache.get(cacheKey);
         if(isNull(searchArray)) {
             searchArray = getAll().map((pokemon) => {
                 return {
@@ -460,7 +460,7 @@ component singleton accessors="true" {
                     ses  : '#pokemon.getSes()#'
                 };
             });
-            cacheService.put(
+            cache.set(
                 cacheKey,
                 searchArray,
                 getCacheTime(),

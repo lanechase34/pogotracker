@@ -1,6 +1,6 @@
 component singleton accessors="true" {
 
-    property name="cacheService"   inject="services.cache";
+    property name="cache"          inject="cachebox:appCache";
     property name="jsoup"          inject="javaloader:org.jsoup.Jsoup";
     property name="trainerService" inject="services.trainer";
     property name="scraperService" inject="services.scraper";
@@ -10,7 +10,7 @@ component singleton accessors="true" {
      */
     public array function get(required numeric count, required numeric offset) {
         var cacheKey = 'blog.get|count=#arguments.count#|offset=#arguments.offset#';
-        var blogs    = cacheService.get(cacheKey);
+        var blogs    = cache.get(cacheKey);
         if(isNull(blogs)) {
             blogs = ormExecuteQuery(
                 '
@@ -22,7 +22,7 @@ component singleton accessors="true" {
                 {maxResults: arguments.count, offset: arguments.offset}
             );
 
-            cacheService.put(cacheKey, blogs, 720, 720);
+            cache.set(cacheKey, blogs, 720, 720);
         }
         return blogs;
     }
@@ -32,12 +32,14 @@ component singleton accessors="true" {
      */
     public component function getFromId(required numeric blogid, boolean useCache = true) {
         var cacheKey = 'blog.getFromId|blogid=#arguments.blogid#';
-        var blog     = cacheService.get(cacheKey);
+        var blog     = cache.get(cacheKey);
         if(isNull(blog) || !arguments.useCache) {
             blog = entityLoadByPK('blog', arguments.blogid);
             blog.getComment();
 
-            if(arguments.useCache) cacheService.put(cacheKey, blog, 720, 720);
+            if(arguments.useCache) {
+                cache.set(cacheKey, blog, 720, 720);
+            }
         }
         return blog;
     }
@@ -48,13 +50,13 @@ component singleton accessors="true" {
      */
     public any function getFromHeader(required string header) {
         var cacheKey = 'blog.getFromHeader|header=#lCase(arguments.header)#';
-        var blog     = cacheService.get(cacheKey);
+        var blog     = cache.get(cacheKey);
         if(isNull(blog)) {
             blog = entityLoad('blog', {header: arguments.header}, true);
             if(isNull(blog)) return; // Invalid blog return null here
 
             blog.getComment();
-            cacheService.put(cacheKey, blog, 720, 720);
+            cache.set(cacheKey, blog, 720, 720);
         }
         return blog;
     }
@@ -84,7 +86,7 @@ component singleton accessors="true" {
         ormFlush();
 
         // Clear the blog cache whenever a new entry is saved
-        cacheService.clear(filter = 'blog.');
+        cache.clearByKeySnippet('blog.');
         return;
     }
 
@@ -115,7 +117,7 @@ component singleton accessors="true" {
         ormFlush();
 
         // Clear the blog cache whenever a new entry is saved
-        cacheService.clear(filter = 'blog.');
+        cache.clearByKeySnippet('blog.');
         return;
     }
 
@@ -168,8 +170,8 @@ component singleton accessors="true" {
         ormFlush();
 
         // Clear the read blog cache
-        cacheService.clear(filter = 'blog.getFromId|blogid=#blog.getId()#');
-        cacheService.clear(filter = 'blog.getFromHeader|header=#lCase(blog.getHeader())#');
+        cache.clearByKeySnippet('blog.getFromId|blogid=#blog.getId()#');
+        cache.clearByKeySnippet('blog.getFromHeader|header=#lCase(blog.getHeader())#');
         return;
     }
 
@@ -180,7 +182,7 @@ component singleton accessors="true" {
      */
     public array function getNews(numeric count = application.cbController.getSetting('fetchCount')) {
         var cacheKey = 'blog.getNews';
-        var news     = cacheService.get(cacheKey);
+        var news     = cache.get(cacheKey);
 
         if(isNull(news)) {
             news        = [];
@@ -221,7 +223,7 @@ component singleton accessors="true" {
                 });
             });
 
-            cacheService.put(cacheKey, news, 10, 10);
+            cache.set(cacheKey, news, 10, 10);
         }
 
         return news;
@@ -234,7 +236,7 @@ component singleton accessors="true" {
      */
     public array function getEvents(numeric count = application.cbController.getSetting('fetchCount')) {
         var cacheKey = 'blog.getEvents'
-        var events   = cacheService.get(cacheKey);
+        var events   = cache.get(cacheKey);
 
         if(isNull(events)) {
             events        = [];
@@ -280,7 +282,7 @@ component singleton accessors="true" {
                 });
             });
 
-            cacheService.put(cacheKey, events, 10, 10);
+            cache.set(cacheKey, events, 10, 10);
         }
 
         return events;

@@ -13,7 +13,6 @@ component extends="base" {
     };
 
     property name="async"          inject="asyncManager@coldbox";
-    property name="cacheService"   inject="services.cache";
     property name="pokedexService" inject="services.pokedex";
     property name="friendService"  inject="services.friend";
     property name="medalService"   inject="services.medal";

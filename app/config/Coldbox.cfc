@@ -172,7 +172,6 @@ component {
             testEmailPath        : '#replace(expandPath('/'), '\', '/', 'all')#/_testemails',
             uploadPath           : '#replace(expandPath('/'), '\', '/', 'all')#/includes/uploads',
             title                : 'POGO Tracker - Track Your Pokémon GO Progress',
-            useCache             : true,
             useRecaptcha         : true,
             verificationLifespan : 15, // time in minutes the verification link is valid for
             verificationCooldown : 900, // time in seconds to wait for a new verification code
@@ -354,10 +353,8 @@ component {
         settings.refererChecks = {};
 
         // settings.debugging     = true;
-        // settings.useCache      = false;
         settings.shadowData  = true;
         settings.costumeData = true;
-        // settings.warmedup      = true;
 
         // Comment to use minified files
         settings.cssPath     = '/includes/css';

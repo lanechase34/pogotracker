@@ -1,8 +1,7 @@
-component {
+component extends="base" {
 
     property name="adminService"      inject="services.admin";
     property name="blogService"       inject="services.blog";
-    property name="cacheService"      inject="services.cache";
     property name="emailService"      inject="services.email";
     property name="friendService"     inject="services.friend";
     property name="moveService"       inject="services.move";
@@ -30,11 +29,7 @@ component {
         var testTrainer = entityNew('trainer', {'username': prc.name});
         entitySave(testTrainer);
         ormFlush();
-        event.renderData(
-            type       = 'json',
-            data       = {'response': 'success #now()#'},
-            statusCode = 200
-        );
+        renderJson(event = event, response = {'response': 'success #now()#'});
     }
 
     // Admin endpoint to populate a trainer's pokedex
@@ -62,11 +57,7 @@ component {
             );
         }
 
-        event.renderData(
-            type       = 'json',
-            data       = {'response': 'success #now()#'},
-            statusCode = 200
-        );
+        renderJson(event = event, response = {'response': 'success #now()#'});
     }
 
     function createRandomBlogs(event, rc, prc) {
@@ -92,11 +83,7 @@ component {
             ormFlush();
         }
 
-        event.renderData(
-            type       = 'json',
-            data       = {'response': 'success #now()#'},
-            statusCode = 200
-        );
+        renderJson(event = event, response = {'response': 'success #now()#'});
     }
 
 
@@ -107,11 +94,7 @@ component {
         var body   = '<p>From the latest github commit:</p><p>Working on layout.</p><p>Add freinds.</p><p>Can I make this blog one of those fancy text entry boxes? That would be cool</p>';
 
         blogService.create(header, body, prc.trainer);
-        event.renderData(
-            type       = 'json',
-            data       = {'response': 'success #now()#'},
-            statusCode = 200
-        );
+        renderJson(event = event, response = {'response': 'success #now()#'});
     }
 
     function ormReload(event, rc, prc) {
@@ -132,11 +115,7 @@ component {
 
     function sendTestEmail(event, rc, prc) {
         emailService.sendTestEmail();
-        event.renderData(
-            type       = 'json',
-            data       = {'response': 'success #now()#'},
-            statusCode = 200
-        );
+        renderJson(event = event, response = {'response': 'success #now()#'});
     }
 
     function createRandomTeam(event, rc, prc) {
@@ -243,11 +222,7 @@ component {
 
     function testEventTask(event, rc, prc) {
         adminService.createEvents();
-        event.renderData(
-            type       = 'json',
-            data       = {'response': 'success #now()#'},
-            statusCode = 200
-        );
+        renderJson(event = event, response = {'response': 'success #now()#'});
     }
 
     function createUnownJson(event, rc, prc) {
@@ -294,11 +269,7 @@ component {
             result.insert(curr.name, curr);
         });
 
-        event.renderData(
-            type       = 'json',
-            data       = {'response': serializeJSON(result)},
-            statusCode = 200
-        );
+        renderJson(event = event, response = {'response': serializeJSON(result)});
     }
 
     function cpCalculator(event, rc, prc) {
@@ -338,11 +309,7 @@ component {
             });
         });
 
-        event.renderData(
-            type       = 'json',
-            data       = {'response': serializeJSON(multiplierJson)},
-            statusCode = 200
-        );
+        renderJson(event = event, response = {'response': serializeJSON(multiplierJson)});
     }
 
     function testJsoup(event, rc, prc) {
@@ -350,11 +317,7 @@ component {
             .getData('https://httpbin.io/user-agent')
             .body()
             .text();
-        event.renderData(
-            type       = 'json',
-            data       = {'response': prc.userAgent},
-            statusCode = 200
-        );
+        renderJson(event = event, response = {'response': prc.userAgent});
     }
 
     function createTypeSymbols(event, rc, prc) {
@@ -377,11 +340,7 @@ component {
             img.write('/includes/images/type/#type#');
         });
 
-        event.renderData(
-            type       = 'json',
-            data       = {'response': 'success #now()#'},
-            statusCode = 200
-        );
+        renderJson(event = event, response = {'response': 'success #now()#'});
     }
 
     function downloadImage(event, rc, prc) {

@@ -4,34 +4,23 @@
         <table id="cacheData" class="table table-striped table-bordered">
             <thead>
                 <tr>
+                    <th class="text-center">Storage</th>
                     <th class="text-center">Key</th>
                     <th class="text-center">Created</th>
                     <th class="text-center">Hits</th>
-                    <th class="text-center">Expired </th>
+                    <th class="text-center">Expired</th>
                     <th class="text-center">Last Accessed</th>
                     <th class="text-center">Last Access Timeout</th>
                     <th class="text-center">Timeout</th>
                 </tr>
             </thead>
-            <tbody>
-                <cfloop item="currData" index="currKey" collection="#prc.cacheData#">
-                    <tr>
-                        <td>#encodeForHTML(currKey)#</td>
-                        <td>#encodeForHTML(dateTimeFormat(currData.created, "long"))#</td>
-                        <td>#encodeForHTML(currData.hits)#</td>
-                        <td>#encodeForHTML(currData.isExpired)#</td>
-                        <td>#encodeForHTML(dateTimeFormat(currData.lastAccessed, "long"))#</td>
-                        <td>#encodeForHTML(currData.lastAccessTimeout)#</td>
-                        <td>#encodeForHTML(currData.timeout)#</td>
-                    </tr>
-                </cfloop>
-            </tbody>
+            <tbody></tbody>
         </table>
     </div>
 </div>
 
 <div class="row">
-    <div class="col-12 col-xl-6 mt-3">
+    <div class="col-12 col-xl-4 mt-3">
         <div class="card shadow-sm">
             <div class="card-header h5">
                 JVM Memory Usage
@@ -45,7 +34,7 @@
         </div>
     </div>
 
-    <div class="col-12 col-xl-6 mt-3">
+    <div class="col-12 col-xl-4 mt-3">
         <div class="card shadow-sm">
             <div class="card-header h5">
                 Request Metrics
@@ -55,6 +44,17 @@
                     <div class="spinner-border ms-auto" aria-hidden="true"></div>
                 </div>
                 <canvas id="requestChart" class="d-none"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-xl-4 mt-3">
+        <div class="card shadow-sm">
+            <div class="card-header h5">
+                Cache Usage
+            </div>
+            <div class="card-body w-100 d-flex justify-content-center align-items-center" style="height: 450px;">
+                <canvas id="appCacheChart"></canvas>
             </div>
         </div>
     </div>
@@ -90,7 +90,7 @@
                 System Information
             </div>
             <div class="card-body w-100 p-3 d-flex flex-column gap-2 flex-fill">
-                <div className="d-flex flex-column gap-1">
+                <div class="d-flex flex-column gap-1">
                     <div class="text-muted small">
                         Cores
                     </div>
@@ -144,23 +144,23 @@
                         <tbody>
                             <tr>
                                 <td>Last Reap</td>
-                                <td>#dateTimeFormat(prc.cacheStats.getLastReapDateTime(), "short")#</td>
+                                <td id="statLastReap">--</td>
                             </tr>
                             <tr>
                                 <td>Hits</td>
-                                <td>#prc.cacheStats.getHits()#</td>
+                                <td id="statHits">--</td>
                             </tr>
                             <tr>
                                 <td>Misses</td>
-                                <td>#prc.cacheStats.getMisses()#</td>
+                                <td id="statMisses">--</td>
                             </tr>
                             <tr>
                                 <td>Evictions</td>
-                                <td>#prc.cacheStats.getEvictionCount()#</td>
+                                <td id="statEvictions">--</td>
                             </tr>
                             <tr>
                                 <td>Garbage Collections</td>
-                                <td>#prc.cacheStats.getGarbageCollections()#</td>
+                                <td id="statGarbageCollections">--</td>
                             </tr>
                         </tbody>
                     </table>

@@ -1,7 +1,7 @@
 component singleton accessors="true" {
 
     property name="async"          inject="asyncManager@coldbox";
-    property name="cacheService"   inject="services.cache";
+    property name="cache"          inject="cachebox:appCache";
     property name="pokemonService" inject="services.pokemon";
 
     /**
@@ -37,7 +37,7 @@ component singleton accessors="true" {
         ormFlush();
 
         // Clear the custom list cache
-        cacheService.clear('custom.getMine');
+        cache.clearByKeySnippet('custom.getMine');
         return newCustom.getId();
     }
 
@@ -55,8 +55,8 @@ component singleton accessors="true" {
         entitySave(custom);
         ormFlush();
 
-        cacheService.clear('custom.getMine');
-        cacheService.clear('|pokedex.getCustomRegistered|custom=#arguments.customid#');
+        cache.clearByKeySnippet('custom.getMine');
+        cache.clearByKeySnippet('|pokedex.getCustomRegistered|custom=#arguments.customid#');
         return;
     }
 
@@ -130,7 +130,7 @@ component singleton accessors="true" {
             cacheKey &= '|count=#arguments.count#';
         }
 
-        var custom = cacheService.get(cacheKey);
+        var custom = cache.get(cacheKey);
         if(isNull(custom)) {
             // Custom pokedex list where you are the creator, or the pokedex is public
             custom = ormExecuteQuery(
@@ -145,7 +145,7 @@ component singleton accessors="true" {
                 options
             );
 
-            cacheService.put(cacheKey, custom, 5, 5);
+            cache.set(cacheKey, custom, 5, 5);
         }
 
         return custom;
@@ -198,7 +198,7 @@ component singleton accessors="true" {
 
         entityDelete(arguments.custom);
         ormFlush();
-        cacheService.clear('custom.getMine');
+        cache.clearByKeySnippet('custom.getMine');
         return;
     }
 

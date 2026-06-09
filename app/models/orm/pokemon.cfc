@@ -23,7 +23,7 @@ component persistent="true" extends="base" {
     property name="formtype" ormtype="string" length="50";
     property name="ses"      ormtype="string" length="150";
     property name="costume" ormtype="boolean" default="0";
-    property name="costumetype" ormtype="string" length="150";
+    property name="costumetype" ormtype="string" length="150" default="";
 
     // relations
     property

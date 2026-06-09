@@ -1,6 +1,6 @@
 component singleton accessors="true" {
 
-    property name="cacheService" inject="services.cache";
+    property name="cache" inject="cachebox:appCache";
 
     private void function create(required struct moveProperties) {
         var newMove = entityNew('move', arguments.moveProperties);
@@ -35,20 +35,20 @@ component singleton accessors="true" {
 
     public array function getAllFastMoves() {
         var cacheKey     = 'move.getAllFastMoves';
-        var allFastMoves = cacheService.get(cacheKey);
+        var allFastMoves = cache.get(cacheKey);
         if(isNull(allFastMoves)) {
             allFastMoves = ormExecuteQuery('from move as move where move.turns > 0 order by move.name asc');
-            cacheService.put(cacheKey, allFastMoves, 720, 720);
+            cache.set(cacheKey, allFastMoves, 720, 720);
         }
         return allFastMoves;
     }
 
     public array function getAllChargeMoves() {
         var cacheKey       = 'move.getAllChargeMoves';
-        var allChargeMoves = cacheService.get(cacheKey);
+        var allChargeMoves = cache.get(cacheKey);
         if(isNull(allChargeMoves)) {
             allChargeMoves = ormExecuteQuery('from move as move where move.turns = 0 order by move.name asc');
-            cacheService.put(cacheKey, allChargeMoves, 720, 720);
+            cache.set(cacheKey, allChargeMoves, 720, 720);
         }
         return allChargeMoves;
     }

@@ -7,7 +7,7 @@
         loading="lazy"
     >
     <div>
-        <div class="text-muted"><i class="bi bi-person-circle me-1 text-muted"></i>#args.trainer.getUsername()#</div>
+        <div class="text-muted"><i class="bi bi-person-circle me-1 text-muted"></i>#encodeForHTML(args.trainer.getUsername())#</div>
         <div class="text-muted"><i class="bi bi-calendar3 me-1"></i>#args.date#</div>
     </div>
 </div>

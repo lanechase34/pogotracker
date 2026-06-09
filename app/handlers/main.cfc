@@ -3,7 +3,7 @@ component extends="base" {
     property name="async"             inject="asyncManager@coldbox";
     property name="auditService"      inject="services.audit";
     property name="blogService"       inject="services.blog";
-    property name="cacheService"      inject="services.cache";
+    property name="cache"             inject="cachebox:appCache";
     property name="generationService" inject="services.generation";
     property name="imageService"      inject="services.image";
     property name="persistService"    inject="services.persist";
@@ -42,7 +42,7 @@ component extends="base" {
         ) {
             setting requestTimeout=300;
 
-            cacheService.clearAll();
+            cache.clearAll();
             var start = getTickCount();
 
             // Warmup and load everything into cache

@@ -3,7 +3,7 @@ component singleton accessors="true" {
     property name="async"             inject="asyncManager@coldbox";
     property name="auditService"      inject="services.audit";
     property name="blogService"       inject="services.blog";
-    property name="cacheService"      inject="services.cache";
+    property name="cache"             inject="cachebox:appCache";
     property name="customService"     inject="services.custom";
     property name="generationService" inject="services.generation";
     property name="medalService"      inject="services.medal";
@@ -13,6 +13,9 @@ component singleton accessors="true" {
     property name="scraperService"    inject="services.scraper";
     property name="securityService"   inject="services.security";
     property name="utilService"       inject="services.util";
+
+    property name="defaultCache"  inject="cachebox:default";
+    property name="templateCache" inject="cachebox:template";
 
     property name="concurrency"    inject="coldbox:setting:concurrency";
     property name="costumeData"    inject="coldbox:setting:costumeData";
@@ -821,7 +824,7 @@ component singleton accessors="true" {
         ormFlush();
 
         // Flush pokemon cache
-        cacheService.clear('pokemon.');
+        cache.clearByKeySnippet('pokemon.');
 
         // Cache the pokemon data
         var allPokemon = pokemonService.getAll();
@@ -983,7 +986,7 @@ component singleton accessors="true" {
 
         ormFlush();
 
-        cacheService.remove('medal.getAll');
+        cache.clear('medal.getAll');
         return;
     }
 
@@ -1078,8 +1081,8 @@ component singleton accessors="true" {
 
         ormFlush();
 
-        cacheService.remove('move.getAllFastMoves');
-        cacheService.remove('move.getAllChargeMoves');
+        cache.clear('move.getAllFastMoves');
+        cache.clear('move.getAllChargeMoves');
         return;
     }
 
@@ -1179,17 +1182,31 @@ component singleton accessors="true" {
             }
         });
 
+        // Battle pass Pokemon encounters - Only include if it is a costume type
+        var battlePassPokemon = eventDoc
+            .body()
+            .select('.battle-pass-container .reward-item:has(div.reward-image > img[src*="pokemon_icons_crop"])');
+        battlePassPokemon.each((item) => {
+            var curr = item
+                .select('span.reward-name')
+                .text()
+                .trim();
+            if(getLeekduckNameMap().keyExists(curr) && isStruct(getLeekduckNameMap()[curr])) {
+                spawns[curr] = true;
+            }
+        });
+
         if(!spawns.count()) return;
 
         // Get when event starts and ends
-        var begins = formatStringToDate(
+        var begins = utilService.formatStringToDate(
             eventDoc
                 .body()
                 .select('span##event-date-start')
                 .text()
         );
 
-        var ends = formatStringToDate(
+        var ends = utilService.formatStringToDate(
             eventDoc
                 .body()
                 .select('span##event-date-end')
@@ -1285,9 +1302,9 @@ component singleton accessors="true" {
             }
 
             currPokemon.each((curr) => {
-                if(!map.keyExists('#curr.getName()#|#curr.getNumber()#|#curr.getGender()#')) {
+                if(!map.keyExists('#curr.getName()#|#curr.getNumber()#|#curr.getGender()#|#curr.getCostumeType()#')) {
                     pokemon.append(curr.getId());
-                    map.insert('#curr.getName()#|#curr.getNumber()#|#curr.getGender()#', true);
+                    map.insert('#curr.getName()#|#curr.getNumber()#|#curr.getGender()#|#curr.getCostumeType()#', true);
                 }
 
                 // Add its evolution(s)
@@ -1297,10 +1314,13 @@ component singleton accessors="true" {
                         var evolvedMon = evolution.getEvolution();
 
                         if(
-                            !map.keyExists('#evolvedMon.getName()#|#evolvedMon.getNumber()#|#evolvedMon.getGender()#') && !evolution.getSpecial()
+                            !map.keyExists('#evolvedMon.getName()#|#evolvedMon.getNumber()#|#evolvedMon.getGender()#|#evolvedMon.getCostumeType()#') && !evolution.getSpecial()
                         ) {
                             pokemon.append(evolvedMon.getId());
-                            map.insert('#evolvedMon.getName()#|#evolvedMon.getNumber()#|#evolvedMon.getGender()#', true);
+                            map.insert(
+                                '#evolvedMon.getName()#|#evolvedMon.getNumber()#|#evolvedMon.getGender()#|#evolvedMon.getCostumeType()#',
+                                true
+                            );
                         }
 
                         // Second stages
@@ -1310,11 +1330,11 @@ component singleton accessors="true" {
                                 var twoEvolvedMon = twoEvolution.getEvolution();
 
                                 if(
-                                    !map.keyExists('#twoEvolvedMon.getName()#|#twoEvolvedMon.getNumber()#|#twoEvolvedMon.getGender()#') && !twoEvolution.getSpecial()
+                                    !map.keyExists('#twoEvolvedMon.getName()#|#twoEvolvedMon.getNumber()#|#twoEvolvedMon.getGender()#|#twoEvolvedMon.getCostumeType()#') && !twoEvolution.getSpecial()
                                 ) {
                                     pokemon.append(twoEvolvedMon.getId());
                                     map.insert(
-                                        '#twoEvolvedMon.getName()#|#twoEvolvedMon.getNumber()#|#twoEvolvedMon.getGender()#',
+                                        '#twoEvolvedMon.getName()#|#twoEvolvedMon.getNumber()#|#twoEvolvedMon.getGender()#|#twoEvolvedMon.getCostumeType()#',
                                         true
                                     );
                                 }
@@ -1327,8 +1347,8 @@ component singleton accessors="true" {
         customService.createCustomPokedex(custom, pokemon);
 
         // Clear the cache
-        cacheService.clear('custom.getMine');
-        cacheService.clear('|pokedex.getCustomRegistered|custom=#custom.getId()#');
+        cache.clearByKeySnippet('custom.getMine');
+        cache.clearByKeySnippet('|pokedex.getCustomRegistered|custom=#custom.getId()#');
         return;
     }
 
@@ -1385,26 +1405,6 @@ component singleton accessors="true" {
             });
 
         return tasks;
-    }
-
-    /**
-     * Attempt to format the incoming string to date object
-     * Falls back to now() if fails
-     *
-     * @toFormat string that may contain a valid date
-     */
-    private date function formatStringToDate(required string toFormat) {
-        try {
-            // Remove trailing comma
-            if(toFormat[toFormat.len()] == ',') {
-                toFormat = toFormat.left(toFormat.len() - 1);
-            }
-
-            return dateTimeFormat(toFormat);
-        }
-        catch(any e) {
-            return now();
-        }
     }
 
     /**
@@ -1900,7 +1900,7 @@ component singleton accessors="true" {
                 .select('.pogo-list-item');
 
             items.each((item, idx) => {
-                var curr    = extractCustomData(item);
+                var curr    = extractCostumeData(item);
                 var costume = curr.fullcostume;
 
                 curr = {
@@ -1945,7 +1945,7 @@ component singleton accessors="true" {
                 .select('.pogo-list-item');
 
             shinyItems.each((item, idx) => {
-                var curr = extractCustomData(item);
+                var curr = extractCostumeData(item);
                 costumes[curr.ses].shinySpriteSrc = curr.imgSrc;
             });
 
@@ -2060,7 +2060,7 @@ component singleton accessors="true" {
      *
      * @item jsoup selected item
      */
-    private struct function extractCustomData(required any item) {
+    private struct function extractCostumeData(required any item) {
         var nameEl = item.selectFirst('.pogo-list-item-name');
         var numEl  = item.selectFirst('.pogo-list-item-number');
         var formEl = item.selectFirst('.pogo-list-item-form');
@@ -2103,6 +2103,57 @@ component singleton accessors="true" {
         curr.ses         = createSes(curr);
         curr.costumetype = utilService.capitalizeWords(costume);
         return curr;
+    }
+
+    /**
+     * Returns detailed information the current cache state
+     * Includes list of all keys stored in coldbox, rate, and ws caches
+     */
+    public struct function getCacheData() {
+        var stats = cache.getStats();
+
+        var cacheData    = formatCacheData(cache, 'appCache');
+        var defaultData  = formatCacheData(defaultCache, 'defaultCache');
+        var templateData = formatCacheData(templateCache, 'templateCache');
+
+        var data = cacheData.append(defaultData, true).append(templateData, true);
+
+        var info = {
+            lastReapDateTime  : stats.getLastReapDateTime(),
+            hits              : stats.getHits(),
+            misses            : stats.getMisses(),
+            evictionCount     : stats.getEvictionCount(),
+            garbageCollections: stats.getGarbageCollections(),
+            maxObjects        : cache.getConfiguration().maxObjects,
+            data              : data
+        };
+
+        return info;
+    }
+
+    /**
+     * Format the data stored in the cached passed in
+     * Returns an array of structs
+     *
+     * @cacheInstance cache instance
+     * @name          what the cache is called
+     */
+    private array function formatCacheData(required component cacheInstance, required string name) {
+        var data = cacheInstance.getCachedObjectMetadataMulti(cacheInstance.getKeys().toList(','));
+
+        return data.reduce((result, key, value) => {
+            return result.append({
+                id               : key,
+                key              : key,
+                created          : dateTimeFormat(value.created, 'long'),
+                hits             : value.hits,
+                expired          : value.isExpired,
+                lastaccessed     : dateTimeFormat(value.lastAccessed, 'long'),
+                lastaccesstimeout: value.lastAccessTimeout,
+                timeout          : value.timeout,
+                storage          : name
+            });
+        }, []);
     }
 
 }

@@ -144,11 +144,7 @@ component extends="base" {
             prc.responseObj.statusCode = 200;
         }
 
-        event.renderData(
-            type       = 'json',
-            data       = prc.responseObj,
-            statusCode = prc.responseObj.statusCode
-        );
+        renderJson(event = event, response = prc.responseObj);
     }
 
 }

@@ -102,7 +102,7 @@ export async function getBlogs({ $div, count, offset, showImage, exclude, sideba
                 if (blogFetchStruct.currOffset >= currentMax) {
                     window.removeEventListener('scroll', blogFetchStruct.scrollHandler);
                     window.removeEventListener('resize', blogFetchStruct.resizeHandler);
-                    if (isDesktop && !sidebar) {
+                    if (!sidebar) {
                         showLoadMoreButton($div, { showImage, exclude, sidebar });
                     }
                     return;

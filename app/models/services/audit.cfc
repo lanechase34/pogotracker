@@ -1,7 +1,7 @@
 component singleton accessors="true" {
 
     property name="async"           inject="asyncManager@coldbox";
-    property name="cacheService"    inject="services.cache";
+    property name="cache"           inject="cachebox:appCache";
     property name="trainerService"  inject="services.trainer";
     property name="securityService" inject="services.security";
 
@@ -145,10 +145,10 @@ component singleton accessors="true" {
      */
     private numeric function getTotalRecords() {
         var cacheKey = 'audit.getTotalRecords';
-        var count    = cacheService.get(cacheKey);
+        var count    = cache.get(cacheKey);
         if(isNull(count)) {
             count = ormExecuteQuery('select count(id) from audit')[1];
-            cacheService.put(cacheKey, count, 5, 5);
+            cache.set(cacheKey, count, 5, 5);
         }
         return count;
     }
@@ -278,10 +278,10 @@ component singleton accessors="true" {
      */
     private numeric function getTotalRequestRecords() {
         var cacheKey = 'audit.getTotalRequestRecords';
-        var count    = cacheService.get(cacheKey);
+        var count    = cache.get(cacheKey);
         if(isNull(count)) {
             count = ormExecuteQuery('select count(id) from requestlog')[1];
-            cacheService.put(cacheKey, count, 5, 5);
+            cache.set(cacheKey, count, 5, 5);
         }
         return count;
     }

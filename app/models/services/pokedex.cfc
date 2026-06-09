@@ -1,6 +1,6 @@
 component singleton accessors="true" {
 
-    property name="cacheService"      inject="services.cache";
+    property name="cache"             inject="cachebox:appCache";
     property name="generationService" inject="services.generation";
     property name="maxThreads"        inject="coldbox:setting:maxThreads";
     property name="pokemonService"    inject="services.pokemon";
@@ -20,7 +20,7 @@ component singleton accessors="true" {
         boolean costume = false
     ) {
         var cacheKey   = '#arguments.trainer.getId()#|pokedex.getRegistered|region=#arguments.region#|form=#arguments.form#|mega=#arguments.mega#|shadow=#arguments.shadow#|giga=#arguments.giga#|costume=#arguments.costume#';
-        var registered = cacheService.get(cacheKey);
+        var registered = cache.get(cacheKey);
         if(isNull(registered)) {
             var whereClause = 'WHERE pokemon.costume = :costume AND pokemon.mega = :mega AND pokemon.giga = :giga';
             var params      = {
@@ -48,12 +48,12 @@ component singleton accessors="true" {
                 from pokemon as pokemon
                 left outer join pokemon.pokedex as pokedex with pokedex.trainer = :trainer
                 #whereClause#
-                order by pokemon.generation asc, pokemon.number asc, pokemon.form asc, pokemon.name asc
+                order by pokemon.generation asc, pokemon.number asc, pokemon.costume asc, pokemon.costumetype asc, pokemon.form asc, pokemon.name asc
                 ',
                 params
             );
 
-            cacheService.put(cacheKey, registered, 10, 10);
+            cache.set(cacheKey, registered, 10, 10);
         }
 
         return registered;
@@ -105,15 +105,15 @@ component singleton accessors="true" {
         ormFlush();
 
         // Clear trainer's pokedex cache on update
-        cacheService.clear(filter = '#arguments.trainer.getId()#|pokedex.getRegistered|region=|'); // shadow dex
-        cacheService.clear(
-            filter = '#arguments.trainer.getId()#|pokedex.getRegistered|region=#arguments.pokemon.getGeneration().getRegion()#'
+        cache.clearByKeySnippet('#arguments.trainer.getId()#|pokedex.getRegistered|region=|'); // shadow dex
+        cache.clearByKeySnippet(
+            '#arguments.trainer.getId()#|pokedex.getRegistered|region=#arguments.pokemon.getGeneration().getRegion()#'
         ); // normal dex
-        cacheService.clear(filter = '#arguments.trainer.getId()#|pokedex.getCustomRegistered'); // custom dex
+        cache.clearByKeySnippet('#arguments.trainer.getId()#|pokedex.getCustomRegistered'); // custom dex
         // Clear trainer's pokedex stats cache
-        cacheService.remove(key = '#arguments.trainer.getId()#|stats.getPokedexStats');
+        cache.clear('#arguments.trainer.getId()#|stats.getPokedexStats');
         // Strings
-        cacheService.remove(key = '#arguments.trainer.getId()#|pokedex.getMissingString');
+        cache.clear('#arguments.trainer.getId()#|pokedex.getMissingString');
         return;
     }
 
@@ -163,7 +163,7 @@ component singleton accessors="true" {
      */
     public array function getCustomRegistered(required component trainer, required component custom) {
         var cacheKey         = '#arguments.trainer.getId()#|pokedex.getCustomRegistered|custom=#arguments.custom.getId()#';
-        var customRegistered = cacheService.get(cacheKey);
+        var customRegistered = cache.get(cacheKey);
         if(isNull(customRegistered)) {
             customRegistered = ormExecuteQuery(
                 '
@@ -171,12 +171,12 @@ component singleton accessors="true" {
                 left outer join pokemon.pokedex as pokedex with pokedex.trainer = :trainer
                 inner join pokemon.custompokedex as custompokedex
                 where custompokedex.custom = :custom
-                order by pokemon.generation asc, pokemon.number asc, pokemon.form asc, pokemon.name asc
+                order by pokemon.generation asc, pokemon.number asc, pokemon.costume asc, pokemon.costumetype asc, pokemon.form asc, pokemon.name asc
                 ',
                 {'trainer': arguments.trainer, 'custom': arguments.custom}
             );
 
-            cacheService.put(cacheKey, customRegistered, 10, 10);
+            cache.set(cacheKey, customRegistered, 10, 10);
         }
 
         return customRegistered;
@@ -214,7 +214,7 @@ component singleton accessors="true" {
      */
     public string function getMissingString(required component trainer, required boolean shiny) {
         var cacheKey       = '#arguments.trainer.getId()#|pokedex.getMissingString';
-        var missingStrings = cacheService.get(cacheKey);
+        var missingStrings = cache.get(cacheKey);
 
         if(isNull(missingStrings)) {
             q = queryExecute(
@@ -238,7 +238,7 @@ component singleton accessors="true" {
                 shiny : 'shiny&#utilService.removeDuplicates(q.missingShiny)#'
             };
 
-            cacheService.put(cacheKey, missingStrings, 10, 10);
+            cache.set(cacheKey, missingStrings, 10, 10);
         }
 
         return arguments.shiny ? missingStrings.shiny : missingStrings.caught;

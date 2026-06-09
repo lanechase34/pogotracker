@@ -446,14 +446,17 @@ component {
                     entityExists: {entityName: 'trainer', pk: true}
                 },
                 username: {
-                    required: true,
-                    size    : '5..30',
-                    type    : 'string'
+                    required           : true,
+                    size               : '5..30',
+                    type               : 'string',
+                    regex              : '^[a-zA-Z0-9_]+$',
+                    uniqueDatabaseField: {table: 'trainer', column: 'username'}
                 },
                 email: {
-                    required: true,
-                    size    : '3..100',
-                    type    : 'email'
+                    required           : true,
+                    size               : '3..100',
+                    type               : 'email',
+                    uniqueDatabaseField: {table: 'trainer', column: 'email'}
                 },
                 password: {
                     type: 'string',
@@ -463,9 +466,11 @@ component {
                     }
                 },
                 friendcode: {
-                    size : 12,
-                    regex: '^[0-9]+$',
-                    type : 'string'
+                    required           : true,
+                    size               : 12,
+                    regex              : '^[0-9]+$',
+                    type               : 'numeric',
+                    uniqueDatabaseField: {table: 'trainer', column: 'friendcode'}
                 },
                 securityLevel: {type: 'numeric'},
                 icon         : {

@@ -1,7 +1,7 @@
 component singleton accessors="true" {
 
     property name="async"          inject="asyncManager@coldbox";
-    property name="cacheService"   inject="services.cache";
+    property name="cache"          inject="cachebox:appCache";
     property name="trainerService" inject="services.trainer";
 
     property name="datatableCols" type="array";
@@ -122,10 +122,10 @@ component singleton accessors="true" {
      */
     public numeric function getTotalRecords() {
         var cacheKey = 'bug.getTotalRecords';
-        var count    = cacheService.get(cacheKey);
+        var count    = cache.get(cacheKey);
         if(isNull(count)) {
             count = ormExecuteQuery('select count(id) from bug')[1];
-            cacheService.put(cacheKey, count, 5, 5);
+            cache.set(cacheKey, count, 5, 5);
         }
         return count;
     }

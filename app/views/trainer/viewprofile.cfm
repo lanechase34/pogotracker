@@ -10,7 +10,7 @@
         <div class="h-100 w-100 card shadow-sm">
             <div class="card-body text-center p-4">
                 <img class="profileAvatar mb-3" id="profileIcon" src="#prc.trainer.getIconPath()#" alt="#prc.trainer.getIconAltText()#">
-                <h5 class="fw-bold mb-1" id="mainProfileUsername" data-trainerid="#prc.trainer.getId()#">#prc.trainer.getUsername()#</h5>
+                <h5 class="fw-bold mb-1" id="mainProfileUsername" data-trainerid="#prc.trainer.getId()#">#encodeForHTML(prc.trainer.getUsername())#</h5>
                 <span class="badge bg-dark mb-3">Level #prc.statStruct.level#</span>
                 <cfif prc.statStruct.level != "--" AND prc.statStruct.level LT 80>
                     <div class="px-2">
@@ -34,7 +34,7 @@
                 </div>
                 <div class="row g-0 py-2 border-bottom align-items-center">
                     <div class="col-sm-3 text-muted small fw-semibold">Username</div>
-                    <div class="col-sm-9" id="profileUsername">#prc.trainer.getUsername()#</div>
+                    <div class="col-sm-9" id="profileUsername">#encodeForHTML(prc.trainer.getUsername())#</div>
                 </div>
                 <cfif prc.myProfile>
                     <div class="row g-0 py-2 border-bottom align-items-center">

@@ -22,7 +22,7 @@
                                 <span class="home-rank-badge<cfif i LTE 3> home-rank-#i#</cfif>">#i#</span>
                             </td>
                             <td>#isNumeric(currTrainer.delta) ? reReplace(numberFormat(currTrainer.delta, ",.0"), "\.0$", "") : "--"#</td>
-                            <td>#currTrainer.username#</td>
+                            <td>#encodeForHTML(currTrainer.username)#</td>
                         </tr>
                     </cfloop>
 

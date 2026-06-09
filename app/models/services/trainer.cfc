@@ -1,7 +1,7 @@
 component singleton accessors="true" {
 
     property name="async"           inject="asyncManager@coldbox";
-    property name="cacheService"    inject="services.cache";
+    property name="cache"           inject="cachebox:appCache";
     property name="securityService" inject="services.security";
 
     property name="datatableCols" type="array";
@@ -32,9 +32,14 @@ component singleton accessors="true" {
         ]);
     }
 
+    /**
+     * Load a trainer entity by id
+     *
+     * @trainerid pk of trainer
+     */
     public component function getFromId(required numeric trainerid) {
         var cacheKey = 'trainer.getFromId|trainerid=#arguments.trainerid#';
-        var trainer  = cacheService.get(cacheKey);
+        var trainer  = cache.get(cacheKey);
         if(isNull(trainer)) {
             trainer = entityLoadByPK('trainer', arguments.trainerid);
             // Make sure relationships are loaded before being cached
@@ -42,11 +47,14 @@ component singleton accessors="true" {
             trainer.getUnlockedIcons();
             trainer.getIconPath();
             trainer.getIconAltText();
-            cacheService.put(cacheKey, trainer);
+            cache.set(cacheKey, trainer);
         }
         return trainer;
     }
 
+    /**
+     * Datatable getter for the trainer table
+     */
     public struct function get(
         required numeric records,
         required numeric offset,
@@ -115,16 +123,25 @@ component singleton accessors="true" {
         };
     }
 
+    /**
+     * Return total number of trainers
+     */
     public numeric function getTotalRecords() {
         var cacheKey = 'trainer.getTotalRecords';
-        var count    = cacheService.get(cacheKey);
+        var count    = cache.get(cacheKey);
         if(isNull(count)) {
             count = ormExecuteQuery('select count(id) from trainer', {}, true);
-            cacheService.put(cacheKey, count, 5, 5);
+            cache.set(cacheKey, count, 5, 5);
         }
         return count;
     }
 
+    /**
+     * Updates the trainer's json settings structure
+     *
+     * @trainer  trainer entity
+     * @settings settings struct
+     */
     public void function updateSettings(required component trainer, required struct settings) {
         trainer.setSettings(arguments.settings);
         entitySave(trainer);

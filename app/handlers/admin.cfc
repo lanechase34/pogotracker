@@ -27,14 +27,15 @@ component extends="base" {
         requestLog            : 'GET',
         getRequests           : 'GET',
         updateSiteMap         : 'GET',
-        buildCostumeData      : 'GET'
+        buildCostumeData      : 'GET',
+        getCacheData          : 'GET'
     };
 
     property name="auditService"      inject="services.audit";
     property name="adminService"      inject="services.admin";
     property name="blogService"       inject="services.blog";
     property name="bugService"        inject="services.bug";
-    property name="cacheService"      inject="services.cache";
+    property name="cache"             inject="cachebox:appCache";
     property name="friendService"     inject="services.friend";
     property name="medalService"      inject="services.medal";
     property name="moveService"       inject="services.move";
@@ -91,11 +92,7 @@ component extends="base" {
         prc.responseObj.data.draw  = rc.draw;
         prc.responseObj.statusCode = 200;
 
-        event.renderData(
-            type       = 'json',
-            data       = prc.responseObj.data,
-            statusCode = prc.responseObj.statusCode
-        );
+        renderJson(event = event, response = prc.responseObj.data);
     }
 
     function listTrainers(event, rc, prc) {
@@ -124,11 +121,7 @@ component extends="base" {
         prc.responseObj.data.draw  = rc.draw;
         prc.responseObj.statusCode = 200;
 
-        event.renderData(
-            type       = 'json',
-            data       = prc.responseObj.data,
-            statusCode = prc.responseObj.statusCode
-        );
+        renderJson(event = event, response = prc.responseObj.data);
     }
 
     function editTrainer(event, rc, prc) {
@@ -205,11 +198,7 @@ component extends="base" {
         prc.responseObj.data.draw  = rc.draw;
         prc.responseObj.statusCode = 200;
 
-        event.renderData(
-            type       = 'json',
-            data       = prc.responseObj.data,
-            statusCode = prc.responseObj.statusCode
-        );
+        renderJson(event = event, response = prc.responseObj.data);
     }
 
     function requestLog(event, rc, prc) {
@@ -238,11 +227,7 @@ component extends="base" {
         prc.responseObj.data.draw  = rc.draw;
         prc.responseObj.statusCode = 200;
 
-        event.renderData(
-            type       = 'json',
-            data       = prc.responseObj.data,
-            statusCode = prc.responseObj.statusCode
-        );
+        renderJson(event = event, response = prc.responseObj.data);
     }
 
     function bugLog(event, rc, prc) {
@@ -271,20 +256,18 @@ component extends="base" {
         prc.responseObj.data.draw  = rc.draw;
         prc.responseObj.statusCode = 200;
 
-        event.renderData(
-            type       = 'json',
-            data       = prc.responseObj.data,
-            statusCode = prc.responseObj.statusCode
-        );
+        renderJson(event = event, response = prc.responseObj.data);
     }
 
     function serverInfo(event, rc, prc) {
         prc.timezone    = getTimezone();
         prc.timestamp   = now();
-        prc.cacheData   = cacheService.getData();
-        prc.cacheStats  = cacheService.getStats();
         prc.securityMap = securityService.getSecurityMap();
         prc.baseURL     = getSetting('environment') != 'production' ? 'localhost' : '';
+    }
+
+    function getCacheData(event, rc, prc) {
+        renderJson(event = event, response = adminService.getCacheData());
     }
 
     function buildMedalData(event, rc, prc) {

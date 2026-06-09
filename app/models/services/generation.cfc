@@ -1,6 +1,6 @@
 component singleton accessors="true" {
 
-    property name="cacheService" inject="services.cache";
+    property name="cache" inject="cachebox:appCache";
     property name="generationMap" type="struct";
 
     public void function init() {
@@ -10,10 +10,10 @@ component singleton accessors="true" {
 
     public array function getAll() {
         var cacheKey       = 'generation.getAll';
-        var allGenerations = cacheService.get(cacheKey);
+        var allGenerations = cache.get(cacheKey);
         if(isNull(allGenerations)) {
             allGenerations = entityLoad('generation', {}, 'generation asc');
-            cacheService.put(cacheKey, allGenerations, 720, 720);
+            cache.set(cacheKey, allGenerations, 720, 720);
         }
         return allGenerations;
     }

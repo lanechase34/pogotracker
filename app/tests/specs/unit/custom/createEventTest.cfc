@@ -11,7 +11,8 @@ component extends="tests.resources.baseTest" asyncAll="false" {
             'Cozy Companions',
             'Steeled Resolve',
             'Steeled Resolve 2026',
-            'Spring Marathon 2026'
+            'Spring Marathon 2026',
+            'Candela''s Quest for Victory'
         ];
         eventNames.each((name) => {
             customHelperFunctions.deleteByName(name);
@@ -297,7 +298,8 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                     'Flower Crown Togetic'   : 1,
                     'Cherry Blossom Umbreon' : 1,
                     'Cherry Blossom Vaporeon': 1,
-                    'Flower Crown Whimsicott': 1
+                    'Flower Crown Whimsicott': 1,
+                    'Marathon Visor Pikachu' : 1
                 };
 
                 expect(customPokedex.len()).toBe(expectedSpawns.count());
@@ -309,6 +311,50 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                         curr = '#entry.getPokemon().getCostumeType()# #curr#';
                     }
                     expect(expectedSpawns).toHaveKey(curr);
+                    structDelete(expectedSpawns, curr);
+                });
+
+                expect(expectedSpawns.count()).toBe(0);
+            });
+
+            it('Can create event with a normal pokemon and its costume form from the battle pass', () => {
+                eventLink   = 'https://leekduck.com/events/candelas-quest-for-victory/';
+                beforeCount = customHelperFunctions.count();
+
+                adminService.createEvent(eventLink);
+
+                // Verify a custom pokedex was created for the event
+                afterCount = customHelperFunctions.count();
+                expect(afterCount).toBe(beforeCount + 1);
+                customid = customHelperFunctions.getMostRecentCreated();
+                custom   = customService.getFromId(customid);
+                expect(custom).toBeComponent();
+
+                // Verify the contents of the custom pokedex
+                expect(custom.getName()).toBe('Candela''s Quest for Victory');
+                expect(custom.getPublic()).toBeTrue();
+                expect(custom.getTrainer().getId()).toBe(1); // defaults to administrator since this is a scheduled task typically
+                expect(custom.getLink()).toBe(eventLink);
+                expect(custom.getBegins()).toBe(createDate(2026, 6, 9));
+                expect(custom.getEnds()).toBe(createDate(2026, 6, 15));
+
+                // Verify the pokedex for the custom pokedex
+                customPokedex = custom.getCustomPokedex();
+
+                // Only check the base + costume variant (from battle pass)
+                expectedSpawns = {
+                    'Ponyta'          : 1,
+                    'Candela Ponyta'  : 1,
+                    'Rapidash'        : 1,
+                    'Candela Rapidash': 1
+                };
+
+                customPokedex.each((entry) => {
+                    // Build the pokemon key using costumetype too
+                    var curr = entry.getPokemon().getName();
+                    if(entry.getPokemon().getCostume()) {
+                        curr = '#entry.getPokemon().getCostumeType()# #curr#';
+                    }
                     structDelete(expectedSpawns, curr);
                 });
 

@@ -4,7 +4,7 @@ component {
         // Add costume pokemon
         schema.alter('pokemon', (table) => {
             table.addColumn(table.boolean('costume').default(false));
-            table.addColumn(table.string('costumetype', 150).nullable());
+            table.addColumn(table.string('costumetype', 150).default(''));
         });
     }
 

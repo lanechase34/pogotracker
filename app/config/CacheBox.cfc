@@ -58,6 +58,28 @@ component {
                         maxObjects                    : 2000,
                         objectStore                   : 'ConcurrentSoftReferenceStore' // memory sensitive
                     }
+                },
+                /**
+				 * --------------------------------------------------------------------------
+				 * Application Cache
+				 * --------------------------------------------------------------------------
+				 * Dedicated cache region for all application data (pokemon, pokedex, stats,
+				 * blog, trainer data, etc). Isolated from the default and template caches.
+				 * All timeouts are in minutes.
+				 */
+                appCache: {
+                    provider  : 'coldbox.system.cache.providers.CacheBoxColdBoxProvider',
+                    properties: {
+                        objectDefaultTimeout          : 120,
+                        objectDefaultLastAccessTimeout: 30,
+                        useLastAccessTimeouts         : true,
+                        freeMemoryPercentageThreshold : 0,
+                        reapFrequency                 : 5,
+                        evictionPolicy                : 'LRU',
+                        evictCount                    : 1,
+                        maxObjects                    : 2000,
+                        objectStore                   : 'ConcurrentStore'
+                    }
                 }
             }
         };

@@ -10,6 +10,7 @@ component extends="coldbox.system.testing.BaseInterceptorTest" interceptor="inte
         mockAsync           = createEmptyMock('coldbox.system.async.AsyncManager');
         mockAuditService    = createEmptyMock(className = 'models.services.audit');
         mockSecurityService = createEmptyMock(className = 'models.services.security');
+        mockUtilService     = createEmptyMock(className = 'models.services.util');
         mockConcurrency     = {slowRequests: []};
 
         // Mock audit settings
@@ -49,6 +50,7 @@ component extends="coldbox.system.testing.BaseInterceptorTest" interceptor="inte
 
                 interceptor.$property(propertyName = 'auditService', mock = mockAuditService);
                 interceptor.$property(propertyName = 'securityService', mock = mockSecurityService);
+                interceptor.$property(propertyName = 'utilService', mock = mockUtilService);
 
                 // Mock event and data objects
                 mockRequestContext = createEmptyMock('coldbox.system.web.context.RequestContext');
@@ -62,7 +64,7 @@ component extends="coldbox.system.testing.BaseInterceptorTest" interceptor="inte
                 mockSecurityService.$('getRequestIP', '192.168.1.100');
                 mockSecurityService.$('getUserAgent', 'Mozilla/5.0 Test Browser');
                 mockSecurityService.$('getReferer', 'https://pogotracker.app');
-                mockSecurityService.$('isJsonRequest', true);
+                mockUtilService.$('isJsonRequest', true);
                 mockRequestContext.$('getFullPath', '/api/v1/users');
                 mockRequestContext.$('getHTTPMethod', 'GET');
 
@@ -403,7 +405,7 @@ component extends="coldbox.system.testing.BaseInterceptorTest" interceptor="inte
 
                 describe('JSON Request', () => {
                     beforeEach(() => {
-                        mockSecurityService.$('isJsonRequest', true);
+                        mockUtilService.$('isJsonRequest', true);
                     });
 
                     it('Should set statuscode from prc.responseObj', () => {
@@ -433,7 +435,7 @@ component extends="coldbox.system.testing.BaseInterceptorTest" interceptor="inte
 
                 describe('Coldbox Request', () => {
                     beforeEach(() => {
-                        mockSecurityService.$('isJsonRequest', false);
+                        mockUtilService.$('isJsonRequest', false);
 
                         mockRequestContext.$('getStatusCode');
                         mockRequestContext.$('getCurrentLayout', '');

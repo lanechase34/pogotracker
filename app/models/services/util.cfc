@@ -37,4 +37,59 @@ component singleton accessors="true" {
         );
     }
 
+    /**
+     * Attempt to format the incoming string to date object
+     * Falls back to now() if fails
+     *
+     * @toFormat string that may contain a valid date
+     */
+    public date function formatStringToDate(required string toFormat) {
+        try {
+            // Remove trailing comma
+            if(toFormat[toFormat.len()] == ',') {
+                toFormat = toFormat.left(toFormat.len() - 1);
+            }
+
+            return dateTimeFormat(toFormat);
+        }
+        catch(any e) {
+            return now();
+        }
+    }
+
+    /**
+     * Determine if the request is accepting json by looking at the headers
+     */
+    public boolean function isJsonRequest() {
+        if(!getHTTPRequestData().headers.keyExists('Accept')) return false;
+        var accept = getHTTPRequestData().headers.accept.listToArray(',');
+        return accept.some((type) => type.trim() == 'application/json');
+    }
+
+    /**
+     * Returns timestamp of date at 00:00:00
+     *
+     * @low date
+     */
+    public date function makeLowDate(required date low) {
+        return createDateTime(year(low), month(low), day(low), 0, 0, 0);
+    }
+
+    /**
+     * Returns timestamp of date at 23:59:59
+     *
+     * @high date
+     */
+    public date function makeHighDate(required date high) {
+        return dateAdd(
+            's',
+            -1,
+            dateAdd(
+                'd',
+                1,
+                createDateTime(year(high), month(high), day(high), 0, 0, 0)
+            )
+        );
+    }
+
 }

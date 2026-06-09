@@ -279,7 +279,7 @@
             </h2>
             <div class="collapse show" id="costumesCollapse">
             <div class="card-body">
-                <div class="d-flex flex-wrap gap-3">
+                <div class="d-flex flex-wrap gap-3 justify-content-center justify-content-sm-start">
                     <cfloop index="i" item="costume" array="#prc.detail.costumes#">
                     <div class="pokemon-entry costume-entry">
                         <div class="pokemon-sprite-pair">

@@ -1,7 +1,7 @@
 component singleton accessors="true" {
 
     property name="auditService"    inject="services.audit";
-    property name="cacheService"    inject="services.cache";
+    property name="cache"           inject="cachebox:appCache";
     property name="persistService"  inject="services.persist";
     property name="securityService" inject="services.security";
     property name="trainerService"  inject="services.trainer";
@@ -10,7 +10,7 @@ component singleton accessors="true" {
 
     public void function destroy(required boolean idle) {
         if(session.keyExists('trainerid')) {
-            cacheService.remove('trainer.getFromId|trainerid=#session.trainerid#');
+            cache.clear('trainer.getFromId|trainerid=#session.trainerid#');
         }
 
         // Invalidate JEE session
@@ -120,7 +120,7 @@ component singleton accessors="true" {
 
     public void function update(required numeric trainerid) {
         // Clear cache first
-        cacheService.remove('trainer.getFromId|trainerid=#session.trainerid#');
+        cache.clear('trainer.getFromId|trainerid=#session.trainerid#');
 
         var trainer = trainerService.getFromId(arguments.trainerid);
 

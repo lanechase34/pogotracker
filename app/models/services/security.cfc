@@ -1,11 +1,14 @@
 component singleton accessors="true" {
 
-    property name="cacheService"   inject="services.cache";
+    property name="cache"          inject="cachebox:appCache";
     property name="domain"         inject="coldbox:setting:domain";
     property name="emailService"   inject="services.email";
     property name="sessionService" inject="services.session";
     property name="trainerService" inject="services.trainer";
     property name="useRecaptcha"   inject="coldbox:setting:useRecaptcha";
+
+    property name="resetPasswordLifespan" inject="coldbox:setting:resetPasswordLifespan";
+    property name="resetPasswordCooldown" inject="coldbox:setting:resetPasswordCooldown";
 
     property name="securityMap"    type="struct";
     property name="securityLevels" type="struct";
@@ -117,7 +120,7 @@ component singleton accessors="true" {
     /**
      * Return trainer component based on email
      *
-     * @email 
+     * @email trainer's email
      */
     public any function getTrainer(required string email) {
         var trainer = entityLoad('trainer', {'email': lCase(arguments.email)});
@@ -192,7 +195,7 @@ component singleton accessors="true" {
         string verified
     ) {
         // Clear the user from cache
-        cacheService.remove('trainer.getFromId|trainerid=#arguments.trainerid#');
+        cache.clear('trainer.getFromId|trainerid=#arguments.trainerid#');
 
         var trainer = trainerService.getFromId(arguments.trainerid);
         trainer.setUsername(arguments.username);
@@ -263,7 +266,11 @@ component singleton accessors="true" {
         }
 
         // Make sure username is unique
-        var checkUsernameInput = entityLoad('trainer', {'username': lCase(arguments.username)});
+        var checkUsernameInput = ormExecuteQuery(
+            'from trainer where lower(username) = :username',
+            {username: lCase(arguments.username)}
+        );
+
         if(lCase(trainer.getUsername()) != lCase(arguments.username) && checkUsernameInput.len()) {
             return false;
         }
@@ -493,12 +500,12 @@ component singleton accessors="true" {
         if(
             isNull(trainer.getResetSentDate()) ||
             isNull(trainer.getResetCode()) ||
-            dateDiff('n', trainer.getResetSentDate(), now()) > application.cbController.getSetting('resetPasswordLifespan') ||
-            dateDiff('s', trainer.getResetSentDate(), now()) > application.cbController.getSetting('resetPasswordCooldown')
+            dateDiff('n', trainer.getResetSentDate(), now()) > getResetPasswordLifespan() ||
+            dateDiff('s', trainer.getResetSentDate(), now()) > getResetPasswordCooldown()
         ) {
             var resetLinkInfo = createResetLink(trainer);
 
-            var lifespan  = application.cbController.getSetting('resetPasswordLifespan');
+            var lifespan  = getResetPasswordLifespan();
             var expires   = dateAdd('n', lifespan, resetLinkInfo.sent);
             var resetLink = resetLinkInfo.link;
 
@@ -535,9 +542,7 @@ component singleton accessors="true" {
         trainer = trainer[1];
 
         // Link was expired
-        if(
-            dateDiff('n', trainer.getResetSentDate(), now()) > application.cbController.getSetting('resetPasswordLifespan')
-        ) {
+        if(dateDiff('n', trainer.getResetSentDate(), now()) > getResetPasswordLifespan()) {
             sessionService.setAlert(
                 'danger',
                 true,
@@ -628,16 +633,7 @@ component singleton accessors="true" {
             action   : ''
         };
 
-        return !application.cbController.getSetting('useRecaptcha') ? true : valid;
-    }
-
-    /**
-     * Determine if the request is accepting json by looking at the headers
-     */
-    public boolean function isJsonRequest() {
-        if(!getHTTPRequestData().headers.keyExists('Accept')) return false;
-        var accept = getHTTPRequestData().headers.accept.listToArray(',');
-        return accept.some((type) => type.trim() == 'application/json');
+        return !getUseRecaptcha() ? true : valid;
     }
 
 }
