@@ -1,7 +1,7 @@
 component singleton accessors="true" {
 
-    property name="async" inject="asyncManager@coldbox";
-    property name="cache" inject="cachebox:appCache";
+    property name="async"       inject="asyncManager@coldbox";
+    property name="cache"       inject="cachebox:appCache";
     property name="utilService" inject="services.util";
 
     /**
