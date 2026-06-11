@@ -47,12 +47,19 @@ component singleton accessors="true" {
         // Perform necessary scrapes in tandem
         var scrapes = async
             .all(
-                () => scraperService.getData('https://pokemondb.net/go/pokedex'),
-                () => scraperService.getData('https://pokemondb.net/go/shiny'),
-                () => getShadowData() ? shadowDoc = scraperService.getData(
-                    'https://bulbapedia.bulbagarden.net/wiki/List_of_Shadow_Pok%C3%A9mon_in_Pok%C3%A9mon_GO'
-                ) : '',
-                () => scraperService.getData('https://pokemondb.net/go/evolution')
+                () => {
+                    return scraperService.getData('https://pokemondb.net/go/pokedex');
+                },
+                () => {
+                    return scraperService.getData('https://pokemondb.net/go/shiny');
+                },
+                () => {
+                    return getShadowData() ? scraperService.getData('https://bulbapedia.bulbagarden.net/wiki/List_of_Shadow_Pok%C3%A9mon_in_Pok%C3%A9mon_GO')
+                     : '';
+                },
+                () => {
+                    return scraperService.getData('https://pokemondb.net/go/evolution');
+                }
             )
             .get();
 

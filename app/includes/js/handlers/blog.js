@@ -47,7 +47,8 @@ function showLoadMoreButton($div, { showImage, exclude, sidebar }) {
                     resizeHomeCards();
                 }
 
-                if (newDiv.querySelector('.blogCard')) {
+                // Only show load more button if we retrieved the maximum count for the current offset back
+                if (newDiv.querySelectorAll('.blogCard').length === blogFetchStruct.count) {
                     $btn.disabled = false;
                     $btn.innerHTML = '<i class="bi bi-arrow-down-circle me-2"></i>Load More';
                 } else {

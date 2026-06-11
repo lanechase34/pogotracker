@@ -16,6 +16,28 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Deploy nginx config
+        uses: burnett01/rsync-deployments@70ff22f5b4c2bb0e08d0bf20de693389e5552047 #v8
+        with:
+          switches: -avz
+          path: ./config/
+          remote_path: /tmp/nginx-deploy/
+          remote_host: ${{ secrets.LIGHTSAIL_IP }}
+          remote_user: ${{ secrets.LIGHTSAIL_USERNAME }}
+          remote_key: ${{ secrets.LIGHTSAIL_SSH_KEY }}
+
+      - name: Apply nginx config and reload
+        uses: appleboy/ssh-action@0ff4204d59e8e51228ff73bce53f80d53301dee2 # v1.2.5
+        with:
+          host: ${{ secrets.LIGHTSAIL_IP }}
+          username: ${{ secrets.LIGHTSAIL_USERNAME }}
+          key: "${{ secrets.LIGHTSAIL_SSH_KEY }}"
+          script: |
+            sudo cp /tmp/nginx-deploy/nginx.conf /etc/nginx/nginx.conf
+            sudo cp /tmp/nginx-deploy/site.conf /etc/nginx/sites-available/pogotracker.app
+            sudo cp /tmp/nginx-deploy/security_headers.conf /etc/nginx/snippets/security_headers.conf
+            sudo nginx -t && sudo systemctl reload nginx
+
       - name: Setup Node.js
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
