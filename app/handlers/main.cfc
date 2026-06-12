@@ -116,7 +116,7 @@ component extends="base" {
         prc.currEvent   = lCase(event.getCurrentEvent());
         prc.currRoute   = reReplace(event.getCurrentRoutedURL(), '/$', '');
 
-        prc.canonicalURL = '#getSetting('domain')##prc.currRoute.len() ? '/#prc.currRoute#' : ''#';
+        prc.canonicalURL = '#getSetting('domain')##prc.currRoute.len() ? '/#prc.currRoute#' : '/'#';
 
         prc.title           = '';
         prc.metaDescription = '';
