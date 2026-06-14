@@ -1732,6 +1732,8 @@ component singleton accessors="true" {
             ses &= '-#pokemon.costumetype#';
         }
 
+        // 4. Replace special characters
+        ses = replaceNoCase(ses, '%', 'Percent', 'all');
         return ses;
     }
 
