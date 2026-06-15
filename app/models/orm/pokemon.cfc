@@ -112,4 +112,14 @@ component persistent="true" extends="base" {
         return '#application.cbController.getSetting('domain')#/includes/images/sprites/#getSprite()##application.cbController.getSetting('imageExtension')#';
     }
 
+    string function getGenderSymbol() {
+        if(getGender() == 'Male') {
+            return ' &##9794;'
+        }
+        else if(getGender() == 'Female') {
+            return ' &##9792;'
+        }
+        return '';
+    }
+
 }

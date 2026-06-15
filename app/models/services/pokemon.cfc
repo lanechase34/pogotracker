@@ -388,9 +388,10 @@ component singleton accessors="true" {
             detail.baseStage = entityMerge(info[4]);
             detail.events    = info[5];
             detail.costumes  = info[6];
-            detail.title     = '#detail.pokemon.getNumber()# - #detail.pokemon.getName()#';
+            detail.fullname  = '#detail.pokemon.getName()##detail.pokemon.getGenderSymbol()#';
+            detail.title     = '#detail.pokemon.getNumber()# - #detail.fullname#';
 
-            detail.metaDescription = '#ucFirst(detail.pokemon.getName())#''s (###detail.pokemon.getNumber()#) evolutions, CP range, stats, moveset, and events in Pokemon GO.';
+            detail.metaDescription = '#ucFirst(detail.fullname)#''s (###detail.pokemon.getNumber()#) evolutions, CP range, stats, moveset, and events in Pokemon GO.';
             detail.ogImage         = detail.pokemon.getOgImage();
 
             cache.set(

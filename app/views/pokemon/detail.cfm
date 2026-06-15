@@ -11,7 +11,7 @@
                                 <img
                                     class="pokemonIcon"
                                     src="/includes/images/sprites/#prc.detail.pokemon.getSprite()##getSetting('imageExtension')#"
-                                    alt="#prc.detail.pokemon.getName()# Sprite"
+                                    alt="#prc.detail.fullname# Sprite"
                                 >
                                 <span class="badge bg-dark text-white sprite-label">Normal</span>
                             </div>
@@ -20,7 +20,7 @@
                                 <img
                                     class="pokemonIcon"
                                     src="/includes/images/shinysprites/#prc.detail.pokemon.getSprite()##getSetting('imageExtension')#"
-                                    alt="#prc.detail.pokemon.getName()# Shiny Sprite"
+                                    alt="#prc.detail.fullname# Shiny Sprite"
                                 >
                                 <span class="badge bg-dark text-white sprite-label">&##x2728; Shiny</span>
                             </div>
@@ -29,7 +29,7 @@
                     </div>
                     <div class="col-12 col-sm text-center text-sm-start">
                         <p class="pokemon-hero-number mb-0">No.&nbsp;#prc.detail.pokemon.getNumber()#</p>
-                        <h1 class="pokemon-hero-name">#prc.detail.pokemon.getName()#</h1>
+                        <h1 class="pokemon-hero-name">#prc.detail.fullname#</h1>
                         <div class="pokemon-types justify-content-center justify-content-sm-start">
                             <img
                                 class="typeIcon"
