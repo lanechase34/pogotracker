@@ -1841,6 +1841,7 @@ component singleton accessors="true" {
         queryExecute('
             select ses, name, sprite
             from pokemon
+            where costume = false
             order by generation asc, number asc, form asc, name asc
         ').each((row) => {
             locModMap['#domain#/pokemon/#row.ses#'] = nowFormatted;
