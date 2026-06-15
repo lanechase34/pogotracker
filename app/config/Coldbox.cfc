@@ -102,7 +102,7 @@ component {
             domain         : 'https://pogotracker.app',
             domainProd     : 'https://pogotracker.app',
             eventDaysBefore: 3, // task pulls in events up to 3 days before they start before creating custom entries automatically
-            favIcoVersion  : 3,
+            favIcoVersion  : 4,
             fetchCount     : 7, // number of news/leekduck posts to fetch on home page
             fromEmail      : 'noreply@pogotracker.app',
             healthCheck    : true,
