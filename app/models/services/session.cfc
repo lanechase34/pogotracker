@@ -25,13 +25,67 @@ component singleton accessors="true" {
     }
 
     /**
-     * Rotates the jsessionid
+     * Rotates the jsessionid to defend against session fixation
+     * https://www.petefreitag.com/blog/sessionrotate-solution-jee/
      */
     public void function rotate() {
-        // https://www.petefreitag.com/blog/sessionrotate-solution-jee/
-        session.sessionid = getPageContext().getRequest().changeSessionId();
+        // The id the browser presented before we authenticated (may be empty for a new visitor)
+        var inboundId = getRequestedSessionId();
+
+        // Force the underlying JEE HttpSession to exist before rotating the id
+        ensureSession();
+
+        try {
+            session.sessionid = changeSessionId();
+        }
+        catch(any e) {
+            var currentId = getCurrentSessionId();
+
+            // Rotation failed and we are still on the id the client presented -> session fixation risk
+            // Fail safe: tear the session down and abort.
+            if(len(inboundId) && currentId == inboundId) {
+                destroy(idle = false);
+                throw(
+                    type    = 'SessionRotationFailed',
+                    message = 'Failed to rotate session id; aborting authentication to prevent session fixation.'
+                );
+            }
+
+            // Otherwise a concurrent request already rotated the id, or this is a
+            // brand-new session the client never knew about -> safe to continue.
+            session.sessionid = currentId;
+        }
 
         return;
+    }
+
+    /**
+     * The session id the client presented on this request (empty string if none)
+     */
+    private string function getRequestedSessionId() {
+        return getPageContext().getRequest().getRequestedSessionId() ?: '';
+    }
+
+    /**
+     * Forces request.getSession(true) so the underlying JEE HttpSession exists
+     */
+    private void function ensureSession() {
+        getPageContext().getSession();
+        return;
+    }
+
+    /**
+     * Renames the underlying JEE session id and returns the new id
+     */
+    private string function changeSessionId() {
+        return getPageContext().getRequest().changeSessionId();
+    }
+
+    /**
+     * The current underlying JEE session id
+     */
+    private string function getCurrentSessionId() {
+        return getPageContext().getSession().getId();
     }
 
     /**

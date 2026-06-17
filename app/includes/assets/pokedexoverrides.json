@@ -4439,6 +4439,28 @@
             }
         ]
     },
+    "Raichu": {
+        "evolutions": [
+            {
+                "condition": "Mega Evolution",
+                "number": 26,
+                "gender": "",
+                "cost": "",
+                "name": "Mega Raichu Y",
+                "special": true,
+                "stage": 0
+            },
+            {
+                "condition": "Mega Evolution",
+                "number": 26,
+                "gender": "",
+                "cost": "",
+                "name": "Mega Raichu X",
+                "special": true,
+                "stage": 0
+            }
+        ]
+    },
     "Meowth": {
         "evolutions": [
             {
@@ -4729,5 +4751,79 @@
                 "stage": 0
             }
         ]
+    },
+    "Mega Raichu Y": {
+        "live": true,
+        "flee": 1,
+        "catch": 1,
+        "shadowshiny": false,
+        "giga": false,
+        "number": "26",
+        "evolutions": [],
+        "form": true,
+        "mega": true,
+        "attack": "339",
+        "hp": "155",
+        "shadow": false,
+        "gender": "",
+        "shiny": true,
+        "name": "Mega Raichu Y",
+        "tradable": false,
+        "type": ["Electric"],
+        "sprite": "26-Mega Raichu Y",
+        "formtype": "Mega-Y",
+        "generation": 1,
+        "ses": "26-Mega-Y",
+        "moves": [
+            "THUNDER_SHOCK",
+            "SPARK",
+            "VOLT_SWITCH",
+            "CHARM",
+            "WILD_CHARGE",
+            "THUNDER_PUNCH",
+            "THUNDER_*",
+            "BRICK_BREAK",
+            "TRAILBLAZE",
+            "SKULL_BASH",
+            "SURF"
+        ],
+        "defense": "157"
+    },
+    "Mega Raichu X": {
+        "live": true,
+        "flee": 1,
+        "catch": 1,
+        "shadowshiny": false,
+        "giga": false,
+        "number": "26",
+        "evolutions": [],
+        "form": true,
+        "mega": true,
+        "attack": "277",
+        "hp": "155",
+        "shadow": false,
+        "gender": "",
+        "shiny": true,
+        "name": "Mega Raichu X",
+        "tradable": false,
+        "type": ["Electric"],
+        "sprite": "26-Mega Raichu X",
+        "formtype": "Mega-X",
+        "generation": 1,
+        "ses": "26-Mega-X",
+        "moves": [
+            "THUNDER_SHOCK",
+            "SPARK",
+            "VOLT_SWITCH",
+            "CHARM",
+            "WILD_CHARGE",
+            "THUNDER_PUNCH",
+            "THUNDER_*",
+            "BRICK_BREAK",
+            "TRAILBLAZE",
+            "SKULL_BASH",
+            "SURF"
+        ],
+        "defense": "203"
     }
 }
