@@ -112,14 +112,21 @@ component persistent="true" extends="base" {
         return '#application.cbController.getSetting('domain')#/includes/images/sprites/#getSprite()##application.cbController.getSetting('imageExtension')#';
     }
 
-    string function getGenderSymbol() {
+    string function getGenderText() {
+        // skip nidorans
+        if(getNumber() == 32 || getNumber() == 29) return;
+
         if(getGender() == 'Male') {
-            return ' &##9794;'
+            return ' (Male)';
         }
         else if(getGender() == 'Female') {
-            return ' &##9792;'
+            return ' (Female)';
         }
         return '';
+    }
+
+    string function getFullname() {
+        return '#getName()##getGenderText()#';
     }
 
 }

@@ -7,11 +7,11 @@
                     class="pokemonSearchIcon"
                     src="/includes/images/sprites/#args.evolution.getPokemon().getSprite()##getSetting('imageExtension')#"
                     loading="lazy"
-                    alt="#args.evolution.getPokemon().getName()# Sprite"
+                    alt="#args.evolution.getPokemon().getFullname()# Sprite"
                 >
             </span>
             <span class="d-block text-center small fw-semibold mt-1">
-                #args.evolution.getPokemon().getName()#
+                #args.evolution.getPokemon().getFullname()#
             </span>
         </a>
     </td>
@@ -32,11 +32,11 @@
                     class="pokemonSearchIcon"
                     src="/includes/images/sprites/#args.evolution.getEvolution().getSprite()##getSetting('imageExtension')#"
                     loading="lazy"
-                    alt="#args.evolution.getEvolution().getName()# Sprite"
+                    alt="#args.evolution.getEvolution().getFullname()# Sprite"
                 >
             </span>
             <span class="d-block text-center small fw-semibold mt-1">
-                #args.evolution.getEvolution().getName()#
+                #args.evolution.getEvolution().getFullname()#
             </span>
         </a>
     </td>

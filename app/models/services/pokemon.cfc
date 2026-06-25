@@ -388,7 +388,7 @@ component singleton accessors="true" {
             detail.baseStage = entityMerge(info[4]);
             detail.events    = info[5];
             detail.costumes  = info[6];
-            detail.fullname  = '#detail.pokemon.getName()##detail.pokemon.getGenderSymbol()#';
+            detail.fullname  = '#detail.pokemon.getFullname()#';
             detail.title     = '#detail.pokemon.getNumber()# - #detail.fullname#';
 
             detail.metaDescription = '#ucFirst(detail.fullname)#''s (###detail.pokemon.getNumber()#) evolutions, CP range, stats, moveset, and events in Pokemon GO.';
@@ -455,9 +455,9 @@ component singleton accessors="true" {
             searchArray = getAll().map((pokemon) => {
                 return {
                     id   : pokemon.getId(),
-                    text : '#pokemon.getGender().len() ? pokemon.getGender() & ' ' : ''##pokemon.getName()#',
+                    text : '#pokemon.getFullname()#',
                     image: '#pokemon.getSprite()##getImageExtension()#',
-                    alt  : 'Pokemon #pokemon.getNumber()# - #pokemon.getGender().len() ? '-#pokemon.getGender()# ' : ''##pokemon.getName()#',
+                    alt  : 'Pokemon #pokemon.getFullname()#',
                     ses  : '#pokemon.getSes()#'
                 };
             });

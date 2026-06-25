@@ -19,7 +19,7 @@
                             value="#currPokemon.getId()#"
                             <cfif prc.keyExists('pokemonDetail') AND currPokemon.getId() EQ prc.pokemonDetail.pokemon.getId()>selected</cfif>
                         >
-                            <cfif currPokemon.getGender().len()>#currPokemon.getGender()# </cfif>#currPokemon.getName()#
+                            #currPokemon.getFullname()#
                         </option>
                     </cfloop>
                 </select>

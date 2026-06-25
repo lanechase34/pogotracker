@@ -30,7 +30,7 @@
                         <select id="pokemonList" class="form-control" name="pokemon" autocomplete="off" multiple>
                             <cfloop index="i" item="currPokemon" array="#args.pokemon#">
                                 <option value="#currPokemon.getId()#" <cfif args.edit AND args.customPokedex.keyExists(currPokemon.getId())>selected</cfif>>
-                                    <cfif currPokemon.getGender().len()>#currPokemon.getGender()# </cfif>#currPokemon.getName()#
+                                    #currPokemon.getFullname()#
                                 </option>
                             </cfloop>
                         </select>
