@@ -1163,6 +1163,19 @@ component singleton accessors="true" {
             eventDoc.body().select('h2##team-go-rocket-leaders ~ ul.pkmn-list-flex')[1].remove();
         }
 
+        // Remove featured moves (header and everything up to the next h2)
+        var featuredMoves = eventDoc.body().select('h2##featured-attacks');
+        if(featuredMoves.len()) {
+            var moveHeader  = featuredMoves[1];
+            var moveSibling = moveHeader.nextElementSibling();
+            while(!isNull(moveSibling) && moveSibling.tagName() != 'h2') {
+                var nextSibling = moveSibling.nextElementSibling();
+                moveSibling.remove();
+                moveSibling = nextSibling;
+            }
+            moveHeader.remove();
+        }
+
         // Event Spawns
         var eventPokemon = eventDoc
             .body()
@@ -1958,6 +1971,9 @@ component singleton accessors="true" {
                 var curr = extractCostumeData(item);
                 costumes[curr.ses].shinySpriteSrc = curr.imgSrc;
             });
+
+            // Delete keys
+            costumes.delete('150-2017-Yokohama-Stadium-1');
 
             // Download images
             costumes.each((key, costume) => {

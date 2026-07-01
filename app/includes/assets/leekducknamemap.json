@@ -91,5 +91,17 @@
     "Squawkabilly (Blue)": "Squawkabilly Blue Plumage",
     "Squawkabilly (Green)": "Squawkabilly Green Plumage",
     "Squawkabilly (White)": "Squawkabilly White Plumage",
-    "Squawkabilly (Yellow)": "Squawkabilly Yellow Plumage"
+    "Squawkabilly (Yellow)": "Squawkabilly Yellow Plumage",
+    "Party Hat Wurmple": {
+        "name": "Wurmple",
+        "costumetype": "Party Hat"
+    },
+    "Gimmighoul (10th Anniversary Coin)": {
+        "name": "Gimmighoul",
+        "costumetype": "10th Anniversary Coin"
+    },
+    "Cake Hat Pikachu": {
+        "name": "Pikachu",
+        "costumetype": "Cake Hat"
+    }
 }
