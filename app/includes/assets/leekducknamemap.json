@@ -122,5 +122,13 @@
     "Enamorus (Incarnate)": "Enamorus Incarnate Forme",
     "Enamorus (Therian Forme)": "Enamorus Therian Forme",
     "Necrozma (Dawn Wings)": "Dawn Wings Necrozma",
-    "Necrozma (Dusk Mane)": "Dusk Mane Necrozma"
+    "Necrozma (Dusk Mane)": "Dusk Mane Necrozma",
+    "Pikachu wearing a Team Mystic hat": {
+        "name": "Pikachu",
+        "costumetype": "Team Mystic Hat"
+    },
+    "Pikachu wearing a Team Valor hat": {
+        "name": "Pikachu",
+        "costumetype": "Team Valor Hat"
+    }
 }
