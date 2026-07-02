@@ -1166,12 +1166,12 @@ component singleton accessors="true" {
         // Remove featured moves (header and everything up to the next h2)
         var featuredMoves = eventDoc.body().select('h2##featured-attacks');
         if(featuredMoves.len()) {
-            var moveHeader  = featuredMoves[1];
-            var moveSibling = moveHeader.nextElementSibling();
-            while(!isNull(moveSibling) && moveSibling.tagName() != 'h2') {
-                var nextSibling = moveSibling.nextElementSibling();
-                moveSibling.remove();
-                moveSibling = nextSibling;
+            var moveHeader = featuredMoves[1];
+            var siblings   = moveHeader.parent().children();
+            var i          = moveHeader.elementSiblingIndex() + 1;
+            while(i < siblings.size() && siblings.get(i).tagName() != 'h2') {
+                siblings.get(i).remove();
+                i++;
             }
             moveHeader.remove();
         }

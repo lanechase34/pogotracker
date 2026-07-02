@@ -32,7 +32,6 @@
     "Gigantamax Toxtricity (Low Key Form)": "Gigantamax Toxtricity",
     "Indeedee (Female)": "Indeedee Female",
     "Indeedee (Male)": "Indeedee Male",
-    "Tornadus (Incarnate)": "Tornadus Incarnate Forme",
     "Furfrou (Natural)": "Furfrou",
     "Oricorio (Baile Style)": "Oricorio Baile Style",
     "Oricorio (Pa'u Style)": "Oricorio Pa'u Style",
@@ -103,5 +102,25 @@
     "Cake Hat Pikachu": {
         "name": "Pikachu",
         "costumetype": "Cake Hat"
-    }
+    },
+    "Deoxys (Normal)": "Deoxys Normal Forme",
+    "Deoxys (Attack)": "Deoxys Attack Forme",
+    "Deoxys (Defense)": "Deoxys Defense Forme",
+    "Deoxys (Speed)": "Deoxys Speed Forme",
+    "Giratina (Altered)": "Giratina Altered Forme",
+    "Giratina (Origin)": "Giratina Origin Forme",
+    "Tornadus (Incarnate)": "Tornadus Incarnate Forme",
+    "Tornadus (Therian)": "Tornadus Therian Forme",
+    "Thundurus (Incarnate)": "Thundurus Incarnate Forme",
+    "Thundurus (Therian)": "Thundurus Therian Forme",
+    "Landorus (Incarnate)": "Landorus Incarnate Forme",
+    "Landorus (Therian)": "Landorus Therian Forme",
+    "Genesect (Burn)": "Genesect Burn Drive",
+    "Genesect (Chill)": "Genesect Chill Drive",
+    "Genesect (Douse)": "Genesect Douse Drive",
+    "Genesect (Shock)": "Genesect Shock Drive",
+    "Enamorus (Incarnate)": "Enamorus Incarnate Forme",
+    "Enamorus (Therian Forme)": "Enamorus Therian Forme",
+    "Necrozma (Dawn Wings)": "Dawn Wings Necrozma",
+    "Necrozma (Dusk Mane)": "Dusk Mane Necrozma"
 }
