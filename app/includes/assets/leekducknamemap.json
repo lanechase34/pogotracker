@@ -142,5 +142,9 @@
     "Party Hat Squirtle": {
         "name": "Squirtle",
         "costumetype": "Party Hat"
+    },
+    "Party Hat Eevee": {
+        "name": "Eevee",
+        "costumetype": "Party Hat"
     }
 }

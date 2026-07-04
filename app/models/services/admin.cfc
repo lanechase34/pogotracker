@@ -1287,6 +1287,12 @@ component singleton accessors="true" {
             entitySave(custom);
         }
 
+        // Begin event overrides
+        if(eventTitle == '10th Anniversary Party') {
+            spawns.delete('Eevee');
+            spawns.insert('Party Hat Eevee', true);
+        }
+
         var pokemon = []; // Create array of pokemon ids
         var map     = {}; // use map to not double enter pokemon
         spawns.each((name, value) => {
