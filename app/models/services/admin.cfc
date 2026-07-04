@@ -1290,6 +1290,7 @@ component singleton accessors="true" {
         // Begin event overrides
         if(eventTitle == '10th Anniversary Party') {
             spawns.delete('Eevee');
+            spawns.delete('Gimmighoul');
             spawns.insert('Party Hat Eevee', true);
         }
 
