@@ -130,5 +130,17 @@
     "Pikachu wearing a Team Valor hat": {
         "name": "Pikachu",
         "costumetype": "Team Valor Hat"
+    },
+    "Party Hat Bulbasaur": {
+        "name": "Bulbasaur",
+        "costumetype": "Party Hat"
+    },
+    "Party Hat Charmander": {
+        "name": "Charmander",
+        "costumetype": "Party Hat"
+    },
+    "Party Hat Squirtle": {
+        "name": "Squirtle",
+        "costumetype": "Party Hat"
     }
 }
