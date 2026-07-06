@@ -1288,11 +1288,22 @@ component singleton accessors="true" {
         }
 
         // Begin event overrides
-        if(eventTitle == '10th Anniversary Party') {
-            spawns.delete('Eevee');
-            spawns.delete('Gimmighoul');
-            spawns.insert('Party Hat Eevee', true);
-        }
+        var overrides = deserializeJSON(fileRead('/includes/assets/enveventoverrides.json'));
+        overrides
+            .filter((overrideEvent, value) => {
+                return overrideEvent == eventTitle;
+            })
+            .each((key, overrideSpawns) => {
+                overrideSpawns.each((pokemon, override) => {
+                    // 1 = add, 0 = delete
+                    if(override) {
+                        spawns.insert(pokemon, true);
+                    }
+                    else {
+                        spawns.delete(pokemon);
+                    }
+                });
+            });
 
         var pokemon = []; // Create array of pokemon ids
         var map     = {}; // use map to not double enter pokemon

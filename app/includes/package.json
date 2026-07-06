@@ -45,6 +45,7 @@
         "minDisplay": "terser js/modules/display.js --config-file .terser.json --output build/js/modules/display.min.js",
         "minFetch": "terser js/modules/fetch.js --config-file .terser.json --output build/js/modules/fetch.min.js",
         "minForm": "terser js/modules/form.js --config-file .terser.json --output build/js/modules/form.min.js",
+        "minJson": "terser js/modules/json.js --config-file .terser.json --output build/js/modules/json.min.js",
         "minLoading": "terser js/modules/loading.js --config-file .terser.json --output build/js/modules/loading.min.js",
         "minModals": "terser js/modules/modals.js --config-file .terser.json --output build/js/modules/modals.min.js",
         "minMultiselect": "terser js/modules/multiselect.js --config-file .terser.json --output build/js/modules/multiselect.min.js",

@@ -5,7 +5,7 @@
             <div class="d-flex align-items-center justify-content-between mb-3">
                 <h4 class="m-0">
                     <i class="bi bi-pencil-square me-1"></i>
-                    Env Overrides
+                    #encodeForHTML(prc.description)#
                 </h4>
                 <div class="d-flex gap-2">
                     <button id="formatBtn" class="btn btn-sm btn-secondary">
@@ -19,7 +19,7 @@
 
             <div class="card shadow-sm">
                 <div class="card-body p-2">
-                    <form id="overridesForm" method="post" action="/admin/saveOverrides">
+                    <form id="overridesForm" method="post" action="#event.buildLink(prc.submitAction)#">
                         <textarea
                             id="jsonEditor"
                             name="json"

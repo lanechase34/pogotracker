@@ -23,6 +23,8 @@ component extends="base" {
         taskManager           : 'GET',
         readOverrides         : 'GET',
         saveOverrides         : 'POST',
+        readEventOverrides    : 'GET',
+        saveEventOverrides    : 'POST',
         logViewer             : 'GET',
         requestLog            : 'GET',
         getRequests           : 'GET',
@@ -348,7 +350,9 @@ component extends="base" {
     }
 
     function readOverrides(event, rc, prc) {
+        prc.description   = 'Pokemon Env Overrides';
         prc.overridesJSON = fileRead('/includes/assets/envpokedexoverrides.json');
+        prc.submitAction  = 'admin.saveOverrides';
     }
 
     function saveOverrides(event, rc, prc) {
@@ -378,6 +382,43 @@ component extends="base" {
             );
         }
         relocate(event = 'admin.readOverrides');
+    }
+
+    function readEventOverrides(event, rc, prc) {
+        prc.description   = 'Event Env Overrides';
+        prc.overridesJSON = fileRead('/includes/assets/enveventoverrides.json');
+        prc.submitAction  = 'admin.saveEventOverrides';
+
+        event.setView(view = '/views/admin/readoverrides');
+    }
+
+    function saveEventOverrides(event, rc, prc) {
+        try {
+            var raw = toString(rc.json ?: '');
+            // Validate it's actually JSON before saving
+            deserializeJSON(raw);
+            fileWrite(
+                '#getSetting('rootPath')#/includes/assets/enveventoverrides.json',
+                raw,
+                'UTF-8'
+            );
+
+            sessionService.setAlert(
+                'success',
+                true,
+                'bi bi-copy',
+                'Successfully saved!'
+            );
+        }
+        catch(any e) {
+            sessionService.setAlert(
+                'danger',
+                true,
+                'bi-exclamation-diamond-fill',
+                'Error saving. Please try again. #e.message#'
+            );
+        }
+        relocate(event = 'admin.readEventOverrides');
     }
 
     function updateSiteMap(event, rc, prc) {

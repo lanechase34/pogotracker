@@ -9,7 +9,10 @@
                 <div class="d-flex gap-2 w-100 justify-content-between">Bug Log</div>
             </a>
             <a href="/admin/readOverrides" class="list-group-item list-group-item-action d-flex gap-2 py-3">
-                <div class="d-flex gap-2 w-100 justify-content-between">Env Overrides</div>
+                <div class="d-flex gap-2 w-100 justify-content-between">Env Pokemon Overrides</div>
+            </a>
+            <a href="/admin/readEventOverrides" class="list-group-item list-group-item-action d-flex gap-2 py-3">
+                <div class="d-flex gap-2 w-100 justify-content-between">Env Event Overrides</div>
             </a>
             <a href="/admin/showMedalData" class="list-group-item list-group-item-action d-flex gap-2 py-3">
                 <div class="d-flex gap-2 w-100 justify-content-between">List Medals</div>

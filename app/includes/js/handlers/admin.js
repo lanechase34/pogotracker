@@ -1,9 +1,9 @@
 import { createAlert } from 'alert';
 import { initCopyIcons } from 'copy';
 import { getWrapper, postWrapper } from 'fetch';
+import { format, validate } from 'json';
 import { $submitBtn } from 'loading';
 import { startMetricsSocket } from 'socket';
-import { createToast } from 'toast';
 
 const $listTrainers = document.getElementById('listTrainers');
 const tables = {};
@@ -49,6 +49,25 @@ async function getEditTrainer(trainerid) {
 
             initCopyIcons();
         },
+    });
+}
+
+function initJsonEditor() {
+    const editor = document.getElementById('jsonEditor');
+    const formatBtn = document.getElementById('formatBtn');
+    const saveBtn = document.getElementById('saveBtn');
+
+    format(editor);
+
+    formatBtn.addEventListener('click', () => {
+        format(editor);
+    });
+
+    saveBtn.addEventListener('click', () => {
+        format(editor);
+        if (validate(editor)) {
+            document.getElementById('overridesForm').submit();
+        }
     });
 }
 
@@ -693,45 +712,9 @@ export const runtime = {
         });
     },
     readoverrides: () => {
-        const editor = document.getElementById('jsonEditor');
-        const formatBtn = document.getElementById('formatBtn');
-        const saveBtn = document.getElementById('saveBtn');
-
-        function validate() {
-            try {
-                JSON.parse(editor.value);
-                return true;
-            } catch (e) {
-                createToast(`Invalid JSON: ${e.message}`, 'danger', 'bi-exclamation-triangle');
-                return false;
-            }
-        }
-
-        function format() {
-            try {
-                const parsed = JSON.parse(editor.value);
-                editor.value = JSON.stringify(parsed, null, 4);
-            } catch (e) {
-                createToast(`Invalid JSON: ${e.message}`, 'danger', 'bi-exclamation-triangle');
-            }
-        }
-
-        format();
-
-        formatBtn.addEventListener('click', format);
-
-        saveBtn.addEventListener('click', () => {
-            if (validate()) {
-                document.getElementById('overridesForm').submit();
-            }
-        });
-
-        editor.addEventListener('input', () => {
-            try {
-                JSON.parse(editor.value);
-            } catch (e) {
-                console.error('Error saving', e);
-            }
-        });
+        initJsonEditor();
+    },
+    readeventoverrides: () => {
+        initJsonEditor();
     },
 };

@@ -113,6 +113,7 @@ export default defineConfig([
                         ['display', './js/modules/display.js'],
                         ['fetch', './js/modules/fetch.js'],
                         ['form', './js/modules/form.js'],
+                        ['json', './js/modules/json.js'],
                         ['loading', './js/modules/loading.js'],
                         ['modals', './js/modules/modals.js'],
                         ['multiselect', './js/modules/multiselect.js'],

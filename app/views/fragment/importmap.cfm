@@ -10,6 +10,7 @@
             "display": "#args.jsPath#/modules/display#args.minifiedJS#.js#args.cacheBuster#",
             "fetch": "#args.jsPath#/modules/fetch#args.minifiedJS#.js#args.cacheBuster#",
             "form": "#args.jsPath#/modules/form#args.minifiedJS#.js#args.cacheBuster#",
+            "json": "#args.jsPath#/modules/json#args.minifiedJS#.js#args.cacheBuster#",
             "loading": "#args.jsPath#/modules/loading#args.minifiedJS#.js#args.cacheBuster#",
             "modals": "#args.jsPath#/modules/modals#args.minifiedJS#.js#args.cacheBuster#",
             "multiselect": "#args.jsPath#/modules/multiselect#args.minifiedJS#.js#args.cacheBuster#",
