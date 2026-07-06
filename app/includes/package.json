@@ -26,7 +26,7 @@
         "test:ui": "playwright test --ui",
         "test:debug": "playwright test --debug",
         "test:report": "playwright show-report",
-        "minJS": "run-p minAdmin minBlog minHome minLogin minPokedex minPokemon minStats minTrade minTrainer minAlert minContact minCookie minLocalstorage minCopy minDisplay minFetch minForm minLoading minModals minMultiselect minSocket minSearch minToast minGlobal minRuntime",
+        "minJS": "run-p minAdmin minBlog minHome minLogin minPokedex minPokemon minStats minTrade minTrainer minAlert minContact minCookie minLocalstorage minCopy minDisplay minFetch minForm minJson minLoading minModals minMultiselect minSocket minSearch minToast minGlobal minRuntime",
         "minCSS": "run-p cleanAdmin cleanBlog cleanGlobal cleanHome cleanPokedex cleanPokemon cleanTrade cleanTrainer cleanMultiselect",
         "minAdmin": "terser js/handlers/admin.js --config-file .terser.json --output build/js/handlers/admin.min.js",
         "minBlog": "terser js/handlers/blog.js --config-file .terser.json --output build/js/handlers/blog.min.js",
