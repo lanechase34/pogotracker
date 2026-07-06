@@ -1112,11 +1112,23 @@ component singleton accessors="true" {
     }
 
     /**
+     * Check an make sure the enveventoverrides.json file exists
+     * If not, create
+     */
+    public void function checkEventOverridesJson() {
+        if(directoryExists(getRootPath()) && !fileExists('#getRootPath()#/includes/assets/enveventoverrides.json')) {
+            fileWrite('#getRootPath()#/includes/assets/enveventoverrides.json', serializeJSON({}));
+        }
+    }
+
+    /**
      * Create a custom pokedex of event spawns from a leekduck event page
      *
      * @eventLink Leek duck event page
      */
     public void function createEvent(required string eventLink) {
+        checkEventOverridesJson();
+
         var spawns   = {};
         // Fetch the event page
         var eventDoc = scraperService.getData(arguments.eventLink);

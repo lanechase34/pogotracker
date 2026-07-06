@@ -385,6 +385,8 @@ component extends="base" {
     }
 
     function readEventOverrides(event, rc, prc) {
+        adminService.checkEventOverridesJson();
+
         prc.description   = 'Event Env Overrides';
         prc.overridesJSON = fileRead('/includes/assets/enveventoverrides.json');
         prc.submitAction  = 'admin.saveEventOverrides';
