@@ -137,14 +137,10 @@ component extends="tests.resources.baseTest" asyncAll="false" {
             });
 
             it('Will skip shadow pokemon when creating event', () => {
-                // Write custom name map
-                fileWrite(
-                    '#application.cbController.getSetting('rootPath')#/includes/assets/leekducknamemap.json',
-                    '{
-                        "Indeedee (Female)": "Indeedee Female",
-                        "Indeedee (Male)": "Indeedee Male"
-                    }',
-                    'UTF-8'
+                // Save custom name map
+                adminService.saveOverride(
+                    name     = 'leekducknamemap',
+                    override = {'Indeedee (Female)': 'Indeedee Female', 'Indeedee (Male)': 'Indeedee Male'}
                 );
 
                 eventLink   = 'https://leekduck.com/events/psychic-spectacular-taken-over-2025/ ';
@@ -261,40 +257,18 @@ component extends="tests.resources.baseTest" asyncAll="false" {
             });
 
             it('Can create custom pokedex event with normal and costume pokemon from leekduck', () => {
-                // Write custom name map
-                fileWrite(
-                    '#application.cbController.getSetting('rootPath')#/includes/assets/leekducknamemap.json',
-                    '{
-                        "Flower Crown Buneary": {
-                            "name": "Buneary",
-                            "costumetype": "Flower Crown"
-                        },
-                        "Cherry Blossom Eevee": {
-                            "name": "Eevee",
-                            "costumetype": "Cherry Blossom"
-                        },
-                        "Flower Crown Cottonee": {
-                            "name": "Cottonee",
-                            "costumetype": "Flower Crown"
-                        },
-                        "Flower Crown Happiny": {
-                            "name": "Happiny",
-                            "costumetype": "Flower Crown"
-                        },
-                        "Flower Crown Pichu": {
-                            "name": "Pichu",
-                            "costumetype": "Flower Crown"
-                        },
-                        "Flower Crown Togepi": {
-                            "name": "Togepi",
-                            "costumetype": "Flower Crown"
-                        },
-                        "Marathon Visor Pikachu": {
-                            "name": "Pikachu",
-                            "costumetype": "Marathon Visor"
-                        }
-                    }',
-                    'UTF-8'
+                // Save custom name map
+                adminService.saveOverride(
+                    name     = 'leekducknamemap',
+                    override = {
+                        'Flower Crown Buneary'  : {'name': 'Buneary', 'costumetype': 'Flower Crown'},
+                        'Cherry Blossom Eevee'  : {'name': 'Eevee', 'costumetype': 'Cherry Blossom'},
+                        'Flower Crown Cottonee' : {'name': 'Cottonee', 'costumetype': 'Flower Crown'},
+                        'Flower Crown Happiny'  : {'name': 'Happiny', 'costumetype': 'Flower Crown'},
+                        'Flower Crown Pichu'    : {'name': 'Pichu', 'costumetype': 'Flower Crown'},
+                        'Flower Crown Togepi'   : {'name': 'Togepi', 'costumetype': 'Flower Crown'},
+                        'Marathon Visor Pikachu': {'name': 'Pikachu', 'costumetype': 'Marathon Visor'}
+                    }
                 );
 
                 eventLink   = 'https://leekduck.com/events/spring-marathon-2026/';
@@ -364,16 +338,10 @@ component extends="tests.resources.baseTest" asyncAll="false" {
             });
 
             it('Can create event with a normal pokemon and its costume form from the battle pass', () => {
-                // Write custom name map
-                fileWrite(
-                    '#application.cbController.getSetting('rootPath')#/includes/assets/leekducknamemap.json',
-                    '{
-                        "Candela Accessory Ponyta": {
-                            "name": "Ponyta",
-                            "costumetype": "Candela"
-                        }
-                    }',
-                    'UTF-8'
+                // Save custom name map
+                adminService.saveOverride(
+                    name     = 'leekducknamemap',
+                    override = {'Candela Accessory Ponyta': {'name': 'Ponyta', 'costumetype': 'Candela'}}
                 );
 
                 eventLink   = 'https://leekduck.com/events/candelas-quest-for-victory/';

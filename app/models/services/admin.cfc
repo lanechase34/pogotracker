@@ -509,7 +509,7 @@ component singleton accessors="true" {
         );
 
         // Read in env overrides
-        var envOverrides = deserializeJSON(fileRead('/includes/assets/envpokedexoverrides.json'));
+        var envOverrides = getOverride(name = 'envpokedexoverrides');
         envOverrides.each(
             (pokemon, custom) => {
                 custom.each((key, value) => {
@@ -1109,40 +1109,17 @@ component singleton accessors="true" {
     }
 
     /**
-     * Check an make sure the enveventoverrides.json file exists
-     * If not, create
-     */
-    public void function checkEventOverridesJson() {
-        if(directoryExists(getRootPath()) && !fileExists('#getRootPath()#/includes/assets/enveventoverrides.json')) {
-            fileWrite('#getRootPath()#/includes/assets/enveventoverrides.json', serializeJSON({}));
-        }
-    }
-
-    /**
-     * Check an make sure the leekducknamemap.json file exists
-     * If not, create
-     */
-    public void function checkNameOverridesJson() {
-        if(directoryExists(getRootPath()) && !fileExists('#getRootPath()#/includes/assets/leekducknamemap.json')) {
-            fileWrite('#getRootPath()#/includes/assets/leekducknamemap.json', serializeJSON({}));
-        }
-    }
-
-    /**
      * Create a custom pokedex of event spawns from a leekduck event page
      *
      * @eventLink Leek duck event page
      */
     public void function createEvent(required string eventLink) {
-        checkNameOverridesJson();
-        checkEventOverridesJson();
-
         var spawns   = {};
         // Fetch the event page
         var eventDoc = scraperService.getData(arguments.eventLink);
 
         // Maps leekduck name -> pogotracker
-        var leekduckNameMap = deserializeJSON(fileRead('/includes/assets/leekducknamemap.json'));
+        var leekduckNameMap = getOverride(name = 'leekducknamemap');
 
         // Get the title and wild spawns
         var eventTitle = eventDoc
@@ -1311,7 +1288,7 @@ component singleton accessors="true" {
         }
 
         // Begin event overrides
-        var overrides = deserializeJSON(fileRead('/includes/assets/enveventoverrides.json'));
+        var overrides = getOverride(name = 'enveventoverrides');
         overrides
             .filter((overrideEvent, value) => {
                 return overrideEvent == eventTitle;
@@ -1659,33 +1636,19 @@ component singleton accessors="true" {
     }
 
     /**
-     * Check an make sure the envpokedexoverrides.json file exists
-     * If not, create
-     */
-    public void function checkOverridesJson() {
-        if(directoryExists(getRootPath()) && !fileExists('#getRootPath()#/includes/assets/envpokedexoverrides.json')) {
-            fileWrite('#getRootPath()#/includes/assets/envpokedexoverrides.json', serializeJSON({}));
-        }
-    }
-
-    /**
      * Uses the json created from createPokemon() and allows you to add the pokemon
      *
      * @jsonPokemon 
      */
     public void function addPokemon(required struct pokemon) {
         // Add to the overrides
-        var envOverrides = deserializeJSON(fileRead('/includes/assets/envpokedexoverrides.json'));
+        var envOverrides = getOverride(name = 'envpokedexoverrides');
         if(envOverrides.keyExists(pokemon.name)) {
             envOverrides.delete(pokemon.name);
         }
 
         envOverrides.insert(pokemon.name, pokemon);
-        fileWrite(
-            '#getRootPath()#/includes/assets/envpokedexoverrides.json',
-            serializeJSON(envOverrides),
-            'UTF-8'
-        );
+        saveOverride(name = 'envpokedexoverrides', override = envOverrides);
 
         // Parse the moves to add
         pokemon.moves = pokemon.moves.map((move) => {
@@ -2221,6 +2184,46 @@ component singleton accessors="true" {
                 storage          : name
             });
         }, []);
+    }
+
+    /**
+     * Save override json to the db
+     *
+     * @name     The key's name
+     * @override The override struct
+     */
+    public void function saveOverride(required string name, required struct override) {
+        // 1. Check if override exists
+        var overrideCfc = entityLoad('overrides', {name: name}, true);
+
+        if(isNull(overrideCfc)) {
+            // 2. Create if not
+            overrideCfc = entityNew('overrides');
+            overrideCfc.setName(name);
+            entitySave(overrideCfc);
+            ormFlush();
+        }
+
+        // 3. Save override
+        overrideCfc.setOverride(override);
+        entitySave(overrideCfc);
+        ormFlush();
+        return;
+    }
+
+    /**
+     * Get the override json value
+     *
+     * @name The key's name
+     */
+    public struct function getOverride(required string name) {
+        var overrideCfc = entityLoad('overrides', {name: name}, true);
+
+        if(isNull(overrideCfc)) {
+            return {};
+        }
+
+        return overrideCfc.getOverride();
     }
 
 }

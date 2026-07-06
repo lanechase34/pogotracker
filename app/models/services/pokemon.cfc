@@ -1,5 +1,6 @@
 component singleton accessors="true" {
 
+    property name="adminService" inject="services.admin";
     property name="async"        inject="asyncManager@coldbox";
     property name="auditService" inject="services.audit";
     property name="cache"        inject="cachebox:appCache";
@@ -415,7 +416,7 @@ component singleton accessors="true" {
         required boolean shinyShadow,
         required boolean tradable
     ) {
-        var overrides = deserializeJSON(fileRead('/includes/assets/envpokedexoverrides.json'));
+        var overrides = adminService.getOverride(name = 'envpokedexoverrides');
 
         // Update env pokedex overrides
         overrides[pokemon.getName()] = {
@@ -426,11 +427,7 @@ component singleton accessors="true" {
             tradable   : tradable
         };
 
-        fileWrite(
-            '#getRootPath()#/includes/assets/envpokedexoverrides.json',
-            serializeJSON(overrides),
-            'UTF-8'
-        );
+        adminService.saveOverride(name = 'envpokedexoverrides', override = overrides);
 
         // Update the DB
         pokemon.setLive(live);

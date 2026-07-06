@@ -353,20 +353,18 @@ component extends="base" {
 
     function readOverrides(event, rc, prc) {
         prc.description   = 'Pokemon Env Overrides';
-        prc.overridesJSON = fileRead('/includes/assets/envpokedexoverrides.json');
+        prc.overridesJSON = serializeJSON(adminService.getOverride(name = 'envpokedexoverrides'));
         prc.submitAction  = 'admin.saveOverrides';
     }
 
     function saveOverrides(event, rc, prc) {
         try {
             var raw = toString(rc.json ?: '');
+
             // Validate it's actually JSON before saving
-            deserializeJSON(raw);
-            fileWrite(
-                '#getSetting('rootPath')#/includes/assets/envpokedexoverrides.json',
-                raw,
-                'UTF-8'
-            );
+            raw = deserializeJSON(raw);
+
+            adminService.saveOverride(name = 'envpokedexoverrides', override = raw);
 
             sessionService.setAlert(
                 'success',
@@ -387,10 +385,8 @@ component extends="base" {
     }
 
     function readEventOverrides(event, rc, prc) {
-        adminService.checkEventOverridesJson();
-
         prc.description   = 'Event Env Overrides';
-        prc.overridesJSON = fileRead('/includes/assets/enveventoverrides.json');
+        prc.overridesJSON = serializeJSON(adminService.getOverride(name = 'enveventoverrides'));
         prc.submitAction  = 'admin.saveEventOverrides';
 
         event.setView(view = '/views/admin/readoverrides');
@@ -399,13 +395,11 @@ component extends="base" {
     function saveEventOverrides(event, rc, prc) {
         try {
             var raw = toString(rc.json ?: '');
+
             // Validate it's actually JSON before saving
-            deserializeJSON(raw);
-            fileWrite(
-                '#getSetting('rootPath')#/includes/assets/enveventoverrides.json',
-                raw,
-                'UTF-8'
-            );
+            raw = deserializeJSON(raw);
+
+            adminService.saveOverride(name = 'enveventoverrides', override = raw);
 
             sessionService.setAlert(
                 'success',
@@ -422,14 +416,13 @@ component extends="base" {
                 'Error saving. Please try again. #e.message#'
             );
         }
+
         relocate(event = 'admin.readEventOverrides');
     }
 
     function readNameOverrides(event, rc, prc) {
-        adminService.checkNameOverridesJson();
-
         prc.description   = 'Name Env Overrides';
-        prc.overridesJSON = fileRead('/includes/assets/leekducknamemap.json');
+        prc.overridesJSON = serializeJSON(adminService.getOverride(name = 'leekducknamemap'));
         prc.submitAction  = 'admin.saveNameOverrides';
 
         event.setView(view = '/views/admin/readoverrides');
@@ -438,13 +431,11 @@ component extends="base" {
     function saveNameOverrides(event, rc, prc) {
         try {
             var raw = toString(rc.json ?: '');
+
             // Validate it's actually JSON before saving
-            deserializeJSON(raw);
-            fileWrite(
-                '#getSetting('rootPath')#/includes/assets/leekducknamemap.json',
-                raw,
-                'UTF-8'
-            );
+            raw = deserializeJSON(raw);
+
+            adminService.saveOverride(name = 'leekducknamemap', override = raw);
 
             sessionService.setAlert(
                 'success',

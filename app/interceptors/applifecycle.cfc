@@ -47,9 +47,6 @@ component extends="coldbox.system.Interceptor" {
             throw('Cannot connect to email server');
         }
 
-        // Ensure overrides json exists
-        adminService.checkOverridesJson();
-
         // Set up websocket cfc
         application.ws = new WebSocket();
         application.ws.initDeps();
