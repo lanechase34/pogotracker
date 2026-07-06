@@ -25,6 +25,8 @@ component extends="base" {
         saveOverrides         : 'POST',
         readEventOverrides    : 'GET',
         saveEventOverrides    : 'POST',
+        readNameOverrides     : 'GET',
+        saveNameOverrides     : 'POST',
         logViewer             : 'GET',
         requestLog            : 'GET',
         getRequests           : 'GET',
@@ -421,6 +423,45 @@ component extends="base" {
             );
         }
         relocate(event = 'admin.readEventOverrides');
+    }
+
+    function readNameOverrides(event, rc, prc) {
+        adminService.checkNameOverridesJson();
+
+        prc.description   = 'Name Env Overrides';
+        prc.overridesJSON = fileRead('/includes/assets/leekducknamemap.json');
+        prc.submitAction  = 'admin.saveNameOverrides';
+
+        event.setView(view = '/views/admin/readoverrides');
+    }
+
+    function saveNameOverrides(event, rc, prc) {
+        try {
+            var raw = toString(rc.json ?: '');
+            // Validate it's actually JSON before saving
+            deserializeJSON(raw);
+            fileWrite(
+                '#getSetting('rootPath')#/includes/assets/leekducknamemap.json',
+                raw,
+                'UTF-8'
+            );
+
+            sessionService.setAlert(
+                'success',
+                true,
+                'bi bi-copy',
+                'Successfully saved!'
+            );
+        }
+        catch(any e) {
+            sessionService.setAlert(
+                'danger',
+                true,
+                'bi-exclamation-diamond-fill',
+                'Error saving. Please try again. #e.message#'
+            );
+        }
+        relocate(event = 'admin.readNameOverrides');
     }
 
     function updateSiteMap(event, rc, prc) {

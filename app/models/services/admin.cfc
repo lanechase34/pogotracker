@@ -28,12 +28,9 @@ component singleton accessors="true" {
     property name="systemTrainer"  inject="coldbox:setting:systemTrainer";
     property name="writeJson"      inject="coldbox:setting:writeJson";
 
-    property name="leekduckNameMap" type="struct";
-    property name="regionalForms"   type="array";
+    property name="regionalForms" type="array";
 
     public void function init() {
-        // Maps leekduck name to name used in pogo tracker
-        setLeekduckNameMap(deserializeJSON(fileRead('/includes/assets/leekducknamemap.json')));
         setRegionalForms(['Alolan', 'Galarian', 'Hisuian', 'Paldean']);
     }
 
@@ -1122,6 +1119,16 @@ component singleton accessors="true" {
     }
 
     /**
+     * Check an make sure the leekducknamemap.json file exists
+     * If not, create
+     */
+    public void function checkNameOverridesJson() {
+        if(directoryExists(getRootPath()) && !fileExists('#getRootPath()#/includes/assets/leekducknamemap.json')) {
+            fileWrite('#getRootPath()#/includes/assets/leekducknamemap.json', serializeJSON({}));
+        }
+    }
+
+    /**
      * Create a custom pokedex of event spawns from a leekduck event page
      *
      * @eventLink Leek duck event page
@@ -1132,6 +1139,9 @@ component singleton accessors="true" {
         var spawns   = {};
         // Fetch the event page
         var eventDoc = scraperService.getData(arguments.eventLink);
+
+        // Maps leekduck name -> pogotracker
+        var leekduckNameMap = deserializeJSON(fileRead('/includes/assets/leekducknamemap.json'));
 
         // Get the title and wild spawns
         var eventTitle = eventDoc
@@ -1223,7 +1233,7 @@ component singleton accessors="true" {
                 .select('span.reward-name')
                 .text()
                 .trim();
-            if(getLeekduckNameMap().keyExists(curr) && isStruct(getLeekduckNameMap()[curr])) {
+            if(leekduckNameMap.keyExists(curr) && isStruct(leekduckNameMap[curr])) {
                 spawns[curr] = true;
             }
         });
@@ -1323,14 +1333,14 @@ component singleton accessors="true" {
             var costumetype = '';
 
             // Check the name map
-            if(getLeekduckNameMap().keyExists(name)) {
+            if(leekduckNameMap.keyExists(name)) {
                 // Check if this is a costume mon
-                if(isStruct(getLeekduckNameMap()[name])) {
-                    costumetype = getLeekduckNameMap()[name].costumetype;
-                    name        = getLeekduckNameMap()[name].name;
+                if(isStruct(leekduckNameMap[name])) {
+                    costumetype = leekduckNameMap[name].costumetype;
+                    name        = leekduckNameMap[name].name;
                 }
                 else {
-                    name = getLeekduckNameMap()[name];
+                    name = leekduckNameMap[name];
                 }
             }
 

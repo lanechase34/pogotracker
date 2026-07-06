@@ -717,4 +717,7 @@ export const runtime = {
     readeventoverrides: () => {
         initJsonEditor();
     },
+    readnameoverrides: () => {
+        initJsonEditor();
+    },
 };

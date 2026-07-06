@@ -38,6 +38,7 @@ app/includes/assets/pokedex.json
 app/includes/assets/moves.json
 app/includes/assets/medals.json
 app/includes/assets/enveventoverrides.json
+app/includes/assets/leekducknamemap.json
 
 app/includes/test-results/
 app/includes/playwright-report/
