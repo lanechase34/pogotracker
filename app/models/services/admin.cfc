@@ -1134,6 +1134,7 @@ component singleton accessors="true" {
      * @eventLink Leek duck event page
      */
     public void function createEvent(required string eventLink) {
+        checkNameOverridesJson();
         checkEventOverridesJson();
 
         var spawns   = {};
