@@ -5,6 +5,9 @@
             <a href="/mycustompokedex/#currEvent.id#" target="_blank" class="link-dark fw-medium link-underline-opacity-0 link-underline-opacity-100-hover">
                 #currEvent.name#
             </a>
+            <cfloop index="j" item="costumetype" array="#currEvent.costumes#">
+                <span class="ms-2 badge bg-secondary text-capitalize">#costumetype#</span>
+            </cfloop>
         </td>
         <td class="text-muted small text-nowrap">
             #currEvent.begins# &mdash; #currEvent.ends#

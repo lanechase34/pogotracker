@@ -258,7 +258,7 @@ component singleton accessors="true" {
     }
 
     /**
-     * Get previous events this pokemon was featured in
+     * Get previous events this pokemon and costume types they were featured in 
      *
      * @pokemon pokemon cfc
      * @limit   record limit
@@ -268,35 +268,52 @@ component singleton accessors="true" {
         numeric limit  = 5,
         numeric offset = 0
     ) {
-        var events = ormExecuteQuery(
+        var events = queryExecute(
             '
-            select custom
-            from custom as custom
-            left outer join custom.custompokedex as custompokedex
-            where custompokedex.pokemon = :pokemon
-            and custom.link is not null
-            and custom.link <> ''''
-            order by custom.id desc
+            SELECT c.id, c.created, c.begins, c.ends, c.name, c.link, STRING_AGG(costumetype, '','') AS form_list
+            FROM custom c
+            JOIN custompokedex cp ON cp.customid = c.id
+            JOIN pokemon p ON cp.pokemonid = p.id
+            WHERE p.name = :name
+            AND p.number = :number
+            AND p.gender = :gender
+            AND c.link IS NOT NULL
+            AND c.link <> ''''
+            GROUP BY c.id, c.created, c.begins, c.ends, c.name, c.link, p.name, p.number, p.gender
+            ORDER BY c.id DESC
+            LIMIT :limit
+            OFFSET :offset
             ',
-            {pokemon: arguments.pokemon},
-            {maxResults: arguments.limit, offset: arguments.offset}
+            {
+                name  : {value: pokemon.getName(), cfsqltype: 'varchar'},
+                number: {value: pokemon.getNumber(), cfsqltype: 'integer'},
+                gender: {value: pokemon.getGender(), cfsqltype: 'varchar'},
+                limit : {value: limit, cfsqltype: 'integer'},
+                offset: {value: offset, cfsqltype: 'integer'}
+            }
         );
 
-        return events.map((event) => {
-            return {
-                id    : event.getId(),
-                begins: event.getFormattedBegins(),
-                ends  : event.getFormattedEnds(),
-                name  : event.getName(),
-                link  : event.getLink()
-            };
-        });
+        return events.reduce((result, row) => {
+            result.append({
+                id      : row.id,
+                begins  : dateFormat((!isDate(row.begins) ? row.created : row.begins), 'mmm d, yyyy'),
+                ends    : dateFormat((!isDate(row.ends) ? row.created : row.ends), 'mmm d, yyyy'),
+                name    : row.name,
+                link    : row.link,
+                costumes: listToArray(
+                    list               = row.form_list,
+                    delimiters         = ',',
+                    includeEmptyFields = false
+                )
+            });
+            return result;
+        }, []);
     }
 
     /**
      * Get the costume forms of this pokemon
      *
-     * @pokemon 
+     * @pokemon pokemon cfc
      */
     public array function getCostumes(required component pokemon) {
         return ormExecuteQuery(
@@ -335,11 +352,12 @@ component singleton accessors="true" {
 
             detail         = {};
             detail.pokemon = pokemon;
-            // CP Info | Research(lvl15), egg/raid(lvl20), weather boosted raid(lvl25), max cp(lvl50)
-            var info       = async
+
+            var info = async
                 .newFuture()
                 .all(
                     () => {
+                        // CP Info | Research(lvl15), egg/raid(lvl20), weather boosted raid(lvl25), max cp(lvl50)
                         var cpInfo = {};
                         getLevels().each(
                             (level) => {
@@ -419,13 +437,11 @@ component singleton accessors="true" {
         var overrides = adminService.getOverride(name = 'envpokedexoverrides');
 
         // Update env pokedex overrides
-        overrides[pokemon.getName()] = {
-            live       : live,
-            shiny      : shiny,
-            shadow     : shadow,
-            shadowshiny: shinyShadow,
-            tradable   : tradable
-        };
+        overrides[pokemon.getName()].live = live;
+        overrides[pokemon.getName()].shiny = shiny;
+        overrides[pokemon.getName()].shadow = shadow;
+        overrides[pokemon.getName()].shadowshiny = shinyShadow;
+        overrides[pokemon.getName()].tradable = tradable;
 
         adminService.saveOverride(name = 'envpokedexoverrides', override = overrides);
 

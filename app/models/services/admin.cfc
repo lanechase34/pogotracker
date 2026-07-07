@@ -470,7 +470,7 @@ component singleton accessors="true" {
         );
 
         // Read in custom overrides and overwrite scraped data
-        var overrides = deserializeJSON(fileRead('/includes/assets/pokedexoverrides.json'));
+        var overrides = getOverride(name = 'envpokedexoverrides');
         overrides.each(
             (pokemon, custom) => {
                 custom.each((key, value) => {
@@ -502,18 +502,6 @@ component singleton accessors="true" {
                             jsonPokedex['#pokemon#'].insert(key, value);
                         }
                     }
-                });
-            },
-            true,
-            getMaxThreads()
-        );
-
-        // Read in env overrides
-        var envOverrides = getOverride(name = 'envpokedexoverrides');
-        envOverrides.each(
-            (pokemon, custom) => {
-                custom.each((key, value) => {
-                    jsonPokedex['#pokemon#'][key] = value;
                 });
             },
             true,
