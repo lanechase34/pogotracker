@@ -1284,7 +1284,7 @@ component singleton accessors="true" {
             .each((key, overrideSpawns) => {
                 overrideSpawns.each((pokemon, override) => {
                     // 1 = add, 0 = delete
-                    if(override) {
+                    if(override && !spawns.keyExists(pokemon)) {
                         spawns.insert(pokemon, true);
                     }
                     else {
