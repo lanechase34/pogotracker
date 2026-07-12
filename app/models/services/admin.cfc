@@ -1287,7 +1287,7 @@ component singleton accessors="true" {
                     if(override && !spawns.keyExists(pokemon)) {
                         spawns.insert(pokemon, true);
                     }
-                    else {
+                    else if(!override) {
                         spawns.delete(pokemon);
                     }
                 });
