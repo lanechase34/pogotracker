@@ -220,8 +220,26 @@ component singleton accessors="true" {
             q = queryExecute(
                 '
                 select
-                    coalesce(string_agg(case when (d.caught is not true and p.live = true) then cast(p.number as text) end, '','' order by p.number asc), '''') as missingCaught,
-                    coalesce(string_agg(case when (d.shiny is not true and p.shiny = true) then cast(p.number as text) end, '','' order by p.number asc), '''') as missingShiny
+                    coalesce(string_agg(
+                        case when (d.caught is not true and p.live = true) 
+                        then 
+                            case when p.form 
+                            then cast(p.number as text)
+                            else p.name
+                            end
+                        end
+                        , '','' order by p.number asc), ''''
+                    ) as missingCaught,
+                    coalesce(string_agg(
+                        case when (d.shiny is not true and p.shiny = true) 
+                        then 
+                            case when p.form 
+                            then cast(p.number as text)
+                            else p.name
+                            end
+                        end
+                        , '','' order by p.number asc), ''''
+                    ) as missingShiny
                 from pokemon p
                 left outer join pokedex d on p.id = d.pokemonid and d.trainerid = :trainerid
                 where p.costume = false

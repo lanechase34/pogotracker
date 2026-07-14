@@ -31,6 +31,7 @@
                 data-id="#currEntry[1].getId()#"
                 data-number="#currEntry[1].getNumber()#"
                 data-name="#currEntry[1].getName()#"
+                data-form="#currEntry[1].getForm()#"
                 data-gender="#currEntry[1].getGender()#"
                 data-tradable="#currEntry[1].getTradable()#"
                 data-caught="#!isNull(currEntry[2]) ? currEntry[2].getCaught() : false#"
