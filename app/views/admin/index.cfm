@@ -1,5 +1,5 @@
 <cfoutput> 
-<div class="row">
+<div class="row mb-3">
     <div class="col-12 col-md-3 d-flex align-items-start mt-3">
         <div class="list-group w-100">
             <a href="/admin/auditLog" class="list-group-item list-group-item-action d-flex gap-2 py-3">

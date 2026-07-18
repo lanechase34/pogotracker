@@ -185,7 +185,9 @@
         </div>
     </main>
     
-    #view(view='/layouts/footer')#
+    <cfif prc.currHandler NEQ 'admin' AND prc.currHandler NEQ 'dev'>
+        #view(view='/layouts/footer')#
+    </cfif>
 
     #view(view="/views/modal/loading")#
 
