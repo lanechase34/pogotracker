@@ -14,7 +14,7 @@ component extends="base" {
     };
 
     property name="blogService"    inject="services.blog";
-    property name="imageService"   inject="services.image";
+    property name="imageService"   inject="Helpers@ImageMagick";
     property name="trainerService" inject="services.trainer";
 
     this.prehandler_only = 'read,writeForm,editForm';
@@ -144,10 +144,9 @@ component extends="base" {
          * Validate image upload and resize it
          */
         try {
-            prc.image = imageService.validateUpload(formField = 'blogimage');
-            imageService.resizeBlogImage(filename = prc.image);
+            prc.image = blogService.imageUpload();
         }
-        catch(UploadValidationException e) {
+        catch(ImageMagick.UploadValidationException e) {
             jsonValidationFailure(event = event, e.message);
             return;
         }
@@ -177,12 +176,16 @@ component extends="base" {
          * Validate image
          */
         try {
+            // Convert to webp
             prc.image = imageService.validateUpload(
                 formField = 'image',
-                uploadDir = '#getSetting('uploadPath')#/extra/'
+                outputs   = [{uploadDir: '#getSetting('uploadPath')#/extra/', type: 'webp'}]
             );
+
+            // Add .webp extension to the filename
+            prc.image &= '.webp';
         }
-        catch(UploadValidationException e) {
+        catch(ImageMagick.UploadValidationException e) {
             jsonValidationFailure(event = event, e.message);
             return;
         }
@@ -246,10 +249,9 @@ component extends="base" {
         prc.image = '';
         if(rc.blogimage.len()) {
             try {
-                prc.image = imageService.validateUpload(formField = 'blogimage');
-                imageService.resizeBlogImage(filename = prc.image);
+                prc.image = blogService.imageUpload();
             }
-            catch(UploadValidationException e) {
+            catch(ImageMagick.UploadValidationException e) {
                 jsonValidationFailure(event = event, e.message);
                 return;
             }

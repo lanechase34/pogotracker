@@ -13,7 +13,7 @@ component extends="tests.resources.baseTest" {
             beforeEach(() => {
                 setup();
 
-                imageService = getInstance('services.image');
+                imageService = getInstance('Helpers@ImageMagick');
             });
 
             it('Service can be created', () => {
@@ -24,8 +24,9 @@ component extends="tests.resources.baseTest" {
             it(
                 'Can verify image magickis functioning',
                 () => {
-                    var verify = imageService.verifyImageMagick();
-                    expect(verify).toBe(true);
+                    expect(() => {
+                        imageService.verifyImageMagick()
+                    }).notToThrow();
                 },
                 '',
                 application.cbController.getSetting('environment') == 'test'

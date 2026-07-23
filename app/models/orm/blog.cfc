@@ -2,7 +2,7 @@ component persistent="true" extends="base" {
 
     // columns
     property name="header"  ormtype="string" length="100";
-    property name="image"   ormtype="string" length="30";
+    property name="image"   ormtype="string" length="128";
     property name="alttext" ormtype="string" length="100";
     property name="bodyjson" ormtype="text";
     property name="body"     ormtype="text";

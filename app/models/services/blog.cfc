@@ -2,8 +2,10 @@ component singleton accessors="true" {
 
     property name="cache"          inject="cachebox:appCache";
     property name="jsoup"          inject="javaloader:org.jsoup.Jsoup";
+    property name="imageService"   inject="Helpers@ImageMagick";
     property name="trainerService" inject="services.trainer";
     property name="scraperService" inject="services.scraper";
+    property name="uploadPath"     inject="coldbox:setting:uploadPath";
 
     /**
      * Gets blog list sorted by created desc
@@ -286,6 +288,37 @@ component singleton accessors="true" {
         }
 
         return events;
+    }
+
+    /**
+     * Upload wrapper for blog images, resizes to correct full/card height
+     *
+     * @return The complete image UUID with extension
+     *
+     * @throws ImageMagick.UploadValidationException on conversion failures
+     */
+    public string function imageUpload() {
+        // Convert to webp
+        var image = imageService.validateUpload(
+            formField = 'blogimage',
+            outputs   = [{uploadDir: getUploadPath(), type: 'webp'}]
+        );
+
+        // Add .webp extension to the filename
+        image &= '.webp';
+
+        // Resize
+        imageService.resize(
+            path    = '#getUploadPath()#/#image#',
+            outputs = [
+                {resizeDir: '#getUploadPath()#/cards', height: 250},
+                {resizeDir: '#getUploadPath()#/full', height: 350}
+            ]
+        );
+
+        // Delete the original converted
+        fileDelete('#getUploadPath()#/#image#');
+        return image;
     }
 
 }

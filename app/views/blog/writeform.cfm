@@ -38,17 +38,17 @@
         </cfif>
     </div>
 </form>
-<script type="text/javascript" defer src="https://cdn.jsdelivr.net/npm/@editorjs/paragraph@latest"></script>
-<script type="text/javascript" defer src="https://cdn.jsdelivr.net/npm/@editorjs/header@latest"></script>
-<script type="text/javascript" defer src="https://cdn.jsdelivr.net/npm/@editorjs/raw@latest"></script>
-<script type="text/javascript" defer src="https://cdn.jsdelivr.net/npm/@editorjs/image@latest"></script>
-<script type="text/javascript" defer src="https://cdn.jsdelivr.net/npm/@editorjs/checklist@latest"></script>
-<script type="text/javascript" defer src="https://cdn.jsdelivr.net/npm/@editorjs/list@2"></script>
-<script type="text/javascript" defer src="https://cdn.jsdelivr.net/npm/@editorjs/quote@latest"></script>
-<script type="text/javascript" defer src="https://cdn.jsdelivr.net/npm/@editorjs/code@latest"></script>
-<script type="text/javascript" defer src="https://cdn.jsdelivr.net/npm/editorjs-indent-tune/dist/bundle.js"></script>
+<script type="text/javascript" defer src="https://cdn.jsdelivr.net/npm/@editorjs/paragraph@2.11.7"></script>
+<script type="text/javascript" defer src="https://cdn.jsdelivr.net/npm/@editorjs/header@2.8.9"></script>
+<script type="text/javascript" defer src="https://cdn.jsdelivr.net/npm/@editorjs/raw@2.5.1"></script>
+<script type="text/javascript" defer src="https://cdn.jsdelivr.net/npm/@editorjs/image@2.10.3"></script>
+<script type="text/javascript" defer src="https://cdn.jsdelivr.net/npm/@editorjs/checklist@1.6.0"></script>
+<script type="text/javascript" defer src="https://cdn.jsdelivr.net/npm/@editorjs/list@2.0.9"></script>
+<script type="text/javascript" defer src="https://cdn.jsdelivr.net/npm/@editorjs/quote@2.7.6"></script>
+<script type="text/javascript" defer src="https://cdn.jsdelivr.net/npm/@editorjs/code@2.9.4"></script>
+<script type="text/javascript" defer src="https://cdn.jsdelivr.net/npm/editorjs-indent-tune@1.4.4/dist/bundle.js"></script>
 <script type="text/javascript" defer src="https://cdn.jsdelivr.net/npm/editorjs-html@4.0.0/.build/edjsHTML.js"></script>
-<script type="text/javascript" defer src="https://cdn.jsdelivr.net/npm/@editorjs/editorjs@latest"></script>
+<script type="text/javascript" defer src="https://cdn.jsdelivr.net/npm/@editorjs/editorjs@2.31.6"></script>
 
 <script>var bodyJson = <cfif args.keyExists('bodyJson')>#args.bodyJson#<cfelse>{}</cfif>;</script>
 </cfoutput>

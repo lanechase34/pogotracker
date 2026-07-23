@@ -5,7 +5,6 @@ component extends="base" {
     property name="blogService"       inject="services.blog";
     property name="cache"             inject="cachebox:appCache";
     property name="generationService" inject="services.generation";
-    property name="imageService"      inject="services.image";
     property name="persistService"    inject="services.persist";
     property name="pokemonService"    inject="services.pokemon";
     property name="trainerService"    inject="services.trainer";

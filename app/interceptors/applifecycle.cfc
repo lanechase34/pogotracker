@@ -6,7 +6,7 @@ component extends="coldbox.system.Interceptor" {
 
     property name="adminService" inject="provider:services.admin";
     property name="emailService" inject="provider:services.email";
-    property name="imageService" inject="provider:services.image";
+    property name="imageService" inject="provider:Helpers@ImageMagick";
 
     /**
      * Runs after Coldbox configuration loads - similar to onApplicationStart
@@ -38,8 +38,8 @@ component extends="coldbox.system.Interceptor" {
         }
 
         // Check imagemagick
-        if(environment == 'production' && !imageService.verifyImageMagick()) {
-            throw('Imagemagick is not running');
+        if(environment == 'production') {
+            imageService.verifyImageMagick();
         }
 
         // Check email
