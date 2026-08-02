@@ -134,10 +134,12 @@ component extends="base" {
         if(rc.region == 'Mega') {
             prc.mega  = true;
             rc.region = '';
+            rc.shiny  = false;
         }
         else if(rc.region == 'Giga') {
             prc.giga  = true;
             rc.region = '';
+            rc.shiny  = false;
         }
 
         // Shadow pokedex is not split up by region

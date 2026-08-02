@@ -149,6 +149,13 @@ function toggleLock() {
     });
 }
 
+function updateShinyToggleStyle() {
+    Array.from($shinyToggle).forEach((btn) => {
+        btn.classList.toggle('btn-success', pokedexStruct.shiny);
+        btn.classList.toggle('btn-danger', !pokedexStruct.shiny);
+    });
+}
+
 async function toggleShiny() {
     pokedexStruct.shiny = !pokedexStruct.shiny;
     if ($pokedexTable) {
@@ -172,15 +179,7 @@ async function toggleShiny() {
         });
     }
 
-    Array.from($shinyToggle).forEach((btn) => {
-        if (pokedexStruct.shiny) {
-            btn.classList.remove('btn-danger');
-            btn.classList.add('btn-success');
-        } else {
-            btn.classList.remove('btn-success');
-            btn.classList.add('btn-danger');
-        }
-    });
+    updateShinyToggleStyle();
 }
 
 function registerAllConfirm() {
@@ -363,22 +362,26 @@ async function switchPokedex({ region, $tableDiv, shadow = false, costume = fals
         btn.disabled = region === 'mega' || region === 'giga';
     });
 
-    // Shiny btn disabled for mega
+    // Shiny btn disabled for mega, giga
     Array.from($shinyToggle).forEach((btn) => {
-        btn.disabled = region === 'mega';
+        btn.disabled = region === 'mega' || region === 'giga';
     });
 
-    // Store shiny state in temp struct when viewing mega
-    if (region === 'mega') {
-        pokedexStruct.temp.region = 'mega';
+    const wasNoShinyRegion = pokedexStruct.temp.region === 'mega' || pokedexStruct.temp.region === 'giga';
+    const isNoShinyRegion = region === 'mega' || region === 'giga';
+
+    // Entering mega/giga from a normal region - stash the real shiny state once
+    if (isNoShinyRegion && !wasNoShinyRegion) {
         pokedexStruct.temp.shiny = pokedexStruct.shiny;
         pokedexStruct.shiny = false;
     }
-    // If we were viewing mega, restore the shiny state
-    else if (pokedexStruct.temp.region === 'mega') {
-        pokedexStruct.temp.region = '';
+    // Leaving mega/giga for a normal region - restore the stashed shiny state
+    else if (!isNoShinyRegion && wasNoShinyRegion) {
         pokedexStruct.shiny = pokedexStruct.temp.shiny;
     }
+
+    pokedexStruct.temp.region = region;
+    updateShinyToggleStyle();
 
     // If there are navigation buttons for the region supplied
     const activeNavButton = document.querySelector('.pokedex-link.active');

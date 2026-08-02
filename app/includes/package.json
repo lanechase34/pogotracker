@@ -22,6 +22,7 @@
         "lint": "eslint .",
         "lint:fix": "eslint --fix .",
         "format": "prettier --config .prettierrc --write \"**/*.{js,css}\" --log-level silent",
+        "check": "npm run format && npm run lint",
         "test": "playwright test",
         "test:ui": "playwright test --ui",
         "test:debug": "playwright test --debug",
