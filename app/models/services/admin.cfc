@@ -1087,9 +1087,12 @@ component singleton accessors="true" {
         // Get the events lists
         var events = blogService.getEvents(application.cbController.getSetting('fetchCount') * 2);
 
-        // Find events of type 'event' and < eventDaysBefore days away
+        // Find events of type 'event' or 'community day' and < eventDaysBefore days away
         events.each((event) => {
-            if(event.type == 'Event' && dateDiff('d', now(), event.datatimestamp) <= eventDaysBefore) {
+            if(
+                (event.type == 'Event' || event.type == 'Community Day')
+                && dateDiff('d', now(), event.datatimestamp) <= eventDaysBefore
+            ) {
                 createEvent(event.link);
             }
         });
@@ -1114,6 +1117,8 @@ component singleton accessors="true" {
             .body()
             .select('h1.page-title')
             .text();
+
+        var isCommunityDay = eventTitle.findNoCase('Community Day');
 
         var currYear = year(now());
 
@@ -1256,7 +1261,8 @@ component singleton accessors="true" {
                 public  = true,
                 begins  = begins,
                 ends    = ends,
-                link    = arguments.eventLink
+                link    = arguments.eventLink,
+                commday = isCommunityDay
             );
             custom = customService.getFromId(customid);
 

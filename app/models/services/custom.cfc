@@ -18,9 +18,10 @@ component singleton accessors="true" {
         required component trainer,
         required string name,
         required boolean public,
-        date begins = now(),
-        date ends   = now(),
-        string link = ''
+        date begins     = now(),
+        date ends       = now(),
+        string link     = '',
+        boolean commday = false
     ) {
         var newCustom = entityNew(
             'custom',
@@ -30,7 +31,8 @@ component singleton accessors="true" {
                 'public' : arguments.public,
                 'begins' : arguments.begins,
                 'ends'   : arguments.ends,
-                'link'   : arguments.link
+                'link'   : arguments.link,
+                'commday': arguments.commday
             }
         );
         entitySave(newCustom);
@@ -136,8 +138,11 @@ component singleton accessors="true" {
             custom = ormExecuteQuery(
                 '
                 from custom as custom
-                where custom.trainer = :trainer
-                or custom.public = true
+                where custom.commday = false
+                and (
+                    custom.trainer = :trainer
+                    or custom.public = true
+                )
                 order by custom.id desc, custom.name asc
                 ',
                 {'trainer': arguments.trainer},
@@ -189,12 +194,15 @@ component singleton accessors="true" {
      * @custom custom object
      */
     public void function delete(required component custom) {
-        arguments.custom
-            .getCustomPokedex()
-            .each((customPokedex) => {
+        var customPokedex = arguments.custom.getCustomPokedex();
+
+        // If pokedex entries exist
+        if(!isNull(customPokedex)) {
+            customPokedex.each((customPokedex) => {
                 entityDelete(customPokedex);
             });
-        ormFlush();
+            ormFlush();
+        }
 
         entityDelete(arguments.custom);
         ormFlush();
@@ -221,7 +229,8 @@ component singleton accessors="true" {
                 () => ormExecuteQuery(
                     '
                     from custom as custom
-                    where upper(custom.name) like :search
+                    where custom.commday = false
+                    and upper(custom.name) like :search
                     and (
                         custom.trainer = :trainer
                         or custom.public = true
@@ -235,7 +244,8 @@ component singleton accessors="true" {
                     '
                     select count(custom.id)
                     from custom as custom
-                    where upper(custom.name) like :search
+                    where custom.commday = false
+                    and upper(custom.name) like :search
                     and (
                         custom.trainer = :trainer
                         or custom.public = true

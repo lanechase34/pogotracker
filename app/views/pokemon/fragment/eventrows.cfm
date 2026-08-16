@@ -2,15 +2,24 @@
 <cfloop index="i" item="currEvent" array="#args.events#">
     <tr>
         <td>
-            <a href="/mycustompokedex/#currEvent.id#" target="_blank" class="link-dark fw-medium link-underline-opacity-0 link-underline-opacity-100-hover">
+            <cfif NOT currEvent.commday>
+                <a href="/mycustompokedex/#currEvent.id#" target="_blank" class="link-dark fw-medium link-underline-opacity-0 link-underline-opacity-100-hover">
+                    #currEvent.name#
+                </a>
+            <cfelse>
                 #currEvent.name#
-            </a>
+            </cfif>
+            
             <cfloop index="j" item="costumetype" array="#currEvent.costumes#">
                 <span class="ms-2 badge bg-secondary text-capitalize">#costumetype#</span>
             </cfloop>
         </td>
         <td class="text-muted small text-nowrap">
-            #currEvent.begins# &mdash; #currEvent.ends#
+            <cfif dateDiff('d', currEvent.begins, currEvent.ends) LT 1>
+                #currEvent.begins#
+            <cfelse>
+                #currEvent.begins# &mdash; #currEvent.ends#
+            </cfif>
         </td>
     </tr>
 </cfloop>

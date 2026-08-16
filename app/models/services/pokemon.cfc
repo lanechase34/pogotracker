@@ -270,15 +270,17 @@ component singleton accessors="true" {
     ) {
         var events = queryExecute(
             '
-            SELECT c.id, c.created, c.begins, c.ends, c.name, c.link, STRING_AGG(costumetype, '','') AS form_list
+            SELECT c.id, c.created, c.begins, c.ends, c.name, c.link, c.commday, STRING_AGG(costumetype, '','') AS form_list
             FROM custom c
             JOIN custompokedex cp ON cp.customid = c.id
             JOIN pokemon p ON cp.pokemonid = p.id
             WHERE p.name = :name
             AND p.number = :number
             AND p.gender = :gender
-            AND c.link IS NOT NULL
-            AND c.link <> ''''
+            AND (
+                c.commday = true
+                OR (c.link IS NOT NULL AND c.link <> '''')
+            )
             GROUP BY c.id, c.created, c.begins, c.ends, c.name, c.link, p.name, p.number, p.gender
             ORDER BY c.id DESC
             LIMIT :limit
@@ -300,6 +302,7 @@ component singleton accessors="true" {
                 ends    : dateFormat((!isDate(row.ends) ? row.created : row.ends), 'mmm d, yyyy'),
                 name    : row.name,
                 link    : row.link,
+                commday : row.commday,
                 costumes: listToArray(
                     list               = row.form_list,
                     delimiters         = ',',

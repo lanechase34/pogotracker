@@ -6,6 +6,7 @@ component persistent="true" table="custom" extends="base" {
     property name="public" ormtype="boolean" default="0";
     property name="begins" ormtype="timestamp";
     property name="ends"   ormtype="timestamp";
+    property name="commday" ormtype="boolean" default="0";
 
     // relations
     property name="trainer" fieldtype="many-to-one" cfc="trainer" fkcolumn="trainerid" lazy="true";
