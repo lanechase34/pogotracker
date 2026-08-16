@@ -282,7 +282,7 @@ component singleton accessors="true" {
                 OR (c.link IS NOT NULL AND c.link <> '''')
             )
             GROUP BY c.id, c.created, c.begins, c.ends, c.name, c.link, p.name, p.number, p.gender
-            ORDER BY c.id DESC
+            ORDER BY c.ends DESC
             LIMIT :limit
             OFFSET :offset
             ',
