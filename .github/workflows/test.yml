@@ -176,7 +176,7 @@ jobs:
               const passRate = total > 0 ? ((passed / (total-skipped)) * 100).toFixed(1) : '0.0';
 
               body = [
-                `## TestBox Backend Suite`,
+                `## TestBox Suite`,
                 '',
                 '| Metric | Value |',
                 '|--------|-------|',
