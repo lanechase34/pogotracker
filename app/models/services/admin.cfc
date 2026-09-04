@@ -1915,10 +1915,19 @@ component singleton accessors="true" {
             costumes = {};
             var doc  = scraperService.getData('https://pokemongo.fandom.com/wiki/Event_Pok%C3%A9mon');
 
-            var items = doc
-                .body()
-                .select('.pogo-list-container')
-                .select('.pogo-list-item');
+            // The page holds both tables in one poketab widget
+            // First content pane is the regular
+            // Second is the shiny
+            var pokeTab = doc.body().selectFirst('div.poketab');
+            if(isNull(pokeTab)) throw('Unable to locate the poketab container on the event Pokemon page');
+
+            var tabPanes = pokeTab.select('div.wds-tab__content');
+            if(tabPanes.size() LT 2) throw('Unable to locate both the regular and shiny tab panes');
+
+            var regularPane = tabPanes.get(0);
+            var shinyPane   = tabPanes.get(1);
+
+            var items = regularPane.select('.pogo-list-container').select('.pogo-list-item');
 
             items.each((item, idx) => {
                 var curr    = extractCostumeData(item);
@@ -1934,7 +1943,7 @@ component singleton accessors="true" {
                     spriteSrc  : curr.imgSrc,
                     generation : getGeneration(curr.name, curr.number),
                     released   : true,
-                    live       : true,
+                    live       : !curr.greyedOut,
                     flee       : 0,
                     catch      : 0,
                     shadowshiny: false,
@@ -1957,17 +1966,16 @@ component singleton accessors="true" {
                 costumes[curr.ses] = curr;
             });
 
-            // Load the shiny doc and get the shiny images
-            var shinyDoc = scraperService.getData('https://pokemongo.fandom.com/wiki/Event_Pok%C3%A9mon%23Shiny_(289_of_303)');
-
-            var shinyItems = doc
-                .body()
-                .select('.pogo-list-container')
-                .select('.pogo-list-item');
+            var shinyItems = shinyPane.select('.pogo-list-container').select('.pogo-list-item');
 
             shinyItems.each((item, idx) => {
                 var curr = extractCostumeData(item);
+
+                // Error in table on wiki side
+                if(!costumes.keyExists(curr.ses)) continue;
+
                 costumes[curr.ses].shinySpriteSrc = curr.imgSrc;
+                costumes[curr.ses].shinyGreyedOut = curr.greyedOut;
             });
 
             // Delete keys
@@ -1975,14 +1983,8 @@ component singleton accessors="true" {
 
             // Download images
             costumes.each((key, costume) => {
-                // Somehow these keys get scrambled when the page loads - determine which one is actually shiny and which is regular
                 var normalSprite = costume?.spriteSrc ?: '';
                 var shinySprite  = costume?.shinySpriteSrc ?: '';
-                if(normalSprite.findNoCase('shiny')) {
-                    var temp     = shinySprite;
-                    shinySprite  = normalSprite;
-                    normalSprite = temp;
-                }
 
                 // Normal sprite
                 var spritePath = '/includes/images/sprites/#costume.sprite##getImageExtension()#';
@@ -1995,7 +1997,7 @@ component singleton accessors="true" {
                 }
 
                 // Determine if this has a shiny
-                if(shinySprite.findNoCase('none')) {
+                if(shinySprite.findNoCase('none') || (costume?.shinyGreyedOut ?: false)) {
                     costume.shiny = false;
                 }
                 else {
@@ -2015,6 +2017,7 @@ component singleton accessors="true" {
 
                 costume.delete('spriteSrc');
                 costume.delete('shinySpriteSrc');
+                costume.delete('shinyGreyedOut');
             });
 
             // Determine the evolution lines based on existing evolution and using the costume type
@@ -2096,17 +2099,18 @@ component singleton accessors="true" {
 
         var number = val(reReplace(numEl.text(), '[^0-9]', '', 'all'));
 
-        var imgEl  = item.selectFirst('.pogo-list-item-image-r img');
-        var imgSrc = '';
-        if(!isNull(imgEl)) {
-            // Lazy rows store the real url in data-src and a base64
-            // placeholder in src - eager rows store it directly in src.
-            var dataSrc = imgEl.attr('data-src');
-            var src     = imgEl.attr('src');
-            imgSrc      = len(dataSrc) && dataSrc.startsWith('http') ? dataSrc : src;
+        // Every cell carries both an -image-r and -image-s sprite, but which slot actually holds the costume's own sprite isn't reliable
+        // The other slot is just the base/default sprite for reference
+        // The costume-specific filename always has more underscores so pick whichever side has more, regardless of which -r/-s slot it's in
+        var rSrc = resolveImgSrc(item.selectFirst('.pogo-list-item-image-r img'));
+        var sSrc = resolveImgSrc(item.selectFirst('.pogo-list-item-image-s img'));
 
-            // Pull full resolution instead of the 98px thumbnail.
-            imgSrc = reReplace(imgSrc, '/scale-to-width-down/[0-9]+', '', 'one');
+        var rUnderscores = len(rSrc) - len(replace(rSrc, '_', '', 'all'));
+        var sUnderscores = len(sSrc) - len(replace(sSrc, '_', '', 'all'));
+
+        var imgSrc = rSrc;
+        if(len(sSrc) && (sUnderscores > rUnderscores || !len(rSrc))) {
+            imgSrc = sSrc;
         }
 
         var safeCostume = reReplace(costume, '[^A-Za-z0-9]+', '-', 'all');
@@ -2120,13 +2124,31 @@ component singleton accessors="true" {
             costumetype: safeCostume,
             fullcostume: costume,
             filename   : filename,
-            imgSrc     : imgSrc
+            imgSrc     : imgSrc,
+            greyedOut  : item.hasClass('greyed-out')
         };
 
         // Build ses using safe costume name, then replace to full costume
         curr.ses         = createSes(curr);
         curr.costumetype = utilService.capitalizeWords(costume);
         return curr;
+    }
+
+    /**
+     * Resolves the full-resolution image url from a jsoup img element
+     *
+     * @imgEl jsoup selected img element (may be null)
+     */
+    private string function resolveImgSrc(any imgEl) {
+        if(isNull(imgEl)) return '';
+
+        // Lazy rows store the real url in data-src and a base64 placeholder in src - eager rows store it directly in src
+        var dataSrc = imgEl.attr('data-src');
+        var src     = imgEl.attr('src');
+        var imgSrc  = len(dataSrc) && dataSrc.startsWith('http') ? dataSrc : src;
+
+        // Pull full resolution instead of the 98px thumbnail
+        return reReplace(imgSrc, '/scale-to-width-down/[0-9]+', '', 'one');
     }
 
     /**
