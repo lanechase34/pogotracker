@@ -327,6 +327,7 @@ component singleton accessors="true" {
             and pokemon.name = :name
             and pokemon.number = :number
             and pokemon.gender = :gender
+            and pokemon.live = true
             ',
             {
                 name  : pokemon.getName(),
