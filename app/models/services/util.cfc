@@ -58,6 +58,22 @@ component singleton accessors="true" {
     }
 
     /**
+     * Attempt to parse a 'yyyy-mm-dd' string
+     * Falls back to now() if fails
+     *
+     * @toParse string that may be 'yyyy-mm-dd' formatted
+     */
+    public date function parseDateString(required string toParse) {
+        try {
+            var parts = toParse.listToArray('-');
+            return createDate(parts[1], parts[2], parts[3]);
+        }
+        catch(any e) {
+            return now();
+        }
+    }
+
+    /**
      * Determine if the request is accepting json by looking at the headers
      */
     public boolean function isJsonRequest() {
