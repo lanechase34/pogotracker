@@ -183,34 +183,12 @@ component singleton accessors="true" {
     }
 
     /**
-     * Create search string to use in game, uses pokemon numbers
-     *
-     * @pokedex Array containing pokemon
-     * @view    Current pokedex view
-     */
-    public string function createSearchString(
-        required array pokedex,
-        required string view,
-        boolean unregisteredOnly = false
-    ) {
-        var prefix = view == 'shadowshiny' ? 'shadow&shiny&'
-         : view == 'shadow' ? 'shadow&'
-         : view == 'shiny' ? 'shiny&'
-         : view == 'hundo' ? '4*&'
-         : '';
-
-        return pokedex.reduce((result, pokemon) => {
-            return (!unregisteredOnly || isNull(pokemon[2]))
-             ? result & '#pokemon[1].getNumber()#,'
-             : result;
-        }, prefix);
-    }
-
-    /**
      * Create string of missing pokemon for the trainer
      *
-     * @trainer 
+     * @trainer trainer cfc
      * @shiny   t/f
+     *
+     * @return search string to use in pokemon go, uses the pokemon's number/name, with '+' for evolution line
      */
     public string function getMissingString(required component trainer, required boolean shiny) {
         var cacheKey       = '#arguments.trainer.getId()#|pokedex.getMissingString';
@@ -221,21 +199,21 @@ component singleton accessors="true" {
                 '
                 select
                     coalesce(string_agg(
-                        case when (d.caught is not true and p.live = true) 
-                        then 
-                            case when p.form 
+                        case when (d.caught is not true and p.live = true)
+                        then
+                            case when p.form
                             then cast(p.number as text)
-                            else p.name
+                            else ''+'' || p.name
                             end
                         end
                         , '','' order by p.number asc), ''''
                     ) as missingCaught,
                     coalesce(string_agg(
-                        case when (d.shiny is not true and p.shiny = true) 
-                        then 
-                            case when p.form 
+                        case when (d.shiny is not true and p.shiny = true)
+                        then
+                            case when p.form
                             then cast(p.number as text)
-                            else p.name
+                            else ''+'' || p.name
                             end
                         end
                         , '','' order by p.number asc), ''''

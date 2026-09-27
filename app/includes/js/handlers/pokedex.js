@@ -491,7 +491,7 @@ function copySearchString($btns, missing) {
     const cells = document.querySelectorAll(`div.pokemonCell${condition}`);
     let cellString = '';
     cells.forEach((cell) => {
-        cellString += cell.dataset.form === 'true' ? `${cell.dataset.number}` : `${cell.dataset.name},`;
+        cellString += cell.dataset.form === 'true' ? `${cell.dataset.number}` : `+${cell.dataset.name},`;
     });
 
     // Remove duplicate cells from string
