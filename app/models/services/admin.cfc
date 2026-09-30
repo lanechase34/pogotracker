@@ -1411,6 +1411,7 @@ component singleton accessors="true" {
 
                         tasks.append({
                             name          : taskName,
+                            scheduler     : key,
                             label         : task.task.getName(),
                             module        : moduleName,
                             executor      : executorName,
@@ -1438,6 +1439,59 @@ component singleton accessors="true" {
             });
 
         return tasks;
+    }
+
+    /**
+     * Force run a Coldbox scheduled task now, bypassing disabled/constraint checks
+     *
+     * @scheduler Scheduler name the task is registered with
+     * @name      Task name
+     */
+    public struct function runTask(required string scheduler, required string name) {
+        if(!schedulerService.hasScheduler(arguments.scheduler)) {
+            throw(type = 'TaskNotFound', message = 'Unknown scheduler: #arguments.scheduler#');
+        }
+
+        var taskScheduler = schedulerService.getSchedulers()[arguments.scheduler];
+        if(!taskScheduler.hasTask(arguments.name)) {
+            throw(type = 'TaskNotFound', message = 'Unknown task: #arguments.name#');
+        }
+
+        var task           = taskScheduler.getTaskRecord(arguments.name).task;
+        var failuresBefore = task.getStats().totalFailures;
+
+        // Exceptions are trapped by the task itself, so detect failure through the stats
+        task.run(force = true);
+
+        var stats   = task.getStats();
+        var success = stats.totalFailures == failuresBefore;
+        var result  = '';
+
+        if(success) {
+            var lastResult = task.getLastResult();
+            if(lastResult.isPresent()) {
+                var value = lastResult.get();
+                try {
+                    result = isSimpleValue(value) ? value : serializeJSON(value);
+                }
+                catch(any e) {
+                    result = '[Unserializable #getMetadata(value).name ?: 'value'#]';
+                }
+            }
+        }
+
+        return {
+            name             : arguments.name,
+            success          : success,
+            // App scheduler tasks record the exception message on overviewStruct in callbackOnFailure
+            errorMessage     : success ? '' : (task?.overviewStruct?.message ?: 'Task failed. Check the bug log for details.'),
+            result           : result,
+            lastRun          : stats.lastRun,
+            lastExecutionTime: stats.lastExecutionTime,
+            totalRuns        : stats.totalRuns,
+            totalSuccess     : stats.totalSuccess,
+            totalFailures    : stats.totalFailures
+        };
     }
 
     /**

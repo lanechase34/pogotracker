@@ -110,6 +110,50 @@ async function updateProfile(packet, $btn) {
     });
 }
 
+function buildRunTaskResult(response) {
+    const $wrapper = document.createElement('div');
+    const $alert = document.createElement('div');
+    $wrapper.appendChild($alert);
+
+    if (!response.success) {
+        $alert.className = 'alert alert-danger';
+        $alert.textContent = response.message || 'Unable to run task.';
+        return $wrapper;
+    }
+
+    const task = response.data;
+    $alert.className = `alert ${task.success ? 'alert-success' : 'alert-danger'}`;
+    $alert.textContent = task.success ? 'Task completed successfully.' : task.errorMessage;
+
+    const rows = [
+        ['Last Run', task.lastRun],
+        ['Execution Time (ms)', task.lastExecutionTime],
+        ['Total Runs', task.totalRuns],
+        ['Total Success', task.totalSuccess],
+        ['Total Failures', task.totalFailures],
+    ];
+    const $table = document.createElement('table');
+    $table.className = 'table table-striped table-bordered';
+    const $tbody = $table.createTBody();
+    rows.forEach(([label, value]) => {
+        const $tr = $tbody.insertRow();
+        $tr.insertCell().textContent = label;
+        $tr.insertCell().textContent = value;
+    });
+    $wrapper.appendChild($table);
+
+    if (task.success && String(task.result).length) {
+        const $heading = document.createElement('h6');
+        $heading.textContent = 'Result';
+        const $pre = document.createElement('pre');
+        $pre.className = 'border rounded p-2 bg-body-tertiary';
+        $pre.textContent = task.result;
+        $wrapper.append($heading, $pre);
+    }
+
+    return $wrapper;
+}
+
 export const runtime = {
     all: () => {},
     auditlog: () => {
@@ -705,10 +749,44 @@ export const runtime = {
     },
     taskmanager: () => {
         new DataTable($taskInfo, {
-            order: [[0, 'asc']],
+            order: [[1, 'asc']],
+            columnDefs: [{ orderable: false, targets: 0 }],
             paging: false,
             searching: false,
             scrollX: true,
+        });
+
+        const $runTaskModalEl = document.getElementById('runTaskModal');
+        const runTaskModal = new bootstrap.Modal($runTaskModalEl);
+        const $runTaskModalTitle = document.getElementById('runTaskModalTitle');
+        const $runTaskModalBody = document.getElementById('runTaskModalBody');
+
+        document.getElementById('runTaskModalReload').addEventListener('click', () => {
+            window.location.reload();
+        });
+
+        document.querySelectorAll('.runTask').forEach((btn) => {
+            btn.addEventListener('click', async (evt) => {
+                const $btn = evt.currentTarget;
+                const { scheduler, name } = $btn.dataset;
+                const originalHtml = $btn.innerHTML;
+
+                await postWrapper({
+                    url: '/admin/runTask',
+                    $loadingBtn: $btn,
+                    loading: $submitBtn,
+                    packet: JSON.stringify({ scheduler, name }),
+                    responseType: 'json',
+                    dataHandler: (data) => {
+                        $btn.innerHTML = originalHtml;
+                        $btn.disabled = false;
+
+                        $runTaskModalTitle.textContent = name;
+                        $runTaskModalBody.replaceChildren(buildRunTaskResult(data));
+                        runTaskModal.show();
+                    },
+                });
+            });
         });
     },
     readoverrides: () => {

@@ -21,6 +21,7 @@ component extends="base" {
         showMoveData          : 'GET',
         saveState             : 'POST',
         taskManager           : 'GET',
+        runTask               : 'POST',
         readOverrides         : 'GET',
         saveOverrides         : 'POST',
         readEventOverrides    : 'GET',
@@ -330,6 +331,30 @@ component extends="base" {
 
     function taskManager(event, rc, prc) {
         prc.taskInfo = adminService.getTaskInfo();
+    }
+
+    function runTask(event, rc, prc) {
+        param name="rc.scheduler" default="";
+        param name="rc.name"      default="";
+
+        if(hasValidationErrors(target = rc, constraints = 'admin.runTask')) {
+            jsonValidationFailure(event = event);
+            return;
+        }
+
+        cfsetting(requestTimeout = 600);
+
+        try {
+            prc.responseObj.data = adminService.runTask(rc.scheduler, rc.name);
+        }
+        catch(TaskNotFound e) {
+            jsonNotFound(event = event, message = e.message);
+            return;
+        }
+
+        prc.responseObj.success    = true;
+        prc.responseObj.statusCode = 200;
+        renderJson(event = event, response = prc.responseObj);
     }
 
     function logViewer(event, rc, prc) {

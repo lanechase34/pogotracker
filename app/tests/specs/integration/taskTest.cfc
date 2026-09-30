@@ -73,6 +73,34 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                 application.cbController.setSetting('healthCheck', true);
             });
 
+            it('Can force run a task through the admin service', () => {
+                adminService = getInstance('services.admin');
+
+                result = adminService.runTask('appScheduler@coldbox', testTaskName);
+                expect(result).toBeStruct();
+                expect(result.success).toBeTrue();
+                expect(result.errorMessage).toBe('');
+                expect(dateDiff('s', parseDateTime(result.lastRun), now())).toBeLTE(10);
+            });
+
+            it('Reports failure when a force run task errors', () => {
+                adminService = getInstance('services.admin');
+                application.cbController.setSetting('healthCheck', false);
+
+                result = adminService.runTask('appScheduler@coldbox', testTaskName);
+                expect(result.success).toBeFalse();
+                expect(result.errorMessage).notToBe('');
+
+                application.cbController.setSetting('healthCheck', true);
+            });
+
+            it('Throws when force running an unknown task', () => {
+                adminService = getInstance('services.admin');
+
+                expect(() => adminService.runTask('appScheduler@coldbox', 'notARealTask')).toThrow('TaskNotFound');
+                expect(() => adminService.runTask('notARealScheduler', testTaskName)).toThrow('TaskNotFound');
+            });
+
             it('Can toggle a task', () => {
                 task = scheduler.getTaskRecord(testTaskName).task;
                 expect(task).toBeComponent();

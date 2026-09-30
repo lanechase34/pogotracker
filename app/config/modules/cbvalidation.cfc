@@ -751,7 +751,8 @@ component {
                         return ['asc', 'desc'].contains(arguments.value);
                     }
                 }
-            }
+            },
+            'admin.runTask': {scheduler: {required: true, type: 'string'}, name: {required: true, type: 'string'}}
         };
 
         var generic = {
