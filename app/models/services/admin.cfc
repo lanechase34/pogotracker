@@ -1088,9 +1088,11 @@ component singleton accessors="true" {
         var events = blogService.getEvents(application.cbController.getSetting('fetchCount') * 2);
 
         // Find events of type 'event' or 'community day' and < eventDaysBefore days away
+        // Exclude 'location specific events'
         events.each((event) => {
             if(
-                (event.type == 'Event' || event.type == 'Community Day')
+                !event.locationSpecific
+                && (event.type == 'Event' || event.type == 'Community Day')
                 && dateDiff('d', now(), event.datatimestamp) <= eventDaysBefore
             ) {
                 createEvent(event.link);

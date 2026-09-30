@@ -256,6 +256,9 @@ component singleton accessors="true" {
                 var postTimestamp = parseDateTime(date = post.attr('data-event-date-sort'), timezone = 'UTC');
                 if(dateDiff('h', postTimestamp, now()) >= 4) continue;
 
+                var link     = '#baseUrl##post.select('a').attr('href')#';
+                var eventDoc = scraperService.getData(link);
+
                 events.append({
                     type: post
                         .select('a')
@@ -279,8 +282,13 @@ component singleton accessors="true" {
                         .select('div.event-text')
                         .select('p')
                         .text() : '#dayOfWeekShortAsString(dayOfWeek(postTimestamp))#, #monthShortAsString(month(postTimestamp))# #day(postTimestamp)#, at #timeFormat(postTimestamp, 'h:mm tt')# EST',
-                    link         : '#baseUrl##post.select('a').attr('href')#',
-                    datatimestamp: postTimestamp
+                    link            : link,
+                    datatimestamp   : postTimestamp,
+                    locationSpecific: !eventDoc
+                        .body()
+                        .select('div.page-tags')
+                        .select('div.tag.location-specific')
+                        .isEmpty()
                 });
             });
 
