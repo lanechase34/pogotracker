@@ -175,6 +175,24 @@ component {
                     type    : 'string',
                     size    : '1..100'
                 }
+            },
+            'blog.getNews': {
+                offset: {
+                    required    : false,
+                    type        : 'numeric',
+                    min         : 0,
+                    max         : 25,
+                    defaultValue: 0
+                }
+            },
+            'blog.getEvents': {
+                offset: {
+                    required    : false,
+                    type        : 'numeric',
+                    min         : 0,
+                    max         : 25,
+                    defaultValue: 0
+                }
             }
         };
 

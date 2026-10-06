@@ -6,6 +6,7 @@ import { $leaderboardDiv, getLeaderboard } from 'stats';
 
 const $newsDiv = document.getElementById('newsDiv');
 const $eventsDiv = document.getElementById('eventsDiv');
+const scrapeMaxOffset = 25;
 
 export function resizeHomeCards() {
     new Masonry('.homeCards', {
@@ -21,8 +22,58 @@ async function getNews() {
         loading: $loading,
         dataHandler: (data) => {
             $newsDiv.innerHTML = data;
+
+            const $list = document.getElementById('newsList');
+            if ($list) showLoadMoreButton($list, { url: '/blog/getNews', itemSelector: '.newsItem' });
         },
     });
+}
+
+function showLoadMoreButton($list, { url, itemSelector }) {
+    const count = parseInt($list.dataset.count);
+    const loadMoreHtml = '<i class="bi bi-arrow-down-circle me-2"></i>Load More';
+
+    // Only show load more button if we retrieved the maximum count and are within the max offset
+    const canLoadMore = (returned) => {
+        const offset = $list.querySelectorAll(itemSelector).length;
+        return returned === count && offset <= scrapeMaxOffset;
+    };
+
+    if (!canLoadMore($list.querySelectorAll(itemSelector).length)) return;
+
+    const $btn = document.createElement('button');
+    $btn.type = 'button';
+    $btn.className = 'btn btn-outline-dark w-100 mt-2';
+    $btn.innerHTML = loadMoreHtml;
+
+    $btn.addEventListener('click', async () => {
+        $btn.disabled = true;
+        $btn.innerHTML =
+            '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Loading...';
+
+        const offset = $list.querySelectorAll(itemSelector).length;
+
+        await getWrapper({
+            url: `${url}/offset/${offset}`,
+            dataHandler: (data) => {
+                const newDiv = document.createElement('div');
+                newDiv.innerHTML = data;
+                const $newItems = newDiv.querySelectorAll(itemSelector);
+                $list.append(...$newItems);
+
+                if (canLoadMore($newItems.length)) {
+                    $btn.disabled = false;
+                    $btn.innerHTML = loadMoreHtml;
+                } else {
+                    $btn.remove();
+                }
+
+                resizeHomeCards();
+            },
+        });
+    });
+
+    $list.after($btn);
 }
 
 async function getEvents() {
@@ -32,6 +83,9 @@ async function getEvents() {
         loading: $loading,
         dataHandler: (data) => {
             $eventsDiv.innerHTML = data;
+
+            const $list = document.getElementById('eventsList');
+            if ($list) showLoadMoreButton($list, { url: '/blog/getEvents', itemSelector: '.eventItem' });
         },
     });
 }

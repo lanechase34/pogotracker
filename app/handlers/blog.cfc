@@ -275,11 +275,20 @@ component extends="base" {
      * Get latest news from Pokemon Go's website
      */
     function getNews(event, rc, prc) {
-        prc.news = blogService.getNews();
+        if(hasValidationErrors(target = rc, constraints = 'blog.getNews')) {
+            htmlValidationFailure(event = event);
+            return;
+        }
+
+        prc.offset = parseNumber(rc.offset);
+        prc.count  = getSetting('fetchCount');
+        prc.news   = blogService.getNews(count = prc.count, offset = prc.offset);
+
+        // Load more requests only need the news items to append to the existing card
         event.setView(
-            view     = '/views/blog/news',
+            view     = prc.offset ? '/views/blog/fragment/newsitems' : '/views/blog/news',
             nolayout = true,
-            args     = {news: prc.news}
+            args     = {news: prc.news, count: prc.count}
         );
     }
 
@@ -287,11 +296,20 @@ component extends="base" {
      * Get upcoming events from LeekDuck
      */
     function getEvents(event, rc, prc) {
-        prc.events = blogService.getEvents();
+        if(hasValidationErrors(target = rc, constraints = 'blog.getEvents')) {
+            htmlValidationFailure(event = event);
+            return;
+        }
+
+        prc.offset = parseNumber(rc.offset);
+        prc.count  = getSetting('fetchCount');
+        prc.events = blogService.getEvents(count = prc.count, offset = prc.offset);
+
+        // Load more requests only need the event items to append to the existing card
         event.setView(
-            view     = '/views/blog/events',
+            view     = prc.offset ? '/views/blog/fragment/eventitems' : '/views/blog/events',
             nolayout = true,
-            args     = {events: prc.events}
+            args     = {events: prc.events, count: prc.count}
         );
     }
 

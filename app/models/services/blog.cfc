@@ -180,10 +180,11 @@ component singleton accessors="true" {
     /**
      * Gets a struct of latest blog posts on the pokemon go website
      *
-     * @count number of posts to return
+     * @count  number of posts to return
+     * @offset number of posts to skip
      */
-    public array function getNews(numeric count = application.cbController.getSetting('fetchCount')) {
-        var cacheKey = 'blog.getNews';
+    public array function getNews(numeric count = application.cbController.getSetting('fetchCount'), numeric offset = 0) {
+        var cacheKey = 'blog.getNews|count=#arguments.count#|offset=#arguments.offset#';
         var news     = cache.get(cacheKey);
 
         if(isNull(news)) {
@@ -199,7 +200,8 @@ component singleton accessors="true" {
                 .select('a[class*=''_newsCard_'']');
 
             blogPosts.each((post, index) => {
-                if(index > count) break;
+                if(index <= offset) continue;
+                if(index > offset + count) break;
 
                 news.append({
                     link: '#baseUrl##post.attr('href')#',
@@ -234,14 +236,19 @@ component singleton accessors="true" {
     /**
      * Build array of upcoming events from leekduck
      *
-     * @count number of events to add
+     * @count  number of events to add
+     * @offset number of upcoming events to skip
      */
-    public array function getEvents(numeric count = application.cbController.getSetting('fetchCount')) {
-        var cacheKey = 'blog.getEvents'
+    public array function getEvents(
+        numeric count  = application.cbController.getSetting('fetchCount'),
+        numeric offset = 0
+    ) {
+        var cacheKey = 'blog.getEvents|count=#arguments.count#|offset=#arguments.offset#';
         var events   = cache.get(cacheKey);
 
         if(isNull(events)) {
             events        = [];
+            var skipped   = 0;
             var baseUrl   = 'https://leekduck.com';
             var eventsUrl = 'https://leekduck.com/events/';
 
@@ -255,6 +262,12 @@ component singleton accessors="true" {
 
                 var postTimestamp = parseDateTime(date = post.attr('data-event-date-sort'), timezone = 'UTC');
                 if(dateDiff('h', postTimestamp, now()) >= 4) continue;
+
+                // Skip past already loaded events before scraping the event page
+                if(skipped < offset) {
+                    skipped++;
+                    continue;
+                }
 
                 var link     = '#baseUrl##post.select('a').attr('href')#';
                 var eventDoc = scraperService.getData(link);
