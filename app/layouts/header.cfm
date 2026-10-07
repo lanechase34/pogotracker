@@ -1,6 +1,6 @@
 <cfoutput>
-<title>#prc.title.len() ? prc.title : getSetting("title")#</title>
 <meta charset="UTF-8">
+<title>#encodeForHTML(prc.title.len() ? prc.title : getSetting("title"))#</title>
 <meta name="description" content="#encodeForHTMLAttribute(prc.metaDescription.len() ? prc.metaDescription : getSetting('metaDescription'))#">
 <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
 <meta name="theme-color" content="rgb(33, 37, 41)">
@@ -16,7 +16,7 @@
 <cfif prc.keyExists('ogImage')>
     <meta property="og:image" content="#encodeForHTMLAttribute(prc.ogImage)#">
     <cfelse>
-    <meta property="og:image" content="https://pogotracker.app/includes/images/og-default.webp">
+    <meta property="og:image" content="https://pogotracker.app/includes/images/og-default.png">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
 </cfif>
@@ -25,7 +25,7 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="#encodeForHTMLAttribute(prc.title.len() ? prc.title : getSetting('title'))#">
 <meta name="twitter:description" content="#encodeForHTMLAttribute(prc.metaDescription.len() ? prc.metaDescription : getSetting('metaDescription'))#">
-<meta name="twitter:image" content="#prc.keyExists('ogImage') ? encodeForHTMLAttribute(prc.ogImage) : 'https://pogotracker.app/includes/images/og-default.webp'#">
+<meta name="twitter:image" content="#prc.keyExists('ogImage') ? encodeForHTMLAttribute(prc.ogImage) : 'https://pogotracker.app/includes/images/og-default.png'#">
 
 <!--- Structured Data --->
 <cfif prc.keyExists('structuredData')>
@@ -34,18 +34,29 @@
     <script type="application/ld+json">
     {
         "@context": "https://schema.org",
-        "@type": "WebApplication",
-        "name": "POGO Tracker",
-        "url": "https://pogotracker.app",
-        "description": "#encodeForJavaScript(getSetting('metaDescription'))#",
-        "applicationCategory": "GameApplication",
-        "operatingSystem": "Web"
+        "@graph": [
+            {
+                "@type": "WebSite",
+                "name": "POGO Tracker",
+                "alternateName": ["PogoTracker", "pogotracker.app"],
+                "url": "https://pogotracker.app/"
+            },
+            {
+                "@type": "WebApplication",
+                "name": "POGO Tracker",
+                "url": "https://pogotracker.app/",
+                "description": "#encodeForJavaScript(getSetting('metaDescription'))#",
+                "applicationCategory": "GameApplication",
+                "operatingSystem": "Web"
+            }
+        ]
     }
     </script>
 </cfif>
 
 <!--- Favicon --->
-<link rel="icon" type="image/x-icon" sizes="32x32" href="/includes/images/favicon.ico?v=#getSetting('favIcoVersion')#">
+<link rel="icon" type="image/png" sizes="192x192" href="/includes/images/favicon-192.png?v=#getSetting('favIcoVersion')#">
+<link rel="icon" type="image/x-icon" sizes="48x48" href="/includes/images/favicon.ico?v=#getSetting('favIcoVersion')#">
 <link rel="icon" type="image/svg+xml" href="/includes/images/favicon.svg?v=#getSetting('favIcoVersion')#">
 <link rel="apple-touch-icon" href="/includes/images/apple-touch-icon.png?v=#getSetting('favIcoVersion')#">
 

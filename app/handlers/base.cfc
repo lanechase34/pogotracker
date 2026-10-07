@@ -1,6 +1,23 @@
 component extends="coldbox.system.EventHandler" {
 
     /**
+     * Allow HEAD wherever GET is allowed so crawlers, link checkers, and uptime monitors don't get a 405
+     * Runs after the child handler's pseudo-constructor has set this.allowedMethods
+     */
+    function init() {
+        super.init();
+
+        for(var action in this.allowedMethods) {
+            var methods = this.allowedMethods[action];
+            if(listFindNoCase(methods, 'GET') && !listFindNoCase(methods, 'HEAD')) {
+                this.allowedMethods[action] = listAppend(methods, 'HEAD');
+            }
+        }
+
+        return this;
+    }
+
+    /**
      * Generic JSON render
      */
     function renderJson(required any event, required struct response) {
