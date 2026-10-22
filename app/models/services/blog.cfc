@@ -152,7 +152,7 @@ component singleton accessors="true" {
         var blog    = getFromId(blogid = blogid);
 
         if(isNull(blog)) {
-            throw(type = 'EntityNotFound', mesasge = 'Blog not found');
+            throw(type = 'EntityNotFound', message = 'Blog not found');
         }
 
         /**
