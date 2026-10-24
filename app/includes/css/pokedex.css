@@ -39,6 +39,10 @@ body:not(.pokedex-locked) .pokemonCell:hover {
     user-select: none;
 }
 
+.costume-base-name {
+    font-size: 0.8rem;
+}
+
 .pokedex-link.active {
     background-color: var(--bs-secondary) !important;
     border-color: var(--bs-secondary) !important;

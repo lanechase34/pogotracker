@@ -56,16 +56,13 @@
 
                 <p class="mt-1 mb-0 small fw-semibold text-center text-capitalize">
                     <cfif currEntry[1].getCostume()>
+                        <span class="d-block fw-normal text-muted lh-1 costume-base-name">#currEntry[1].getName()#</span>
                         #currEntry[1].getCostumeType()#
                     <cfelse>
                         #currEntry[1].getName()#
                     </cfif>
                 </p>
 
-<!---                 
-                <cfif currEntry[1].getCostume()>
-                    <p class="mt-1 mb-0 small fw-semibold text-center text-capitalize">#currEntry[1].getCostumeType()#</p>
-                </cfif> --->
                 <span class="dex-number">#currEntry[1].getNumber()#</span>
             </div>
         </cfif>
