@@ -1,10 +1,11 @@
 component singleton accessors="true" {
 
-    property name="adminService" inject="services.admin";
-    property name="async"        inject="asyncManager@coldbox";
-    property name="auditService" inject="services.audit";
-    property name="cache"        inject="cachebox:appCache";
-    property name="moveService"  inject="services.move";
+    property name="adminService"  inject="services.admin";
+    property name="async"         inject="asyncManager@coldbox";
+    property name="auditService"  inject="services.audit";
+    property name="cache"         inject="cachebox:appCache";
+    property name="moveService"   inject="services.move";
+    property name="templateCache" inject="cachebox:template";
 
     property name="maxThreads"     inject="coldbox:setting:maxThreads";
     property name="rootPath"       inject="coldbox:setting:rootPath";
@@ -338,93 +339,118 @@ component singleton accessors="true" {
     }
 
     /**
+     * Get the cached, plain data detail of a pokemon (no entities)
+     * Only touches the DB when the cache is cold
+     *
+     * @ses pokemon SES key
+     */
+    public struct function getDetailInfo(required string ses) {
+        var info = cache.get(getDetailCacheKey(ses));
+        if(!isNull(info)) {
+            return info;
+        }
+
+        var pokemon = getFromSes(ses = ses);
+        if(isNull(pokemon)) {
+            // Invalid ses
+            return {};
+        }
+        return cacheDetailInfo(pokemon);
+    }
+
+    /**
      * Get detail about a pokemon
+     *
+     * @ses pokemon SES key
      */
     public struct function getDetail(required string ses) {
-        // Check cache first
-        var cacheKey = 'pokemon.getDetail|pokemonses=#ses#';
-        var detail   = cache.get(cacheKey);
-        if(isNull(detail)) {
-            /**
-             * Attempt to load pokemon based on ses
-             */
-            var pokemon = getFromSes(ses = ses);
-            if(isNull(pokemon)) {
-                // Invalid ses
-                return {};
-            }
-
-            detail         = {};
-            detail.pokemon = pokemon;
-
-            var info = async
-                .newFuture()
-                .all(
-                    () => {
-                        // CP Info | Research(lvl15), egg/raid(lvl20), weather boosted raid(lvl25), max cp(lvl50)
-                        var cpInfo = {};
-                        getLevels().each(
-                            (level) => {
-                                cpInfo['lvl#level#'] = [
-                                    calculateCP(detail.pokemon, level, 10),
-                                    calculateCP(detail.pokemon, level, 15)
-                                ];
-                            },
-                            true,
-                            50
-                        );
-                        return cpInfo;
-                    },
-                    () => {
-                        return getMaxStats();
-                    },
-                    () => {
-                        return calculateCatchRate(detail.pokemon, 20);
-                    },
-                    () => {
-                        // Get the base stage
-                        var baseStage = detail.pokemon;
-                        while(getEvolvers(baseStage).len()) {
-                            baseStage = getEvolvers(baseStage)[1];
-                        }
-                        return baseStage;
-                    },
-                    () => {
-                        return getPreviousEvents(detail.pokemon);
-                    },
-                    () => {
-                        return getCostumes(detail.pokemon);
-                    }
-                )
-                .get();
-
-            var maxStats           = info[2];
-            detail.cp              = info[1];
-            detail.catchRates      = {};
-            detail.catchRate.lvl20 = info[3];
-            detail.statPercentages = {
-                attack : (detail.pokemon.getAttack() / maxStats.attack) * 100,
-                defense: (detail.pokemon.getDefense() / maxStats.defense) * 100,
-                hp     : (detail.pokemon.getHP() / maxStats.hp) * 100,
-                cp     : (detail.cp.lvl50[2] / maxStats.cp) * 100
-            };
-            detail.baseStage = entityMerge(info[4]);
-            detail.events    = info[5];
-            detail.costumes  = info[6];
-            detail.fullname  = '#detail.pokemon.getFullname()#';
-            detail.title     = '#detail.pokemon.getNumber()# - #detail.fullname#';
-
-            detail.metaDescription = '#ucFirst(detail.fullname)#''s (###detail.pokemon.getNumber()#) evolutions, CP range, stats, moveset, and events in Pokemon GO.';
-            detail.ogImage         = detail.pokemon.getOgImage();
-
-            cache.set(
-                cacheKey,
-                detail,
-                getCacheTime() * 15,
-                getCacheTime() * 15
-            );
+        var pokemon = getFromSes(ses = ses);
+        if(isNull(pokemon)) {
+            // Invalid ses
+            return {};
         }
+
+        var info = cache.get(getDetailCacheKey(ses)) ?: cacheDetailInfo(pokemon);
+
+        // Get the base stage
+        var baseStage = pokemon;
+        var evolvers  = getEvolvers(baseStage);
+        while(evolvers.len()) {
+            baseStage = evolvers[1];
+            evolvers  = getEvolvers(baseStage);
+        }
+
+        // Shallow copy so the cached struct is never mutated by a request
+        var detail       = structCopy(info);
+        detail.pokemon   = pokemon;
+        detail.baseStage = baseStage;
+        detail.costumes  = getCostumes(pokemon);
         return detail;
+    }
+
+    /**
+     * Clear every cached piece of a pokemon's detail page
+     *
+     * @ses pokemon SES key
+     */
+    public void function clearDetailCache(required string ses) {
+        cache.clear(getDetailCacheKey(ses));
+        // Rendered detailContent viewlets, keys are lower cased by ColdBox: <prefix>pokemon.detailcontent-<ses>|<audience>-<hash>
+        templateCache.clearByKeySnippet('pokemon.detailcontent-#lCase(ses)#|');
+        return;
+    }
+
+    /**
+     * Cache suffix for the rendered detail page viewlet
+     *
+     * @ses     pokemon SES key
+     * @isAdmin admins see the update detail form
+     */
+    public string function getDetailContentCacheSuffix(required string ses, required boolean isAdmin) {
+        return '#ses#|#isAdmin ? 'admin' : 'public'#';
+    }
+
+    private string function getDetailCacheKey(required string ses) {
+        return 'pokemon.getDetail|pokemonses=#ses#';
+    }
+
+    /**
+     * Compute and cache the plain data detail of a pokemon
+     */
+    private struct function cacheDetailInfo(required component pokemon) {
+        var info = {};
+
+        // CP Info | Research(lvl15), egg/raid(lvl20), weather boosted raid(lvl25), max cp(lvl50)
+        info.cp = {};
+        getLevels().each((level) => {
+            info.cp['lvl#level#'] = [
+                calculateCP(pokemon, level, 10),
+                calculateCP(pokemon, level, 15)
+            ];
+        });
+
+        var maxStats         = getMaxStats();
+        info.catchRate       = {lvl20: calculateCatchRate(pokemon, 20)};
+        info.statPercentages = {
+            attack : (pokemon.getAttack() / maxStats.attack) * 100,
+            defense: (pokemon.getDefense() / maxStats.defense) * 100,
+            hp     : (pokemon.getHP() / maxStats.hp) * 100,
+            cp     : (info.cp.lvl50[2] / maxStats.cp) * 100
+        };
+        info.events   = getPreviousEvents(pokemon);
+        info.fullname = pokemon.getFullname();
+        info.title    = '#pokemon.getNumber()# - #info.fullname#';
+
+        info.metaDescription = '#ucFirst(info.fullname)#''s (###pokemon.getNumber()#) evolutions, CP range, stats, moveset, and events in Pokemon GO.';
+        info.ogImage         = pokemon.getOgImage();
+
+        cache.set(
+            getDetailCacheKey(pokemon.getSes()),
+            info,
+            getCacheTime() * 15,
+            getCacheTime() * 15
+        );
+        return info;
     }
 
     /**
@@ -458,7 +484,7 @@ component singleton accessors="true" {
         entitySave(pokemon);
         ormFlush();
 
-        cache.clear('pokemon.getDetail|pokemonses=#pokemon.getSes()#');
+        clearDetailCache(ses = pokemon.getSes());
         return;
     }
 

@@ -25,18 +25,37 @@ component extends="base" {
         }
 
         /**
-         * Attempt to load detail based on ses
+         * Attempt to load the cached detail info based on ses
+         * The page body is a cached viewlet (detailContent) so a warm cache never touches the DB
          */
-        prc.detail = pokemonService.getDetail(ses = rc.ses);
-        if(!prc.detail.keyExists('pokemon')) {
+        prc.detailInfo = pokemonService.getDetailInfo(ses = rc.ses);
+        if(prc.detailInfo.isEmpty()) {
             event.setLayout('basic');
             htmlNotFound(event = event);
             return;
         }
 
-        prc.metaDescription = prc.detail.metaDescription;
-        prc.title           = '#prc.detail.title# | #getSetting('title')#';
+        prc.detailContentCache = {
+            suffix: pokemonService.getDetailContentCacheSuffix(
+                ses     = rc.ses,
+                isAdmin = (session?.securityLevel ?: -10) >= 50
+            ),
+            timeout: pokemonService.getCacheTime() * 15
+        };
+
+        prc.metaDescription = prc.detailInfo.metaDescription;
+        prc.title           = '#prc.detailInfo.title# | #getSetting('title')#';
         prc.suppressH1      = true; // pokemon's name is h1
+    }
+
+    /**
+     * Viewlet rendering the body of a pokemon's detail page, cached in the template cache by views/pokemon/detail
+     *
+     * @ses SES url that is a unique key for a pokemon
+     */
+    private function detailContent(event, rc, prc, required string ses) {
+        prc.detail = pokemonService.getDetail(ses = arguments.ses);
+        return view(view = '/views/pokemon/fragment/detailcontent', nolayout = true);
     }
 
     /**
@@ -81,14 +100,14 @@ component extends="base" {
             return;
         }
 
-        prc.detail = pokemonService.getDetail(ses = rc.ses);
-        if(!prc.detail.keyExists('pokemon')) {
+        prc.pokemon = pokemonService.getFromSes(ses = rc.ses);
+        if(isNull(prc.pokemon)) {
             htmlValidationFailure(event = event);
             return;
         }
 
         prc.events = pokemonService.getPreviousEvents(
-            pokemon = prc.detail.pokemon,
+            pokemon = prc.pokemon,
             limit   = 5,
             offset  = rc.offset
         );

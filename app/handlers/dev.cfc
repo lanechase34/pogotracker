@@ -272,16 +272,6 @@ component extends="base" {
         renderJson(event = event, response = {'response': serializeJSON(result)});
     }
 
-    function cpCalculator(event, rc, prc) {
-        param name="rc.pokemonid" default="";
-
-        prc.allPokemon = pokemonService.getAll();
-
-        if(rc.pokemonid.len()) {
-            prc.pokemonDetail = pokemonService.getDetail(parseNumber(rc.pokemonid));
-        }
-    }
-
     function createCPMultiplierJson(event, rc, prc) {
         var cpDoc       = scraperService.getData('https://pokemongo.fandom.com/wiki/Combat_Power');
         var cpTableData = cpDoc

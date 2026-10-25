@@ -41,7 +41,7 @@ component {
     }
 
     /**
-     * Get the costum data json struct
+     * Get the costume data json struct
      */
     function getCostumeData() {
         var costumeFile = fileOpen(
@@ -52,6 +52,19 @@ component {
 
         var costumeData = deserializeJSON(fileRead(costumeFile));
         return costumeData;
+    }
+
+    /**
+     * Get the pokedex overrides packet
+     */
+    function getPokedexOverrides() {
+        var overridesFile = fileOpen(
+            file    = 'resources/pokedexoverrides.json',
+            mode    = 'read',
+            charset = 'UTF-8'
+        );
+
+        return deserializeJSON(toUTF8(fileRead(overridesFile)));
     }
 
 }

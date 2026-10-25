@@ -39,7 +39,7 @@ component extends="tests.resources.baseTest" asyncAll="true" {
         zeraora = pokemonService.get({number: 807})[1];
 
         // Live and tradable, but shiny is not yet released
-        honedge = pokemonService.get({number: 679})[1];
+        morpeko = pokemonService.get({number: 877})[1];
     }
 
     function afterAll() {
@@ -145,7 +145,7 @@ component extends="tests.resources.baseTest" asyncAll="true" {
                 expect(left(missingShiny, 6)).toBe('shiny&');
 
                 var items = listToArray(replace(missingShiny, 'shiny&', '', 'one'), ',');
-                expect(items).notToContain('+#honedge.getName()#');
+                expect(items).notToContain('+#morpeko.getName()#');
                 expect(items).toContain('+#bulbasaur.getName()#');
             });
 

@@ -29,8 +29,12 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                 var jsoupTest = jsoup
                     .connect(event.route('/healthcheck').replace('/root', ''))
                     .ignoreContentType(true)
-                    .get();
-                expect(jsoupTest.text()).toInclude('Ok!');
+                    .ignoreHttpErrors(true)
+                    .execute();
+                expect(jsoupTest.body()).toInclude(
+                    'Ok!',
+                    'Live /healthcheck returned HTTP #jsoupTest.statusCode()# from #jsoupTest.url().toString()#: #jsoupTest.body()#'
+                );
             });
 
             it('Can get a user agent', () => {

@@ -9,7 +9,7 @@ pre-commit:
             root: "app/"
             run: box run-script format
           - name: lint
-            root: "backend/"
+            root: "app/"
             run: box run-script lint:error
     - name: frontend
       group:

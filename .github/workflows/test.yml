@@ -124,6 +124,15 @@ jobs:
         continue-on-error: true
         timeout-minutes: 10
 
+      - name: Dump Lucee Logs
+        if: env.TESTS_FAILED == 'true'
+        run: |
+          SERVER_HOME=$(box server info property=serverHomeDirectory)
+          find "$SERVER_HOME" \( -name 'application.log' -o -name 'exception.log' \) | while read -r logFile; do
+            echo "=== $logFile ==="
+            tail -n 200 "$logFile"
+          done
+
       - name: Display Test Results
         if: always()
         run: |

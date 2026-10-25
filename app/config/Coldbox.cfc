@@ -233,6 +233,11 @@ component {
                     levelMin : 'FATAL',
                     levelMax : 'WARN',
                     appenders: 'appLog'
+                },
+                'adminLog': {
+                    levelMin : 'FATAL',
+                    levelMax : 'WARN',
+                    appenders: 'appLog'
                 }
             }
         };
@@ -336,7 +341,6 @@ component {
         coldbox.handlersIndexAutoReload = true;
         coldbox.handlerCaching          = false;
         coldbox.eventCaching            = false;
-        coldbox.viewCaching             = false;
 
         coldbox.reinitPassword      = '';
         coldbox.customErrorTemplate = '/coldbox/system/exceptions/Whoops.cfm';

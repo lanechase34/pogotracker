@@ -1,5 +1,5 @@
 import { createAlert } from 'alert';
-import { initCopyIcons } from 'copy';
+import { copyString, initCopyIcons } from 'copy';
 import { getWrapper, postWrapper } from 'fetch';
 import { format, validate } from 'json';
 import { $submitBtn } from 'loading';
@@ -154,6 +154,232 @@ function buildRunTaskResult(response) {
     return $wrapper;
 }
 
+function createEl(tag, className = '', text = null) {
+    const $el = document.createElement(tag);
+    if (className) $el.className = className;
+    if (text !== null) $el.textContent = text;
+    return $el;
+}
+
+/**
+ * Classify a stack frame by its source file
+ * app       - our cfc/cfm code
+ * framework - coldbox/testbox/module cfc/cfm code
+ * java      - everything else (lucee internals, jvm, etc)
+ */
+function frameKind(file) {
+    if (!/\.(cfc|cfm|cfml)$/i.test(file)) return 'java';
+    if (/[\\/](coldbox|testbox|wirebox|cachebox|logbox|modules|lucee-server)[\\/]/i.test(file)) return 'framework';
+    return 'app';
+}
+
+/**
+ * Split an exception header line into its class name and message
+ * e.g. "lucee.runtime.exp.ExpressionException: key [x] doesn't exist"
+ */
+function splitHeader(header) {
+    const match = header.match(/^([\w$]+(?:\.[\w$]+)+)(?::\s?([\s\S]*))?$/);
+    if (!match) return { type: '', message: header };
+    return { type: match[1], message: (match[2] || '').trim() };
+}
+
+/**
+ * Parse a java stack trace string into sections (the thrown exception + each "Caused by")
+ */
+function parseStack(raw) {
+    const sections = [];
+    let current = null;
+
+    const newSection = (header, isCause) => {
+        current = { header, isCause, frames: [], omitted: 0 };
+        sections.push(current);
+    };
+
+    raw.split(/\r?\n/).forEach((line) => {
+        const trimmed = line.trim();
+        if (!trimmed.length) return;
+
+        const frame = trimmed.match(/^at\s+(.+?)\((.*)\)$/);
+        if (frame) {
+            if (!current) newSection('', false);
+            const location = frame[2].match(/^(.*):(\d+)$/);
+            const file = location ? location[1] : frame[2];
+            current.frames.push({
+                method: frame[1],
+                file,
+                line: location ? Number(location[2]) : null,
+                kind: frameKind(file),
+            });
+            return;
+        }
+
+        const more = trimmed.match(/^\.\.\.\s*(\d+)\s+more$/);
+        if (more && current) {
+            current.omitted = Number(more[1]);
+            return;
+        }
+
+        if (trimmed.startsWith('Caused by:')) {
+            newSection(trimmed.slice('Caused by:'.length).trim(), true);
+            return;
+        }
+
+        // Multi-line exception messages continue the header until the first frame
+        if (current && !current.frames.length) {
+            current.header += `\n${trimmed}`;
+            return;
+        }
+
+        newSection(trimmed, sections.length > 0);
+    });
+
+    return sections.map((section) => ({ ...section, ...splitHeader(section.header) }));
+}
+
+function buildBugMeta(bug) {
+    const $dl = createEl('dl', 'bugMeta row mb-0');
+    const items = [
+        ['Timestamp', bug.timestamp, 'col-sm-6 col-lg-3'],
+        ['Trainer', bug.username || 'Anonymous', 'col-sm-6 col-lg-3'],
+        ['IP', bug.ip || '---', 'col-sm-6 col-lg-3'],
+        ['Bug ID', `#${bug.id}`, 'col-sm-6 col-lg-3'],
+        ['Event', bug.event || '---', 'col-12'],
+    ];
+    items.forEach(([label, value, cols]) => {
+        const $wrap = createEl('div', cols);
+        const $dd = createEl('dd', label === 'Event' ? 'font-monospace' : '', value);
+        $wrap.append(createEl('dt', '', label), $dd);
+        $dl.appendChild($wrap);
+    });
+
+    const $card = createEl('div', 'card mb-3');
+    const $body = createEl('div', 'card-body pb-0');
+    $body.appendChild($dl);
+    $card.appendChild($body);
+    return $card;
+}
+
+function buildFrameItem(frame) {
+    const kindClass = {
+        app: 'bugFrameApp',
+        framework: 'bugFrameFramework',
+        java: 'bugFrameJava text-body-secondary',
+    }[frame.kind];
+    const $item = createEl('li', `list-group-item font-monospace ${kindClass}`);
+
+    if (frame.kind === 'java') {
+        $item.textContent = `${frame.method} (${frame.file}${frame.line !== null ? `:${frame.line}` : ''})`;
+        return $item;
+    }
+
+    const $loc = createEl('div', frame.kind === 'app' ? 'fw-semibold' : '');
+    $loc.textContent = frame.file;
+    if (frame.line !== null) {
+        $loc.appendChild(createEl('span', 'badge text-bg-secondary ms-2', `line ${frame.line}`));
+    }
+    $item.append($loc, createEl('div', 'text-body-secondary small', frame.method));
+    return $item;
+}
+
+function buildSection(section, index) {
+    const $section = createEl('div', 'mb-4');
+
+    const $heading = createEl('div', 'd-flex align-items-center gap-2 mb-2');
+    $heading.appendChild(
+        createEl(
+            'span',
+            `badge ${section.isCause ? 'text-bg-warning' : 'text-bg-danger'}`,
+            section.isCause ? 'Caused by' : 'Exception'
+        )
+    );
+    if (section.type) $heading.appendChild(createEl('code', 'text-break', section.type));
+    $section.appendChild($heading);
+
+    if (section.message) {
+        $section.appendChild(
+            createEl('div', 'bugExceptionMessage border rounded p-2 mb-2 bg-body-tertiary', section.message)
+        );
+    }
+
+    if (!section.frames.length) return $section;
+
+    const javaCount = section.frames.filter((f) => f.kind === 'java').length;
+    const cfmlCount = section.frames.length - javaCount;
+
+    const $frames = createEl('ul', `bugFrames list-group ${cfmlCount ? '' : 'showAll'}`);
+    section.frames.forEach((frame) => $frames.appendChild(buildFrameItem(frame)));
+
+    const $toolbar = createEl(
+        'div',
+        'd-flex justify-content-between align-items-center mb-1 small text-body-secondary'
+    );
+    $toolbar.appendChild(
+        createEl(
+            'span',
+            '',
+            `${section.frames.length} frames (${cfmlCount} CFML, ${javaCount} Java)${section.omitted ? `, ${section.omitted} more omitted` : ''}`
+        )
+    );
+
+    if (cfmlCount && javaCount) {
+        const id = `bugShowJava-${index}`;
+        const $switch = createEl('div', 'form-check form-switch mb-0');
+        const $input = createEl('input', 'form-check-input');
+        $input.type = 'checkbox';
+        $input.id = id;
+        $input.addEventListener('change', () => $frames.classList.toggle('showAll', $input.checked));
+        const $label = createEl('label', 'form-check-label', 'Show Java frames');
+        $label.htmlFor = id;
+        $switch.append($input, $label);
+        $toolbar.appendChild($switch);
+    }
+
+    $section.append($toolbar, $frames);
+    return $section;
+}
+
+function buildBugDetail(bug) {
+    const $wrapper = document.createDocumentFragment();
+    const sections = parseStack(bug.stack);
+    const hasFrames = sections.some((s) => s.frames.length);
+
+    $wrapper.appendChild(buildBugMeta(bug));
+
+    // The stored message is capped at 250 chars, prefer the full message from the trace
+    const top = sections[0];
+    const $alert = createEl('div', 'alert alert-danger');
+    if (top?.type) $alert.appendChild(createEl('div', 'small font-monospace mb-1 text-break', top.type));
+    $alert.appendChild(createEl('div', 'bugExceptionMessage fw-semibold', top?.message || bug.message || 'No message'));
+    $wrapper.appendChild($alert);
+
+    // Deepest root cause's first app frame is usually where the problem really is
+    const origin = [...sections]
+        .reverse()
+        .flatMap((s) => s.frames)
+        .find((f) => f.kind === 'app');
+    if (origin) {
+        const $origin = createEl('div', 'card border-danger-subtle mb-4');
+        const $body = createEl('div', 'card-body py-2');
+        $body.appendChild(createEl('div', 'small text-body-secondary', 'Originated in'));
+        const $loc = createEl('div', 'font-monospace fw-semibold text-break', origin.file);
+        if (origin.line !== null)
+            $loc.appendChild(createEl('span', 'badge text-bg-danger ms-2', `line ${origin.line}`));
+        $body.appendChild($loc);
+        $origin.appendChild($body);
+        $wrapper.appendChild($origin);
+    }
+
+    if (hasFrames) {
+        $wrapper.appendChild(createEl('h6', 'border-bottom pb-1 mb-3', 'Stack Trace'));
+        sections.forEach((section, i) => $wrapper.appendChild(buildSection(section, i)));
+    }
+
+    $wrapper.appendChild(createEl('h6', 'border-bottom pb-1 mb-2', 'Raw Output'));
+    $wrapper.appendChild(createEl('pre', 'bugRaw border rounded p-2 bg-body-tertiary mb-0', bug.stack || '(empty)'));
+
+    return $wrapper;
+}
+
 export const runtime = {
     all: () => {},
     auditlog: () => {
@@ -171,48 +397,57 @@ export const runtime = {
         });
     },
     buglog: () => {
-        new DataTable($bugLog, {
+        const bugModal = new bootstrap.Modal(document.getElementById('bugModal'));
+        const $bugModalId = document.getElementById('bugModalId');
+        const $bugModalBody = document.getElementById('bugModalBody');
+        const $bugModalCopy = document.getElementById('bugModalCopy');
+        let currentBug = null;
+
+        const dt = new DataTable($bugLog, {
             ajax: {
                 url: '/admin/getBugs',
                 type: 'GET',
                 dataSrc: 'data',
             },
-            order: [[0, 'desc']],
-            columnDefs: [
+            columns: [
+                { data: 'timestamp', className: 'text-nowrap' },
+                { data: 'ip', render: DataTable.render.text() },
+                { data: 'event', className: 'bugEventCell font-monospace small', render: DataTable.render.text() },
+                { data: 'message', className: 'bugMessageCell', render: DataTable.render.text() },
+                { data: 'username', render: DataTable.render.text() },
                 {
+                    data: null,
                     orderable: false,
-                    targets: 5,
-                    render(data, type, full, meta) {
-                        return `
-                        <button type="button" class="extendedInfo btn btn-secondary" data-bs-toggle="modal" data-bs-target="#bug-${meta.row}">
+                    className: 'text-center',
+                    render: () => `
+                        <button type="button" class="viewBug btn btn-sm btn-outline-danger" title="View details">
                             <i class="bi bi-bug"></i>
                         </button>
-                        <div 
-                            class="modal fade" 
-                            id="bug-${meta.row}" 
-                            tabindex="-1"
-                            data-bs-backdrop="static" 
-                            data-bs-keyboard="false"
-                            aria-hidden="true"
-                        >
-                        <div class="modal-dialog modal-xl modal-dialog-scrollable">
-                            <div class="modal-content">
-                                <div class="modal-header">
-                                    <h5 class="modal-title fs-5"><strong>${full[3]}</strong></h5>
-                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                </div>
-                                <div class="modal-body">
-                                    ${data}
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                    },
+                    `,
                 },
             ],
+            createdRow: (row, data) => {
+                row.querySelector('.bugMessageCell').title = data.message;
+            },
+            order: [[0, 'desc']],
             serverSide: true,
             pageLength: 50,
             scrollY: 'calc(100vh - 250px)',
+        });
+
+        $bugLog.addEventListener('click', (evt) => {
+            const $btn = evt.target.closest('.viewBug');
+            if (!$btn) return;
+
+            currentBug = dt.row($btn.closest('tr')).data();
+            $bugModalId.textContent = `#${currentBug.id}`;
+            $bugModalBody.replaceChildren(buildBugDetail(currentBug));
+            $bugModalBody.scrollTop = 0;
+            bugModal.show();
+        });
+
+        $bugModalCopy.addEventListener('click', () => {
+            if (currentBug) copyString([$bugModalCopy], currentBug.stack);
         });
     },
     listtrainers: () => {

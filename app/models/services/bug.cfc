@@ -103,14 +103,15 @@ component singleton accessors="true" {
 
         return {
             data: bugs.map((bug) => {
-                return [
-                    bug.getTimestamp(),
-                    bug.getIP(),
-                    bug.getEvent(),
-                    bug.getMessage(),
-                    bug.getUsername(),
-                    encodeForHTML(bug.getStack())
-                ];
+                return {
+                    'id'       : bug.getId(),
+                    'timestamp': bug.getTimestamp(),
+                    'ip'       : bug.getIP() ?: '',
+                    'event'    : bug.getEvent() ?: '',
+                    'message'  : bug.getMessage() ?: '',
+                    'username' : bug.getUsername(),
+                    'stack'    : bug.getStack() ?: ''
+                };
             }),
             recordsTotal   : totalRecords,
             recordsFiltered: filteredCount

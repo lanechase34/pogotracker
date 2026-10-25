@@ -1,5 +1,6 @@
 component singleton accessors="true" {
 
+    property name="adminLog"          inject="logbox:logger:adminLog";
     property name="async"             inject="asyncManager@coldbox";
     property name="auditService"      inject="services.audit";
     property name="blogService"       inject="services.blog";
@@ -473,6 +474,14 @@ component singleton accessors="true" {
         var overrides = getOverride(name = 'envpokedexoverrides');
         overrides.each(
             (pokemon, custom) => {
+                // Partial overrides can't create a pokemon that wasn't scraped
+                if(!jsonPokedex.keyExists(pokemon) && !custom.keyExists('number')) {
+                    if(!custom.keyExists('Delete')) {
+                        adminLog.warn('Pokedex override [#pokemon#] matches no scraped pokemon, skipping');
+                    }
+                    return;
+                }
+
                 custom.each((key, value) => {
                     // If we want to remove this pokemon
                     if(key == 'Delete' && value == true) {
@@ -815,8 +824,9 @@ component singleton accessors="true" {
 
         ormFlush();
 
-        // Flush pokemon cache
+        // Flush pokemon cache and rendered detail pages
         cache.clearByKeySnippet('pokemon.');
+        templateCache.clearEvent('pokemon.detailContent');
 
         // Cache the pokemon data
         var allPokemon = pokemonService.getAll();
@@ -1075,6 +1085,7 @@ component singleton accessors="true" {
 
         cache.clear('move.getAllFastMoves');
         cache.clear('move.getAllChargeMoves');
+        templateCache.clearEvent('pokemon.detailContent');
         return;
     }
 

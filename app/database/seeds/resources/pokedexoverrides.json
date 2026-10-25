@@ -1,0 +1,6117 @@
+{
+    "Mew": {
+        "tradable": false
+    },
+    "Muk": {
+        "shadowshiny": true
+    },
+    "Snom": {
+        "hp": "102",
+        "flee": 0,
+        "form": false,
+        "giga": false,
+        "live": true,
+        "mega": false,
+        "name": "Snom",
+        "type": ["Ice", "Bug"],
+        "catch": 20,
+        "moves": ["POWDER_SNOW", "STRUGGLE_BUG", "BUG_BUZZ", "ICY_WIND"],
+        "shiny": true,
+        "attack": "76",
+        "gender": "",
+        "number": "872",
+        "shadow": false,
+        "sprite": "872",
+        "defense": "59",
+        "tradable": true,
+        "evolutions": [
+            {
+                "cost": "400",
+                "name": "Frosmoth",
+                "stage": "",
+                "gender": "",
+                "number": "873",
+                "region": "",
+                "special": false,
+                "condition": ""
+            }
+        ],
+        "generation": 8,
+        "shadowshiny": false
+    },
+    "Arbok": {
+        "shadowshiny": true
+    },
+    "Golem": {
+        "shadowshiny": true
+    },
+    "Hypno": {
+        "shadowshiny": true
+    },
+    "Klawf": {
+        "hp": "172",
+        "ses": "950",
+        "flee": 0,
+        "form": false,
+        "giga": false,
+        "live": true,
+        "mega": false,
+        "name": "Klawf",
+        "type": ["Rock"],
+        "catch": 20,
+        "moves": ["ROCK_THROW", "MUD-SLAP", "ROCK_TOMB", "ROCK_SLIDE", "BULLDOZE"],
+        "shiny": false,
+        "attack": "184",
+        "gender": "",
+        "number": "950",
+        "shadow": false,
+        "sprite": "950",
+        "defense": "185",
+        "formtype": "",
+        "tradable": true,
+        "evolutions": [],
+        "generation": 9,
+        "shadowshiny": false
+    },
+    "Kubfu": {
+        "HP": 155,
+        "Flee": 10,
+        "Name": "Kubfu",
+        "Type": ["Fighting"],
+        "form": false,
+        "giga": false,
+        "live": true,
+        "mega": false,
+        "Catch": 2,
+        "moves": ["COUNTER", "ROCK_SMASH", "BRICK_BREAK", "CLOSE_COMBAT", "DYNAMIC_PUNCH"],
+        "shiny": false,
+        "Attack": 170,
+        "gender": "",
+        "number": 891,
+        "shadow": false,
+        "sprite": 891,
+        "Defense": 112,
+        "tradable": true,
+        "evolutions": [
+            {
+                "cost": 200,
+                "name": "Urshifu Single Strike Style",
+                "stage": 2,
+                "gender": "",
+                "number": 892,
+                "region": "",
+                "special": false,
+                "condition": "Defeat 30 Dark-type Pokémon in raids or max battles, while set as buddy"
+            },
+            {
+                "cost": 200,
+                "name": "Urshifu Rapid Strike Style",
+                "stage": 2,
+                "gender": "",
+                "number": 892,
+                "region": "",
+                "special": false,
+                "condition": "Defeat 30 Water-type Pokémon in raids or max battles, while set as buddy"
+            }
+        ],
+        "generation": 8,
+        "shadowshiny": false
+    },
+    "Lokix": {
+        "shiny": true
+    },
+    "Nacli": {
+        "hp": "146",
+        "flee": 0,
+        "form": false,
+        "giga": false,
+        "live": true,
+        "mega": false,
+        "name": "Nacli",
+        "type": ["Rock"],
+        "catch": 20,
+        "moves": ["MUD_SHOT", "ROCK_THROW", "ANCIENT_POWER", "ROCK_TOMB", "ROCK_BLAST"],
+        "shiny": false,
+        "attack": "95",
+        "gender": "",
+        "number": "932",
+        "shadow": false,
+        "sprite": "932",
+        "defense": "108",
+        "tradable": true,
+        "evolutions": [
+            {
+                "cost": "25",
+                "name": "Naclstack",
+                "stage": "",
+                "gender": "",
+                "number": "933",
+                "region": "",
+                "special": false,
+                "condition": ""
+            }
+        ],
+        "generation": 9,
+        "shadowshiny": false
+    },
+    "Unown": {
+        "delete": true
+    },
+    "Applin": {
+        "live": true,
+        "shiny": true,
+        "shadow": false,
+        "tradable": true,
+        "shadowshiny": false
+    },
+    "Bewear": {
+        "live": true,
+        "shiny": true,
+        "shadow": true,
+        "tradable": true,
+        "shadowshiny": false
+    },
+    "Carkol": {
+        "hp": "190",
+        "ses": "838",
+        "flee": 0,
+        "form": false,
+        "giga": false,
+        "live": true,
+        "mega": false,
+        "name": "Carkol",
+        "type": ["Rock", "Fire"],
+        "catch": 20,
+        "moves": ["SMACK_DOWN", "INCINERATE", "ROCK_SLIDE", "FLAME_CHARGE", "ROCK_BLAST"],
+        "shiny": false,
+        "attack": "114",
+        "gender": "",
+        "number": "838",
+        "shadow": false,
+        "sprite": "838",
+        "defense": "157",
+        "formtype": "",
+        "tradable": true,
+        "evolutions": [
+            {
+                "cost": "100",
+                "name": "Coalossal",
+                "stage": "",
+                "gender": "",
+                "number": "839",
+                "region": "",
+                "special": false,
+                "condition": ""
+            }
+        ],
+        "generation": 8,
+        "shadowshiny": false
+    },
+    "Celebi": {
+        "tradable": false
+    },
+    "Crobat": {
+        "shadowshiny": true
+    },
+    "Flygon": {
+        "shadowshiny": true
+    },
+    "Golbat": {
+        "shadowshiny": true
+    },
+    "Grimer": {
+        "shadowshiny": true
+    },
+    "Kirlia": {
+        "shadowshiny": true
+    },
+    "Klefki": {
+        "live": true,
+        "shiny": true,
+        "shadow": false,
+        "tradable": true,
+        "shadowshiny": false
+    },
+    "Kyurem": {
+        "evolutions": [
+            {
+                "cost": "",
+                "name": "White Kyurem",
+                "stage": 0,
+                "gender": "",
+                "number": 646,
+                "special": true,
+                "condition": "Fuse with Reshiram"
+            },
+            {
+                "cost": "",
+                "name": "Black Kyurem",
+                "stage": 0,
+                "gender": "",
+                "number": 646,
+                "special": true,
+                "condition": "Fuse with Zekrom"
+            }
+        ]
+    },
+    "Meowth": {
+        "evolutions": [
+            {
+                "cost": 50,
+                "name": "Persian",
+                "stage": 2,
+                "gender": "",
+                "number": 53,
+                "region": "",
+                "special": false,
+                "condition": ""
+            },
+            {
+                "cost": "",
+                "name": "Gigantamax Meowth",
+                "stage": 0,
+                "gender": "",
+                "number": 52,
+                "special": true,
+                "condition": "Gigantamax Form"
+            }
+        ]
+    },
+    "Metang": {
+        "shadowshiny": true
+    },
+    "Mewtwo": {
+        "evolutions": [
+            {
+                "cost": "",
+                "name": "Mega Mewtwo Y",
+                "stage": 0,
+                "gender": "",
+                "number": 150,
+                "special": true,
+                "condition": "Mega Evolution"
+            },
+            {
+                "cost": "",
+                "name": "Mega Mewtwo X",
+                "stage": 0,
+                "gender": "",
+                "number": 150,
+                "special": true,
+                "condition": "Mega Evolution"
+            }
+        ]
+    },
+    "Minior": {
+        "hp": "155",
+        "ses": "774",
+        "flee": 0,
+        "form": false,
+        "giga": false,
+        "live": true,
+        "mega": false,
+        "name": "Minior",
+        "type": ["Rock", "Flying"],
+        "catch": 0,
+        "moves": ["TAKE_DOWN", "ROLLOUT", "ACROBATICS", "ANCIENT_POWER", "POWER_GEM"],
+        "shiny": false,
+        "attack": "116",
+        "gender": "",
+        "number": "774",
+        "shadow": false,
+        "sprite": "774",
+        "defense": "194",
+        "formtype": "",
+        "tradable": true,
+        "evolutions": [],
+        "generation": 7,
+        "shadowshiny": false
+    },
+    "Nickit": {
+        "live": true,
+        "shiny": true,
+        "shadow": false,
+        "tradable": true,
+        "shadowshiny": false
+    },
+    "Nymble": {
+        "shiny": true
+    },
+    "Raboot": {
+        "live": true,
+        "shiny": true,
+        "shadow": false,
+        "tradable": true,
+        "shadowshiny": false
+    },
+    "Raichu": {
+        "evolutions": [
+            {
+                "cost": "",
+                "name": "Mega Raichu Y",
+                "stage": 0,
+                "gender": "",
+                "number": 26,
+                "special": true,
+                "condition": "Mega Evolution"
+            },
+            {
+                "cost": "",
+                "name": "Mega Raichu X",
+                "stage": 0,
+                "gender": "",
+                "number": 26,
+                "special": true,
+                "condition": "Mega Evolution"
+            }
+        ]
+    },
+    "Scizor": {
+        "shadowshiny": true
+    },
+    "Sobble": {
+        "live": true,
+        "shiny": true,
+        "shadow": false,
+        "tradable": true,
+        "shadowshiny": false
+    },
+    "Spewpa": {
+        "shiny": true
+    },
+    "Zarude": {
+        "tradable": false
+    },
+    "Armaldo": {
+        "shadowshiny": true
+    },
+    "Bisharp": {
+        "evolutions": [
+            {
+                "cost": 100,
+                "name": "Kingambit",
+                "stage": 3,
+                "gender": "",
+                "number": 983,
+                "region": "",
+                "special": false,
+                "condition": "Defeat 15 Dark- or Steel-type Raid Bosses"
+            }
+        ]
+    },
+    "Blipbug": {
+        "hp": "93",
+        "ses": "824",
+        "flee": 0,
+        "form": false,
+        "giga": false,
+        "live": true,
+        "mega": false,
+        "name": "Blipbug",
+        "type": ["Bug"],
+        "catch": 20,
+        "moves": ["STRUGGLE_BUG", "STRUGGLE"],
+        "shiny": false,
+        "attack": "46",
+        "gender": "",
+        "number": "824",
+        "shadow": false,
+        "sprite": "824",
+        "defense": "67",
+        "formtype": "",
+        "tradable": true,
+        "evolutions": [
+            {
+                "cost": "25",
+                "name": "Dottler",
+                "stage": "",
+                "gender": "",
+                "number": "825",
+                "region": "",
+                "special": false,
+                "condition": ""
+            }
+        ],
+        "generation": 8,
+        "shadowshiny": false
+    },
+    "Bruxish": {
+        "shiny": true
+    },
+    "Cetitan": {
+        "shiny": true
+    },
+    "Cherubi": {
+        "HP": 128,
+        "Flee": 9,
+        "Name": "Cherubi",
+        "Type": ["Grass"],
+        "form": false,
+        "giga": false,
+        "live": true,
+        "mega": false,
+        "Catch": 50,
+        "moves": ["BULLET_SEED", "TACKLE", "DAZZLING_GLEAM", "PETAL_BLIZZARD", "SEED_BOMB"],
+        "shiny": true,
+        "Attack": 108,
+        "gender": "",
+        "number": 420,
+        "shadow": false,
+        "sprite": 420,
+        "Defense": 92,
+        "tradable": true,
+        "evolutions": [
+            {
+                "cost": 50,
+                "name": "Cherrim Overcast Form",
+                "stage": 2,
+                "gender": "",
+                "number": 421,
+                "region": "",
+                "special": false,
+                "condition": "random"
+            },
+            {
+                "cost": 50,
+                "name": "Cherrim Sunshine Form",
+                "stage": 2,
+                "gender": "",
+                "number": 421,
+                "region": "",
+                "special": false,
+                "condition": "random"
+            }
+        ],
+        "generation": 4,
+        "shadowshiny": false
+    },
+    "Cradily": {
+        "shadowshiny": true
+    },
+    "Darkrai": {
+        "tradable": false
+    },
+    "Delphox": {
+        "evolutions": [
+            {
+                "cost": "",
+                "name": "Mega Delphox",
+                "stage": 0,
+                "gender": "",
+                "number": 655,
+                "special": true,
+                "condition": "Mega Evolution"
+            }
+        ]
+    },
+    "Diancie": {
+        "shiny": true,
+        "tradable": false
+    },
+    "Dipplin": {
+        "live": true,
+        "shiny": true,
+        "shadow": false,
+        "tradable": true,
+        "shadowshiny": false
+    },
+    "Dondozo": {
+        "hp": "312",
+        "flee": 0,
+        "form": false,
+        "giga": false,
+        "live": true,
+        "mega": false,
+        "name": "Dondozo",
+        "type": ["Water"],
+        "catch": 20,
+        "moves": ["WATER_GUN", "WATERFALL", "HYDRO_PUMP", "OUTRAGE", "SURF", "LIQUIDATION"],
+        "shiny": false,
+        "attack": "176",
+        "gender": "",
+        "number": "977",
+        "shadow": false,
+        "sprite": "977",
+        "defense": "178",
+        "tradable": true,
+        "evolutions": [],
+        "generation": 9,
+        "shadowshiny": false
+    },
+    "Dottler": {
+        "hp": "137",
+        "ses": "825",
+        "flee": 0,
+        "form": false,
+        "giga": false,
+        "live": true,
+        "mega": false,
+        "name": "Dottler",
+        "type": ["Bug", "Psychic"],
+        "catch": 20,
+        "moves": ["CONFUSION", "STRUGGLE_BUG", "BUG_BUZZ", "PSYCHIC"],
+        "shiny": false,
+        "attack": "87",
+        "gender": "",
+        "number": "825",
+        "shadow": false,
+        "sprite": "825",
+        "defense": "157",
+        "formtype": "",
+        "tradable": true,
+        "evolutions": [
+            {
+                "cost": "100",
+                "name": "Orbeetle",
+                "stage": "",
+                "gender": "",
+                "number": "826",
+                "region": "",
+                "special": false,
+                "condition": ""
+            }
+        ],
+        "generation": 8,
+        "shadowshiny": false
+    },
+    "Drapion": {
+        "shadowshiny": true
+    },
+    "Falinks": {
+        "shiny": true,
+        "evolutions": [
+            {
+                "cost": "",
+                "name": "Mega Falinks",
+                "stage": 0,
+                "gender": "",
+                "number": 870,
+                "special": true,
+                "condition": "Mega Evolution"
+            }
+        ]
+    },
+    "Flamigo": {
+        "hp": "193",
+        "ses": "973",
+        "flee": 0,
+        "form": false,
+        "giga": false,
+        "live": true,
+        "mega": false,
+        "name": "Flamigo",
+        "type": ["Flying", "Fighting"],
+        "catch": 20,
+        "moves": ["WING_ATTACK", "DOUBLE_KICK", "AERIAL_ACE", "CLOSE_COMBAT", "BRAVE_BIRD"],
+        "shiny": true,
+        "attack": "227",
+        "gender": "",
+        "number": "973",
+        "shadow": false,
+        "sprite": "973",
+        "defense": "145",
+        "formtype": "",
+        "tradable": true,
+        "evolutions": [],
+        "generation": 9,
+        "shadowshiny": false
+    },
+    "Flapple": {
+        "hp": "172",
+        "flee": 0,
+        "form": false,
+        "giga": false,
+        "live": true,
+        "mega": false,
+        "name": "Flapple",
+        "type": ["Grass", "Dragon"],
+        "catch": 20,
+        "moves": ["DRAGON_BREATH", "BULLET_SEED", "SEED_BOMB", "DRAGON_PULSE", "OUTRAGE", "FLY"],
+        "shiny": true,
+        "attack": "214",
+        "gender": "",
+        "number": "841",
+        "shadow": false,
+        "sprite": "841",
+        "defense": "144",
+        "tradable": true,
+        "evolutions": [],
+        "generation": 8,
+        "shadowshiny": false
+    },
+    "Flittle": {
+        "hp": "102",
+        "ses": "955",
+        "flee": 0,
+        "form": false,
+        "giga": false,
+        "live": true,
+        "mega": false,
+        "name": "Flittle",
+        "type": ["Psychic"],
+        "catch": 0,
+        "moves": ["PECK", "CONFUSION", "PSYCHIC", "PSYBEAM", "PSYSHOCK"],
+        "shiny": false,
+        "attack": "105",
+        "gender": "",
+        "number": "955",
+        "shadow": false,
+        "sprite": "955",
+        "defense": "60",
+        "formtype": "",
+        "tradable": true,
+        "evolutions": [
+            {
+                "cost": "50",
+                "name": "Espathra",
+                "stage": "",
+                "gender": "",
+                "number": "956",
+                "region": "",
+                "special": false,
+                "condition": ""
+            }
+        ],
+        "generation": 9,
+        "shadowshiny": false
+    },
+    "Fuecoco": {
+        "shiny": true
+    },
+    "Furfrou": {
+        "HP": 181,
+        "FORM": false,
+        "Flee": 7,
+        "LIVE": true,
+        "MEGA": false,
+        "Name": "Furfrou",
+        "Type": ["Normal"],
+        "giga": false,
+        "Catch": 20,
+        "SHINY": true,
+        "moves": [],
+        "Attack": 164,
+        "GENDER": "",
+        "NUMBER": 676,
+        "Sprite": "676",
+        "shadow": false,
+        "Defense": 167,
+        "tradable": true,
+        "GENERATION": 6,
+        "evolutions": [],
+        "shadowshiny": false
+    },
+    "Gallade": {
+        "shadowshiny": true
+    },
+    "Glimmet": {
+        "hp": "134",
+        "ses": "969",
+        "flee": 0,
+        "form": false,
+        "giga": false,
+        "live": true,
+        "mega": false,
+        "name": "Glimmet",
+        "type": ["Rock", "Poison"],
+        "catch": 20,
+        "moves": ["ROCK_THROW", "SMACK_DOWN", "POWER_GEM", "DAZZLING_GLEAM", "SLUDGE_WAVE"],
+        "shiny": false,
+        "attack": "187",
+        "gender": "",
+        "number": "969",
+        "shadow": false,
+        "sprite": "969",
+        "defense": "104",
+        "formtype": "",
+        "tradable": true,
+        "evolutions": [
+            {
+                "cost": "50",
+                "name": "Glimmora",
+                "stage": "",
+                "gender": "",
+                "number": "970",
+                "region": "",
+                "special": false,
+                "condition": ""
+            }
+        ],
+        "generation": 9,
+        "shadowshiny": false
+    },
+    "Gliscor": {
+        "shadowshiny": true
+    },
+    "Honedge": {
+        "hp": "128",
+        "flee": 0,
+        "form": false,
+        "giga": false,
+        "live": true,
+        "mega": false,
+        "name": "Honedge",
+        "type": ["Steel", "Ghost"],
+        "catch": 20,
+        "moves": ["TACKLE", "PSYCHO_CUT", "IRON_HEAD", "GYRO_BALL"],
+        "shiny": true,
+        "attack": "135",
+        "gender": "",
+        "number": "679",
+        "shadow": false,
+        "sprite": "679",
+        "defense": "139",
+        "tradable": true,
+        "evolutions": [
+            {
+                "cost": "25",
+                "name": "Doublade",
+                "stage": 1,
+                "gender": "",
+                "number": 680,
+                "region": "",
+                "special": false,
+                "condition": ""
+            }
+        ],
+        "generation": 6,
+        "shadowshiny": false
+    },
+    "Ivysaur": {
+        "shadowshiny": true
+    },
+    "Jirachi": {
+        "tradable": false
+    },
+    "Machamp": {
+        "shadowshiny": true
+    },
+    "Machoke": {
+        "shadowshiny": true
+    },
+    "Malamar": {
+        "evolutions": [
+            {
+                "cost": "",
+                "name": "Mega Malamar",
+                "stage": 0,
+                "gender": "",
+                "number": 687,
+                "special": true,
+                "condition": "Mega Evolution"
+            }
+        ]
+    },
+    "Marowak": {
+        "shadowshiny": true
+    },
+    "Morgrem": {
+        "hp": "163",
+        "flee": 0,
+        "form": false,
+        "giga": false,
+        "live": true,
+        "mega": false,
+        "name": "Morgrem",
+        "type": ["Dark", "Fairy"],
+        "catch": 20,
+        "moves": ["BITE", "SUCKER_PUNCH", "DARK_PULSE", "PLAY_ROUGH", "FOUL_PLAY"],
+        "shiny": true,
+        "attack": "145",
+        "gender": "",
+        "number": "860",
+        "shadow": false,
+        "sprite": "860",
+        "defense": "102",
+        "tradable": true,
+        "evolutions": [
+            {
+                "cost": "100",
+                "name": "Grimmsnarl",
+                "stage": "",
+                "gender": "",
+                "number": "861",
+                "region": "",
+                "special": false,
+                "condition": ""
+            }
+        ],
+        "generation": 8,
+        "shadowshiny": false
+    },
+    "Morpeko": {
+        "HP": 151,
+        "FORM": false,
+        "Flee": 0,
+        "LIVE": true,
+        "MEGA": false,
+        "Name": "Morpeko",
+        "Type": ["Electric", "Dark"],
+        "giga": false,
+        "Catch": 20,
+        "SHINY": false,
+        "moves": [],
+        "Attack": 192,
+        "GENDER": "",
+        "NUMBER": 877,
+        "Sprite": "877",
+        "shadow": false,
+        "Defense": 121,
+        "tradable": true,
+        "GENERATION": 8,
+        "evolutions": [],
+        "shadowshiny": false
+    },
+    "Nuzleaf": {
+        "shadowshiny": true
+    },
+    "Omastar": {
+        "shadowshiny": true
+    },
+    "Pancham": {
+        "shiny": true
+    },
+    "Pangoro": {
+        "shiny": true
+    },
+    "Persian": {
+        "shadowshiny": true
+    },
+    "Pikachu": {
+        "evolutions": [
+            {
+                "cost": "",
+                "name": "Gigantamax Pikachu",
+                "stage": 0,
+                "gender": "",
+                "number": 25,
+                "special": true,
+                "condition": "Gigantamax Form"
+            },
+            {
+                "cost": "50",
+                "name": "Raichu",
+                "stage": 3,
+                "gender": "",
+                "number": 26,
+                "special": false,
+                "condition": ""
+            }
+        ]
+    },
+    "Pupitar": {
+        "shadowshiny": true
+    },
+    "Shelgon": {
+        "shadowshiny": true
+    },
+    "Shiftry": {
+        "shadowshiny": true
+    },
+    "Spidops": {
+        "hp": "155",
+        "flee": 0,
+        "form": false,
+        "giga": false,
+        "live": true,
+        "mega": false,
+        "name": "Spidops",
+        "type": ["Bug"],
+        "catch": 20,
+        "moves": ["BUG_BITE", "COUNTER", "ROCK_TOMB", "X-SCISSOR", "GRASS_KNOT", "LUNGE"],
+        "shiny": false,
+        "attack": "139",
+        "gender": "",
+        "number": "918",
+        "shadow": false,
+        "sprite": "918",
+        "defense": "166",
+        "tradable": true,
+        "evolutions": [],
+        "generation": 9,
+        "shadowshiny": false
+    },
+    "Stufful": {
+        "live": true,
+        "shiny": true,
+        "shadow": true,
+        "tradable": true,
+        "shadowshiny": false
+    },
+    "Thievul": {
+        "live": true,
+        "shiny": true,
+        "shadow": false,
+        "tradable": true,
+        "shadowshiny": false
+    },
+    "Unown !": {
+        "HP": 134,
+        "Flee": 10,
+        "Name": "Unown !",
+        "Type": ["Psychic"],
+        "form": false,
+        "giga": false,
+        "live": true,
+        "mega": false,
+        "Catch": 30,
+        "moves": ["HIDDEN_POWER", "STRUGGLE"],
+        "shiny": true,
+        "Attack": 136,
+        "gender": "",
+        "number": 201,
+        "shadow": false,
+        "sprite": "201-exclamation",
+        "Defense": 91,
+        "formtype": "exclamation",
+        "tradable": true,
+        "evolutions": [],
+        "generation": 2.5,
+        "shadowshiny": false
+    },
+    "Unown ?": {
+        "HP": 134,
+        "Flee": 10,
+        "Name": "Unown ?",
+        "Type": ["Psychic"],
+        "form": false,
+        "giga": false,
+        "live": true,
+        "mega": false,
+        "Catch": 30,
+        "moves": ["HIDDEN_POWER", "STRUGGLE"],
+        "shiny": true,
+        "Attack": 136,
+        "gender": "",
+        "number": 201,
+        "shadow": false,
+        "sprite": "201-question",
+        "Defense": 91,
+        "formtype": "question",
+        "tradable": true,
+        "evolutions": [],
+        "generation": 2.5,
+        "shadowshiny": false
+    },
+    "Unown A": {
+        "HP": 134,
+        "Flee": 10,
+        "Name": "Unown A",
+        "Type": ["Psychic"],
+        "form": false,
+        "giga": false,
+        "live": true,
+        "mega": false,
+        "Catch": 30,
+        "moves": ["HIDDEN_POWER", "STRUGGLE"],
+        "shiny": true,
+        "Attack": 136,
+        "gender": "",
+        "number": 201,
+        "shadow": false,
+        "sprite": "201-a",
+        "Defense": 91,
+        "formtype": "a",
+        "tradable": true,
+        "evolutions": [],
+        "generation": 2.5,
+        "shadowshiny": false
+    },
+    "Unown B": {
+        "HP": 134,
+        "Flee": 10,
+        "Name": "Unown B",
+        "Type": ["Psychic"],
+        "form": false,
+        "giga": false,
+        "live": true,
+        "mega": false,
+        "Catch": 30,
+        "moves": ["HIDDEN_POWER", "STRUGGLE"],
+        "shiny": true,
+        "Attack": 136,
+        "gender": "",
+        "number": 201,
+        "shadow": false,
+        "sprite": "201-b",
+        "Defense": 91,
+        "formtype": "b",
+        "tradable": true,
+        "evolutions": [],
+        "generation": 2.5,
+        "shadowshiny": false
+    },
+    "Unown C": {
+        "HP": 134,
+        "Flee": 10,
+        "Name": "Unown C",
+        "Type": ["Psychic"],
+        "form": false,
+        "giga": false,
+        "live": true,
+        "mega": false,
+        "Catch": 30,
+        "moves": ["HIDDEN_POWER", "STRUGGLE"],
+        "shiny": true,
+        "Attack": 136,
+        "gender": "",
+        "number": 201,
+        "shadow": false,
+        "sprite": "201-c",
+        "Defense": 91,
+        "formtype": "c",
+        "tradable": true,
+        "evolutions": [],
+        "generation": 2.5,
+        "shadowshiny": false
+    },
+    "Unown D": {
+        "HP": 134,
+        "Flee": 10,
+        "Name": "Unown D",
+        "Type": ["Psychic"],
+        "form": false,
+        "giga": false,
+        "live": true,
+        "mega": false,
+        "Catch": 30,
+        "moves": ["HIDDEN_POWER", "STRUGGLE"],
+        "shiny": true,
+        "Attack": 136,
+        "gender": "",
+        "number": 201,
+        "shadow": false,
+        "sprite": "201-d",
+        "Defense": 91,
+        "formtype": "d",
+        "tradable": true,
+        "evolutions": [],
+        "generation": 2.5,
+        "shadowshiny": false
+    },
+    "Unown E": {
+        "HP": 134,
+        "Flee": 10,
+        "Name": "Unown E",
+        "Type": ["Psychic"],
+        "form": false,
+        "giga": false,
+        "live": true,
+        "mega": false,
+        "Catch": 30,
+        "moves": ["HIDDEN_POWER", "STRUGGLE"],
+        "shiny": true,
+        "Attack": 136,
+        "gender": "",
+        "number": 201,
+        "shadow": false,
+        "sprite": "201-e",
+        "Defense": 91,
+        "formtype": "e",
+        "tradable": true,
+        "evolutions": [],
+        "generation": 2.5,
+        "shadowshiny": false
+    },
+    "Unown F": {
+        "HP": 134,
+        "Flee": 10,
+        "Name": "Unown F",
+        "Type": ["Psychic"],
+        "form": false,
+        "giga": false,
+        "live": true,
+        "mega": false,
+        "Catch": 30,
+        "moves": ["HIDDEN_POWER", "STRUGGLE"],
+        "shiny": true,
+        "Attack": 136,
+        "gender": "",
+        "number": 201,
+        "shadow": false,
+        "sprite": "201-f",
+        "Defense": 91,
+        "formtype": "f",
+        "tradable": true,
+        "evolutions": [],
+        "generation": 2.5,
+        "shadowshiny": false
+    },
+    "Unown G": {
+        "HP": 134,
+        "Flee": 10,
+        "Name": "Unown G",
+        "Type": ["Psychic"],
+        "form": false,
+        "giga": false,
+        "live": true,
+        "mega": false,
+        "Catch": 30,
+        "moves": ["HIDDEN_POWER", "STRUGGLE"],
+        "shiny": true,
+        "Attack": 136,
+        "gender": "",
+        "number": 201,
+        "shadow": false,
+        "sprite": "201-g",
+        "Defense": 91,
+        "formtype": "g",
+        "tradable": true,
+        "evolutions": [],
+        "generation": 2.5,
+        "shadowshiny": false
+    },
+    "Unown H": {
+        "HP": 134,
+        "Flee": 10,
+        "Name": "Unown H",
+        "Type": ["Psychic"],
+        "form": false,
+        "giga": false,
+        "live": true,
+        "mega": false,
+        "Catch": 30,
+        "moves": ["HIDDEN_POWER", "STRUGGLE"],
+        "shiny": true,
+        "Attack": 136,
+        "gender": "",
+        "number": 201,
+        "shadow": false,
+        "sprite": "201-h",
+        "Defense": 91,
+        "formtype": "h",
+        "tradable": true,
+        "evolutions": [],
+        "generation": 2.5,
+        "shadowshiny": false
+    },
+    "Unown I": {
+        "HP": 134,
+        "Flee": 10,
+        "Name": "Unown I",
+        "Type": ["Psychic"],
+        "form": false,
+        "giga": false,
+        "live": true,
+        "mega": false,
+        "Catch": 30,
+        "moves": ["HIDDEN_POWER", "STRUGGLE"],
+        "shiny": true,
+        "Attack": 136,
+        "gender": "",
+        "number": 201,
+        "shadow": false,
+        "sprite": "201-i",
+        "Defense": 91,
+        "formtype": "i",
+        "tradable": true,
+        "evolutions": [],
+        "generation": 2.5,
+        "shadowshiny": false
+    },
+    "Unown J": {
+        "HP": 134,
+        "Flee": 10,
+        "Name": "Unown J",
+        "Type": ["Psychic"],
+        "form": false,
+        "giga": false,
+        "live": true,
+        "mega": false,
+        "Catch": 30,
+        "moves": ["HIDDEN_POWER", "STRUGGLE"],
+        "shiny": true,
+        "Attack": 136,
+        "gender": "",
+        "number": 201,
+        "shadow": false,
+        "sprite": "201-j",
+        "Defense": 91,
+        "formtype": "j",
+        "tradable": true,
+        "evolutions": [],
+        "generation": 2.5,
+        "shadowshiny": false
+    },
+    "Unown K": {
+        "HP": 134,
+        "Flee": 10,
+        "Name": "Unown K",
+        "Type": ["Psychic"],
+        "form": false,
+        "giga": false,
+        "live": true,
+        "mega": false,
+        "Catch": 30,
+        "moves": ["HIDDEN_POWER", "STRUGGLE"],
+        "shiny": true,
+        "Attack": 136,
+        "gender": "",
+        "number": 201,
+        "shadow": false,
+        "sprite": "201-k",
+        "Defense": 91,
+        "formtype": "k",
+        "tradable": true,
+        "evolutions": [],
+        "generation": 2.5,
+        "shadowshiny": false
+    },
+    "Unown L": {
+        "HP": 134,
+        "Flee": 10,
+        "Name": "Unown L",
+        "Type": ["Psychic"],
+        "form": false,
+        "giga": false,
+        "live": true,
+        "mega": false,
+        "Catch": 30,
+        "moves": ["HIDDEN_POWER", "STRUGGLE"],
+        "shiny": true,
+        "Attack": 136,
+        "gender": "",
+        "number": 201,
+        "shadow": false,
+        "sprite": "201-l",
+        "Defense": 91,
+        "formtype": "l",
+        "tradable": true,
+        "evolutions": [],
+        "generation": 2.5,
+        "shadowshiny": false
+    },
+    "Unown M": {
+        "HP": 134,
+        "Flee": 10,
+        "Name": "Unown M",
+        "Type": ["Psychic"],
+        "form": false,
+        "giga": false,
+        "live": true,
+        "mega": false,
+        "Catch": 30,
+        "moves": ["HIDDEN_POWER", "STRUGGLE"],
+        "shiny": true,
+        "Attack": 136,
+        "gender": "",
+        "number": 201,
+        "shadow": false,
+        "sprite": "201-m",
+        "Defense": 91,
+        "formtype": "m",
+        "tradable": true,
+        "evolutions": [],
+        "generation": 2.5,
+        "shadowshiny": false
+    },
+    "Unown N": {
+        "HP": 134,
+        "Flee": 10,
+        "Name": "Unown N",
+        "Type": ["Psychic"],
+        "form": false,
+        "giga": false,
+        "live": true,
+        "mega": false,
+        "Catch": 30,
+        "moves": ["HIDDEN_POWER", "STRUGGLE"],
+        "shiny": true,
+        "Attack": 136,
+        "gender": "",
+        "number": 201,
+        "shadow": false,
+        "sprite": "201-n",
+        "Defense": 91,
+        "formtype": "n",
+        "tradable": true,
+        "evolutions": [],
+        "generation": 2.5,
+        "shadowshiny": false
+    },
+    "Unown O": {
+        "HP": 134,
+        "Flee": 10,
+        "Name": "Unown O",
+        "Type": ["Psychic"],
+        "form": false,
+        "giga": false,
+        "live": true,
+        "mega": false,
+        "Catch": 30,
+        "moves": ["HIDDEN_POWER", "STRUGGLE"],
+        "shiny": true,
+        "Attack": 136,
+        "gender": "",
+        "number": 201,
+        "shadow": false,
+        "sprite": "201-o",
+        "Defense": 91,
+        "formtype": "o",
+        "tradable": true,
+        "evolutions": [],
+        "generation": 2.5,
+        "shadowshiny": false
+    },
+    "Unown P": {
+        "HP": 134,
+        "Flee": 10,
+        "Name": "Unown P",
+        "Type": ["Psychic"],
+        "form": false,
+        "giga": false,
+        "live": true,
+        "mega": false,
+        "Catch": 30,
+        "moves": ["HIDDEN_POWER", "STRUGGLE"],
+        "shiny": true,
+        "Attack": 136,
+        "gender": "",
+        "number": 201,
+        "shadow": false,
+        "sprite": "201-p",
+        "Defense": 91,
+        "formtype": "p",
+        "tradable": true,
+        "evolutions": [],
+        "generation": 2.5,
+        "shadowshiny": false
+    },
+    "Unown Q": {
+        "HP": 134,
+        "Flee": 10,
+        "Name": "Unown Q",
+        "Type": ["Psychic"],
+        "form": false,
+        "giga": false,
+        "live": true,
+        "mega": false,
+        "Catch": 30,
+        "moves": ["HIDDEN_POWER", "STRUGGLE"],
+        "shiny": true,
+        "Attack": 136,
+        "gender": "",
+        "number": 201,
+        "shadow": false,
+        "sprite": "201-q",
+        "Defense": 91,
+        "formtype": "q",
+        "tradable": true,
+        "evolutions": [],
+        "generation": 2.5,
+        "shadowshiny": false
+    },
+    "Unown R": {
+        "HP": 134,
+        "Flee": 10,
+        "Name": "Unown R",
+        "Type": ["Psychic"],
+        "form": false,
+        "giga": false,
+        "live": true,
+        "mega": false,
+        "Catch": 30,
+        "moves": ["HIDDEN_POWER", "STRUGGLE"],
+        "shiny": true,
+        "Attack": 136,
+        "gender": "",
+        "number": 201,
+        "shadow": false,
+        "sprite": "201-r",
+        "Defense": 91,
+        "formtype": "r",
+        "tradable": true,
+        "evolutions": [],
+        "generation": 2.5,
+        "shadowshiny": false
+    },
+    "Unown S": {
+        "HP": 134,
+        "Flee": 10,
+        "Name": "Unown S",
+        "Type": ["Psychic"],
+        "form": false,
+        "giga": false,
+        "live": true,
+        "mega": false,
+        "Catch": 30,
+        "moves": ["HIDDEN_POWER", "STRUGGLE"],
+        "shiny": true,
+        "Attack": 136,
+        "gender": "",
+        "number": 201,
+        "shadow": false,
+        "sprite": "201-s",
+        "Defense": 91,
+        "formtype": "s",
+        "tradable": true,
+        "evolutions": [],
+        "generation": 2.5,
+        "shadowshiny": false
+    },
+    "Unown T": {
+        "HP": 134,
+        "Flee": 10,
+        "Name": "Unown T",
+        "Type": ["Psychic"],
+        "form": false,
+        "giga": false,
+        "live": true,
+        "mega": false,
+        "Catch": 30,
+        "moves": ["HIDDEN_POWER", "STRUGGLE"],
+        "shiny": true,
+        "Attack": 136,
+        "gender": "",
+        "number": 201,
+        "shadow": false,
+        "sprite": "201-t",
+        "Defense": 91,
+        "formtype": "t",
+        "tradable": true,
+        "evolutions": [],
+        "generation": 2.5,
+        "shadowshiny": false
+    },
+    "Unown U": {
+        "HP": 134,
+        "Flee": 10,
+        "Name": "Unown U",
+        "Type": ["Psychic"],
+        "form": false,
+        "giga": false,
+        "live": true,
+        "mega": false,
+        "Catch": 30,
+        "moves": ["HIDDEN_POWER", "STRUGGLE"],
+        "shiny": true,
+        "Attack": 136,
+        "gender": "",
+        "number": 201,
+        "shadow": false,
+        "sprite": "201-u",
+        "Defense": 91,
+        "formtype": "u",
+        "tradable": true,
+        "evolutions": [],
+        "generation": 2.5,
+        "shadowshiny": false
+    },
+    "Unown V": {
+        "HP": 134,
+        "Flee": 10,
+        "Name": "Unown V",
+        "Type": ["Psychic"],
+        "form": false,
+        "giga": false,
+        "live": true,
+        "mega": false,
+        "Catch": 30,
+        "moves": ["HIDDEN_POWER", "STRUGGLE"],
+        "shiny": true,
+        "Attack": 136,
+        "gender": "",
+        "number": 201,
+        "shadow": false,
+        "sprite": "201-v",
+        "Defense": 91,
+        "formtype": "v",
+        "tradable": true,
+        "evolutions": [],
+        "generation": 2.5,
+        "shadowshiny": false
+    },
+    "Unown W": {
+        "HP": 134,
+        "Flee": 10,
+        "Name": "Unown W",
+        "Type": ["Psychic"],
+        "form": false,
+        "giga": false,
+        "live": true,
+        "mega": false,
+        "Catch": 30,
+        "moves": ["HIDDEN_POWER", "STRUGGLE"],
+        "shiny": true,
+        "Attack": 136,
+        "gender": "",
+        "number": 201,
+        "shadow": false,
+        "sprite": "201-w",
+        "Defense": 91,
+        "formtype": "w",
+        "tradable": true,
+        "evolutions": [],
+        "generation": 2.5,
+        "shadowshiny": false
+    },
+    "Unown X": {
+        "HP": 134,
+        "Flee": 10,
+        "Name": "Unown X",
+        "Type": ["Psychic"],
+        "form": false,
+        "giga": false,
+        "live": true,
+        "mega": false,
+        "Catch": 30,
+        "moves": ["HIDDEN_POWER", "STRUGGLE"],
+        "shiny": true,
+        "Attack": 136,
+        "gender": "",
+        "number": 201,
+        "shadow": false,
+        "sprite": "201-x",
+        "Defense": 91,
+        "formtype": "x",
+        "tradable": true,
+        "evolutions": [],
+        "generation": 2.5,
+        "shadowshiny": false
+    },
+    "Unown Y": {
+        "HP": 134,
+        "Flee": 10,
+        "Name": "Unown Y",
+        "Type": ["Psychic"],
+        "form": false,
+        "giga": false,
+        "live": true,
+        "mega": false,
+        "Catch": 30,
+        "moves": ["HIDDEN_POWER", "STRUGGLE"],
+        "shiny": true,
+        "Attack": 136,
+        "gender": "",
+        "number": 201,
+        "shadow": false,
+        "sprite": "201-y",
+        "Defense": 91,
+        "formtype": "y",
+        "tradable": true,
+        "evolutions": [],
+        "generation": 2.5,
+        "shadowshiny": false
+    },
+    "Unown Z": {
+        "HP": 134,
+        "Flee": 10,
+        "Name": "Unown Z",
+        "Type": ["Psychic"],
+        "form": false,
+        "giga": false,
+        "live": true,
+        "mega": false,
+        "Catch": 30,
+        "moves": ["HIDDEN_POWER", "STRUGGLE"],
+        "shiny": true,
+        "Attack": 136,
+        "gender": "",
+        "number": 201,
+        "shadow": false,
+        "sprite": "201-z",
+        "Defense": 91,
+        "formtype": "z",
+        "tradable": true,
+        "evolutions": [],
+        "generation": 2.5,
+        "shadowshiny": false
+    },
+    "Vibrava": {
+        "shadowshiny": true
+    },
+    "Victini": {
+        "tradable": false
+    },
+    "Wattrel": {
+        "hp": "120",
+        "ses": "940",
+        "flee": 0,
+        "form": false,
+        "giga": false,
+        "live": true,
+        "mega": false,
+        "name": "Wattrel",
+        "type": ["Electric", "Flying"],
+        "catch": 20,
+        "moves": ["THUNDER_SHOCK", "PECK", "AERIAL_ACE", "THUNDERBOLT", "ACROBATICS"],
+        "shiny": false,
+        "attack": "105",
+        "gender": "",
+        "number": "940",
+        "shadow": false,
+        "sprite": "940",
+        "defense": "75",
+        "formtype": "",
+        "tradable": true,
+        "evolutions": [
+            {
+                "cost": "50",
+                "name": "Kilowattrel",
+                "stage": "",
+                "gender": "",
+                "number": "941",
+                "region": "",
+                "special": false,
+                "condition": ""
+            }
+        ],
+        "generation": 9,
+        "shadowshiny": false
+    },
+    "Weezing": {
+        "shadowshiny": true
+    },
+    "Wurmple": {
+        "evolutions": [
+            {
+                "cost": 12,
+                "name": "Silcoon",
+                "stage": 2,
+                "gender": "",
+                "number": 266,
+                "region": "",
+                "special": false,
+                "condition": "random"
+            },
+            {
+                "cost": 12,
+                "name": "Cascoon",
+                "stage": 2,
+                "gender": "",
+                "number": 268,
+                "region": "",
+                "special": false,
+                "condition": "random"
+            }
+        ]
+    },
+    "Zeraora": {
+        "hp": "204",
+        "ses": "807",
+        "flee": 0,
+        "form": false,
+        "giga": false,
+        "live": true,
+        "mega": false,
+        "name": "Zeraora",
+        "type": ["Electric"],
+        "catch": 0,
+        "moves": ["SPARK", "VOLT_SWITCH", "WILD_CHARGE", "DISCHARGE", "THUNDER_PUNCH"],
+        "shiny": false,
+        "attack": "252",
+        "gender": "",
+        "number": "807",
+        "shadow": false,
+        "sprite": "807",
+        "defense": "177",
+        "formtype": "",
+        "tradable": false,
+        "evolutions": [],
+        "generation": 7,
+        "shadowshiny": false
+    },
+    "Appletun": {
+        "hp": "242",
+        "flee": 0,
+        "form": false,
+        "giga": false,
+        "live": true,
+        "mega": false,
+        "name": "Appletun",
+        "type": ["Grass", "Dragon"],
+        "catch": 20,
+        "moves": ["ASTONISH", "BULLET_SEED", "SEED_BOMB", "DRAGON_PULSE", "ENERGY_BALL", "OUTRAGE"],
+        "shiny": true,
+        "attack": "178",
+        "gender": "",
+        "number": "842",
+        "shadow": false,
+        "sprite": "842",
+        "defense": "146",
+        "tradable": true,
+        "evolutions": [],
+        "generation": 8,
+        "shadowshiny": false
+    },
+    "Arcanine": {
+        "shadowshiny": true
+    },
+    "Arrokuda": {
+        "hp": "121",
+        "ses": "846",
+        "flee": 0,
+        "form": false,
+        "giga": false,
+        "live": true,
+        "mega": false,
+        "name": "Arrokuda",
+        "type": ["Water"],
+        "catch": 0,
+        "moves": ["BITE", "PECK", "WATERFALL", "CRUNCH", "CLOSE_COMBAT", "AQUA_JET"],
+        "shiny": false,
+        "attack": "118",
+        "gender": "",
+        "number": "846",
+        "shadow": false,
+        "sprite": "846",
+        "defense": "72",
+        "formtype": "",
+        "tradable": true,
+        "evolutions": [
+            {
+                "cost": "50",
+                "name": "Barraskewda",
+                "stage": "",
+                "gender": "",
+                "number": "847",
+                "region": "",
+                "special": false,
+                "condition": ""
+            }
+        ],
+        "generation": 8,
+        "shadowshiny": false
+    },
+    "Bramblin": {
+        "hp": "120",
+        "ses": "946",
+        "flee": 0,
+        "form": false,
+        "giga": false,
+        "live": true,
+        "mega": false,
+        "name": "Bramblin",
+        "type": ["Grass", "Ghost"],
+        "catch": 0,
+        "moves": ["ASTONISH", "BULLET_SEED", "NIGHT_SHADE", "SHADOW_SNEAK", "POWER_WHIP"],
+        "shiny": false,
+        "attack": "121",
+        "gender": "",
+        "number": "946",
+        "shadow": false,
+        "sprite": "946",
+        "defense": "64",
+        "formtype": "",
+        "tradable": true,
+        "evolutions": [
+            {
+                "cost": "50",
+                "name": "Brambleghast",
+                "stage": "",
+                "gender": "",
+                "number": "947",
+                "region": "",
+                "special": false,
+                "condition": "walk 20km as buddy"
+            }
+        ],
+        "generation": 9,
+        "shadowshiny": false
+    },
+    "Cacturne": {
+        "shadowshiny": true
+    },
+    "Cetoddle": {
+        "shiny": true
+    },
+    "Crocalor": {
+        "shiny": true
+    },
+    "Dewpider": {
+        "live": true,
+        "shiny": true,
+        "shadow": true,
+        "tradable": true,
+        "shadowshiny": false
+    },
+    "Doublade": {
+        "hp": "153",
+        "flee": 0,
+        "form": false,
+        "giga": false,
+        "live": true,
+        "mega": false,
+        "name": "Doublade",
+        "type": ["Steel", "Ghost"],
+        "catch": 20,
+        "moves": ["TACKLE", "PSYCHO_CUT", "IRON_HEAD", "GYRO_BALL"],
+        "shiny": true,
+        "attack": "188",
+        "gender": "",
+        "number": "680",
+        "shadow": false,
+        "sprite": "680",
+        "defense": "206",
+        "tradable": true,
+        "evolutions": [
+            {
+                "cost": "100",
+                "name": "Aegislash Shield Forme",
+                "stage": 3,
+                "gender": "",
+                "number": 681,
+                "region": "",
+                "special": false,
+                "condition": ""
+            },
+            {
+                "cost": "",
+                "name": "Aegislash Blade Forme",
+                "stage": 3,
+                "gender": "",
+                "number": 681,
+                "region": "",
+                "special": false,
+                "condition": "Uses a charge attack in battle"
+            }
+        ],
+        "generation": 6,
+        "shadowshiny": false
+    },
+    "Drizzile": {
+        "live": true,
+        "shiny": true,
+        "shadow": false,
+        "tradable": true,
+        "shadowshiny": false
+    },
+    "Espathra": {
+        "hp": "216",
+        "ses": "956",
+        "flee": 0,
+        "form": false,
+        "giga": false,
+        "live": true,
+        "mega": false,
+        "name": "Espathra",
+        "type": ["Psychic"],
+        "catch": 0,
+        "moves": ["PECK", "CONFUSION", "DAZZLING_GLEAM", "PSYCHIC", "PSYBEAM", "PSYSHOCK"],
+        "shiny": false,
+        "attack": "204",
+        "gender": "",
+        "number": "956",
+        "shadow": false,
+        "sprite": "956",
+        "defense": "127",
+        "formtype": "",
+        "tradable": true,
+        "evolutions": [],
+        "generation": 9,
+        "shadowshiny": false
+    },
+    "Frosmoth": {
+        "hp": "172",
+        "flee": 0,
+        "form": false,
+        "giga": false,
+        "live": true,
+        "mega": false,
+        "name": "Frosmoth",
+        "type": ["Ice", "Bug"],
+        "catch": 20,
+        "moves": ["BUG_BITE", "POWDER_SNOW", "ICE_BEAM", "BUG_BUZZ", "ICY_WIND", "HURRICANE"],
+        "shiny": true,
+        "attack": "230",
+        "gender": "",
+        "number": "873",
+        "shadow": false,
+        "sprite": "873",
+        "defense": "155",
+        "tradable": true,
+        "evolutions": [],
+        "generation": 8,
+        "shadowshiny": false
+    },
+    "Garbodor": {
+        "evolutions": [
+            {
+                "cost": "",
+                "name": "Gigantamax Garbodor",
+                "stage": 0,
+                "gender": "",
+                "number": 569,
+                "special": true,
+                "condition": "Gigantamax Form"
+            }
+        ]
+    },
+    "Genesect": {
+        "tradable": false
+    },
+    "Glimmora": {
+        "hp": "195",
+        "ses": "970",
+        "flee": 0,
+        "form": false,
+        "giga": false,
+        "live": true,
+        "mega": false,
+        "name": "Glimmora",
+        "type": ["Rock", "Poison"],
+        "catch": 20,
+        "moves": ["ROCK_THROW", "SMACK_DOWN", "POWER_GEM", "DAZZLING_GLEAM", "SLUDGE_WAVE", "METEOR_BEAM"],
+        "shiny": false,
+        "attack": "246",
+        "gender": "",
+        "number": "970",
+        "shadow": false,
+        "sprite": "970",
+        "defense": "177",
+        "formtype": "",
+        "tradable": true,
+        "evolutions": [],
+        "generation": 9,
+        "shadowshiny": false
+    },
+    "Grafaiai": {
+        "live": true,
+        "shiny": true,
+        "shadow": false,
+        "tradable": true,
+        "shadowshiny": false
+    },
+    "Graveler": {
+        "shadowshiny": true
+    },
+    "Greninja": {
+        "evolutions": [
+            {
+                "cost": "",
+                "name": "Mega Greninja",
+                "stage": 0,
+                "gender": "",
+                "number": 658,
+                "special": true,
+                "condition": "Mega Evolution"
+            }
+        ]
+    },
+    "Guzzlord": {
+        "shiny": true
+    },
+    "Hawlucha": {
+        "live": true,
+        "shiny": true,
+        "shadow": false,
+        "tradable": true,
+        "shadowshiny": false
+    },
+    "Impidimp": {
+        "hp": "128",
+        "flee": 0,
+        "form": false,
+        "giga": false,
+        "live": true,
+        "mega": false,
+        "name": "Impidimp",
+        "type": ["Dark", "Fairy"],
+        "catch": 20,
+        "moves": ["BITE", "SUCKER_PUNCH", "DARK_PULSE", "PLAY_ROUGH", "FOUL_PLAY"],
+        "shiny": true,
+        "attack": "103",
+        "gender": "",
+        "number": "859",
+        "shadow": false,
+        "sprite": "859",
+        "defense": "69",
+        "tradable": true,
+        "evolutions": [
+            {
+                "cost": "25",
+                "name": "Morgrem",
+                "stage": "",
+                "gender": "",
+                "number": "860",
+                "region": "",
+                "special": false,
+                "condition": ""
+            }
+        ],
+        "generation": 8,
+        "shadowshiny": false
+    },
+    "Inteleon": {
+        "live": true,
+        "shiny": true,
+        "shadow": false,
+        "tradable": true,
+        "shadowshiny": false
+    },
+    "Magneton": {
+        "shadowshiny": true
+    },
+    "Maractus": {
+        "shiny": true
+    },
+    "Maschiff": {
+        "hp": "155",
+        "ses": "942",
+        "flee": 0,
+        "form": false,
+        "giga": false,
+        "live": true,
+        "mega": false,
+        "name": "Maschiff",
+        "type": ["Dark"],
+        "catch": 0,
+        "moves": ["BITE", "SNARL", "CRUNCH", "DIG", "PSYCHIC_FANGS"],
+        "shiny": false,
+        "attack": "140",
+        "gender": "",
+        "number": "942",
+        "shadow": false,
+        "sprite": "942",
+        "defense": "108",
+        "formtype": "",
+        "tradable": true,
+        "evolutions": [
+            {
+                "cost": "50",
+                "name": "Mabosstiff",
+                "stage": "",
+                "gender": "",
+                "number": "943",
+                "region": "",
+                "special": false,
+                "condition": ""
+            }
+        ],
+        "generation": 9,
+        "shadowshiny": false
+    },
+    "Morelull": {
+        "live": true,
+        "shiny": true,
+        "shadow": true,
+        "tradable": true,
+        "shadowshiny": false
+    },
+    "Necrozma": {
+        "evolutions": [
+            {
+                "cost": "",
+                "name": "Dawn Wings Necrozma",
+                "stage": 0,
+                "gender": "",
+                "number": 800,
+                "special": true,
+                "condition": "Fuse with Lunala"
+            },
+            {
+                "cost": "",
+                "name": "Dusk Mane Necrozma",
+                "stage": 0,
+                "gender": "",
+                "number": 800,
+                "special": true,
+                "condition": "Fuse with Solgaleo"
+            }
+        ]
+    },
+    "Nidoking": {
+        "shadowshiny": true
+    },
+    "Nidorina": {
+        "shadowshiny": true
+    },
+    "Nidorino": {
+        "shadowshiny": true
+    },
+    "Orbeetle": {
+        "hp": "155",
+        "ses": "826",
+        "flee": 0,
+        "form": false,
+        "giga": false,
+        "live": true,
+        "mega": false,
+        "name": "Orbeetle",
+        "type": ["Bug", "Psychic"],
+        "catch": 20,
+        "moves": ["CONFUSION", "STRUGGLE_BUG", "BUG_BUZZ", "PSYCHIC"],
+        "shiny": false,
+        "attack": "156",
+        "gender": "",
+        "number": "826",
+        "shadow": false,
+        "sprite": "826",
+        "defense": "240",
+        "formtype": "",
+        "tradable": true,
+        "evolutions": [],
+        "generation": 8,
+        "shadowshiny": false
+    },
+    "Orthworm": {
+        "hp": "172",
+        "ses": "968",
+        "flee": 1,
+        "form": false,
+        "giga": false,
+        "live": true,
+        "mega": false,
+        "name": "Orthworm",
+        "type": ["Steel"],
+        "catch": 1,
+        "moves": ["MUD-SLAP", "IRON_TAIL", "EARTHQUAKE", "ROCK_TOMB", "IRON_HEAD"],
+        "shiny": true,
+        "attack": "161",
+        "gender": "",
+        "number": "968",
+        "shadow": false,
+        "sprite": "968",
+        "defense": "219",
+        "formtype": "",
+        "tradable": true,
+        "evolutions": [],
+        "generation": 9,
+        "shadowshiny": false
+    },
+    "Rolycoly": {
+        "hp": "102",
+        "ses": "837",
+        "flee": 0,
+        "form": false,
+        "giga": false,
+        "live": true,
+        "mega": false,
+        "name": "Rolycoly",
+        "type": ["Rock"],
+        "catch": 20,
+        "moves": ["TACKLE", "SMACK_DOWN", "ROCK_SLIDE", "ROCK_BLAST"],
+        "shiny": false,
+        "attack": "73",
+        "gender": "",
+        "number": "837",
+        "shadow": false,
+        "sprite": "837",
+        "defense": "91",
+        "formtype": "",
+        "tradable": true,
+        "evolutions": [
+            {
+                "cost": "25",
+                "name": "Carkol",
+                "stage": "",
+                "gender": "",
+                "number": "838",
+                "region": "",
+                "special": false,
+                "condition": ""
+            }
+        ],
+        "generation": 8,
+        "shadowshiny": false
+    },
+    "Sharpedo": {
+        "shadowshiny": true
+    },
+    "Shroodle": {
+        "live": true,
+        "shiny": true,
+        "shadow": false,
+        "tradable": true,
+        "shadowshiny": false
+    },
+    "Sigilyph": {
+        "shiny": true
+    },
+    "Sinistea": {
+        "HP": 120,
+        "FORM": false,
+        "Flee": 0,
+        "LIVE": true,
+        "MEGA": false,
+        "Name": "Sinistea",
+        "Type": ["Ghost"],
+        "giga": false,
+        "Catch": 20,
+        "SHINY": false,
+        "moves": [],
+        "Attack": 134,
+        "GENDER": "",
+        "NUMBER": 854,
+        "Sprite": "854",
+        "shadow": false,
+        "Defense": 96,
+        "tradable": true,
+        "GENERATION": 8,
+        "evolutions": [
+            {
+                "cost": "50",
+                "name": "Polteageist",
+                "stage": 2,
+                "gender": "",
+                "number": 855,
+                "special": false,
+                "condition": ""
+            }
+        ],
+        "shadowshiny": false
+    },
+    "Skarmory": {
+        "evolutions": [
+            {
+                "cost": "",
+                "name": "Mega Skarmory",
+                "stage": 0,
+                "gender": "",
+                "number": 227,
+                "special": true,
+                "condition": "Mega Evolution"
+            }
+        ]
+    },
+    "Tinkaton": {
+        "hp": "198",
+        "flee": 0,
+        "form": false,
+        "giga": false,
+        "live": true,
+        "mega": false,
+        "name": "Tinkaton",
+        "type": ["Fairy", "Steel"],
+        "catch": 20,
+        "moves": ["ROCK_SMASH", "FAIRY_WIND", "FLASH_CANNON", "PLAY_ROUGH", "BULLDOZE", "HEAVY_SLAM"],
+        "shiny": true,
+        "attack": "155",
+        "gender": "",
+        "number": "959",
+        "shadow": false,
+        "sprite": "959",
+        "defense": "196",
+        "tradable": true,
+        "evolutions": [],
+        "generation": 9,
+        "shadowshiny": false
+    },
+    "Ursaluna": {
+        "shadowshiny": true
+    },
+    "Ursaring": {
+        "shadowshiny": true
+    },
+    "Venomoth": {
+        "shadowshiny": true
+    },
+    "Venusaur": {
+        "shadowshiny": true
+    },
+    "Vivillon": {
+        "HP": 190,
+        "Flee": 6,
+        "Name": "Vivillon",
+        "Type": ["Bug", "Flying"],
+        "form": true,
+        "giga": false,
+        "live": true,
+        "mega": false,
+        "Catch": 12.5,
+        "moves": ["GUST", "STRUGGLE_BUG", "AERIAL_ACE", "BUG_BUZZ", "ENERGY_BALL", "HURRICANE"],
+        "shiny": true,
+        "Attack": 176,
+        "gender": "",
+        "number": 666,
+        "shadow": false,
+        "sprite": "666-Vivillon Modern Pattern",
+        "Defense": 103,
+        "tradable": true,
+        "evolutions": [],
+        "generation": 6,
+        "shadowshiny": false
+    },
+    "Araquanid": {
+        "live": true,
+        "shiny": true,
+        "shadow": true,
+        "tradable": true,
+        "shadowshiny": false
+    },
+    "Blastoise": {
+        "shadowshiny": true
+    },
+    "Charizard": {
+        "shadowshiny": true
+    },
+    "Cinderace": {
+        "live": true,
+        "shiny": true,
+        "shadow": false,
+        "tradable": true,
+        "shadowshiny": false
+    },
+    "Clobbopus": {
+        "hp": "137",
+        "flee": 0,
+        "form": false,
+        "giga": false,
+        "live": true,
+        "mega": false,
+        "name": "Clobbopus",
+        "type": ["Fighting"],
+        "catch": 20,
+        "moves": ["ROCK_SMASH", "ICE_PUNCH", "BRICK_BREAK", "SUPERPOWER"],
+        "shiny": false,
+        "attack": "121",
+        "gender": "",
+        "number": "852",
+        "shadow": false,
+        "sprite": "852",
+        "defense": "103",
+        "tradable": true,
+        "evolutions": [
+            {
+                "cost": "50",
+                "name": "Grapploct",
+                "stage": "",
+                "gender": "",
+                "number": "853",
+                "region": "",
+                "special": false,
+                "condition": ""
+            }
+        ],
+        "generation": 8,
+        "shadowshiny": false
+    },
+    "Coalossal": {
+        "hp": "242",
+        "ses": "839",
+        "flee": 0,
+        "form": false,
+        "giga": false,
+        "live": true,
+        "mega": false,
+        "name": "Coalossal",
+        "type": ["Rock", "Fire"],
+        "catch": 20,
+        "moves": ["SMACK_DOWN", "INCINERATE", "ROCK_SLIDE", "FLAME_CHARGE", "ROCK_BLAST"],
+        "shiny": false,
+        "attack": "146",
+        "gender": "",
+        "number": "839",
+        "shadow": false,
+        "sprite": "839",
+        "defense": "198",
+        "formtype": "",
+        "tradable": true,
+        "evolutions": [],
+        "generation": 8,
+        "shadowshiny": false
+    },
+    "Cramorant": {
+        "hp": "172",
+        "ses": "845",
+        "flee": 0,
+        "form": false,
+        "giga": false,
+        "live": true,
+        "mega": false,
+        "name": "Cramorant",
+        "type": ["Flying", "Water"],
+        "catch": 0,
+        "moves": ["PECK", "WATER_GUN", "FLY", "HYDRO_PUMP", "SURF", "DIVE"],
+        "shiny": false,
+        "attack": "173",
+        "gender": "",
+        "number": "845",
+        "shadow": false,
+        "sprite": "845",
+        "defense": "163",
+        "formtype": "",
+        "tradable": true,
+        "evolutions": [],
+        "generation": 8,
+        "shadowshiny": false
+    },
+    "Dragonair": {
+        "shadowshiny": true
+    },
+    "Dragonite": {
+        "evolutions": [
+            {
+                "cost": "",
+                "name": "Mega Dragonite",
+                "stage": 0,
+                "gender": "",
+                "number": 149,
+                "special": true,
+                "condition": "Mega Evolution"
+            }
+        ],
+        "shadowshiny": true
+    },
+    "Dunsparce": {
+        "evolutions": [
+            {
+                "cost": 50,
+                "name": "Dudunsparce (Two-Segment Form)",
+                "stage": 2,
+                "gender": "",
+                "number": 982,
+                "region": "",
+                "special": false,
+                "condition": "1% chance"
+            },
+            {
+                "cost": 50,
+                "name": "Dudunsparce (Three-Segment Form)",
+                "stage": 2,
+                "gender": "",
+                "number": 982,
+                "region": "",
+                "special": false,
+                "condition": "99% chance"
+            }
+        ]
+    },
+    "Duraludon": {
+        "hp": "172",
+        "flee": 0,
+        "form": false,
+        "giga": false,
+        "live": true,
+        "mega": false,
+        "name": "Duraludon",
+        "type": ["Steel", "Dragon"],
+        "catch": 20,
+        "moves": ["METAL_CLAW", "DRAGON_TAIL", "HYPER_BEAM", "FLASH_CANNON", "DRAGON_CLAW"],
+        "shiny": true,
+        "attack": "239",
+        "gender": "",
+        "number": "884",
+        "shadow": false,
+        "sprite": "884",
+        "defense": "185",
+        "tradable": true,
+        "evolutions": [],
+        "generation": 8,
+        "shadowshiny": false
+    },
+    "Eternatus": {
+        "hp": "268",
+        "flee": 0,
+        "form": false,
+        "giga": false,
+        "live": true,
+        "mega": false,
+        "name": "Eternatus",
+        "type": ["Poison", "Dragon"],
+        "catch": 2,
+        "moves": ["POISON_JAB", "DRAGON_TAIL", "FLAMETHROWER", "DRAGON_PULSE", "CROSS_POISON", "DYNAMAX_CANNON *"],
+        "shiny": false,
+        "attack": "278",
+        "gender": "",
+        "number": "890",
+        "shadow": false,
+        "sprite": "890",
+        "defense": "192",
+        "tradable": true,
+        "evolutions": [
+            {
+                "cost": "",
+                "name": "Eternamax Eternatus",
+                "stage": 0,
+                "gender": "",
+                "number": 890,
+                "special": true,
+                "condition": "Gigantamax Form"
+            }
+        ],
+        "generation": 8,
+        "shadowshiny": false
+    },
+    "Exeggutor": {
+        "shadowshiny": true
+    },
+    "Gardevoir": {
+        "shadowshiny": true
+    },
+    "Garganacl": {
+        "hp": "225",
+        "flee": 0,
+        "form": false,
+        "giga": false,
+        "live": true,
+        "mega": false,
+        "name": "Garganacl",
+        "type": ["Rock"],
+        "catch": 20,
+        "moves": ["MUD_SHOT", "SMACK_DOWN", "ANCIENT_POWER", "ROCK_TOMB", "ROCK_BLAST"],
+        "shiny": false,
+        "attack": "171",
+        "gender": "",
+        "number": "934",
+        "shadow": false,
+        "sprite": "934",
+        "defense": "212",
+        "tradable": true,
+        "evolutions": [],
+        "generation": 9,
+        "shadowshiny": false
+    },
+    "Gholdengo": {
+        "live": true,
+        "shiny": true,
+        "shadow": false,
+        "tradable": true,
+        "shadowshiny": false
+    },
+    "Grapploct": {
+        "hp": "190",
+        "flee": 0,
+        "form": false,
+        "giga": false,
+        "live": true,
+        "mega": false,
+        "name": "Grapploct",
+        "type": ["Fighting"],
+        "catch": 20,
+        "moves": ["ROCK_SMASH", "WATERFALL", "ICE_PUNCH", "BRICK_BREAK", "SURF", "SUPERPOWER"],
+        "shiny": false,
+        "attack": "209",
+        "gender": "",
+        "number": "853",
+        "shadow": false,
+        "sprite": "853",
+        "defense": "162",
+        "tradable": true,
+        "evolutions": [],
+        "generation": 8,
+        "shadowshiny": false
+    },
+    "Heliolisk": {
+        "live": true,
+        "shiny": true,
+        "shadow": true,
+        "tradable": true,
+        "shadowshiny": false
+    },
+    "Hydrapple": {
+        "live": true,
+        "shiny": true,
+        "shadow": false,
+        "tradable": true,
+        "shadowshiny": false
+    },
+    "Kingambit": {
+        "hp": "225",
+        "flee": 0,
+        "form": false,
+        "giga": false,
+        "live": true,
+        "mega": false,
+        "name": "Kingambit",
+        "type": ["Dark", "Steel"],
+        "catch": 20,
+        "moves": [],
+        "shiny": true,
+        "attack": "238",
+        "gender": "",
+        "number": "983",
+        "shadow": false,
+        "sprite": "983",
+        "defense": "203",
+        "tradable": true,
+        "evolutions": [],
+        "generation": 9,
+        "shadowshiny": false
+    },
+    "Magnezone": {
+        "shadowshiny": true
+    },
+    "Marshadow": {
+        "tradable": false
+    },
+    "Metagross": {
+        "shadowshiny": true
+    },
+    "Naclstack": {
+        "hp": "155",
+        "flee": 0,
+        "form": false,
+        "giga": false,
+        "live": true,
+        "mega": false,
+        "name": "Naclstack",
+        "type": ["Rock"],
+        "catch": 20,
+        "moves": ["MUD_SHOT", "SMACK_DOWN", "ANCIENT_POWER", "ROCK_TOMB", "ROCK_BLAST"],
+        "shiny": false,
+        "attack": "105",
+        "gender": "",
+        "number": "933",
+        "shadow": false,
+        "sprite": "933",
+        "defense": "160",
+        "tradable": true,
+        "evolutions": [
+            {
+                "cost": "100",
+                "name": "Garganacl",
+                "stage": "",
+                "gender": "",
+                "number": "934",
+                "region": "",
+                "special": false,
+                "condition": ""
+            }
+        ],
+        "generation": 9,
+        "shadowshiny": false
+    },
+    "Nidoqueen": {
+        "shadowshiny": true
+    },
+    "Obstagoon": {
+        "shadowshiny": true
+    },
+    "Passimian": {
+        "SHINY": true
+    },
+    "Poliwhirl": {
+        "shadowshiny": true
+    },
+    "Poliwrath": {
+        "shadowshiny": true
+    },
+    "Salamence": {
+        "shadowshiny": true
+    },
+    "Scorbunny": {
+        "live": true,
+        "shiny": true,
+        "shadow": false,
+        "tradable": true,
+        "shadowshiny": false
+    },
+    "Shiinotic": {
+        "live": true,
+        "shiny": true,
+        "shadow": true,
+        "tradable": true,
+        "shadowshiny": false
+    },
+    "Silicobra": {
+        "hp": "141",
+        "ses": "843",
+        "flee": 0,
+        "form": false,
+        "giga": false,
+        "live": true,
+        "mega": false,
+        "name": "Silicobra",
+        "type": ["Ground"],
+        "catch": 20,
+        "moves": ["MUD_SHOT", "MUD-SLAP", "WRAP", "DIG", "BULLDOZE", "EARTH_POWER"],
+        "shiny": false,
+        "attack": "103",
+        "gender": "",
+        "number": "843",
+        "shadow": false,
+        "sprite": "843",
+        "defense": "123",
+        "formtype": "",
+        "tradable": true,
+        "evolutions": [
+            {
+                "cost": "50",
+                "name": "Sandaconda",
+                "stage": "",
+                "gender": "",
+                "number": "844",
+                "region": "",
+                "special": false,
+                "condition": ""
+            }
+        ],
+        "generation": 8,
+        "shadowshiny": false
+    },
+    "Sinistcha": {
+        "hp": "174",
+        "flee": 0,
+        "form": false,
+        "giga": false,
+        "live": true,
+        "mega": false,
+        "name": "Sinistcha",
+        "type": ["Grass", "Ghost"],
+        "catch": 20,
+        "moves": ["ASTONISH", "MAGICAL_LEAF", "SHADOW_BALL", "ENERGY_BALL", "POLTERGEIST"],
+        "shiny": false,
+        "attack": "225",
+        "gender": "",
+        "number": "1013",
+        "shadow": false,
+        "sprite": "1013",
+        "defense": "191",
+        "tradable": true,
+        "evolutions": [],
+        "generation": 9,
+        "shadowshiny": false
+    },
+    "Tandemaus": {
+        "HP": 137,
+        "Flee": 0,
+        "Name": "Tandemaus",
+        "Type": ["Normal"],
+        "form": false,
+        "giga": false,
+        "live": true,
+        "mega": false,
+        "Catch": -1,
+        "moves": ["BULLET_SEED", "MUD_SHOT", "TAKE_DOWN", "CRUNCH", "PLAY_ROUGH", "SWIFT"],
+        "shiny": true,
+        "Attack": 98,
+        "gender": "",
+        "number": 924,
+        "shadow": false,
+        "sprite": 924,
+        "Defense": 90,
+        "tradable": true,
+        "evolutions": [
+            {
+                "cost": 50,
+                "name": "Maushold Family of Three",
+                "stage": 2,
+                "gender": "",
+                "number": 925,
+                "region": "",
+                "special": false,
+                "condition": "1% chance"
+            },
+            {
+                "cost": 50,
+                "name": "Maushold Family of Four",
+                "stage": 2,
+                "gender": "",
+                "number": 925,
+                "region": "",
+                "special": false,
+                "condition": "99% chance"
+            }
+        ],
+        "generation": 9,
+        "shadowshiny": false
+    },
+    "Tinkatink": {
+        "hp": "137",
+        "flee": 0,
+        "form": false,
+        "giga": false,
+        "live": true,
+        "mega": false,
+        "name": "Tinkatink",
+        "type": ["Fairy", "Steel"],
+        "catch": 20,
+        "moves": ["ROCK_SMASH", "FAIRY_WIND", "FLASH_CANNON", "PLAY_ROUGH"],
+        "shiny": true,
+        "attack": "85",
+        "gender": "",
+        "number": "957",
+        "shadow": false,
+        "sprite": "957",
+        "defense": "110",
+        "tradable": true,
+        "evolutions": [
+            {
+                "cost": "25",
+                "name": "Tinkatuff",
+                "stage": "",
+                "gender": "",
+                "number": "958",
+                "region": "",
+                "special": false,
+                "condition": ""
+            }
+        ],
+        "generation": 9,
+        "shadowshiny": false
+    },
+    "Tinkatuff": {
+        "hp": "163",
+        "flee": 0,
+        "form": false,
+        "giga": false,
+        "live": true,
+        "mega": false,
+        "name": "Tinkatuff",
+        "type": ["Fairy", "Steel"],
+        "catch": 20,
+        "moves": ["ROCK_SMASH", "FAIRY_WIND", "FLASH_CANNON", "PLAY_ROUGH"],
+        "shiny": true,
+        "attack": "109",
+        "gender": "",
+        "number": "958",
+        "shadow": false,
+        "sprite": "958",
+        "defense": "145",
+        "tradable": true,
+        "evolutions": [
+            {
+                "cost": "100",
+                "name": "Tinkaton",
+                "stage": "",
+                "gender": "",
+                "number": "959",
+                "region": "",
+                "special": false,
+                "condition": ""
+            }
+        ],
+        "generation": 9,
+        "shadowshiny": false
+    },
+    "Toedscool": {
+        "hp": "120",
+        "flee": 0,
+        "form": false,
+        "giga": false,
+        "live": true,
+        "mega": false,
+        "name": "Toedscool",
+        "type": ["Ground", "Grass"],
+        "catch": 20,
+        "moves": ["MUD_SHOT", "MUD-SLAP", "WRAP", "SEED_BOMB", "EARTH_POWER"],
+        "shiny": true,
+        "attack": "97",
+        "gender": "",
+        "number": "948",
+        "shadow": false,
+        "sprite": "948",
+        "defense": "149",
+        "tradable": true,
+        "evolutions": [
+            {
+                "cost": "50",
+                "name": "Toedscruel",
+                "stage": "",
+                "gender": "",
+                "number": "949",
+                "region": "",
+                "special": false,
+                "condition": ""
+            }
+        ],
+        "generation": 9,
+        "shadowshiny": false
+    },
+    "Tyranitar": {
+        "shadowshiny": true
+    },
+    "Volcanion": {
+        "hp": "190",
+        "flee": 0,
+        "form": false,
+        "giga": false,
+        "live": true,
+        "mega": false,
+        "name": "Volcanion",
+        "type": ["Fire", "Water"],
+        "catch": 2,
+        "moves": ["WATER_GUN", "TAKE_DOWN", "INCINERATE", "SLUDGE_BOMB", "HYDRO_PUMP", "OVERHEAT", "EARTH_POWER"],
+        "shiny": false,
+        "attack": "252",
+        "gender": "",
+        "number": "721",
+        "shadow": false,
+        "sprite": "721",
+        "defense": "216",
+        "tradable": true,
+        "evolutions": [],
+        "generation": 6,
+        "shadowshiny": false
+    },
+    "Wartortle": {
+        "shadowshiny": true
+    },
+    "Alolan Muk": {
+        "shadowshiny": true
+    },
+    "Apex Ho-Oh": {
+        "delete": true
+    },
+    "Apex Lugia": {
+        "delete": true
+    },
+    "Bouffalant": {
+        "shiny": true
+    },
+    "Charmeleon": {
+        "shadowshiny": true
+    },
+    "Chesnaught": {
+        "evolutions": [
+            {
+                "cost": "",
+                "name": "Mega Chesnaught",
+                "stage": 0,
+                "gender": "",
+                "number": 652,
+                "special": true,
+                "condition": "Mega Evolution"
+            }
+        ]
+    },
+    "Forretress": {
+        "shadowshiny": true
+    },
+    "Grimmsnarl": {
+        "hp": "216",
+        "flee": 0,
+        "form": false,
+        "giga": false,
+        "live": true,
+        "mega": false,
+        "name": "Grimmsnarl",
+        "type": ["Dark", "Fairy"],
+        "catch": 20,
+        "moves": ["BITE", "SUCKER_PUNCH", "LOW_KICK", "DARK_PULSE", "PLAY_ROUGH", "FOUL_PLAY", "POWER-UP_PUNCH"],
+        "shiny": true,
+        "attack": "227",
+        "gender": "",
+        "number": "861",
+        "shadow": false,
+        "sprite": "861",
+        "defense": "139",
+        "tradable": true,
+        "evolutions": [
+            {
+                "cost": "",
+                "name": "Gigantamax Grimmsnarl",
+                "stage": 0,
+                "gender": "",
+                "number": 861,
+                "special": true,
+                "condition": "Gigantamax Form"
+            }
+        ],
+        "generation": 8,
+        "shadowshiny": false
+    },
+    "Helioptile": {
+        "live": true,
+        "shiny": true,
+        "shadow": true,
+        "tradable": true,
+        "shadowshiny": false
+    },
+    "Mabosstiff": {
+        "hp": "190",
+        "ses": "943",
+        "flee": 0,
+        "form": false,
+        "giga": false,
+        "live": true,
+        "mega": false,
+        "name": "Mabosstiff",
+        "type": ["Dark"],
+        "catch": 0,
+        "moves": ["BITE", "SNARL", "CRUNCH", "DIG", "PSYCHIC_FANGS"],
+        "shiny": false,
+        "attack": "230",
+        "gender": "",
+        "number": "943",
+        "shadow": false,
+        "sprite": "943",
+        "defense": "168",
+        "formtype": "",
+        "tradable": true,
+        "evolutions": [],
+        "generation": 9,
+        "shadowshiny": false
+    },
+    "Mega Absol": {
+        "live": true,
+        "shiny": false,
+        "shadow": false,
+        "tradable": false,
+        "shadowshiny": false
+    },
+    "Nidoran♀": {
+        "SPRITE": "29"
+    },
+    "Nidoran♂": {
+        "SPRITE": "32"
+    },
+    "Sandaconda": {
+        "hp": "176",
+        "ses": "844",
+        "flee": 0,
+        "form": false,
+        "giga": false,
+        "live": true,
+        "mega": false,
+        "name": "Sandaconda",
+        "type": ["Ground"],
+        "catch": 20,
+        "moves": ["MUD_SHOT", "MUD-SLAP", "WRAP", "DIG", "BULLDOZE", "EARTH_POWER"],
+        "shiny": false,
+        "attack": "202",
+        "gender": "",
+        "number": "844",
+        "shadow": false,
+        "sprite": "844",
+        "defense": "207",
+        "formtype": "",
+        "tradable": true,
+        "evolutions": [],
+        "generation": 8,
+        "shadowshiny": false
+    },
+    "Scatterbug": {
+        "shiny": true
+    },
+    "Sizzlipede": {
+        "live": true,
+        "shiny": true,
+        "shadow": false,
+        "tradable": true,
+        "shadowshiny": false
+    },
+    "Skeledirge": {
+        "shiny": true
+    },
+    "Tarountula": {
+        "hp": "111",
+        "flee": 0,
+        "form": false,
+        "giga": false,
+        "live": true,
+        "mega": false,
+        "name": "Tarountula",
+        "type": ["Bug"],
+        "catch": 20,
+        "moves": ["BUG_BITE", "STRUGGLE_BUG", "X-SCISSOR", "GRASS_KNOT", "LUNGE"],
+        "shiny": false,
+        "attack": "70",
+        "gender": "",
+        "number": "917",
+        "shadow": false,
+        "sprite": "917",
+        "defense": "77",
+        "tradable": true,
+        "evolutions": [
+            {
+                "cost": "25",
+                "name": "Spidops",
+                "stage": "",
+                "gender": "",
+                "number": "918",
+                "region": "",
+                "special": false,
+                "condition": ""
+            }
+        ],
+        "generation": 9,
+        "shadowshiny": false
+    },
+    "Tentacruel": {
+        "shadowshiny": true
+    },
+    "Toedscruel": {
+        "hp": "190",
+        "flee": 0,
+        "form": false,
+        "giga": false,
+        "live": true,
+        "mega": false,
+        "name": "Toedscruel",
+        "type": ["Ground", "Grass"],
+        "catch": 20,
+        "moves": ["MUD_SHOT", "MUD-SLAP", "WRAP", "SEED_BOMB", "ACID_SPRAY", "EARTH_POWER"],
+        "shiny": true,
+        "attack": "166",
+        "gender": "",
+        "number": "949",
+        "shadow": false,
+        "sprite": "949",
+        "defense": "209",
+        "tradable": true,
+        "evolutions": [],
+        "generation": 9,
+        "shadowshiny": false
+    },
+    "Victreebel": {
+        "evolutions": [
+            {
+                "cost": "",
+                "name": "Mega Victreebel",
+                "stage": 0,
+                "gender": "",
+                "number": 71,
+                "special": true,
+                "condition": "Mega Evolution"
+            }
+        ],
+        "shadowshiny": true
+    },
+    "Wash Rotom": {
+        "live": true,
+        "shiny": true,
+        "shadow": false,
+        "tradable": true,
+        "shadowshiny": false
+    },
+    "Weepinbell": {
+        "shadowshiny": true
+    },
+    "Barraskewda": {
+        "hp": "156",
+        "ses": "847",
+        "flee": 0,
+        "form": false,
+        "giga": false,
+        "live": true,
+        "mega": false,
+        "name": "Barraskewda",
+        "type": ["Water"],
+        "catch": 0,
+        "moves": ["BITE", "PECK", "WATERFALL", "CRUNCH", "CLOSE_COMBAT", "AQUA_JET"],
+        "shiny": false,
+        "attack": "258",
+        "gender": "",
+        "number": "847",
+        "shadow": false,
+        "sprite": "847",
+        "defense": "127",
+        "formtype": "",
+        "tradable": true,
+        "evolutions": [],
+        "generation": 8,
+        "shadowshiny": false
+    },
+    "Centiskorch": {
+        "live": true,
+        "shiny": true,
+        "shadow": false,
+        "tradable": true,
+        "shadowshiny": false
+    },
+    "Kilowattrel": {
+        "hp": "172",
+        "ses": "941",
+        "flee": 0,
+        "form": false,
+        "giga": false,
+        "live": true,
+        "mega": false,
+        "name": "Kilowattrel",
+        "type": ["Electric", "Flying"],
+        "catch": 20,
+        "moves": ["THUNDER_SHOCK", "AIR_SLASH", "AERIAL_ACE", "THUNDERBOLT", "ACROBATICS"],
+        "shiny": false,
+        "attack": "221",
+        "gender": "",
+        "number": "941",
+        "shadow": false,
+        "sprite": "941",
+        "defense": "132",
+        "formtype": "",
+        "tradable": true,
+        "evolutions": [],
+        "generation": 9,
+        "shadowshiny": false
+    },
+    "Mega Aggron": {
+        "live": true,
+        "shiny": false,
+        "shadow": false,
+        "tradable": false,
+        "shadowshiny": false
+    },
+    "Mega Audino": {
+        "HP": 0,
+        "FORM": true,
+        "Flee": 0,
+        "LIVE": true,
+        "MEGA": true,
+        "Name": "Mega Audino",
+        "Type": ["Normal", "Fairy"],
+        "giga": false,
+        "Catch": 0,
+        "SHINY": false,
+        "moves": [],
+        "Attack": 0,
+        "GENDER": "",
+        "NUMBER": 531,
+        "Sprite": "531-Mega Audino",
+        "shadow": false,
+        "Defense": 0,
+        "tradable": false,
+        "GENERATION": 5,
+        "evolutions": [],
+        "shadowshiny": false
+    },
+    "Mega Gengar": {
+        "live": true,
+        "shiny": false,
+        "shadow": false,
+        "tradable": false,
+        "shadowshiny": false
+    },
+    "Mega Glalie": {
+        "live": true,
+        "shiny": false,
+        "shadow": false,
+        "tradable": false,
+        "shadowshiny": false
+    },
+    "Mega Latias": {
+        "live": true,
+        "shiny": false,
+        "shadow": false,
+        "tradable": false,
+        "shadowshiny": false
+    },
+    "Mega Latios": {
+        "live": true,
+        "shiny": false,
+        "shadow": false,
+        "tradable": false,
+        "shadowshiny": false
+    },
+    "Mega Mawile": {
+        "live": true,
+        "shiny": false,
+        "shadow": false,
+        "tradable": false,
+        "shadowshiny": false
+    },
+    "Mega Pinsir": {
+        "live": true,
+        "shiny": false,
+        "shadow": false,
+        "tradable": false,
+        "shadowshiny": false
+    },
+    "Mega Scizor": {
+        "live": true,
+        "shiny": false,
+        "shadow": false,
+        "tradable": false,
+        "shadowshiny": false
+    },
+    "Pikachu PhD": {
+        "delete": true
+    },
+    "Polteageist": {
+        "HP": 155,
+        "FORM": false,
+        "Flee": 0,
+        "LIVE": true,
+        "MEGA": false,
+        "Name": "Polteageist",
+        "Type": ["Ghost"],
+        "giga": false,
+        "Catch": 20,
+        "SHINY": false,
+        "moves": [],
+        "Attack": 248,
+        "GENDER": "",
+        "NUMBER": 855,
+        "Sprite": "855",
+        "shadow": false,
+        "Defense": 189,
+        "tradable": true,
+        "GENERATION": 8,
+        "evolutions": [],
+        "shadowshiny": false
+    },
+    "Black Kyurem": {
+        "HP": 245,
+        "Flee": 0,
+        "Name": "Black Kyurem",
+        "Type": ["Dragon", "Ice"],
+        "form": true,
+        "giga": false,
+        "live": true,
+        "mega": false,
+        "Catch": 0,
+        "moves": [],
+        "shiny": true,
+        "Attack": 310,
+        "gender": "",
+        "number": 646,
+        "shadow": false,
+        "sprite": "646-Black Kyurem",
+        "Defense": 183,
+        "tradable": false,
+        "evolutions": [],
+        "generation": 5,
+        "shadowshiny": false
+    },
+    "Brambleghast": {
+        "hp": "146",
+        "ses": "947",
+        "flee": 0,
+        "form": false,
+        "giga": false,
+        "live": true,
+        "mega": false,
+        "name": "Brambleghast",
+        "type": ["Grass", "Ghost"],
+        "catch": 0,
+        "moves": ["HEX", "BULLET_SEED", "NIGHT_SHADE", "SHADOW_SNEAK", "POWER_WHIP"],
+        "shiny": false,
+        "attack": "228",
+        "gender": "",
+        "number": "947",
+        "shadow": false,
+        "sprite": "947",
+        "defense": "144",
+        "formtype": "",
+        "tradable": true,
+        "evolutions": [],
+        "generation": 9,
+        "shadowshiny": false
+    },
+    "Mega Altaria": {
+        "live": true,
+        "shiny": false,
+        "shadow": false,
+        "tradable": false,
+        "shadowshiny": false
+    },
+    "Mega Banette": {
+        "live": true,
+        "shiny": false,
+        "shadow": false,
+        "tradable": false,
+        "shadowshiny": false
+    },
+    "Mega Delphox": {
+        "hp": "181",
+        "ses": "655-Mega",
+        "flee": 1,
+        "form": true,
+        "giga": false,
+        "live": true,
+        "mega": true,
+        "name": "Mega Delphox",
+        "type": ["Fire", "Psychic"],
+        "catch": 1,
+        "moves": [
+            "FIRE_SPIN",
+            "SCRATCH",
+            "ZEN_HEADBUTT",
+            "FLAME_CHARGE",
+            "FIRE_BLAST",
+            "MYSTICAL_FIRE+",
+            "FLAMETHROWER",
+            "BLAST_BURN *",
+            "PSYCHIC",
+            "PSYSHOCK"
+        ],
+        "shiny": false,
+        "attack": "331",
+        "gender": "",
+        "number": "655",
+        "shadow": false,
+        "sprite": "655-Mega Delphox",
+        "defense": "235",
+        "formtype": "Mega",
+        "tradable": false,
+        "evolutions": [],
+        "generation": 6,
+        "shadowshiny": false
+    },
+    "Mega Diancie": {
+        "live": true,
+        "shiny": false,
+        "shadow": false,
+        "tradable": false,
+        "shadowshiny": false
+    },
+    "Mega Falinks": {
+        "hp": "163",
+        "ses": "870-Mega Falinks",
+        "flee": 0,
+        "form": true,
+        "giga": false,
+        "live": true,
+        "mega": true,
+        "name": "Mega Falinks",
+        "type": ["Fighting"],
+        "catch": 0,
+        "moves": ["ROCK_SMASH", "COUNTER", "MEGAHORN", "BRICK_BREAK", "SUPERPOWER"],
+        "shiny": false,
+        "attack": "267",
+        "gender": "",
+        "number": "870",
+        "shadow": false,
+        "sprite": "870-Mega Falinks",
+        "defense": "229",
+        "formtype": "Mega",
+        "tradable": false,
+        "evolutions": [],
+        "generation": 8,
+        "shadowshiny": false
+    },
+    "Mega Gallade": {
+        "live": true,
+        "shiny": false,
+        "shadow": false,
+        "tradable": false,
+        "shadowshiny": false
+    },
+    "Mega Lopunny": {
+        "live": true,
+        "shiny": false,
+        "shadow": false,
+        "tradable": false,
+        "shadowshiny": false
+    },
+    "Mega Lucario": {
+        "live": true,
+        "shiny": false,
+        "shadow": false,
+        "tradable": false,
+        "shadowshiny": false
+    },
+    "Mega Malamar": {
+        "hp": "200",
+        "ses": "687-Mega",
+        "flee": 0,
+        "form": true,
+        "giga": false,
+        "live": true,
+        "mega": true,
+        "name": "Mega Malamar",
+        "type": ["Dark", "Psychic"],
+        "catch": 20,
+        "moves": ["PECK", "PSYCHO_CUT", "PSYWAVE", "HYPER_BEAM", "PSYBEAM", "FOUL_PLAY", "SUPERPOWER"],
+        "shiny": false,
+        "attack": "208",
+        "gender": "",
+        "number": "687",
+        "shadow": false,
+        "sprite": "687-Mega Malamar",
+        "defense": "222",
+        "formtype": "Mega",
+        "tradable": false,
+        "evolutions": [],
+        "generation": 6,
+        "shadowshiny": false
+    },
+    "Mega Pidgeot": {
+        "live": true,
+        "shiny": false,
+        "shadow": false,
+        "tradable": false,
+        "shadowshiny": false
+    },
+    "Mega Sableye": {
+        "live": true,
+        "shiny": false,
+        "shadow": false,
+        "tradable": false,
+        "shadowshiny": false
+    },
+    "Mega Slowbro": {
+        "live": true,
+        "shiny": false,
+        "shadow": false,
+        "tradable": false,
+        "shadowshiny": false
+    },
+    "Mega Starmie": {
+        "hp": "155",
+        "ses": "121-Mega",
+        "flee": 1,
+        "form": true,
+        "giga": false,
+        "live": true,
+        "mega": true,
+        "name": "Mega Starmie",
+        "type": ["Water", "Psychic"],
+        "catch": 1,
+        "moves": [
+            "TACKLE_*",
+            "HIDDEN_POWER",
+            "PSYWAVE",
+            "WATER_GUN",
+            "THUNDER",
+            "ICE_BEAM",
+            "PSYCHIC",
+            "PSYBEAM",
+            "POWER_GEM",
+            "HYDRO_PUMP",
+            "SURF",
+            "AQUA_JET"
+        ],
+        "shiny": false,
+        "attack": "276",
+        "gender": "",
+        "number": "121",
+        "shadow": false,
+        "sprite": "121-Mega Starmie",
+        "defense": "229",
+        "formtype": "Mega",
+        "tradable": false,
+        "evolutions": [],
+        "generation": 1,
+        "shadowshiny": false
+    },
+    "Mega Steelix": {
+        "live": true,
+        "shiny": false,
+        "shadow": false,
+        "tradable": false,
+        "shadowshiny": false
+    },
+    "Poltchageist": {
+        "hp": "120",
+        "flee": 0,
+        "form": false,
+        "giga": false,
+        "live": true,
+        "mega": false,
+        "name": "Poltchageist",
+        "type": ["Grass", "Ghost"],
+        "catch": 20,
+        "moves": ["ASTONISH", "MAGICAL_LEAF", "SHADOW_BALL", "ENERGY_BALL", "POLTERGEIST"],
+        "shiny": false,
+        "attack": "134",
+        "gender": "",
+        "number": "1012",
+        "shadow": false,
+        "sprite": "1012",
+        "defense": "96",
+        "tradable": true,
+        "evolutions": [
+            {
+                "cost": "50",
+                "name": "Sinistcha",
+                "stage": "",
+                "gender": "",
+                "number": "1013",
+                "region": "",
+                "special": false,
+                "condition": ""
+            }
+        ],
+        "generation": 9,
+        "shadowshiny": false
+    },
+    "White Kyurem": {
+        "HP": 245,
+        "Flee": 0,
+        "Name": "White Kyurem",
+        "Type": ["Dragon", "Ice"],
+        "form": true,
+        "giga": false,
+        "live": true,
+        "mega": false,
+        "Catch": 0,
+        "moves": [],
+        "shiny": true,
+        "Attack": 310,
+        "gender": "",
+        "number": 646,
+        "shadow": false,
+        "sprite": "646-White Kyurem",
+        "Defense": 183,
+        "tradable": false,
+        "evolutions": [],
+        "generation": 5,
+        "shadowshiny": false
+    },
+    "Alolan Grimer": {
+        "shadowshiny": true
+    },
+    "Hisuian Zorua": {
+        "hp": "111",
+        "flee": 0,
+        "form": false,
+        "giga": false,
+        "live": true,
+        "mega": false,
+        "name": "Hisuian Zorua",
+        "type": ["Normal", "Ghost"],
+        "catch": 20,
+        "moves": ["SCRATCH", "SNARL", "DARK_PULSE", "SHADOW_BALL", "NIGHT_SHADE", "FOUL_PLAY"],
+        "shiny": false,
+        "attack": "162",
+        "gender": "",
+        "number": "570",
+        "shadow": false,
+        "sprite": "570-Hisuian",
+        "defense": "79",
+        "tradable": true,
+        "evolutions": [
+            {
+                "cost": "50",
+                "name": "Hisuian Zoroark",
+                "stage": "",
+                "gender": "",
+                "number": "571",
+                "region": "",
+                "special": false,
+                "condition": ""
+            }
+        ],
+        "generation": 8.5,
+        "shadowshiny": false
+    },
+    "Hoopa Unbound": {
+        "tradable": false
+    },
+    "Indeedee Male": {
+        "hp": "155",
+        "flee": 10,
+        "form": false,
+        "giga": false,
+        "live": true,
+        "mega": false,
+        "name": "Indeedee",
+        "type": ["Psychic", "Normal"],
+        "catch": 20,
+        "moves": ["EXTRASENSORY", "PSYBEAM", "SHADOW_BALL", "PSYCHIC"],
+        "shiny": true,
+        "attack": "208",
+        "gender": "Male",
+        "number": "876",
+        "shadow": false,
+        "sprite": "876-Male",
+        "defense": "166",
+        "tradable": true,
+        "evolutions": [],
+        "generation": 8,
+        "shadowshiny": false
+    },
+    "Mega Alakazam": {
+        "live": true,
+        "shiny": false,
+        "shadow": false,
+        "tradable": false,
+        "shadowshiny": false
+    },
+    "Mega Ampharos": {
+        "live": true,
+        "shiny": false,
+        "shadow": false,
+        "tradable": false,
+        "shadowshiny": false
+    },
+    "Mega Beedrill": {
+        "live": true,
+        "shiny": false,
+        "shadow": false,
+        "tradable": false,
+        "shadowshiny": false
+    },
+    "Mega Blaziken": {
+        "live": true,
+        "shiny": false,
+        "shadow": false,
+        "tradable": false,
+        "shadowshiny": false
+    },
+    "Mega Camerupt": {
+        "hp": "172",
+        "flee": 0,
+        "form": true,
+        "giga": false,
+        "live": true,
+        "mega": true,
+        "name": "Mega Camerupt",
+        "type": ["Fire", "Ground"],
+        "catch": 0,
+        "moves": ["EMBER", "ROCK_SMASH", "INCINERATE", "EARTHQUAKE", "SOLAR_BEAM", "OVERHEAT", "EARTH_POWER"],
+        "shiny": false,
+        "attack": "253",
+        "gender": "",
+        "number": "323",
+        "shadow": false,
+        "sprite": "323-Mega Camerupt",
+        "defense": "183",
+        "tradable": false,
+        "evolutions": [],
+        "generation": 3,
+        "shadowshiny": false
+    },
+    "Mega Garchomp": {
+        "hp": "239",
+        "ses": "445-Mega",
+        "flee": 0,
+        "form": true,
+        "giga": false,
+        "live": true,
+        "mega": true,
+        "name": "Mega Garchomp",
+        "type": ["Dragon", "Ground"],
+        "catch": 0,
+        "moves": [
+            "MUD_SHOT",
+            "DRAGON_TAIL",
+            "EARTHQUAKE",
+            "FIRE_BLAST",
+            "SAND_TOMB",
+            "OUTRAGE",
+            "EARTH_POWER *",
+            "BREAKING_SWIPE"
+        ],
+        "shiny": false,
+        "attack": "339",
+        "gender": "",
+        "number": "445",
+        "shadow": false,
+        "sprite": "445-Mega Garchomp",
+        "defense": "222",
+        "formtype": "Mega",
+        "tradable": false,
+        "evolutions": [],
+        "generation": 4,
+        "shadowshiny": false
+    },
+    "Mega Greninja": {
+        "hp": "176",
+        "ses": "658-Mega",
+        "flee": 1,
+        "form": true,
+        "giga": false,
+        "live": true,
+        "mega": true,
+        "name": "Mega Greninja",
+        "type": ["Water", "Dark"],
+        "catch": 1,
+        "moves": [
+            "FEINT_ATTACK",
+            "BUBBLE",
+            "WATER_SHURIKEN",
+            "NIGHT_SLASH",
+            "AERIAL_ACE",
+            "HYDRO_PUMP",
+            "SURF+",
+            "HYDRO_CANNON *"
+        ],
+        "shiny": false,
+        "attack": "299",
+        "gender": "",
+        "number": "658",
+        "shadow": false,
+        "sprite": "658-Mega Greninja",
+        "defense": "180",
+        "formtype": "Mega",
+        "tradable": false,
+        "evolutions": [],
+        "generation": 6,
+        "shadowshiny": false
+    },
+    "Mega Gyarados": {
+        "live": true,
+        "shiny": false,
+        "shadow": false,
+        "tradable": false,
+        "shadowshiny": false
+    },
+    "Mega Houndoom": {
+        "live": true,
+        "shiny": false,
+        "shadow": false,
+        "tradable": false,
+        "shadowshiny": false
+    },
+    "Mega Medicham": {
+        "live": true,
+        "shiny": false,
+        "shadow": false,
+        "tradable": false,
+        "shadowshiny": false
+    },
+    "Mega Mewtwo X": {
+        "hp": "235",
+        "ses": "150-Mega-X",
+        "flee": 0,
+        "form": true,
+        "giga": false,
+        "live": true,
+        "mega": true,
+        "name": "Mega Mewtwo X",
+        "type": ["Psychic", "Fighting"],
+        "catch": 0,
+        "moves": [
+            "PSYCHO_CUT",
+            "CONFUSION",
+            "THUNDERBOLT",
+            "FOCUS_BLAST",
+            "FLAMETHROWER",
+            "SHADOW_BALL *",
+            "ICE_BEAM",
+            "HYPER_BEAM *",
+            "PSYCHIC",
+            "PSYSTRIKE_*"
+        ],
+        "shiny": false,
+        "attack": "412",
+        "gender": "",
+        "number": "150",
+        "shadow": false,
+        "sprite": "150-Mega Mewtwo X",
+        "defense": "222",
+        "formtype": "Mega-X",
+        "tradable": false,
+        "evolutions": [],
+        "generation": 1,
+        "shadowshiny": false
+    },
+    "Mega Mewtwo Y": {
+        "hp": "235",
+        "ses": "150-Mega-Y",
+        "flee": 0,
+        "form": true,
+        "giga": false,
+        "live": true,
+        "mega": true,
+        "name": "Mega Mewtwo Y",
+        "type": ["Psychic"],
+        "catch": 0,
+        "moves": [
+            "PSYCHO_CUT",
+            "CONFUSION",
+            "THUNDERBOLT",
+            "FOCUS_BLAST",
+            "FLAMETHROWER",
+            "SHADOW_BALL *",
+            "ICE_BEAM",
+            "HYPER_BEAM *",
+            "PSYCHIC",
+            "PSYSTRIKE_*"
+        ],
+        "shiny": false,
+        "attack": "426",
+        "gender": "",
+        "number": "150",
+        "shadow": false,
+        "sprite": "150-Mega Mewtwo Y",
+        "defense": "229",
+        "formtype": "Mega-Y",
+        "tradable": false,
+        "evolutions": [],
+        "generation": 1,
+        "shadowshiny": false
+    },
+    "Mega Raichu X": {
+        "hp": "155",
+        "ses": "26-Mega-X",
+        "flee": 1,
+        "form": true,
+        "giga": false,
+        "live": true,
+        "mega": true,
+        "name": "Mega Raichu X",
+        "type": ["Electric"],
+        "catch": 1,
+        "moves": [
+            "THUNDER_SHOCK",
+            "SPARK",
+            "VOLT_SWITCH",
+            "CHARM",
+            "WILD_CHARGE",
+            "THUNDER_PUNCH",
+            "THUNDER_*",
+            "BRICK_BREAK",
+            "TRAILBLAZE",
+            "SKULL_BASH",
+            "SURF"
+        ],
+        "shiny": false,
+        "attack": "277",
+        "gender": "",
+        "number": "26",
+        "shadow": false,
+        "sprite": "26-Mega Raichu X",
+        "defense": "203",
+        "formtype": "Mega-X",
+        "tradable": false,
+        "evolutions": [],
+        "generation": 1,
+        "shadowshiny": false
+    },
+    "Mega Raichu Y": {
+        "hp": "155",
+        "ses": "26-Mega-Y",
+        "flee": 1,
+        "form": true,
+        "giga": false,
+        "live": true,
+        "mega": true,
+        "name": "Mega Raichu Y",
+        "type": ["Electric"],
+        "catch": 1,
+        "moves": [
+            "THUNDER_SHOCK",
+            "SPARK",
+            "VOLT_SWITCH",
+            "CHARM",
+            "WILD_CHARGE",
+            "THUNDER_PUNCH",
+            "THUNDER_*",
+            "BRICK_BREAK",
+            "TRAILBLAZE",
+            "SKULL_BASH",
+            "SURF"
+        ],
+        "shiny": false,
+        "attack": "339",
+        "gender": "",
+        "number": "26",
+        "shadow": false,
+        "sprite": "26-Mega Raichu Y",
+        "defense": "157",
+        "formtype": "Mega-Y",
+        "tradable": false,
+        "evolutions": [],
+        "generation": 1,
+        "shadowshiny": false
+    },
+    "Mega Rayquaza": {
+        "live": true,
+        "shiny": false,
+        "shadow": false,
+        "tradable": false,
+        "shadowshiny": false
+    },
+    "Mega Sceptile": {
+        "live": true,
+        "shiny": false,
+        "shadow": false,
+        "tradable": false,
+        "shadowshiny": false
+    },
+    "Mega Sharpedo": {
+        "hp": "172",
+        "flee": 0,
+        "form": true,
+        "giga": false,
+        "live": true,
+        "mega": true,
+        "name": "Mega Sharpedo",
+        "type": ["Water", "Dark"],
+        "catch": 0,
+        "moves": ["BITE", "WATERFALL", "POISON_FANG", "HYDRO_PUMP", "CRUNCH"],
+        "shiny": false,
+        "attack": "289",
+        "gender": "",
+        "number": "319",
+        "shadow": false,
+        "sprite": "319-Mega Sharpedo",
+        "defense": "144",
+        "tradable": false,
+        "evolutions": [],
+        "generation": 3,
+        "shadowshiny": false
+    },
+    "Mega Skarmory": {
+        "hp": "163",
+        "ses": "227-Mega",
+        "flee": 0,
+        "form": true,
+        "giga": false,
+        "live": true,
+        "mega": true,
+        "name": "Mega Skarmory",
+        "type": ["Steel", "Flying"],
+        "catch": 0,
+        "moves": ["AIR_SLASH", "STEEL_WING", "BRAVE_BIRD", "SKY_ATTACK", "FLASH_CANNON"],
+        "shiny": false,
+        "attack": "273",
+        "gender": "",
+        "number": "227",
+        "shadow": false,
+        "sprite": "227-Mega Skarmory",
+        "defense": "228",
+        "formtype": "Mega",
+        "tradable": false,
+        "evolutions": [],
+        "generation": 2,
+        "shadowshiny": false
+    },
+    "Mega Swampert": {
+        "live": true,
+        "shiny": false,
+        "shadow": false,
+        "tradable": false,
+        "shadowshiny": false
+    },
+    "Mega Venusaur": {
+        "live": true,
+        "shiny": false,
+        "shadow": false,
+        "tradable": false,
+        "shadowshiny": false
+    },
+    "Pikachu Libre": {
+        "delete": true
+    },
+    "Primal Kyogre": {
+        "live": true,
+        "shiny": false,
+        "shadow": false,
+        "tradable": false,
+        "shadowshiny": false
+    },
+    "Alolan Marowak": {
+        "shadowshiny": true
+    },
+    "Armored Mewtwo": {
+        "delete": true
+    },
+    "Hoopa Confined": {
+        "tradable": false
+    },
+    "Mega Abomasnow": {
+        "live": true,
+        "shiny": false,
+        "shadow": false,
+        "tradable": false,
+        "shadowshiny": false
+    },
+    "Mega Blastoise": {
+        "live": true,
+        "shiny": false,
+        "shadow": false,
+        "tradable": false,
+        "shadowshiny": false
+    },
+    "Mega Dragonite": {
+        "hp": "209",
+        "ses": "149-Mega",
+        "flee": 0,
+        "form": true,
+        "giga": false,
+        "live": true,
+        "mega": true,
+        "name": "Mega Dragonite",
+        "type": ["Dragon", "Flying"],
+        "catch": 20,
+        "moves": [
+            "DRAGON_BREATH",
+            "STEEL_WING",
+            "DRAGON_TAIL",
+            "HYPER_BEAM",
+            "THUNDER_PUNCH",
+            "DRAGON_PULSE *",
+            "DRAGON_CLAW",
+            "HURRICANE",
+            "OUTRAGE",
+            "DRACO_METEOR *",
+            "SUPERPOWER"
+        ],
+        "shiny": false,
+        "attack": "299",
+        "gender": "",
+        "number": "149",
+        "shadow": false,
+        "sprite": "149-Mega Dragonite",
+        "defense": "255",
+        "formtype": "Mega",
+        "tradable": false,
+        "evolutions": [],
+        "generation": 1,
+        "shadowshiny": false
+    },
+    "Mega Gardevoir": {
+        "live": true,
+        "shiny": false,
+        "shadow": false,
+        "tradable": false,
+        "shadowshiny": false
+    },
+    "Mega Heracross": {
+        "live": true,
+        "shiny": false,
+        "shadow": false,
+        "tradable": false,
+        "shadowshiny": false
+    },
+    "Mega Manectric": {
+        "live": true,
+        "shiny": false,
+        "shadow": false,
+        "tradable": false,
+        "shadowshiny": false
+    },
+    "Mega Metagross": {
+        "hp": "190",
+        "flee": 0,
+        "form": true,
+        "giga": false,
+        "live": true,
+        "mega": true,
+        "name": "Mega Metagross",
+        "type": ["Steel", "Psychic"],
+        "catch": 0,
+        "moves": ["BULLET_PUNCH", "ZEN_HEADBUTT", "EARTHQUAKE", "FLASH_CANNON", "PSYCHIC", "METEOR_MASH *"],
+        "shiny": false,
+        "attack": "300",
+        "gender": "",
+        "number": "376",
+        "shadow": false,
+        "sprite": "376-Mega Metagross",
+        "defense": "289",
+        "tradable": false,
+        "evolutions": [],
+        "generation": 3,
+        "shadowshiny": false
+    },
+    "Mega Salamence": {
+        "live": true,
+        "shiny": false,
+        "shadow": false,
+        "tradable": false,
+        "shadowshiny": false
+    },
+    "Mega Staraptor": {
+        "hp": "198",
+        "ses": "398-Mega",
+        "flee": 1,
+        "form": true,
+        "giga": false,
+        "live": true,
+        "mega": true,
+        "name": "Mega Staraptor",
+        "type": ["Fighting", "Flying"],
+        "catch": 1,
+        "moves": [
+            "WING_ATTACK",
+            "GUST_*",
+            "SAND_ATTACK",
+            "QUICK_ATTACK",
+            "CLOSE_COMBAT",
+            "HEAT_WAVE",
+            "BRAVE_BIRD+",
+            "BRAVE_BIRD",
+            "FLY"
+        ],
+        "shiny": true,
+        "attack": "278",
+        "gender": "",
+        "number": "398",
+        "shadow": false,
+        "sprite": "398-Mega Staraptor",
+        "defense": "207",
+        "formtype": "Mega",
+        "tradable": false,
+        "evolutions": [],
+        "generation": 4,
+        "shadowshiny": false
+    },
+    "Mega Tyranitar": {
+        "live": true,
+        "shiny": false,
+        "shadow": false,
+        "tradable": false,
+        "shadowshiny": false
+    },
+    "Pikachu Flying": {
+        "delete": true
+    },
+    "Primal Groudon": {
+        "live": true,
+        "shiny": false,
+        "shadow": false,
+        "tradable": false,
+        "shadowshiny": false
+    },
+    "Galarian Zapdos": {
+        "shiny": true
+    },
+    "Hisuian Zoroark": {
+        "hp": "146",
+        "flee": 0,
+        "form": false,
+        "giga": false,
+        "live": true,
+        "mega": false,
+        "name": "Hisuian Zoroark",
+        "type": ["Normal", "Ghost"],
+        "catch": 20,
+        "moves": ["SHADOW_CLAW", "SNARL", "FLAMETHROWER", "SHADOW_BALL", "SLUDGE_BOMB", "FOUL_PLAY"],
+        "shiny": false,
+        "attack": "261",
+        "gender": "",
+        "number": "571",
+        "shadow": false,
+        "sprite": "571-Hisuian",
+        "defense": "128",
+        "tradable": true,
+        "evolutions": [],
+        "generation": 8.5,
+        "shadowshiny": false
+    },
+    "Indeedee (Male)": {
+        "delete": true
+    },
+    "Indeedee Female": {
+        "hp": "172",
+        "flee": 10,
+        "form": false,
+        "giga": false,
+        "live": true,
+        "mega": false,
+        "name": "Indeedee",
+        "type": ["Psychic", "Normal"],
+        "catch": 20,
+        "moves": ["EXTRASENSORY", "PSYBEAM", "PSYCHIC", "ENERGY_BALL"],
+        "shiny": true,
+        "attack": "184",
+        "gender": "Female",
+        "number": "876",
+        "shadow": false,
+        "sprite": "876-Female",
+        "defense": "184",
+        "tradable": true,
+        "evolutions": [],
+        "generation": 8,
+        "shadowshiny": false
+    },
+    "Mega Aerodactyl": {
+        "live": true,
+        "shiny": false,
+        "shadow": false,
+        "tradable": false,
+        "shadowshiny": false
+    },
+    "Mega Chandelure": {
+        "hp": "155",
+        "ses": "609-Mega",
+        "flee": 0,
+        "form": true,
+        "giga": false,
+        "live": true,
+        "mega": true,
+        "name": "Mega Chandelure",
+        "type": ["Ghost", "Fire"],
+        "catch": 0,
+        "moves": [
+            "FIRE_SPIN",
+            "INCINERATE",
+            "ASTONISH",
+            "HEX",
+            "FLAME_CHARGE",
+            "OVERHEAT",
+            "POLTERGEIST_*",
+            "SHADOW_BALL",
+            "ENERGY_BALL"
+        ],
+        "shiny": false,
+        "attack": "335",
+        "gender": "",
+        "number": "609",
+        "shadow": false,
+        "sprite": "609-Mega Chandelure",
+        "defense": "227",
+        "formtype": "Mega",
+        "tradable": false,
+        "evolutions": [],
+        "generation": 5,
+        "shadowshiny": false
+    },
+    "Mega Chesnaught": {
+        "hp": "204",
+        "ses": "652-Mega",
+        "flee": 1,
+        "form": true,
+        "giga": false,
+        "live": true,
+        "mega": true,
+        "name": "Mega Chesnaught",
+        "type": ["Grass", "Fighting"],
+        "catch": 1,
+        "moves": [
+            "LOW_KICK",
+            "VINE_WHIP",
+            "SMACK_DOWN",
+            "THUNDER_PUNCH",
+            "SUPERPOWER",
+            "SOLAR_BEAM",
+            "SEED_BOMB+",
+            "ENERGY_BALL",
+            "FRENZY_PLANT *",
+            "GYRO_BALL"
+        ],
+        "shiny": false,
+        "attack": "242",
+        "gender": "",
+        "number": "652",
+        "shadow": false,
+        "sprite": "652-Mega Chesnaught",
+        "defense": "282",
+        "formtype": "Mega",
+        "tradable": false,
+        "evolutions": [],
+        "generation": 6,
+        "shadowshiny": false
+    },
+    "Mega Kangaskhan": {
+        "live": true,
+        "shiny": false,
+        "shadow": false,
+        "tradable": false,
+        "shadowshiny": false
+    },
+    "Mega Victreebel": {
+        "hp": "190",
+        "ses": "71-Mega",
+        "flee": 0,
+        "form": true,
+        "giga": false,
+        "live": true,
+        "mega": true,
+        "name": "Mega Victreebel",
+        "type": ["Grass", "Poison"],
+        "catch": 20,
+        "moves": [
+            "RAZOR_LEAF",
+            "ACID",
+            "MAGICAL_LEAF *",
+            "SLUDGE_BOMB",
+            "SOLAR_BEAM",
+            "LEAF_BLADE",
+            "ACID_SPRAY",
+            "LEAF_TORNADO"
+        ],
+        "shiny": false,
+        "attack": "265",
+        "gender": "",
+        "number": "71",
+        "shadow": false,
+        "sprite": "71-Mega Victreebel",
+        "defense": "181",
+        "formtype": "Mega",
+        "tradable": false,
+        "evolutions": [],
+        "generation": 1,
+        "shadowshiny": false
+    },
+    "Alolan Exeggutor": {
+        "shadowshiny": true
+    },
+    "Galarian Linoone": {
+        "shadowshiny": true
+    },
+    "Galarian Moltres": {
+        "shiny": true
+    },
+    "Galarian Weezing": {
+        "shadowshiny": true
+    },
+    "Gigantamax Eevee": {
+        "hp": "146",
+        "flee": 0,
+        "form": true,
+        "giga": true,
+        "live": true,
+        "mega": false,
+        "name": "Gigantamax Eevee",
+        "type": ["Normal"],
+        "catch": 20,
+        "moves": ["QUICK_ATTACK", "TACKLE", "DIG", "SWIFT", "BODY_SLAM *", "LAST_RESORT *", "G-MAX_CUDDLE"],
+        "shiny": true,
+        "attack": "104",
+        "gender": "",
+        "number": "133",
+        "shadow": false,
+        "sprite": "133-Gigantamax Eevee",
+        "defense": "114",
+        "formtype": "Gigantamax",
+        "tradable": false,
+        "evolutions": [],
+        "generation": 1,
+        "shadowshiny": false
+    },
+    "Hisuian Arcanine": {
+        "shiny": true
+    },
+    "Mega Charizard X": {
+        "live": true,
+        "shiny": false,
+        "shadow": false,
+        "formtype": "Mega-X",
+        "tradable": false,
+        "shadowshiny": false
+    },
+    "Mega Charizard Y": {
+        "live": true,
+        "shiny": false,
+        "shadow": false,
+        "formtype": "Mega-Y",
+        "tradable": false,
+        "shadowshiny": false
+    },
+    "Pikachu Pop Star": {
+        "delete": true
+    },
+    "Furfrou Star Trim": {
+        "delete": true
+    },
+    "Galarian Articuno": {
+        "shiny": true
+    },
+    "Galarian Mr. Mime": {
+        "form": true,
+        "sprite": "122-Galarian"
+    },
+    "Gigantamax Gengar": {
+        "hp": "155",
+        "flee": 0,
+        "form": true,
+        "giga": true,
+        "live": true,
+        "mega": false,
+        "name": "Gigantamax Gengar",
+        "type": ["Ghost", "Poison"],
+        "catch": 20,
+        "moves": [
+            "SUCKER_PUNCH",
+            "LICK_*",
+            "SHADOW_CLAW",
+            "HEX",
+            "DARK_PULSE *",
+            "SHADOW_PUNCH *",
+            "SHADOW_BALL",
+            "SLUDGE_BOMB",
+            "SLUDGE_WAVE *",
+            "PSYCHIC_*",
+            "FOCUS_BLAST",
+            "G-MAX_TERROR"
+        ],
+        "shiny": true,
+        "attack": "261",
+        "gender": "",
+        "number": "94",
+        "shadow": false,
+        "sprite": "94-Gigantamax Gengar",
+        "defense": "149",
+        "formtype": "Gigantamax",
+        "tradable": false,
+        "evolutions": [],
+        "generation": 1,
+        "shadowshiny": false
+    },
+    "Gigantamax Lapras": {
+        "hp": "277",
+        "flee": 0,
+        "form": true,
+        "giga": true,
+        "live": true,
+        "mega": false,
+        "name": "Gigantamax Lapras",
+        "type": ["Water", "Ice"],
+        "catch": 20,
+        "moves": [
+            "ICE_SHARD *",
+            "FROST_BREATH",
+            "WATER_GUN",
+            "PSYWAVE",
+            "ICE_BEAM *",
+            "BLIZZARD",
+            "DRAGON_PULSE *",
+            "HYDRO_PUMP",
+            "SURF",
+            "SKULL_BASH",
+            "SPARKLING_ARIA",
+            "G-MAX_RESONANCE"
+        ],
+        "shiny": true,
+        "attack": "165",
+        "gender": "",
+        "number": "131",
+        "shadow": false,
+        "sprite": "131-Gigantamax Lapras",
+        "defense": "174",
+        "formtype": "Gigantamax",
+        "tradable": false,
+        "evolutions": [],
+        "generation": 1,
+        "shadowshiny": false
+    },
+    "Gigantamax Meowth": {
+        "hp": "120",
+        "ses": "52-Gigantamax",
+        "flee": 0,
+        "form": true,
+        "giga": true,
+        "live": true,
+        "mega": false,
+        "name": "Gigantamax Meowth",
+        "type": ["Normal"],
+        "catch": 20,
+        "moves": ["BITE", "SCRATCH", "DARK_PULSE", "NIGHT_SLASH", "BODY_SLAM *", "FOUL_PLAY", "G-MAX_GOLD RUSH"],
+        "shiny": true,
+        "attack": "92",
+        "gender": "",
+        "number": "52",
+        "shadow": false,
+        "sprite": "52-Gigantamax Meowth",
+        "defense": "78",
+        "formtype": "Gigantamax",
+        "tradable": false,
+        "evolutions": [],
+        "generation": 1,
+        "shadowshiny": false
+    },
+    "Hisuian Growlithe": {
+        "shiny": true
+    },
+    "Hisuian Lilligant": {
+        "hp": "172",
+        "flee": 0,
+        "form": false,
+        "giga": false,
+        "live": true,
+        "mega": false,
+        "name": "Hisuian Lilligant",
+        "type": ["Grass", "Fighting"],
+        "catch": 20,
+        "moves": ["BULLET_SEED", "MAGICAL_LEAF", "PETAL_BLIZZARD", "SOLAR_BEAM", "CLOSE_COMBAT", "UPPER_HAND"],
+        "shiny": true,
+        "attack": "208",
+        "gender": "",
+        "number": "549",
+        "shadow": false,
+        "sprite": "549-Hisuian",
+        "defense": "159",
+        "tradable": true,
+        "evolutions": [],
+        "generation": 8.5,
+        "shadowshiny": false
+    },
+    "Indeedee (Female)": {
+        "delete": true
+    },
+    "Pikachu Rock Star": {
+        "delete": true
+    },
+    "Shaymin Sky Forme": {
+        "tradable": false
+    },
+    "Tauros Aqua Breed": {
+        "live": true,
+        "shiny": true,
+        "shadow": false,
+        "tradable": true,
+        "generation": 9,
+        "shadowshiny": false
+    },
+    "Zygarde 10% Forme": {
+        "sprite": "718-10",
+        "tradable": false,
+        "evolutions": [
+            {
+                "cost": "",
+                "name": "Zygarde 50% Forme",
+                "stage": 0,
+                "gender": "",
+                "number": 718,
+                "special": true,
+                "condition": "50 Zygarde Cells"
+            }
+        ]
+    },
+    "Zygarde 50% Forme": {
+        "sprite": "718-50",
+        "tradable": false,
+        "evolutions": [
+            {
+                "cost": "",
+                "name": "Zygarde Complete Forme",
+                "stage": 0,
+                "gender": "",
+                "number": 718,
+                "special": true,
+                "condition": "200 Zygarde Cells"
+            }
+        ]
+    },
+    "Deoxys Speed Forme": {
+        "tradable": false
+    },
+    "Floette Red Flower": {
+        "form": false,
+        "name": "Floette",
+        "evolutions": [
+            {
+                "cost": 100,
+                "name": "Florges",
+                "stage": 3,
+                "gender": "",
+                "number": 671,
+                "region": "",
+                "special": false,
+                "condition": "Earn 20 buddy hearts"
+            }
+        ]
+    },
+    "Florges Red Flower": {
+        "form": false,
+        "name": "Florges"
+    },
+    "Furfrou Dandy Trim": {
+        "delete": true
+    },
+    "Furfrou Heart Trim": {
+        "delete": true
+    },
+    "Gigantamax Drednaw": {
+        "hp": "207",
+        "ses": "834-Gigantamax",
+        "flee": 0,
+        "form": true,
+        "giga": true,
+        "live": false,
+        "mega": false,
+        "name": "Gigantamax Drednaw",
+        "type": ["Water", "Rock"],
+        "catch": 20,
+        "moves": ["BITE", "WATERFALL", "BODY_SLAM", "ROCK_BLAST", "CRUNCH", "SURF", "G-MAX_STONESURGE"],
+        "shiny": false,
+        "attack": "213",
+        "gender": "",
+        "number": "834",
+        "shadow": false,
+        "sprite": "834-Gigantamax Drednaw",
+        "defense": "164",
+        "formtype": "Gigantamax",
+        "tradable": false,
+        "evolutions": [],
+        "generation": 8,
+        "shadowshiny": false
+    },
+    "Gigantamax Kingler": {
+        "hp": "146",
+        "flee": 0,
+        "form": true,
+        "giga": true,
+        "live": true,
+        "mega": false,
+        "name": "Gigantamax Kingler",
+        "type": ["Water"],
+        "catch": 20,
+        "moves": [
+            "MUD_SHOT *",
+            "METAL_CLAW",
+            "BUBBLE",
+            "VISE_GRIP",
+            "X-SCISSOR",
+            "WATER_PULSE",
+            "CRABHAMMER",
+            "RAZOR_SHELL",
+            "G-MAX_FOAM BURST"
+        ],
+        "shiny": true,
+        "attack": "240",
+        "gender": "",
+        "number": "99",
+        "shadow": false,
+        "sprite": "99-Gigantamax Kingler",
+        "defense": "181",
+        "formtype": "Gigantamax",
+        "tradable": false,
+        "evolutions": [],
+        "generation": 1,
+        "shadowshiny": false
+    },
+    "Gigantamax Machamp": {
+        "hp": "207",
+        "flee": 5,
+        "form": true,
+        "giga": true,
+        "live": true,
+        "mega": false,
+        "name": "Gigantamax Machamp",
+        "type": ["Fighting"],
+        "catch": 10,
+        "moves": [
+            "KARATE_CHOP *",
+            "BULLET_PUNCH",
+            "COUNTER",
+            "CROSS_CHOP",
+            "STONE_EDGE *",
+            "SUBMISSION_*",
+            "ROCK_SLIDE",
+            "CLOSE_COMBAT",
+            "DYNAMIC_PUNCH",
+            "HEAVY_SLAM",
+            "PAYBACK_*",
+            "G-MAX_CHI STRIKE"
+        ],
+        "shiny": true,
+        "attack": "234",
+        "gender": "",
+        "number": "68",
+        "shadow": false,
+        "sprite": "68-Gigantamax Machamp",
+        "defense": "159",
+        "formtype": "Gigantamax",
+        "tradable": false,
+        "evolutions": [],
+        "generation": 1,
+        "shadowshiny": false
+    },
+    "Gigantamax Pikachu": {
+        "hp": "111",
+        "flee": 0,
+        "form": true,
+        "giga": true,
+        "live": true,
+        "mega": false,
+        "name": "Gigantamax Pikachu",
+        "type": ["Normal"],
+        "catch": 0,
+        "moves": [
+            "THUNDER_SHOCK",
+            "QUICK_ATTACK",
+            "PRESENT",
+            "DISCHARGE",
+            "THUNDERBOLT",
+            "WILD_CHARGE",
+            "SURF",
+            "THUNDER"
+        ],
+        "shiny": true,
+        "attack": "112",
+        "gender": "",
+        "number": "25",
+        "shadow": false,
+        "sprite": "25-Gigantamax Pikachu",
+        "defense": "96",
+        "formtype": "Gigantamax",
+        "tradable": false,
+        "evolutions": [],
+        "generation": 1,
+        "shadowshiny": false
+    },
+    "Gigantamax Snorlax": {
+        "hp": "330",
+        "flee": 0,
+        "form": true,
+        "giga": true,
+        "live": true,
+        "mega": false,
+        "name": "Gigantamax Snorlax",
+        "type": ["Normal"],
+        "catch": 20,
+        "moves": [
+            "LICK",
+            "ZEN_HEADBUTT",
+            "YAWN_*",
+            "HYPER_BEAM",
+            "EARTHQUAKE",
+            "BODY_SLAM",
+            "HEAVY_SLAM",
+            "OUTRAGE",
+            "SKULL_BASH",
+            "SUPERPOWER",
+            "G-MAX_REPLENISH"
+        ],
+        "shiny": true,
+        "attack": "190",
+        "gender": "",
+        "number": "143",
+        "shadow": false,
+        "sprite": "143-Gigantamax Snorlax",
+        "defense": "169",
+        "formtype": "Gigantamax",
+        "tradable": false,
+        "evolutions": [],
+        "generation": 1,
+        "shadowshiny": false
+    },
+    "Rockruff Dusk Form": {
+        "delete": true
+    },
+    "Shaymin Land Forme": {
+        "tradable": false
+    },
+    "Tauros Blaze Breed": {
+        "live": true,
+        "shiny": true,
+        "shadow": false,
+        "tradable": true,
+        "generation": 9,
+        "shadowshiny": false
+    },
+    "Deoxys Attack Forme": {
+        "tradable": false
+    },
+    "Deoxys Normal Forme": {
+        "tradable": false
+    },
+    "Dialga Origin Forme": {
+        "generation": 8.5
+    },
+    "Eternamax Eternatus": {
+        "hp": "452",
+        "flee": 10,
+        "form": true,
+        "giga": true,
+        "live": true,
+        "mega": false,
+        "name": "Eternamax Eternatus",
+        "type": ["Poison", "Dragon"],
+        "catch": 2,
+        "moves": [
+            "POISON_JAB",
+            "DRAGON_TAIL",
+            "HYPER_BEAM",
+            "FLAMETHROWER",
+            "DRAGON_PULSE",
+            "CROSS_POISON",
+            "DYNAMAX_CANNON *"
+        ],
+        "shiny": false,
+        "attack": "251",
+        "gender": "",
+        "number": "890",
+        "shadow": false,
+        "sprite": "890-Eternamax Eternatus",
+        "defense": "505",
+        "formtype": "Eternamax",
+        "tradable": true,
+        "evolutions": [],
+        "generation": 8,
+        "shadowshiny": false
+    },
+    "Floette Blue Flower": {
+        "delete": true
+    },
+    "Florges Blue Flower": {
+        "delete": true
+    },
+    "Furfrou Kabuki Trim": {
+        "delete": true
+    },
+    "Furfrou Matron Trim": {
+        "delete": true
+    },
+    "Genesect Burn Drive": {
+        "tradable": false
+    },
+    "Gigantamax Alcremie": {
+        "hp": "163",
+        "ses": "869-Gigantamax",
+        "flee": 0,
+        "form": true,
+        "giga": true,
+        "live": false,
+        "mega": false,
+        "name": "Gigantamax Alcremie",
+        "type": ["Fairy"],
+        "catch": 20,
+        "moves": ["TACKLE", "CHARM", "PSYSHOCK", "DAZZLING_GLEAM", "ENERGY_BALL", "G-MAX_FINALE"],
+        "shiny": false,
+        "attack": "203",
+        "gender": "",
+        "number": "869",
+        "shadow": false,
+        "sprite": "869-Gigantamax Alcremie",
+        "defense": "203",
+        "formtype": "Gigantamax",
+        "tradable": false,
+        "evolutions": [],
+        "generation": 8,
+        "shadowshiny": false
+    },
+    "Gigantamax Garbodor": {
+        "hp": "190",
+        "flee": 0,
+        "form": true,
+        "giga": true,
+        "live": true,
+        "mega": false,
+        "name": "Gigantamax Garbodor",
+        "type": ["Poison"],
+        "catch": 20,
+        "moves": ["INFESTATION", "TAKE_DOWN", "SEED_BOMB", "GUNK_SHOT", "BODY_SLAM", "ACID_SPRAY", "G-MAX_MALODOR"],
+        "shiny": true,
+        "attack": "181",
+        "gender": "",
+        "number": "569",
+        "shadow": false,
+        "sprite": "569-Gigantamax Garbodor",
+        "defense": "164",
+        "formtype": "Gigantamax",
+        "tradable": false,
+        "evolutions": [],
+        "generation": 5,
+        "shadowshiny": false
+    },
+    "Gigantamax Inteleon": {
+        "hp": "172",
+        "flee": 0,
+        "form": true,
+        "giga": true,
+        "live": true,
+        "mega": false,
+        "name": "Gigantamax Inteleon",
+        "type": ["Water"],
+        "catch": 20,
+        "moves": ["POUND", "WATER_GUN", "SHADOW_BALL", "WATER_PULSE", "SURF", "G-MAX_HYDROSNIPE"],
+        "shiny": false,
+        "attack": "262",
+        "gender": "",
+        "number": "818",
+        "shadow": false,
+        "sprite": "818-Gigantamax Inteleon",
+        "defense": "142",
+        "formtype": "Gigantamax",
+        "tradable": false,
+        "evolutions": [],
+        "generation": 8,
+        "shadowshiny": false
+    },
+    "Gigantamax Orbeetle": {
+        "hp": "155",
+        "ses": "826-Gigantamax",
+        "flee": 0,
+        "form": true,
+        "giga": true,
+        "live": false,
+        "mega": false,
+        "name": "Gigantamax Orbeetle",
+        "type": ["Bug", "Psychic"],
+        "catch": 20,
+        "moves": ["CONFUSION", "STRUGGLE_BUG", "BUG_BUZZ", "PSYCHIC", "G-MAX_GRAVITAS"],
+        "shiny": false,
+        "attack": "156",
+        "gender": "",
+        "number": "826",
+        "shadow": false,
+        "sprite": "826-Gigantamax Orbeetle",
+        "defense": "240",
+        "formtype": "Gigantamax",
+        "tradable": false,
+        "evolutions": [],
+        "generation": 8,
+        "shadowshiny": false
+    },
+    "Gigantamax Venusaur": {
+        "hp": "190",
+        "flee": 0,
+        "form": true,
+        "giga": true,
+        "live": true,
+        "mega": false,
+        "name": "Gigantamax Venusaur",
+        "type": ["Grass", "Poison"],
+        "catch": 20,
+        "moves": [
+            "VINE_WHIP",
+            "RAZOR_LEAF",
+            "PETAL_BLIZZARD",
+            "SLUDGE_BOMB",
+            "SOLAR_BEAM",
+            "FRENZY_PLANT *",
+            "G-MAX_VINE LASH"
+        ],
+        "shiny": true,
+        "attack": "198",
+        "gender": "",
+        "number": "3",
+        "shadow": false,
+        "sprite": "3-Gigantamax Venusaur",
+        "defense": "189",
+        "formtype": "Gigantamax",
+        "tradable": false,
+        "evolutions": [],
+        "generation": 1,
+        "shadowshiny": false
+    },
+    "Meloetta Aria Forme": {
+        "shiny": true,
+        "tradable": false
+    },
+    "Morpeko Hangry Mode": {
+        "delete": true
+    },
+    "Palkia Origin Forme": {
+        "generation": 8.5
+    },
+    "Sinistea Phony Form": {
+        "delete": true
+    },
+    "Tauros Combat Breed": {
+        "live": true,
+        "shiny": true,
+        "shadow": false,
+        "tradable": true,
+        "generation": 9,
+        "shadowshiny": false
+    },
+    "Crowned Sword Zacian": {
+        "hp": "192",
+        "flee": 10,
+        "form": true,
+        "giga": false,
+        "live": true,
+        "mega": false,
+        "name": "Crowned Sword Zacian",
+        "type": ["Fairy", "Steel"],
+        "catch": 2,
+        "moves": ["METAL_CLAW", "AIR_SLASH", "PLAY_ROUGH", "CLOSE_COMBAT", "GIGA_IMPACT", "BEHEMOTH_BLADE"],
+        "shiny": true,
+        "attack": "332",
+        "gender": "",
+        "number": "888",
+        "shadow": false,
+        "sprite": "888-Sword",
+        "defense": "240",
+        "formtype": "Crowned",
+        "tradable": true,
+        "evolutions": [],
+        "generation": 8,
+        "shadowshiny": false
+    },
+    "Deerling Autumn Form": {
+        "shiny": true
+    },
+    "Deerling Spring Form": {
+        "shiny": true
+    },
+    "Deerling Summer Form": {
+        "shiny": true
+    },
+    "Deerling Winter Form": {
+        "shiny": true
+    },
+    "Deoxys Defense Forme": {
+        "tradable": false
+    },
+    "Flabébé Red Flower": {
+        "form": false,
+        "name": "Flabébé",
+        "evolutions": [
+            {
+                "cost": 25,
+                "name": "Floette",
+                "stage": 2,
+                "gender": "",
+                "number": 670,
+                "region": "",
+                "special": false,
+                "condition": ""
+            }
+        ]
+    },
+    "Floette White Flower": {
+        "delete": true
+    },
+    "Florges White Flower": {
+        "delete": true
+    },
+    "Furfrou Diamond Trim": {
+        "delete": true
+    },
+    "Furfrou Natural Trim": {
+        "delete": true
+    },
+    "Furfrou Pharaoh Trim": {
+        "delete": true
+    },
+    "Genesect Douse Drive": {
+        "tradable": false
+    },
+    "Genesect Shock Drive": {
+        "tradable": false
+    },
+    "Gigantamax Blastoise": {
+        "hp": "188",
+        "flee": 0,
+        "form": true,
+        "giga": true,
+        "live": true,
+        "mega": false,
+        "name": "Gigantamax Blastoise",
+        "type": ["Water"],
+        "catch": 20,
+        "moves": [
+            "BITE",
+            "WATER_GUN",
+            "ROLLOUT",
+            "FLASH_CANNON",
+            "ICE_BEAM",
+            "HYDRO_PUMP",
+            "HYDRO_CANNON *",
+            "SKULL_BASH",
+            "G-MAX_CANNONADE"
+        ],
+        "shiny": true,
+        "attack": "171",
+        "gender": "",
+        "number": "9",
+        "shadow": false,
+        "sprite": "9-Gigantamax Blastoise",
+        "defense": "207",
+        "formtype": "Gigantamax",
+        "tradable": false,
+        "evolutions": [],
+        "generation": 1,
+        "shadowshiny": false
+    },
+    "Gigantamax Charizard": {
+        "hp": "186",
+        "flee": 0,
+        "form": true,
+        "giga": true,
+        "live": true,
+        "mega": false,
+        "name": "Gigantamax Charizard",
+        "type": ["Fire", "Flying"],
+        "catch": 20,
+        "moves": [
+            "DRAGON_BREATH *",
+            "EMBER_*",
+            "WING_ATTACK *",
+            "AIR_SLASH",
+            "FIRE_SPIN",
+            "FLAMETHROWER_*",
+            "DRAGON_CLAW",
+            "FIRE_BLAST",
+            "OVERHEAT",
+            "BLAST_BURN *",
+            "G-MAX_WILDFIRE"
+        ],
+        "shiny": true,
+        "attack": "223",
+        "gender": "",
+        "number": "6",
+        "shadow": false,
+        "sprite": "6-Gigantamax Charizard",
+        "defense": "173",
+        "formtype": "Gigantamax",
+        "tradable": false,
+        "evolutions": [],
+        "generation": 1,
+        "shadowshiny": false
+    },
+    "Gigantamax Cinderace": {
+        "hp": "190",
+        "flee": 0,
+        "form": true,
+        "giga": true,
+        "live": true,
+        "mega": false,
+        "name": "Gigantamax Cinderace",
+        "type": ["Fire"],
+        "catch": 20,
+        "moves": ["TACKLE", "FIRE_SPIN", "FLAMETHROWER", "FLAME_CHARGE", "FOCUS_BLAST", "G-MAX_FIREBALL"],
+        "shiny": false,
+        "attack": "238",
+        "gender": "",
+        "number": "815",
+        "shadow": false,
+        "sprite": "815-Gigantamax Cinderace",
+        "defense": "163",
+        "formtype": "Gigantamax",
+        "tradable": false,
+        "evolutions": [],
+        "generation": 8,
+        "shadowshiny": false
+    },
+    "Gigantamax Coalossal": {
+        "hp": "242",
+        "ses": "839-Gigantamax",
+        "flee": 0,
+        "form": true,
+        "giga": true,
+        "live": false,
+        "mega": false,
+        "name": "Gigantamax Coalossal",
+        "type": ["Rock", "Fire"],
+        "catch": 20,
+        "moves": ["FIRE_SPIN", "SMACK_DOWN", "ROCK_SLIDE", "FLAME_CHARGE", "ROCK_BLAST", "G-MAX_VOLCALITH"],
+        "shiny": false,
+        "attack": "146",
+        "gender": "",
+        "number": "839",
+        "shadow": false,
+        "sprite": "839-Gigantamax Coalossal",
+        "defense": "198",
+        "formtype": "Gigantamax",
+        "tradable": false,
+        "evolutions": [],
+        "generation": 8,
+        "shadowshiny": false
+    },
+    "Gigantamax Duraludon": {
+        "hp": "172",
+        "ses": "884-Gigantamax",
+        "flee": 0,
+        "form": true,
+        "giga": true,
+        "live": false,
+        "mega": false,
+        "name": "Gigantamax Duraludon",
+        "type": ["Steel", "Dragon"],
+        "catch": 20,
+        "moves": ["METAL_CLAW", "DRAGON_TAIL", "HYPER_BEAM", "FLASH_CANNON", "DRAGON_CLAW", "G-MAX_DEPLETION"],
+        "shiny": false,
+        "attack": "239",
+        "gender": "",
+        "number": "884",
+        "shadow": false,
+        "sprite": "884-Gigantamax Duraludon",
+        "defense": "185",
+        "formtype": "Gigantamax",
+        "tradable": false,
+        "evolutions": [],
+        "generation": 8,
+        "shadowshiny": false
+    },
+    "Gigantamax Hatterene": {
+        "hp": "149",
+        "ses": "858-Gigantamax",
+        "flee": 0,
+        "form": true,
+        "giga": true,
+        "live": false,
+        "mega": false,
+        "name": "Gigantamax Hatterene",
+        "type": ["Psychic", "Fairy"],
+        "catch": 20,
+        "moves": [
+            "PSYCHO_CUT",
+            "CONFUSION",
+            "CHARM",
+            "PSYSHOCK",
+            "DAZZLING_GLEAM",
+            "PSYCHIC",
+            "POWER_WHIP",
+            "G-MAX_SMITE"
+        ],
+        "shiny": false,
+        "attack": "237",
+        "gender": "",
+        "number": "858",
+        "shadow": false,
+        "sprite": "858-Gigantamax Hatterene",
+        "defense": "182",
+        "formtype": "Gigantamax",
+        "tradable": false,
+        "evolutions": [],
+        "generation": 8,
+        "shadowshiny": false
+    },
+    "Gigantamax Rillaboom": {
+        "hp": "225",
+        "flee": 0,
+        "form": true,
+        "giga": true,
+        "live": true,
+        "mega": false,
+        "name": "Gigantamax Rillaboom",
+        "type": ["Grass"],
+        "catch": 20,
+        "moves": ["RAZOR_LEAF", "SCRATCH", "GRASS_KNOT", "ENERGY_BALL", "EARTH_POWER", "G-MAX_DRUM SOLO"],
+        "shiny": false,
+        "attack": "239",
+        "gender": "",
+        "number": "812",
+        "shadow": false,
+        "sprite": "812-Gigantamax Rillaboom",
+        "defense": "168",
+        "formtype": "Gigantamax",
+        "tradable": false,
+        "evolutions": [],
+        "generation": 8,
+        "shadowshiny": false
+    },
+    "Gourgeist Large Size": {
+        "delete": true
+    },
+    "Gourgeist Small Size": {
+        "delete": true
+    },
+    "Gourgeist Super Size": {
+        "delete": true
+    },
+    "Keldeo Ordinary Form": {
+        "sprite": "647-Keldeo-Ordinary-Form",
+        "tradable": false
+    },
+    "Pumpkaboo Large Size": {
+        "delete": true
+    },
+    "Pumpkaboo Small Size": {
+        "delete": true
+    },
+    "Pumpkaboo Super Size": {
+        "delete": true
+    },
+    "Sawsbuck Autumn Form": {
+        "shiny": true
+    },
+    "Sawsbuck Spring Form": {
+        "shiny": true
+    },
+    "Sawsbuck Summer Form": {
+        "shiny": true
+    },
+    "Sawsbuck Winter Form": {
+        "shiny": true
+    },
+    "Tatsugiri Curly Form": {
+        "delete": true
+    },
+    "Vivillon Sun Pattern": {
+        "delete": true
+    },
+    "Zacian Crowned Sword": {
+        "delete": true
+    },
+    "Aegislash Blade Forme": {
+        "hp": "155",
+        "flee": 0,
+        "form": true,
+        "giga": false,
+        "live": false,
+        "mega": false,
+        "name": "Aegislash Blade Forme",
+        "type": ["Steel", "Ghost"],
+        "catch": 20,
+        "moves": ["PSYCHO_CUT", "AIR_SLASH", "FLASH_CANNON", "SHADOW_BALL", "GYRO_BALL"],
+        "shiny": false,
+        "attack": "272",
+        "gender": "",
+        "number": "681",
+        "shadow": false,
+        "sprite": "681-blade",
+        "defense": "97",
+        "tradable": false,
+        "evolutions": [],
+        "generation": 6,
+        "shadowshiny": false
+    },
+    "Flabébé Blue Flower": {
+        "delete": true
+    },
+    "Floette Orange Flower": {
+        "delete": true
+    },
+    "Floette Yellow Flower": {
+        "delete": true
+    },
+    "Florges Orange Flower": {
+        "delete": true
+    },
+    "Florges Yellow Flower": {
+        "delete": true
+    },
+    "Furfrou La Reine Trim": {
+        "delete": true
+    },
+    "Gigantamax Butterfree": {
+        "hp": "155",
+        "flee": 0,
+        "form": true,
+        "giga": true,
+        "live": true,
+        "mega": false,
+        "name": "Gigantamax Butterfree",
+        "type": ["Bug", "Flying"],
+        "catch": 20,
+        "moves": ["BUG_BITE *", "CONFUSION", "STRUGGLE_BUG", "BUG_BUZZ", "SIGNAL_BEAM", "PSYCHIC", "G-MAX_BEFUDDLE"],
+        "shiny": true,
+        "attack": "167",
+        "gender": "",
+        "number": "12",
+        "shadow": false,
+        "sprite": "12-Gigantamax Butterfree",
+        "defense": "137",
+        "formtype": "Gigantamax",
+        "tradable": false,
+        "evolutions": [],
+        "generation": 1,
+        "shadowshiny": false
+    },
+    "Gigantamax Copperajah": {
+        "hp": "263",
+        "ses": "879-Gigantamax",
+        "flee": 0,
+        "form": true,
+        "giga": true,
+        "live": false,
+        "mega": false,
+        "name": "Gigantamax Copperajah",
+        "type": ["Steel"],
+        "catch": 20,
+        "moves": ["TACKLE", "ROCK_SMASH", "DIG", "IRON_HEAD", "PLAY_ROUGH", "HEAVY_SLAM", "G-MAX_STEELSURGE"],
+        "shiny": false,
+        "attack": "226",
+        "gender": "",
+        "number": "879",
+        "shadow": false,
+        "sprite": "879-Gigantamax Copperajah",
+        "defense": "126",
+        "formtype": "Gigantamax",
+        "tradable": false,
+        "evolutions": [],
+        "generation": 8,
+        "shadowshiny": false
+    },
+    "Gigantamax Grimmsnarl": {
+        "hp": "216",
+        "flee": 0,
+        "form": true,
+        "giga": true,
+        "live": true,
+        "mega": false,
+        "name": "Gigantamax Grimmsnarl",
+        "type": ["Dark", "Fairy"],
+        "catch": 20,
+        "moves": [
+            "BITE",
+            "SUCKER_PUNCH",
+            "LOW_KICK",
+            "DARK_PULSE",
+            "PLAY_ROUGH",
+            "FOUL_PLAY",
+            "POWER-UP_PUNCH",
+            "G-MAX_SNOOZE"
+        ],
+        "shiny": true,
+        "attack": "227",
+        "gender": "",
+        "number": "861",
+        "shadow": false,
+        "sprite": "861-Gigantamax Grimmsnarl",
+        "defense": "139",
+        "formtype": "Gigantamax",
+        "tradable": false,
+        "evolutions": [],
+        "generation": 8,
+        "shadowshiny": false
+    },
+    "Gigantamax Toxtricity": {
+        "hp": "181",
+        "flee": 0,
+        "form": true,
+        "giga": true,
+        "live": true,
+        "mega": false,
+        "name": "Gigantamax Toxtricity",
+        "type": ["Electric", "Poison"],
+        "catch": 20,
+        "moves": [
+            "SPARK",
+            "POISON_JAB",
+            "ACID",
+            "DISCHARGE",
+            "WILD_CHARGE",
+            "ACID_SPRAY",
+            "POWER-UP_PUNCH",
+            "G-MAX_STUN SHOCK"
+        ],
+        "shiny": true,
+        "attack": "224",
+        "gender": "",
+        "number": "849",
+        "shadow": false,
+        "sprite": "849-Gigantamax Toxtricity",
+        "defense": "140",
+        "formtype": "Gigantamax",
+        "tradable": false,
+        "evolutions": [],
+        "generation": 8,
+        "shadowshiny": false
+    },
+    "Sinistea Antique Form": {
+        "delete": true
+    },
+    "Tatsugiri Droopy Form": {
+        "delete": true
+    },
+    "Toxtricity Amped Form": {
+        "SPRITE": "849-Toxtricity-Amped-Form"
+    },
+    "Aegislash Shield Forme": {
+        "hp": "155",
+        "flee": 0,
+        "form": true,
+        "giga": false,
+        "live": true,
+        "mega": false,
+        "name": "Aegislash Shield Forme",
+        "type": ["Steel", "Ghost"],
+        "catch": 20,
+        "moves": ["PSYCHO_CUT", "AIR_SLASH", "FLASH_CANNON", "SHADOW_BALL", "GYRO_BALL"],
+        "shiny": true,
+        "attack": "97",
+        "gender": "",
+        "number": "681",
+        "shadow": false,
+        "sprite": "681-shield",
+        "defense": "272",
+        "tradable": true,
+        "evolutions": [],
+        "generation": 6,
+        "shadowshiny": false
+    },
+    "Enamorus Therian Forme": {
+        "hp": "179",
+        "ses": "905-Therian",
+        "flee": 0,
+        "form": false,
+        "giga": false,
+        "live": true,
+        "mega": false,
+        "name": "Enamorus Therian Forme",
+        "type": ["Fairy", "Flying"],
+        "catch": 0,
+        "moves": ["ZEN_HEADBUTT", "ASTONISH", "FAIRY_WIND", "DAZZLING_GLEAM", "GRASS_KNOT", "FLY"],
+        "shiny": false,
+        "attack": "250",
+        "gender": "",
+        "number": "905",
+        "shadow": false,
+        "sprite": "905-Enamorus Therian Forme",
+        "defense": "201",
+        "formtype": "Therian",
+        "tradable": true,
+        "evolutions": [],
+        "generation": 8.5,
+        "shadowshiny": false
+    },
+    "Flabébé White Flower": {
+        "delete": true
+    },
+    "Furfrou Debutante Trim": {
+        "delete": true
+    },
+    "Galarian Standard Mode": {
+        "name": "Galarian Darmanitan Standard Mode",
+        "shiny": true,
+        "sprite": "555-Galarian Darmanitan Standard Mode"
+    },
+    "Gigantamax Centiskorch": {
+        "hp": "225",
+        "ses": "851-Gigantamax",
+        "flee": 0,
+        "form": true,
+        "giga": true,
+        "live": false,
+        "mega": false,
+        "name": "Gigantamax Centiskorch",
+        "type": ["Fire", "Bug"],
+        "catch": 20,
+        "moves": ["BUG_BITE", "EMBER", "HEAT_WAVE", "BUG_BUZZ", "CRUNCH", "LUNGE", "G-MAX_CENTIFERNO"],
+        "shiny": false,
+        "attack": "220",
+        "gender": "",
+        "number": "851",
+        "shadow": false,
+        "sprite": "851-Gigantamax Centiskorch",
+        "defense": "158",
+        "formtype": "Gigantamax",
+        "tradable": false,
+        "evolutions": [],
+        "generation": 8,
+        "shadowshiny": false
+    },
+    "Gigantamax Corviknight": {
+        "hp": "221",
+        "ses": "823-Gigantamax",
+        "flee": 0,
+        "form": true,
+        "giga": true,
+        "live": false,
+        "mega": false,
+        "name": "Gigantamax Corviknight",
+        "type": ["Flying", "Steel"],
+        "catch": 20,
+        "moves": [
+            "STEEL_WING",
+            "AIR_SLASH",
+            "SAND_ATTACK",
+            "IRON_HEAD *",
+            "AIR_CUTTER *",
+            "SKY_ATTACK",
+            "PAYBACK",
+            "G-MAX_WIND RAGE"
+        ],
+        "shiny": false,
+        "attack": "163",
+        "gender": "",
+        "number": "823",
+        "shadow": false,
+        "sprite": "823-Gigantamax Corviknight",
+        "defense": "192",
+        "formtype": "Gigantamax",
+        "tradable": false,
+        "evolutions": [],
+        "generation": 8,
+        "shadowshiny": false
+    },
+    "Gourgeist Average Size": {
+        "form": false,
+        "name": "Gourgeist",
+        "sprite": "711"
+    },
+    "Polteageist Phony Form": {
+        "delete": true
+    },
+    "Pumpkaboo Average Size": {
+        "form": false,
+        "name": "Pumpkaboo",
+        "sprite": "710",
+        "evolutions": [
+            {
+                "cost": 200,
+                "name": "Gourgeist",
+                "stage": 2,
+                "gender": "",
+                "number": 711,
+                "region": "",
+                "special": false,
+                "condition": "0 Candy if traded"
+            }
+        ]
+    },
+    "Tatsugiri (Curly Form)": {
+        "hp": "169",
+        "flee": 0,
+        "form": true,
+        "giga": false,
+        "live": true,
+        "mega": false,
+        "name": "Tatsugiri (Curly Form)",
+        "type": ["Dragon", "Water"],
+        "catch": 20,
+        "moves": ["WATER_GUN", "TAKE_DOWN", "HYDRO_PUMP", "OUTRAGE", "SURF", "MUDDY_WATER"],
+        "shiny": false,
+        "attack": "226",
+        "gender": "",
+        "number": "978",
+        "shadow": false,
+        "sprite": "978-Curly",
+        "defense": "166",
+        "formtype": "Curly",
+        "tradable": true,
+        "evolutions": [],
+        "generation": 9,
+        "shadowshiny": false
+    },
+    "Vivillon Fancy Pattern": {
+        "delete": true
+    },
+    "Vivillon Ocean Pattern": {
+        "delete": true
+    },
+    "Vivillon Polar Pattern": {
+        "delete": true
+    },
+    "Vivillon River Pattern": {
+        "delete": true
+    },
+    "Zygarde Complete Forme": {
+        "sprite": "718-Complete",
+        "tradable": false
+    },
+    "Flabébé Orange Flower": {
+        "delete": true
+    },
+    "Flabébé Yellow Flower": {
+        "delete": true
+    },
+    "Gimmighoul Roaming Form": {
+        "live": true,
+        "shiny": true,
+        "shadow": false,
+        "tradable": true,
+        "shadowshiny": false
+    },
+    "Maushold Family of Four": {
+        "shiny": true
+    },
+    "Morpeko Full Belly Mode": {
+        "delete": true
+    },
+    "Tatsugiri (Droopy Form)": {
+        "hp": "169",
+        "flee": 0,
+        "form": true,
+        "giga": false,
+        "live": true,
+        "mega": false,
+        "name": "Tatsugiri (Droopy Form)",
+        "type": ["Dragon", "Water"],
+        "catch": 0,
+        "moves": ["WATER_GUN", "TAKE_DOWN", "HYDRO_PUMP", "OUTRAGE", "SURF", "MUDDY_WATER"],
+        "shiny": false,
+        "attack": "226",
+        "gender": "",
+        "number": "978",
+        "shadow": false,
+        "sprite": "978-Droopy",
+        "defense": "166",
+        "formtype": "Droopy",
+        "tradable": true,
+        "evolutions": [],
+        "generation": 9,
+        "shadowshiny": false
+    },
+    "Tatsugiri Stretchy Form": {
+        "delete": true
+    },
+    "Toxtricity Low Key Form": {
+        "SPRITE": "849-Toxtricity-Low-Key-Form"
+    },
+    "Vivillon Garden Pattern": {
+        "delete": true
+    },
+    "Vivillon Jungle Pattern": {
+        "delete": true
+    },
+    "Vivillon Marine Pattern": {
+        "delete": true
+    },
+    "Vivillon Meadow Pattern": {
+        "delete": true
+    },
+    "Vivillon Modern Pattern": {
+        "delete": true
+    },
+    "Vivillon Tundra Pattern": {
+        "delete": true
+    },
+    "Crowned Shield Zamazenta": {
+        "hp": "192",
+        "flee": 10,
+        "form": true,
+        "giga": false,
+        "live": true,
+        "mega": false,
+        "name": "Crowned Shield Zamazenta",
+        "type": ["Fighting", "Steel"],
+        "catch": 2,
+        "moves": ["METAL_CLAW", "ICE_FANG", "MOONBLAST", "CLOSE_COMBAT", "GIGA_IMPACT", "BEHEMOTH_BASH"],
+        "shiny": true,
+        "attack": "250",
+        "gender": "",
+        "number": "889",
+        "shadow": false,
+        "sprite": "889-Crown",
+        "defense": "292",
+        "formtype": "Crowned",
+        "tradable": true,
+        "evolutions": [],
+        "generation": 8,
+        "shadowshiny": false
+    },
+    "Landorus Incarnate Forme": {
+        "live": true,
+        "shiny": true,
+        "shadow": true,
+        "tradable": true,
+        "shadowshiny": false
+    },
+    "Maushold Family of Three": {
+        "shiny": true
+    },
+    "Polteageist Antique Form": {
+        "delete": true
+    },
+    "Vivillon Elegant Pattern": {
+        "delete": true
+    },
+    "Vivillon Monsoon Pattern": {
+        "delete": true
+    },
+    "Vivillon Savanna Pattern": {
+        "delete": true
+    },
+    "Zamazenta Crowned Shield": {
+        "delete": true
+    },
+    "Poltchageist Artisan Form": {
+        "delete": true
+    },
+    "Squawkabilly Blue Plumage": {
+        "hp": "193",
+        "ses": "931-Blue",
+        "flee": 0,
+        "form": true,
+        "giga": false,
+        "live": true,
+        "mega": false,
+        "name": "Squawkabilly Blue Plumage",
+        "type": ["Normal", "Flying"],
+        "catch": 0,
+        "moves": ["PECK", "AIR_SLASH", "BRAVE_BIRD", "FLY", "AERIAL_ACE"],
+        "shiny": false,
+        "attack": "185",
+        "gender": "",
+        "number": "931",
+        "shadow": false,
+        "sprite": "931-Blue",
+        "defense": "105",
+        "formtype": "Blue",
+        "tradable": true,
+        "evolutions": [],
+        "generation": 9,
+        "shadowshiny": false
+    },
+    "Tatsugiri (Stretchy Form)": {
+        "hp": "169",
+        "flee": 0,
+        "form": true,
+        "giga": false,
+        "live": true,
+        "mega": false,
+        "name": "Tatsugiri (Stretchy Form)",
+        "type": ["Dragon", "Water"],
+        "catch": 20,
+        "moves": ["WATER_GUN", "TAKE_DOWN", "HYDRO_PUMP", "OUTRAGE", "SURF", "MUDDY_WATER"],
+        "shiny": false,
+        "attack": "226",
+        "gender": "",
+        "number": "978",
+        "shadow": false,
+        "sprite": "978-Stretchy",
+        "defense": "166",
+        "formtype": "Stretchy",
+        "tradable": true,
+        "evolutions": [],
+        "generation": 9,
+        "shadowshiny": false
+    },
+    "Vivillon Icy Snow Pattern": {
+        "delete": true
+    },
+    "Sinistcha Masterpiece Form": {
+        "delete": true
+    },
+    "Squawkabilly Green Plumage": {
+        "hp": "193",
+        "ses": "931-Green",
+        "flee": 0,
+        "form": true,
+        "giga": false,
+        "live": true,
+        "mega": false,
+        "name": "Squawkabilly Green Plumage",
+        "type": ["Normal", "Flying"],
+        "catch": 0,
+        "moves": ["PECK", "AIR_SLASH", "BRAVE_BIRD", "FLY", "AERIAL_ACE"],
+        "shiny": false,
+        "attack": "185",
+        "gender": "",
+        "number": "931",
+        "shadow": false,
+        "sprite": "931-Green",
+        "defense": "105",
+        "formtype": "Green",
+        "tradable": true,
+        "evolutions": [],
+        "generation": 9,
+        "shadowshiny": false
+    },
+    "Squawkabilly White Plumage": {
+        "hp": "193",
+        "ses": "931-White",
+        "flee": 0,
+        "form": true,
+        "giga": false,
+        "live": true,
+        "mega": false,
+        "name": "Squawkabilly White Plumage",
+        "type": ["Normal", "Flying"],
+        "catch": 0,
+        "moves": ["PECK", "AIR_SLASH", "BRAVE_BIRD", "FLY", "AERIAL_ACE"],
+        "shiny": false,
+        "attack": "185",
+        "gender": "",
+        "number": "931",
+        "shadow": false,
+        "sprite": "931-White",
+        "defense": "105",
+        "formtype": "White",
+        "tradable": true,
+        "evolutions": [],
+        "generation": 9,
+        "shadowshiny": false
+    },
+    "Urshifu Rapid Strike Style": {
+        "HP": 225,
+        "Flee": 10,
+        "Name": "Urshifu Rapid Strike Style",
+        "Type": ["Fighting", "Water"],
+        "form": true,
+        "giga": false,
+        "live": true,
+        "mega": false,
+        "Catch": 2,
+        "moves": [],
+        "shiny": false,
+        "Attack": 254,
+        "gender": "",
+        "number": 892,
+        "shadow": false,
+        "sprite": "892-Urshifu Rapid Strike Style",
+        "Defense": 177,
+        "tradable": true,
+        "evolutions": [],
+        "generation": 8,
+        "shadowshiny": false
+    },
+    "Vivillon Sandstorm Pattern": {
+        "delete": true
+    },
+    "Basculin White-Striped Form": {
+        "generation": 8.5
+    },
+    "Sinistcha Unremarkable Form": {
+        "delete": true
+    },
+    "Squawkabilly Yellow Plumage": {
+        "hp": "193",
+        "ses": "931-Yellow",
+        "flee": 0,
+        "form": true,
+        "giga": false,
+        "live": true,
+        "mega": false,
+        "name": "Squawkabilly Yellow Plumage",
+        "type": ["Normal", "Flying"],
+        "catch": 0,
+        "moves": ["PECK", "AIR_SLASH", "BRAVE_BIRD", "FLY", "AERIAL_ACE"],
+        "shiny": false,
+        "attack": "185",
+        "gender": "",
+        "number": "931",
+        "shadow": false,
+        "sprite": "931-Yellow",
+        "defense": "105",
+        "formtype": "Yellow",
+        "tradable": true,
+        "evolutions": [],
+        "generation": 9,
+        "shadowshiny": false
+    },
+    "Urshifu Single Strike Style": {
+        "HP": 225,
+        "Flee": 10,
+        "Name": "Urshifu Single Strike Style",
+        "Type": ["Fighting", "Dark"],
+        "form": true,
+        "giga": false,
+        "live": true,
+        "mega": false,
+        "Catch": 2,
+        "moves": [],
+        "shiny": false,
+        "Attack": 254,
+        "gender": "",
+        "number": 892,
+        "shadow": false,
+        "sprite": "892-Urshifu Single Strike Style",
+        "Defense": 177,
+        "tradable": true,
+        "evolutions": [],
+        "generation": 8,
+        "shadowshiny": false
+    },
+    "Vivillon Poké Ball Pattern": {
+        "delete": true
+    },
+    "Zacian Hero of Many Battles": {
+        "shiny": true,
+        "evolutions": [
+            {
+                "cost": "",
+                "name": "Crowned Sword Zacian",
+                "stage": 0,
+                "gender": "",
+                "number": 888,
+                "special": true,
+                "condition": "1000 Crowned Sword Energy"
+            }
+        ]
+    },
+    "Dudunsparce Two-Segment Form": {
+        "delete": true
+    },
+    "Vivillon Archipelago Pattern": {
+        "delete": true
+    },
+    "Vivillon Continental Pattern": {
+        "delete": true
+    },
+    "Vivillon High Plains Pattern": {
+        "delete": true
+    },
+    "Poltchageist Counterfeit Form": {
+        "delete": true
+    },
+    "Dudunsparce (Two-Segment Form)": {
+        "hp": "268",
+        "flee": 0,
+        "form": true,
+        "giga": false,
+        "live": true,
+        "mega": false,
+        "name": "Dudunsparce (Two-Segment Form)",
+        "type": ["Normal"],
+        "catch": 0,
+        "moves": ["BITE", "ASTONISH", "ROLLOUT", "DIG", "DRILL_RUN", "ROCK_SLIDE"],
+        "shiny": true,
+        "attack": "188",
+        "gender": "",
+        "number": "982",
+        "shadow": false,
+        "sprite": "982-2",
+        "defense": "150",
+        "formtype": "Two-Segment",
+        "tradable": true,
+        "evolutions": [],
+        "generation": 9,
+        "shadowshiny": false
+    },
+    "Dudunsparce Three-Segment Form": {
+        "delete": true
+    },
+    "Zamazenta Hero of Many Battles": {
+        "shiny": true,
+        "evolutions": [
+            {
+                "cost": "",
+                "name": "Crowned Shield Zamazenta",
+                "stage": 0,
+                "gender": "",
+                "number": 889,
+                "special": true,
+                "condition": "1000 Crowned Shield Energy"
+            }
+        ]
+    },
+    "Dudunsparce (Three-Segment Form)": {
+        "hp": "268",
+        "flee": 0,
+        "form": true,
+        "giga": false,
+        "live": true,
+        "mega": false,
+        "name": "Dudunsparce (Three-Segment Form)",
+        "type": ["Normal"],
+        "catch": 0,
+        "moves": ["BITE", "ASTONISH", "ROLLOUT", "DIG", "DRILL_RUN", "ROCK_SLIDE"],
+        "shiny": true,
+        "attack": "188",
+        "gender": "",
+        "number": "982",
+        "shadow": false,
+        "sprite": "982-3",
+        "defense": "150",
+        "formtype": "Three-Segment",
+        "tradable": true,
+        "evolutions": [],
+        "generation": 9,
+        "shadowshiny": false
+    }
+}
