@@ -59,6 +59,14 @@ jobs:
         with:
           version: latest
 
+      - name: Cache CommandBox Downloads
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            ~/.CommandBox/artifacts
+            ~/.CommandBox/serverJREs
+          key: commandbox-${{ runner.os }}-${{ hashFiles('app/box.json', 'app/server.json') }}
+
       - name: Create .env file
         run: |
           cat > .env << 'EOL'
