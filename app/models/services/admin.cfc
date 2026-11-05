@@ -274,10 +274,10 @@ component singleton accessors="true" {
                     shadowData.insert('SKIPPED#curr.name#', curr);
                 }
             });
-            fileWrite(
-                '#getRootPath()#/includes/assets/shadowdata.json',
-                serializeJSON(shadowdata),
-                'UTF-8'
+            utilService.writeJsonFile(
+                path: '/includes/assets/shadowdata.json',
+                data: shadowData,
+                name: 'shadowdata'
             );
         }
 
@@ -1569,44 +1569,53 @@ component singleton accessors="true" {
         // Fetch the pokemon page
         var pokemonDoc = scraperService.getData(arguments.pokemonLink).body();
 
-        // Additional Pokedex Information Table
-        var pokedexTable = pokemonDoc.select('h1##additional')[1]
+        // Additional Pokedex Information Table, keyed by row label (rows vary per pokemon)
+        var pokedexInfo = {};
+        pokemonDoc.select('h2##additional')[1]
             .parent()
-            .nextSibling()
-            .select('tr');
-        // Stats table
-        var statBars = pokemonDoc.select('div[class*=PokemonStatBars_pokemonStatBars]');
+            .nextElementSibling()
+            .select('tr')
+            .each((row) => {
+                pokedexInfo[row.select('th').text()] = row.select('td').text();
+            });
+        // Stats gauges
+        var statBars = pokemonDoc.select('div[class*=_pokemonStatBars]');
 
         // Needed information per pokemon
         var pokemon = {
-            name  : pokemonDoc.select('##overview-and-stats').text(),
-            number: pokedexTable[1]
-                .select('td')
-                .text()
-                .replace('##', '', 'all'),
+            name: reReplace(
+                pokemonDoc.select('##overview-and-stats').text(),
+                '\s+in Pok.mon GO$',
+                ''
+            ),
+            number: trim(
+                replace(
+                    pokedexInfo['Pokédex Number'] ?: '',
+                    '##',
+                    '',
+                    'all'
+                )
+            ),
             type: pokemonDoc
                 .select('span[class*=officialImageTyping] > img')
                 .map((img) => {
                     return img.attr('title')
                 }),
-            flee: parseNumber(
-                pokedexTable[8]
-                    .select('td')
-                    .text()
-                    .replace('%', '', 'all')
+            flee: val(
+                replace(
+                    pokedexInfo['Base Flee Rate'] ?: '0',
+                    '%',
+                    '',
+                    'all'
+                )
             ),
-            catch: parseNumber(
-                pokedexTable[7]
-                    .select('td')
-                    .text()
-                    .replace('%', '', 'all')
-            ),
-            tradable   : pokedexTable[5].select('td').text() == 'Allowed',
-            attack     : statBars.select('div[class*=PokemonStatBars_atk] span[class*=PokemonStatBars_amount]').text(),
-            defense    : statBars.select('div[class*=PokemonStatBars_def] span[class*=PokemonStatBars_amount]').text(),
-            hp         : statBars.select('div[class*=PokemonStatBars_sta] span[class*=PokemonStatBars_amount]').text(),
+            catch      : 0, // Base catch rate is no longer listed on the page, set manually
+            tradable   : (pokedexInfo['Can be traded'] ?: '') == 'Allowed',
+            attack     : statBars.select('div[class*=_atk] span[class*=_amount]').text(),
+            defense    : statBars.select('div[class*=_def] span[class*=_amount]').text(),
+            hp         : statBars.select('div[class*=_sta] span[class*=_amount]').text(),
             live       : true,
-            shiny      : pokemonDoc.select('img[title*="✨"]').size() > 0,
+            shiny      : (pokedexInfo['Shiny released'] ?: '') == 'Yes',
             generation : 0,
             shadowshiny: false,
             giga       : false,
@@ -1637,35 +1646,49 @@ component singleton accessors="true" {
         if(pokemon.form) {
             pokemon.sprite &= '-#pokemon.name#';
         }
+        else if(pokemon.formtype != '') {
+            // Regional forms, e.g. 570-Hisuian
+            pokemon.sprite &= '-#pokemon.formtype#';
+        }
         if(pokemon.gender != '') {
             pokemon.sprite &= '-#pokemon.gender#';
         }
 
         // Evolutions
         var evolutionChart = pokemonDoc
-            .select('div[class*=EvolutionChart_evolutionChart] > table')
+            .select('div[class*=_evolutionChart] > table')
             .select('tbody')
             .select('tr');
         evolutionChart.each((evolutionRow, index) => {
             var cells = evolutionRow.select('td');
+            if(cells.size() < 3) return;
 
             // Check if this is the current pokemon
             if(cells[1].select('a > span').text() == pokemon.name) {
+                var evolutionName   = cells[3].select('a > span').text();
+                var evolutionNumber = cells[3]
+                    .select('a')
+                    .attr('href')
+                    .listLast('/');
+
+                // Regional form evolutions link to /pokemon/{number}-{form}, e.g. /pokemon/706-Hisuian
+                var evolutionForm = listFirst(evolutionName, ' ');
+                if(getRegionalForms().contains(evolutionForm)) {
+                    evolutionNumber = reReplaceNoCase(evolutionNumber, '-#evolutionForm#$', '');
+                }
+
                 // Get the evolution
                 pokemon.evolutions.push({
                     condition: '',
-                    number   : cells[3]
-                        .select('a')
-                        .attr('href')
-                        .listLast('/'),
-                    cost: reReplace(
-                        cells[2].select('ul > li > span').text(),
+                    number   : evolutionNumber,
+                    cost     : reReplace(
+                        listFirst(cells[2].select('ul > li > small').text(), ' '),
                         '[^0-9]',
                         '',
                         'all'
                     ),
                     gender : '',
-                    name   : cells[3].select('a > span').text(),
+                    name   : evolutionName,
                     region : '',
                     stage  : '',
                     special: false
@@ -1674,13 +1697,13 @@ component singleton accessors="true" {
         });
 
         // Moves
-        var moveLists = pokemonDoc.select('ul[class*=PokemonPageMoves_movesList]');
+        var moveLists = pokemonDoc.select('ul[class*=_movesList]');
         moveLists.each((list) => {
             list.select('li')
                 .each((item) => {
                     var curr = uCase(
                         replace(
-                            item.select('details > summary > strong[class*=MoveCard_name]').text(),
+                            item.select('details > summary > strong[class*=_name]').text(),
                             ' ',
                             '_'
                         )
@@ -2137,10 +2160,10 @@ component singleton accessors="true" {
         }
 
         if(getWriteJson()) {
-            fileWrite(
-                '#getRootPath()#/includes/assets/costumes.json',
-                serializeJSON(costumes),
-                'UTF-8'
+            utilService.writeJsonFile(
+                path: '/includes/assets/costumes.json',
+                data: costumes,
+                name: 'costumes'
             );
         }
 

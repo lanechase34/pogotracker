@@ -214,6 +214,19 @@ component {
                         fileMaxArchives: 10,
                         async          : true
                     }
+                },
+                // Changes made when rebuilding json asset files, one entry per write
+                jsonDiffLog: {
+                    class     : 'coldbox.system.logging.appenders.RollingFileAppender',
+                    layout    : 'models.logging.PlainLayout',
+                    properties: {
+                        filePath       : '#logPath#/../logs',
+                        filename       : 'jsondiff',
+                        autoExpand     : false,
+                        fileMaxSize    : 10000,
+                        fileMaxArchives: 10,
+                        async          : true
+                    }
                 }
             },
             // Root Logger
@@ -238,6 +251,11 @@ component {
                     levelMin : 'FATAL',
                     levelMax : 'WARN',
                     appenders: 'appLog'
+                },
+                'jsonDiff': {
+                    levelMin : 'FATAL',
+                    levelMax : 'INFO',
+                    appenders: 'jsonDiffLog'
                 }
             }
         };
