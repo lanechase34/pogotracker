@@ -2,22 +2,22 @@ component extends="base" {
 
     this.allowedMethods = {
         index                 : 'GET',
-        buildPokemonData      : 'GET',
+        buildPokemonData      : 'POST',
         listPokemon           : 'GET',
         getPokemon            : 'GET',
         listTrainers          : 'GET',
         getTrainers           : 'GET',
         editTrainer           : 'GET',
         createRegistrationLink: 'GET',
-        buildLevels           : 'GET',
+        buildLevels           : 'POST',
         auditLog              : 'GET',
         getAudits             : 'GET',
         bugLog                : 'GET',
         getBugs               : 'GET',
         serverInfo            : 'GET',
-        buildMedalData        : 'GET',
+        buildMedalData        : 'POST',
         showMedalData         : 'GET',
-        buildMoveData         : 'GET',
+        buildMoveData         : 'POST',
         showMoveData          : 'GET',
         saveState             : 'POST',
         taskManager           : 'GET',
@@ -31,8 +31,8 @@ component extends="base" {
         logViewer             : 'GET',
         requestLog            : 'GET',
         getRequests           : 'GET',
-        updateSiteMap         : 'GET',
-        buildCostumeData      : 'GET',
+        updateSiteMap         : 'POST',
+        buildCostumeData      : 'POST',
         getCacheData          : 'GET'
     };
 

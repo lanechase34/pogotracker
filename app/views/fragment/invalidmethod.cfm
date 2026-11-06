@@ -19,7 +19,7 @@
                 <i class="bi bi-house-fill me-1"></i>Home
             </a>
 
-            <button class="btn btn-outline-dark" onclick="history.back();">
+            <button class="btn btn-outline-dark" data-history-back>
                 <i class="bi bi-arrow-left me-1"></i>Go Back
             </button>
         </div>

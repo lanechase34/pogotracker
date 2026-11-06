@@ -2,7 +2,7 @@ import { getWrapper, postWrapper } from 'fetch';
 import { $submitBtn } from 'loading';
 import { createToast } from 'toast';
 
-export const $contactBtn = document.getElementById('contactBtn');
+export const $contactBtn = /** @type {HTMLButtonElement} */ (document.getElementById('contactBtn'));
 
 export async function getContactForm() {
     return await getWrapper({
@@ -14,7 +14,7 @@ export async function getContactForm() {
             newDiv.innerHTML = data;
             document.getElementById('loadedModal').appendChild(newDiv);
             globalModals.$contactFormModal = new bootstrap.Modal(document.getElementById('contactFormModal'), {});
-            const $contactForm = document.getElementById('contactForm');
+            const $contactForm = /** @type {HTMLFormElement} */ (document.getElementById('contactForm'));
             const $submitContactForm = document.getElementById('submitContactForm');
 
             $submitContactForm.addEventListener('click', async (evt) => {
@@ -27,7 +27,7 @@ export async function getContactForm() {
                     return;
                 }
 
-                document.getElementById('closeContactForm').disabled = true;
+                /** @type {HTMLButtonElement} */ (document.getElementById('closeContactForm')).disabled = true;
 
                 const formData = new FormData($contactForm);
                 const packet = Object.fromEntries(formData.entries());

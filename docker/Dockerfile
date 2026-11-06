@@ -1,15 +1,16 @@
 # Commandbox jdk image
+# Build from the repo root so the ignore file applies: docker build -f docker/Dockerfile .
 FROM ortussolutions/commandbox:jdk21
 
 # Metadata
 LABEL maintainer="Chase Lane <lanechase34@outlook.com>"
-LABEL respository="https://github.com/lanechase34/pogotracker"
+LABEL repository="https://github.com/lanechase34/pogotracker"
 
 # Env set up
 ENV HEALTHCHECK_URI="http://127.0.0.1:${PORT}/healthcheck"
 
-# Copy application files to root - Uses .dockerignore to ignore files
-COPY ./ ${APP_DIR}/
+# Copy application files - Uses Dockerfile.dockerignore to ignore files
+COPY ./app/ ${APP_DIR}/
 
 # The following commands will be ran against the app directory
 WORKDIR ${APP_DIR}

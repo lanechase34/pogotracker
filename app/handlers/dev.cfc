@@ -323,10 +323,10 @@ component extends="base" {
             var type = lCase(listToArray(listToArray(imgSrc, '_')[2], '.')[1]);
             cfhttp(
                 url    = imgSrc,
-                result = "imgResult",
+                result = "local.imgResult",
                 method = "GET"
             );
-            var img = imageNew(imgResult.filecontent);
+            var img = imageNew(local.imgResult.filecontent);
             img.write('/includes/images/type/#type#');
         });
 

@@ -1,5 +1,6 @@
 import { createAlert } from 'alert';
 import { copyString, initCopyIcons } from 'copy';
+import { escapeHtml } from 'escape';
 import { getWrapper, postWrapper } from 'fetch';
 import { format, validate } from 'json';
 import { $submitBtn } from 'loading';
@@ -29,7 +30,7 @@ async function getEditTrainer(trainerid) {
             document.getElementById('loadedModal').appendChild(newDiv);
             globalModals.$editProfileModal = new bootstrap.Modal(document.getElementById('editProfileModal'), {});
 
-            const $editProfileForm = document.getElementById('editProfileForm');
+            const $editProfileForm = /** @type {HTMLFormElement} */ (document.getElementById('editProfileForm'));
             const $submitEditProfileForm = document.getElementById('submitEditProfileForm');
 
             $submitEditProfileForm.addEventListener('click', async (evt) => {
@@ -66,7 +67,7 @@ function initJsonEditor() {
     saveBtn.addEventListener('click', () => {
         format(editor);
         if (validate(editor)) {
-            document.getElementById('overridesForm').submit();
+            /** @type {HTMLFormElement} */ (document.getElementById('overridesForm')).submit();
         }
     });
 }
@@ -77,7 +78,7 @@ function attachEditProfileHandler() {
             if (document.getElementById('editProfileModal')) {
                 document.getElementById('editProfileModal').remove();
             }
-            await getEditTrainer(evt.currentTarget.dataset.trainerid);
+            await getEditTrainer(/** @type {HTMLElement} */ (evt.currentTarget).dataset.trainerid);
             globalModals.$editProfileModal.show();
         });
     });
@@ -97,7 +98,7 @@ async function updateProfile(packet, $btn) {
                     document.getElementById('editProfileAlertDiv'),
                     'danger',
                     'bi-exclamation-diamond-fill',
-                    data.message,
+                    escapeHtml(data.message),
                     0
                 );
 
@@ -389,7 +390,11 @@ export const runtime = {
                 type: 'GET',
                 dataSrc: 'data',
             },
-            columnDefs: [{ searchable: false, targets: 0 }],
+            // Audit data (agent, referer, path) is attacker controlled - always render as text
+            columnDefs: [
+                { searchable: false, targets: 0 },
+                { render: DataTable.render.text(), targets: '_all' },
+            ],
             order: [[0, 'desc']],
             serverSide: true,
             pageLength: 50,
@@ -436,7 +441,7 @@ export const runtime = {
         });
 
         $bugLog.addEventListener('click', (evt) => {
-            const $btn = evt.target.closest('.viewBug');
+            const $btn = /** @type {HTMLElement} */ (evt.target).closest('.viewBug');
             if (!$btn) return;
 
             currentBug = dt.row($btn.closest('tr')).data();
@@ -460,11 +465,11 @@ export const runtime = {
             columns: [
                 { data: 'edit' },
                 { data: 'icon' },
-                { data: 'username' },
-                { data: 'email' },
+                { data: 'username', render: DataTable.render.text() },
+                { data: 'email', render: DataTable.render.text() },
                 { data: 'verified' },
-                { data: 'securitylevel' },
-                { data: 'lastlogin' },
+                { data: 'securitylevel', render: DataTable.render.text() },
+                { data: 'lastlogin', render: DataTable.render.text() },
             ],
             rowId: (data) => data.trainerid,
             serverSide: true,
@@ -480,7 +485,7 @@ export const runtime = {
                     searchable: false,
                     className: 'align-middle text-center',
                     render: (data, type, full) => `
-                            <button type="button" class="editTrainer btn btn-secondary" data-trainerid="${full.trainerid}">
+                            <button type="button" class="editTrainer btn btn-secondary" data-trainerid="${escapeHtml(full.trainerid)}">
                                 <i class="bi bi-wrench"></i>
                             </button>
                         `,
@@ -491,7 +496,7 @@ export const runtime = {
                     searchable: false,
                     className: 'align-middle text-center',
                     render: (data, type, full) =>
-                        `<img class="profileIcon" src="${full.icon}" alt="${full.iconAltText}" loading="lazy">`,
+                        `<img class="profileIcon" src="${escapeHtml(full.icon)}" alt="${escapeHtml(full.iconAltText)}" loading="lazy">`,
                 },
                 {
                     targets: 4,
@@ -566,19 +571,21 @@ export const runtime = {
                 },
                 {
                     targets: 3,
-                    render: (data, type, full) => `<a href='/pokemon/${full.ses}' target='_blank'>${full.name}</a>`,
+                    render: (data, type, full) =>
+                        `<a href='/pokemon/${encodeURIComponent(full.ses)}' target='_blank'>${escapeHtml(full.name)}</a>`,
                 },
                 {
                     targets: 5,
                     className: 'text-center',
-                    render: (data, type, full) => `<img class='pokemonIcon' src='${full.sprite}' loading='lazy'>`,
+                    render: (data, type, full) =>
+                        `<img class='pokemonIcon' src='${escapeHtml(full.sprite)}' loading='lazy'>`,
                 },
                 {
                     targets: 6,
                     className: 'text-center',
                     render: (data, type, full) => {
                         if (!full.shiny.length) return '';
-                        return `<img class='pokemonIcon' src='${full.shiny}' loading='lazy'>`;
+                        return `<img class='pokemonIcon' src='${escapeHtml(full.shiny)}' loading='lazy'>`;
                     },
                 },
                 {
@@ -587,8 +594,8 @@ export const runtime = {
                     render: (data, type, full) => {
                         if (!full.shadow) return '';
                         return `
-                            <img class='pokemonIcon' src='${full.sprite}' loading='lazy'>
-                            <img class='shadowIcon' src='${full.shadowicon}' loading='lazy'>
+                            <img class='pokemonIcon' src='${escapeHtml(full.sprite)}' loading='lazy'>
+                            <img class='shadowIcon' src='${escapeHtml(full.shadowicon)}' loading='lazy'>
                         `;
                     },
                 },
@@ -598,8 +605,8 @@ export const runtime = {
                     render: (data, type, full) => {
                         if (!full.shadowshiny) return '';
                         return `
-                            <img class='pokemonIcon' src='${full.shiny}' loading='lazy'>
-                            <img class='shadowIcon' src='${full.shadowicon}' loading='lazy'>
+                            <img class='pokemonIcon' src='${escapeHtml(full.shiny)}' loading='lazy'>
+                            <img class='shadowIcon' src='${escapeHtml(full.shadowicon)}' loading='lazy'>
                         `;
                     },
                 },
@@ -639,9 +646,11 @@ export const runtime = {
                 type: 'GET',
                 dataSrc: 'data',
             },
+            // Request data (url, agent, referer) is attacker controlled - always render as text
             columnDefs: [
                 { searchable: false, targets: 0 },
                 { className: 'long-cell', targets: [2, 5] },
+                { render: DataTable.render.text(), targets: '_all' },
             ],
             order: [[0, 'desc']],
             serverSide: true,
@@ -777,7 +786,7 @@ export const runtime = {
          * Listener for when metrics is updated
          */
         document.addEventListener('metricsUpdate', (e) => {
-            const metrics = e.detail;
+            const metrics = /** @type {CustomEvent} */ (e).detail;
             if (!metrics) return;
             if (firstLoad) {
                 /**
@@ -969,8 +978,8 @@ export const runtime = {
 
         Array.from($moveLinks).forEach((link) => {
             link.addEventListener('click', (event) => {
-                const $clicked = event.currentTarget;
-                const $active = document.querySelector('.moveLink.active');
+                const $clicked = /** @type {HTMLElement} */ (event.currentTarget);
+                const $active = /** @type {HTMLElement} */ (document.querySelector('.moveLink.active'));
 
                 document.getElementById(`${$active.dataset.type}MoveWrapper`).classList.add('d-none');
                 document.getElementById(`${$clicked.dataset.type}MoveWrapper`).classList.remove('d-none');
@@ -1002,7 +1011,7 @@ export const runtime = {
 
         document.querySelectorAll('.runTask').forEach((btn) => {
             btn.addEventListener('click', async (evt) => {
-                const $btn = evt.currentTarget;
+                const $btn = /** @type {HTMLButtonElement} */ (evt.currentTarget);
                 const { scheduler, name } = $btn.dataset;
                 const originalHtml = $btn.innerHTML;
 

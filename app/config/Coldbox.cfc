@@ -138,6 +138,44 @@ component {
             ),
             persistDuration: 30, // Persist cookie last 30 days
             persistUse     : 7, // If not used in 7 days, automatically expire
+            /**
+             * Per event rate limits
+             *
+             * redirect : form posts relocate here with an alert, empty -> json 429 (ajax endpoints)
+             * by       : 'ip' and/or rc fields the counter is scoped by
+             * limit    : hits allowed per window
+             * window   : window length in minutes
+             */
+            rateLimits: {
+                'login.dologin': {
+                    redirect: '/login',
+                    rules   : [
+                        {by: 'ip', limit: 20, window: 15},
+                        {by: 'ip,email', limit: 5, window: 15},
+                        // Credential stuffing against one account from many ips
+                        {by: 'email', limit: 10, window: 15}
+                    ]
+                },
+                'login.register': {
+                    redirect: '/register',
+                    rules   : [
+                        {by: 'ip', limit: 5, window: 60},
+                        {by: 'email', limit: 3, window: 60}
+                    ]
+                },
+                'login.forgotpassword': {
+                    redirect: '/forgot',
+                    rules   : [
+                        {by: 'ip', limit: 5, window: 15},
+                        // Stops flooding a user's inbox with resets
+                        {by: 'email', limit: 3, window: 60}
+                    ]
+                },
+                'login.verify'         : {redirect: '/verify', rules: [{by: 'ip', limit: 10, window: 15}]},
+                'login.resetpassword'  : {redirect: '/forgot', rules: [{by: 'ip', limit: 10, window: 15}]},
+                'login.verifyrecaptcha': {redirect: '', rules: [{by: 'ip', limit: 30, window: 15}]},
+                'home.contact'         : {redirect: '', rules: [{by: 'ip', limit: 5, window: 60}]}
+            },
             reCaptchaChecks: {
                 // Validate a user's recaptcha session data for these actions
                 dologin       : true,
@@ -165,21 +203,32 @@ component {
             },
             resetPasswordCooldown: 900, // time in seconds to wait for a new reset code
             resetPasswordLifespan: 30, // time in minutes the reset link is valid for
-            sessionTimeout       : getSystemSetting('SESSIONTIMEOUT'),
-            shadowData           : false, // get shadow data from wikipedia
-            signups              : true, // whether signups are enabled
-            sitemap              : 'sitemap.xml',
-            systemTrainer        : 'lanechase34@outlook.com',
-            testEmailPath        : '#replace(expandPath('/'), '\', '/', 'all')#/_testemails',
-            uploadPath           : '#replace(expandPath('/'), '\', '/', 'all')#/includes/uploads',
-            title                : 'POGO Tracker - Track Your Pokémon GO Progress',
-            useRecaptcha         : true,
-            verificationLifespan : 15, // time in minutes the verification link is valid for
-            verificationCooldown : 900, // time in seconds to wait for a new verification code
+            // Hosts (and their subdomains) the scraper is allowed to fetch from
+            scraperHosts         : [
+                'bulbagarden.net',
+                'fandom.com',
+                'leekduck.com',
+                'nocookie.net',
+                'pokemondb.net',
+                'pokemongolive.com',
+                'pvpoke.com'
+            ],
+            sessionTimeout      : getSystemSetting('SESSIONTIMEOUT'),
+            shadowData          : false, // get shadow data from wikipedia
+            signups             : true, // whether signups are enabled
+            sitemap             : 'sitemap.xml',
+            systemTrainer       : 'lanechase34@outlook.com',
+            testEmailPath       : '#replace(expandPath('/'), '\', '/', 'all')#/_testemails',
+            uploadPath          : '#replace(expandPath('/'), '\', '/', 'all')#/includes/uploads',
+            title               : 'POGO Tracker - Track Your Pokémon GO Progress',
+            useRateLimiter      : true,
+            useRecaptcha        : true,
+            verificationLifespan: 15, // time in minutes the verification link is valid for
+            verificationCooldown: 900, // time in seconds to wait for a new verification code
             // Ordered struct, maps value -> display
-            viewMap              : ['normal': 'Normal', 'shiny': 'Shiny'],
-            warmedUp             : false, // updates to true after server has finished warming up
-            writeJson            : false
+            viewMap             : ['normal': 'Normal', 'shiny': 'Shiny'],
+            warmedUp            : false, // updates to true after server has finished warming up
+            writeJson           : false
         };
 
         /**
@@ -305,6 +354,11 @@ component {
                 class     : 'interceptors.logrequest',
                 name      : 'logRequestInterceptor',
                 properties: {}
+            },
+            {
+                class     : 'interceptors.ratelimiter',
+                name      : 'rateLimiterInterceptor',
+                properties: {}
             }
         ];
 
@@ -365,11 +419,13 @@ component {
         coldbox.debugMode           = true;
 
         // Development settings
-        settings.title        = '[DEV #ucFirst(getSystemSetting('OS'))#] POGO Tracker';
-        settings.useRecaptcha = false;
-        settings.writeJson    = true;
-        settings.logRequests  = false;
-        settings.domain       = 'http://localhost:#getSystemSetting('HTTP_PORT')#';
+        settings.title          = '[DEV #ucFirst(getSystemSetting('OS'))#] POGO Tracker';
+        settings.useRecaptcha   = false;
+        settings.useRateLimiter = getSystemSetting('RATE_LIMITER', false);
+        settings.scraperHosts.append('httpbin.io'); // dev.cfc user agent check
+        settings.writeJson   = true;
+        settings.logRequests = false;
+        settings.domain      = 'http://localhost:#getSystemSetting('HTTP_PORT')#';
 
         // This allows the testing suite to test the login endpoints
         settings.impersonation = true;
@@ -385,6 +441,9 @@ component {
         settings.minifiedCSS = '';
         settings.minifiedJS  = '';
 
+        // Lower bcrypt workfactor for faster performance
+        moduleSettings = {bcrypt: {workFactor: 4}};
+
         logBox.root.levelmax = 'DEBUG';
     }
 
@@ -392,13 +451,17 @@ component {
      * Test environment
      */
     function test() {
-        settings.useRecaptcha  = false;
+        settings.useRecaptcha   = false;
+        settings.useRateLimiter = false;
+        settings.scraperHosts.append('httpbin.io'); // dev.cfc user agent check
         settings.title         = '[TEST #ucFirst(getSystemSetting('OS'))#] POGO Tracker';
         // This allows the testing suite to test the login endpoints
         settings.impersonation = true;
         settings.refererChecks = {};
         settings.logRequests   = false;
         settings.domain        = 'http://localhost:#getSystemSetting('HTTP_PORT')#';
+
+        moduleSettings = {bcrypt: {workFactor: 4}};
     }
 
 }

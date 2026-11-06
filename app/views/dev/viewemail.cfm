@@ -3,9 +3,11 @@
     <div class="col-2 d-flex align-items-start">
         <div class="list-group w-100">
             <cfloop query="#prc.testEmails#" startRow="1" endRow="20">
-                <a href="/dev/viewEmail/filename/#left(name, name.len()-5)#" class="<cfif rc.filename EQ left(name, name.len()-5)>active</cfif> list-group-item list-group-item-action d-flex gap-2 py-3">
+                <cfset emailName = prc.testEmails.name[prc.testEmails.currentRow]>
+                <cfset emailName = left(emailName, len(emailName) - 5)>
+                <a href="/dev/viewEmail/filename/#emailName#" class="<cfif rc.filename EQ emailName>active</cfif> list-group-item list-group-item-action d-flex gap-2 py-3">
                     <div class="d-flex gap-2 w-100 justify-content-between">
-                        #dateTimeFormat(dateLastModified, "short")#
+                        #dateTimeFormat(prc.testEmails.dateLastModified, "short")#
                     </div>
                 </a>
             </cfloop>

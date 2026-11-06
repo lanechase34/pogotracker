@@ -1,8 +1,11 @@
 component singleton accessors="true" {
 
+    property name="bcrypt"         inject="@BCrypt";
     property name="cache"          inject="cachebox:appCache";
     property name="domain"         inject="coldbox:setting:domain";
     property name="emailService"   inject="services.email";
+    property name="impersonation"  inject="coldbox:setting:impersonation";
+    property name="persistService" inject="services.persist";
     property name="sessionService" inject="services.session";
     property name="trainerService" inject="services.trainer";
     property name="useRecaptcha"   inject="coldbox:setting:useRecaptcha";
@@ -81,40 +84,46 @@ component singleton accessors="true" {
     }
 
     /**
-     * Verify the incoming password
+     * Verify the incoming password against the stored hash
+     * Supports bcrypt hashes and legacy (salted + peppered SHA) hashes
      */
     private boolean function verifyPassword(
         required string suppliedPassword,
         required string checkPassword,
         required string salt
     ) {
-        return arguments.checkPassword == hash(
+        if(isBcryptHash(arguments.checkPassword)) {
+            return bcrypt.checkPassword(candidate = arguments.suppliedPassword, bCryptHash = arguments.checkPassword);
+        }
+
+        // Legacy hash - constant time compare
+        var legacyHash = hash(
             arguments.suppliedPassword & arguments.salt & this.pepper,
             this.algorithm,
             this.encoding,
             this.iterations
         );
+        return createObject('java', 'java.security.MessageDigest').isEqual(
+            arguments.checkPassword.getBytes('UTF-8'),
+            legacyHash.getBytes('UTF-8')
+        );
     }
 
     /**
-     * Hash user inputted password
+     * True if the stored password is a bcrypt hash (otherwise it is a legacy hash)
+     */
+    private boolean function isBcryptHash(required string storedPassword) {
+        return reFind('^\$2[aby]\$\d{2}\$', arguments.storedPassword) > 0;
+    }
+
+    /**
+     * Hash user inputted password with bcrypt
+     * bcrypt stores its own salt in the hash, so the salt column is left blank
      *
-     * @password 
+     * @password
      */
     private struct function hashPassword(required string password) {
-        var salt = hash(
-            generateSecretKey('AES', 256),
-            this.algorithm,
-            this.encoding,
-            this.iterations
-        );
-        var hashedPassword = hash(
-            arguments.password & salt & this.pepper,
-            this.algorithm,
-            this.encoding,
-            this.iterations
-        );
-        return {'salt': salt, 'hashedPassword': hashedPassword};
+        return {'salt': '', 'hashedPassword': bcrypt.hashPassword(password = arguments.password)};
     }
 
     /**
@@ -144,11 +153,21 @@ component singleton accessors="true" {
         trainer = trainer[1];
 
         var checkPassword = trainer.getPassword();
-        var salt          = trainer.getSalt();
+        var salt          = trainer.getSalt() ?: '';
 
         var verified = verifyPassword(arguments.password, checkPassword, salt);
 
-        return verified || application.cbController.getSetting('impersonation');
+        // Upgrade legacy hashes to bcrypt now that we have the plain text password
+        if(verified && !isBcryptHash(checkPassword)) {
+            var passInfo = hashPassword(arguments.password);
+            trainer.setPassword(passInfo.hashedPassword);
+            trainer.setSalt(passInfo.salt);
+            entitySave(trainer);
+            ormFlush();
+            cache.clear('trainer.getFromId|trainerid=#trainer.getId()#');
+        }
+
+        return verified || getImpersonation();
     }
 
     /**
@@ -202,10 +221,14 @@ component singleton accessors="true" {
         trainer.setEmail(lCase(arguments.email));
         trainer.setIcon(arguments.icon);
 
+        // Password or privilege changes revoke all remember me cookies for this trainer
+        var revokePersist = false;
+
         if(arguments.password.len()) {
             var passInfo = hashPassword(arguments.password);
             trainer.setPassword(passInfo.hashedPassword);
             trainer.setSalt(passInfo.salt);
+            revokePersist = true;
         }
 
         if(arguments.keyExists('friendcode') && arguments.friendcode.len()) {
@@ -217,15 +240,21 @@ component singleton accessors="true" {
                 // unverified user -> not verified
                 arguments.verified = 'no';
             }
+            if(trainer.getSecurityLevel() != arguments.securityLevel) revokePersist = true;
             trainer.setSecurityLevel(arguments.securityLevel);
         }
 
         if(arguments.keyExists('verified') && arguments.verified.len()) {
+            if(trainer.getVerified() != booleanFormat(arguments.verified)) revokePersist = true;
             trainer.setVerified(booleanFormat(arguments.verified));
         }
 
         entitySave(trainer);
         ormFlush();
+
+        if(revokePersist) {
+            persistService.revokeAll(trainer.getId());
+        }
 
         return;
     }
@@ -246,15 +275,23 @@ component singleton accessors="true" {
         arguments.trainerid = parseNumber(arguments.trainerid);
         var trainer         = trainerService.getFromId(arguments.trainerid);
 
-        // Permissions - only admins can edit other trainers and/or security level and verified
-        var checkBoxOptions = ['off', 'on'];
+        // Permissions - only admins can edit other trainers and/or friendcode, security level and verified
         if(
             session.securityLevel < 50 && (
                 session.trainerid != arguments.trainerid ||
                 arguments.friendcode.len() ||
-                (arguments.securityLevel.len() && !getSecurityLevels().keyExists(arguments.securityLevel)) ||
-                (arguments.verified.len() && !checkBoxOptions.contains(arguments.verified))
+                arguments.securityLevel.len() ||
+                arguments.verified.len()
             )
+        ) {
+            return false;
+        }
+
+        // Admins must still supply valid values
+        var checkBoxOptions = ['off', 'on'];
+        if(
+            (arguments.securityLevel.len() && !getSecurityLevels().keyExists(arguments.securityLevel)) ||
+            (arguments.verified.len() && !checkBoxOptions.contains(arguments.verified))
         ) {
             return false;
         }
@@ -275,7 +312,44 @@ component singleton accessors="true" {
             return false;
         }
 
+        // Make sure friendcode is unique
+        if(arguments.friendcode.len() && arguments.friendcode != trainer.getFriendcode()) {
+            var checkFriendcodeInput = entityLoad('trainer', {'friendcode': arguments.friendcode});
+            if(checkFriendcodeInput.len()) {
+                return false;
+            }
+        }
+
         return true;
+    }
+
+    /**
+     * CSRF defense for state changing requests using the headers browsers attach to every request
+     * A page on another site can't forge these. Requests without them (non-browser clients) aren't CSRF.
+     *
+     * Sec-Fetch-Site: must be same-origin when present
+     * Origin: host must match this host when present
+     */
+    public boolean function isCrossSiteRequest() {
+        var fetchSite = lCase(getHeaderValue('Sec-Fetch-Site'));
+        if(fetchSite.len() && fetchSite != 'same-origin') {
+            return true;
+        }
+
+        var origin = getHeaderValue('Origin');
+        if(origin.len()) {
+            try {
+                var uri  = createObject('java', 'java.net.URI').init(origin);
+                var host = (uri.getHost() ?: '') & (uri.getPort() > 0 ? ':#uri.getPort()#' : '');
+                return lCase(host) != lCase(cgi.http_host);
+            }
+            catch(any e) {
+                // Includes Origin: null (sandboxed iframes, some redirects)
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -578,7 +652,7 @@ component singleton accessors="true" {
         if(getUseRecaptcha()) {
             cfhttp(
                 url    = "https://www.google.com/recaptcha/api/siteverify",
-                result = "result",
+                result = "local.result",
                 method = "POST"
             ) {
                 cfhttpparam(
@@ -598,7 +672,7 @@ component singleton accessors="true" {
                 );
             };
 
-            var recaptchaResponse = deserializeJSON(result.filecontent);
+            var recaptchaResponse = deserializeJSON(local.result.filecontent);
 
             recaptchaResult.valid  = recaptchaResponse.success && recaptchaResponse.score > 0.5;
             recaptchaResult.action = recaptchaResponse?.action ?: '';

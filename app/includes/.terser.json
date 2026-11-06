@@ -2,7 +2,7 @@
     "compress": {
         "unsafe": true,
         "dead_code": true,
-        "drop_console": true
+        "pure_funcs": ["console.log", "console.info", "console.debug"]
     },
     "mangle": true,
     "keep_fnames": true,

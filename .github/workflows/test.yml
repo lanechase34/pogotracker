@@ -71,7 +71,7 @@ jobs:
         run: |
           cat > .env << 'EOL'
           ENVIRONMENT=test
-          OTHER_EXTENSIONS=,CED6227E-0F49-6367-A68D21AACA6B07E8;version=1.0.0.7
+          OTHER_EXTENSIONS=,CED6227E-0F49-6367-A68D21AACA6B07E8;version=1.0.0.9
           CFCONFIG_ADMINPASSWORD=commandbox
           LUCEE_ADMIN_ENABLED=false
           INSPECTTEMPLATE=never
@@ -88,7 +88,7 @@ jobs:
           DB_SCHEMA=public
           DB_USERNAME=runner
           DB_PASSWORD=postgres_docker
-          DB_BUNDLEVERSION=42.7.9
+          DB_BUNDLEVERSION=42.7.11
           EMAIL_SERVER=localhost
           EMAIL_PORT=587
           EMAIL_USERNAME=noreply@pogotracker.app

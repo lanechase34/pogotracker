@@ -20,6 +20,26 @@ There are many tasks available that cover these topics below. Run tasks in vscod
     server restart
     ```
 
+### Lucee Extension Updates
+
+Extensions are installed on server start from `LUCEE_EXTENSIONS` in `app/server.json`, plus `OTHER_EXTENSIONS` from `.env` (local/test only).
+
+| Extension                    | ID                                     | Version                     | Set in                    |
+| ---------------------------- | -------------------------------------- | --------------------------- | ------------------------- |
+| PostgreSQL JDBC Driver       | `671B01B8-B3B3-42B9-AC055A356BED5281`  | `DB_BUNDLEVERSION` (`.env`) | `server.json`             |
+| Ortus ORM Extension          | `D062D72F-F8A2-46F0-8CBC91325B2F067B`  | 6.5.4                       | `server.json`             |
+| Guard (formerly ESAPI)       | `37C61C0A-5D7E-4256-8572639BE0CF5838`  | 3.1.0.7                     | `server.json`             |
+| Image (Jakarta EE)           | `B737ABC4-D43F-4D91-8E8E973E37C40D1B`  | 3.1.0.11                    | `server.json`             |
+| Mail                         | `212BA548-F15A-4EBD-8B1EEDF8DD8A844D`  | 1.1.0.24                    | `server.json`             |
+| Compress (Jakarta EE)        | `8D7FB0DF-08BB-1589-FE3975678F07DB17`  | 2.1.0.7                     | `server.json`             |
+| Lucee Administrator          | `CED6227E-0F49-6367-A68D21AACA6B07E8`  | 1.0.0.9                     | `OTHER_EXTENSIONS` (`.env`) |
+
+1. Check for new versions (ignore `-SNAPSHOT`/`-RC`/`-BETA` builds)
+    - Lucee extensions: https://extension.lucee.org/rest/extension/provider/info?withLogo=false
+    - Ortus ORM: https://forgebox.io/view/D062D72F-F8A2-46F0-8CBC91325B2F067B
+2. Update the version in `server.json`, or in every `.env` file for `DB_BUNDLEVERSION`/`OTHER_EXTENSIONS` (including `.env.example`, `docker/.env.docker.example`, `.github/workflows/test.yml`, and the server's `.env`)
+3. Restart server
+
 ### NPM Updates
 
 1. Check for updates

@@ -43,10 +43,3 @@ export function startMetricsSocket() {
 
     metricClient.activate();
 }
-
-export function stopMetricsSocket() {
-    if (!metricClient) return;
-
-    metricClient.deactivate();
-    metricClient = null;
-}

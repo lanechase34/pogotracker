@@ -13,6 +13,7 @@ export default defineConfig([
             'eslint.config.js',
             '**/test-results/**',
             '**/playwright-report/**',
+            '**/vendor/**',
         ],
     },
     eslint.configs.recommended,
@@ -70,7 +71,7 @@ export default defineConfig([
             'import/no-unresolved': [
                 'error',
                 {
-                    ignore: ['@stomp/stompjs'],
+                    ignore: ['@stomp/stompjs', '^node:'],
                 },
             ],
             eqeqeq: ['error', 'always', { null: 'ignore' }],
@@ -107,7 +108,7 @@ export default defineConfig([
                     map: [
                         ['alert', './js/modules/alert.js'],
                         ['contact', './js/modules/contact.js'],
-                        ['cookie', './js/modules/cookie.js'],
+                        ['escape', './js/modules/escape.js'],
                         ['localstorage', './js/modules/localstorage.js'],
                         ['copy', './js/modules/copy.js'],
                         ['display', './js/modules/display.js'],

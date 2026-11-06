@@ -22,6 +22,10 @@
     <script type="module">
         import { runtime } from 'runtime';
         runtime();
+
+        document.querySelectorAll('[data-history-back]').forEach(($btn) => {
+            $btn.addEventListener('click', () => history.back());
+        });
     </script>
 </body>
 </cfoutput>

@@ -1,5 +1,6 @@
 import { createAlert } from 'alert';
 import { isMobileDisplay } from 'display';
+import { escapeHtml } from 'escape';
 import { getWrapper, postWrapper } from 'fetch';
 import { resizeHomeCards } from 'home';
 import { $loading, $submitBtn } from 'loading';
@@ -138,17 +139,17 @@ function rawParser(block) {
 }
 
 function codeParser(block) {
-    return `<pre style='margin-left: ${block.tunes.indentTune.indentLevel}rem'><code>${block.data.code}</code></pre>`;
+    return `<pre style='margin-left: ${Number(block.tunes?.indentTune?.indentLevel) || 0}rem'><code>${escapeHtml(block.data.code)}</code></pre>`;
 }
 
 function imageParser(block) {
-    return `<img src='${block.data.file.url}' alt='${
-        block.data?.caption ?? 'Extra blog image'
-    }' class='extraBlogImage'/>`;
+    // Captions are inline HTML in Editor.js - strip tags for the alt text
+    const caption = new DOMParser().parseFromString(block.data?.caption ?? '', 'text/html').body.textContent;
+    return `<img src='${escapeHtml(block.data.file.url)}' alt='${escapeHtml(caption || 'Extra blog image')}' class='extraBlogImage'/>`;
 }
 
 async function submitBlog($blogDivEditor, $blogSubmitBtn, submitUrl) {
-    const header = document.getElementById('blogheader').value;
+    const header = /** @type {HTMLInputElement} */ (document.getElementById('blogheader')).value;
     const body = await $blogDivEditor.save();
 
     if (!header.length || !body.blocks.length) {
@@ -162,7 +163,7 @@ async function submitBlog($blogDivEditor, $blogSubmitBtn, submitUrl) {
         image: imageParser,
     }).parse(body);
 
-    const packet = new FormData(document.getElementById('writeblogform'));
+    const packet = new FormData(/** @type {HTMLFormElement} */ (document.getElementById('writeblogform')));
     packet.append('blogbodyjson', JSON.stringify(body));
     packet.append('blogbody', JSON.stringify(bodyhtml));
 
@@ -184,7 +185,7 @@ async function submitBlog($blogDivEditor, $blogSubmitBtn, submitUrl) {
                 );
                 throw new Error(data.message);
             } else {
-                window.location = `/home`;
+                window.location.href = `/home`;
             }
         },
     });

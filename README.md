@@ -44,7 +44,7 @@ The database container will automatically be seeded with dev data.
 
 ### Setup
 
-1. Using `docker/env.docker.example` as a template, populate `app/.env`
+1. Using `docker/.env.docker.example` as a template, populate `app/.env`
 
 2. Navigate to Docker dir
 
@@ -59,8 +59,8 @@ The database container will automatically be seeded with dev data.
     ```
 
 4. Verify app is running (this may be a few minutes on first start)
-    - **Health Check**: http://localhost:8081/healthcheck
-    - **App**: http://localhost:8081
+    - **Health Check**: http://localhost:8083/healthcheck
+    - **App**: http://localhost:8083
 
 5. Stop containers by running
 
@@ -120,7 +120,7 @@ The database container will automatically be seeded with dev data.
 | Setting      | Value                |
 | ------------ | -------------------- |
 | **Host**     | `localhost`          |
-| **Port**     | `5432`               |
+| **Port**     | `5434`               |
 | **Database** | `pogotracker_db`     |
 | **Username** | `pogotracker_docker` |
 | **Password** | `docker1234`         |

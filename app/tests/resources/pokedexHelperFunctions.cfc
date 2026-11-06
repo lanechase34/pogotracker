@@ -36,9 +36,9 @@ component extends="coldbox.system.testing.BaseTestCase" {
     ) {
         for(var i = 1; i <= arguments.count; i++) {
             while(true) {
-                currPokemon = pokemonService.getFromId(info.ids[randRange(1, len(arguments.info.ids))]);
+                var currPokemon = pokemonService.getFromId(info.ids[randRange(1, len(arguments.info.ids))]);
                 // Has to be unique pokemon
-                check       = entityLoad(
+                var check       = entityLoad(
                     'pokedex',
                     {'trainer': trainer, 'pokemon': currPokemon},
                     true

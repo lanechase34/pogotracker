@@ -915,12 +915,12 @@ component singleton accessors="true" {
                         // Fetch the image blob
                         cfhttp(
                             url    = imgSrc,
-                            result = "imgResult",
+                            result = "local.imgResult",
                             method = "GET"
                         );
 
                         // CF make image object and write to disk
-                        var img = imageNew(imgResult.filecontent);
+                        var img = imageNew(local.imgResult.filecontent);
                         img.write('/includes/images/medals/#curr.name#.webp');
                     }
                     // catch medals are all set values
@@ -1267,7 +1267,7 @@ component singleton accessors="true" {
         }
 
         if(isNull(custom)) {
-            customid = customService.create(
+            var customid = customService.create(
                 trainer = securityService.getTrainer(getSystemTrainer())[1],
                 name    = eventTitle,
                 public  = true,
@@ -1805,7 +1805,7 @@ component singleton accessors="true" {
 
         for(var i = 1; i <= arguments.end; i++) {
             if(fileIsEOF(logFile)) break;
-            currLine = fileReadLine(logFile);
+            var currLine = fileReadLine(logFile);
             if(i < arguments.start) continue;
             logContent &= '#encodeForHTML(currLine)# <br>';
         }

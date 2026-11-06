@@ -1,0 +1,109 @@
+{
+    "compilerOptions": {
+        "target": "es2022",
+        "module": "esnext",
+        "moduleResolution": "bundler",
+        "lib": [
+            "es2023",
+            "dom",
+            "dom.iterable"
+        ],
+        "allowJs": true,
+        "checkJs": true,
+        "noEmit": true,
+        "strict": false,
+        "skipLibCheck": true,
+        "paths": {
+            "alert": [
+                "./js/modules/alert.js"
+            ],
+            "contact": [
+                "./js/modules/contact.js"
+            ],
+            "escape": [
+                "./js/modules/escape.js"
+            ],
+            "localstorage": [
+                "./js/modules/localstorage.js"
+            ],
+            "copy": [
+                "./js/modules/copy.js"
+            ],
+            "display": [
+                "./js/modules/display.js"
+            ],
+            "fetch": [
+                "./js/modules/fetch.js"
+            ],
+            "form": [
+                "./js/modules/form.js"
+            ],
+            "json": [
+                "./js/modules/json.js"
+            ],
+            "loading": [
+                "./js/modules/loading.js"
+            ],
+            "modals": [
+                "./js/modules/modals.js"
+            ],
+            "multiselect": [
+                "./js/modules/multiselect.js"
+            ],
+            "search": [
+                "./js/modules/search.js"
+            ],
+            "socket": [
+                "./js/modules/socket.js"
+            ],
+            "toast": [
+                "./js/modules/toast.js"
+            ],
+            "admin": [
+                "./js/handlers/admin.js"
+            ],
+            "blog": [
+                "./js/handlers/blog.js"
+            ],
+            "home": [
+                "./js/handlers/home.js"
+            ],
+            "login": [
+                "./js/handlers/login.js"
+            ],
+            "pokedex": [
+                "./js/handlers/pokedex.js"
+            ],
+            "pokemon": [
+                "./js/handlers/pokemon.js"
+            ],
+            "stats": [
+                "./js/handlers/stats.js"
+            ],
+            "trade": [
+                "./js/handlers/trade.js"
+            ],
+            "trainer": [
+                "./js/handlers/trainer.js"
+            ],
+            "runtime": [
+                "./js/runtime.js"
+            ],
+            "@stomp/stompjs": [
+                "./js/vendor/stompjs-7.0.0.esm.js"
+            ]
+        }
+    },
+    "typeAcquisition": {
+        "enable": false
+    },
+    "include": [
+        "./js/**/*.js",
+        "./js/types/**/*.d.ts"
+    ],
+    "exclude": [
+        "./js/vendor/**",
+        "build",
+        "node_modules"
+    ]
+}

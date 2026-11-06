@@ -4,9 +4,9 @@
         "imports": {
             "alert": "#args.jsPath#/modules/alert#args.minifiedJS#.js#args.cacheBuster#",
             "contact": "#args.jsPath#/modules/contact#args.minifiedJS#.js#args.cacheBuster#",
-            "cookie": "#args.jsPath#/modules/cookie#args.minifiedJS#.js#args.cacheBuster#",
             "localstorage": "#args.jsPath#/modules/localstorage#args.minifiedJS#.js#args.cacheBuster#",
             "copy": "#args.jsPath#/modules/copy#args.minifiedJS#.js#args.cacheBuster#",
+            "escape": "#args.jsPath#/modules/escape#args.minifiedJS#.js#args.cacheBuster#",
             "display": "#args.jsPath#/modules/display#args.minifiedJS#.js#args.cacheBuster#",
             "fetch": "#args.jsPath#/modules/fetch#args.minifiedJS#.js#args.cacheBuster#",
             "form": "#args.jsPath#/modules/form#args.minifiedJS#.js#args.cacheBuster#",
@@ -29,7 +29,7 @@
             "trainer": "#args.jsPath#/handlers/trainer#args.minifiedJS#.js#args.cacheBuster#",
 
             "runtime": "#args.jsPath#/runtime#args.minifiedJS#.js#args.cacheBuster#",
-            "@stomp/stompjs": "https://ga.jspm.io/npm:@stomp/stompjs@7.0.0/esm6/index.js"
+            "@stomp/stompjs": "/includes/js/vendor/stompjs-7.0.0.esm.js"
         }
     }
 </script>

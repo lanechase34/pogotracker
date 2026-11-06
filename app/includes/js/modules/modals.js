@@ -1,6 +1,6 @@
 import { $submitBtn } from 'loading';
 
-export const $confirmModalDiv = document.getElementById('confirmModalDiv');
+const $confirmModalDiv = document.getElementById('confirmModalDiv');
 
 export function confirmModal(message, submitText = 'Submit', handler) {
     $confirmModalDiv.innerHTML = `

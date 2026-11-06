@@ -195,7 +195,7 @@ component singleton accessors="true" {
         var missingStrings = cache.get(cacheKey);
 
         if(isNull(missingStrings)) {
-            q = queryExecute(
+            var q = queryExecute(
                 '
                 select
                     coalesce(string_agg(

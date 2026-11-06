@@ -61,8 +61,23 @@ component extends="tests.resources.baseTest" {
 
             it('Can delete a persist cookie', () => {
                 expect(persistService.checkCookie()).toBeTrue();
+                expect(countPersist(trainerid = trainer.getId())).toBe(1);
                 persistService.deleteCookie();
                 expect(persistService.checkCookie()).toBeFalse();
+
+                // Revoked server side too, so a copied cookie can't be replayed
+                expect(countPersist(trainerid = trainer.getId())).toBe(0);
+            });
+
+            it('Can revoke all persist cookies for a trainer', () => {
+                persistService.addCookie(trainer);
+                persistService.addCookie(trainer);
+                expect(countPersist(trainerid = trainer.getId())).toBe(2);
+
+                persistService.revokeAll(trainer.getId());
+                expect(countPersist(trainerid = trainer.getId())).toBe(0);
+
+                persistService.deleteCookie();
             });
 
             describe('Persist cookie task tests', () => {

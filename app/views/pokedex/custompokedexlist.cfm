@@ -6,7 +6,7 @@
             <div class="card h-100 w-100 shadow-sm">        
                 <div class="d-flex flex-column card-body">
                     <h5 class="card-title">
-                        #currCustom.getName()#
+                        #encodeForHTML(currCustom.getName())#
                     </h5>
                     <div class="mt-auto">
                         <p class="card-text text-muted m-0">

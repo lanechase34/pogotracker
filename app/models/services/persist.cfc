@@ -36,18 +36,19 @@ component singleton accessors="true" {
         setPersistCookie(persistCookie = persistCookie, maxAge = getPersistDuration());
 
         if(application.cbController.getSetting('environment') != 'production') {
-            cookie[getPersistCookieName()] = persistCookie;
+            cfcookie(
+                name     = getPersistCookieName(),
+                value    = persistCookie,
+                expires  = getPersistDuration(),
+                path     = "/",
+                secure   = true,
+                httponly = true,
+                samesite = "strict"
+            );
         }
 
         // Hash and store in database
-        var hashedPersistCookie = hash(
-            persistCookie & this.pepper,
-            this.algorithm,
-            this.encoding,
-            this.iterations
-        );
-
-        return hashedPersistCookie;
+        return hashCookie(persistCookie);
     }
 
     /**
@@ -112,20 +113,23 @@ component singleton accessors="true" {
     public struct function login(required string persistCookie) {
         var result = {success: false, email: ''};
 
-        var hashedPersistCookie = hash(
-            persistCookie & this.pepper,
-            this.algorithm,
-            this.encoding,
-            this.iterations
-        );
-
         var persist = entityLoad(
             'persist',
-            {cookie: hashedPersistCookie, agent: left(securityService.getUserAgent(), 512)},
+            {cookie: hashCookie(arguments.persistCookie), agent: left(securityService.getUserAgent(), 512)},
             true
         );
 
         if(isNull(persist)) return result;
+
+        // Enforce expiry here too - the cleanup task only runs hourly
+        if(
+            (!isNull(persist.getCreated()) && dateDiff('d', persist.getCreated(), now()) >= getPersistDuration()) ||
+            (!isNull(persist.getLastUsed()) && dateDiff('d', persist.getLastUsed(), now()) >= getPersistUse())
+        ) {
+            entityDelete(persist);
+            ormFlush();
+            return result;
+        }
 
         // Found a persist entry, get the associated trainer
         // If the cookie was last used more than a day ago, rotate it
@@ -162,10 +166,40 @@ component singleton accessors="true" {
      */
     public void function deleteCookie() {
         if(checkCookie()) {
+            // Revoke server side so a copied cookie can't be replayed after logout
+            queryExecute(
+                'delete from persist where cookie = :cookie',
+                {cookie: {value: hashCookie(getCookie()), cfsqltype: 'varchar'}}
+            );
             cookie.delete(getPersistCookieName());
         }
         // Set maxage to 0 will tell browser to delete cookie
         setPersistCookie(persistCookie = 'delete', maxAge = 0);
+    }
+
+    /**
+     * Revoke every persist cookie for a trainer (password change/reset, privilege change)
+     *
+     * @trainerid trainer pk
+     */
+    public void function revokeAll(required numeric trainerid) {
+        queryExecute(
+            'delete from persist where trainerid = :trainerid',
+            {trainerid: {value: arguments.trainerid, cfsqltype: 'integer'}}
+        );
+        return;
+    }
+
+    /**
+     * Hash the raw browser cookie the same way it is stored
+     */
+    private string function hashCookie(required string persistCookie) {
+        return hash(
+            arguments.persistCookie & this.pepper,
+            this.algorithm,
+            this.encoding,
+            this.iterations
+        );
     }
 
     /**

@@ -55,10 +55,8 @@ component extends="base" {
 
         // Ensure these actions are submitted from correct referer
         if(
-            getSetting('refererChecks').keyExists(prc.currAction) && (
-                !findNoCase(cgi.http_host, securityService.getReferer()) ||
-                !securityService.getReferer().find(getSetting('refererChecks')[prc.currAction])
-            )
+            getSetting('refererChecks').keyExists(prc.currAction) &&
+            !isValidReferer(getSetting('refererChecks')[prc.currAction])
         ) {
             sessionService.setAlert(argumentCollection = prc.genericFailure);
             prc.auditInfo.detail = 'Failed Referer Check';
@@ -372,6 +370,24 @@ component extends="base" {
         }
 
         renderJson(event = event, response = prc.responseObj);
+    }
+
+    /**
+     * True if the referer is this host and its path starts with the expected path
+     *
+     * @expectedPath path the action must be submitted from, ex: /login
+     */
+    private boolean function isValidReferer(required string expectedPath) {
+        try {
+            var uri  = createObject('java', 'java.net.URI').init(securityService.getReferer());
+            var host = (uri.getHost() ?: '') & (uri.getPort() > 0 ? ':#uri.getPort()#' : '');
+            var path = uri.getPath() ?: '';
+
+            return lCase(host) == lCase(cgi.http_host) && lCase(path).startsWith(lCase(arguments.expectedPath));
+        }
+        catch(any e) {
+            return false;
+        }
     }
 
 }

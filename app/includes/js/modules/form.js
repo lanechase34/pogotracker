@@ -1,7 +1,8 @@
 import { $alertDiv, createAlert } from 'alert';
+import { escapeHtml } from 'escape';
 import { $submitBtn } from 'loading';
 
-export const $forms = document.querySelectorAll('.needs-validation');
+export const $forms = /** @type {NodeListOf<HTMLFormElement>} */ (document.querySelectorAll('.needs-validation'));
 
 /**
  * The reCAPTCHA v3 site key
@@ -37,7 +38,7 @@ export async function checkFormValidity(form, event, submit = true) {
 
     // Custom validation
     // Exactly one of the two '.optionalSelect' elements must have a value
-    const optionalSelect = form.querySelectorAll('.optionalSelect');
+    const optionalSelect = /** @type {NodeListOf<HTMLSelectElement>} */ (form.querySelectorAll('.optionalSelect'));
     if (optionalSelect.length === 2) {
         const firstFilled = optionalSelect[0].value !== '';
         const secondFilled = optionalSelect[1].value !== '';
@@ -54,7 +55,7 @@ export async function checkFormValidity(form, event, submit = true) {
     form.classList.add('was-validated');
 
     if (valid && submit) {
-        const submitter = event.submitter;
+        const submitter = /** @type {HTMLButtonElement} */ (event.submitter);
         const originalLabel = submitter.innerHTML;
 
         // Show loading state on the submit button.
@@ -158,7 +159,7 @@ async function executeRecaptcha(action) {
             $alertDiv,
             'danger',
             'bi-exclamation-diamond-fill',
-            data.message ?? 'reCAPTCHA verification failed.',
+            escapeHtml(data.message ?? 'reCAPTCHA verification failed.'),
             1
         );
         return null;

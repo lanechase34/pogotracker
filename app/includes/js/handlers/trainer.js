@@ -1,4 +1,5 @@
 import { createAlert } from 'alert';
+import { encodePath, escapeHtml } from 'escape';
 import { getWrapper, postWrapper } from 'fetch';
 import { $loadingCard, $submitBtn } from 'loading';
 import { resetHandler, submitHandler } from 'modals';
@@ -20,6 +21,10 @@ const $trainerLoading = {
     addFriend: false,
 };
 
+/**
+ * Note: callers currently pass the click event, which is ignored.
+ * @type {(evt?: Event) => Promise<boolean>}
+ */
 async function getFriendsToAdd() {
     return await getWrapper({
         url: '/friend/getFriendsToAdd',
@@ -35,7 +40,7 @@ async function getFriendsToAdd() {
 
             createAddFriendSearch('friendsToAddSearch');
 
-            const $addFriendForm = document.getElementById('addFriendForm');
+            const $addFriendForm = /** @type {HTMLFormElement} */ (document.getElementById('addFriendForm'));
             const $submitAddFriendForm = document.getElementById('submitAddFriendForm');
 
             $submitAddFriendForm.addEventListener('click', async (event) => {
@@ -86,7 +91,7 @@ async function getFriendsList($div) {
             const trainerRows = document.querySelectorAll('.trainerRow');
             Array.from(trainerRows).forEach((row) => {
                 row.addEventListener('click', (evt) => {
-                    window.location.href = evt.currentTarget.dataset.profilelink;
+                    window.location.href = /** @type {HTMLElement} */ (evt.currentTarget).dataset.profilelink;
                 });
             });
         },
@@ -104,7 +109,7 @@ async function getFriendRequests($div) {
             if ($decideBtns) {
                 Array.from($decideBtns).forEach((btn) => {
                     btn.addEventListener('click', async (evt) => {
-                        const $btn = evt.currentTarget;
+                        const $btn = /** @type {HTMLButtonElement} */ (evt.currentTarget);
                         const packet = {};
                         packet.friendrequestid = $btn.parentElement.dataset.friendrequestid;
                         packet.accept = $btn.dataset.accept;
@@ -128,7 +133,7 @@ async function getEditProfile() {
             const $editProfileModal = document.getElementById('editProfileModal');
             globalModals.$editProfileModal = new bootstrap.Modal($editProfileModal, {});
 
-            const $editProfileForm = document.getElementById('editProfileForm');
+            const $editProfileForm = /** @type {HTMLFormElement} */ (document.getElementById('editProfileForm'));
             const $submitEditProfileForm = document.getElementById('submitEditProfileForm');
 
             $submitEditProfileForm.addEventListener('click', async (evt) => {
@@ -210,7 +215,7 @@ async function updateProfile(packet, $btn, $modal) {
     submitHandler($modal, $btn);
     return await postWrapper({
         url: '/trainer/updateProfile',
-        $loadingBtn: '',
+        $loadingBtn: null,
         loading: '',
         packet: JSON.stringify(packet),
         responseType: 'json',
@@ -222,17 +227,19 @@ async function updateProfile(packet, $btn, $modal) {
                     document.getElementById('editProfileAlertDiv'),
                     'danger',
                     'bi-exclamation-diamond-fill',
-                    data.message,
+                    escapeHtml(data.message),
                     0
                 );
             } else {
                 // Update the profile fields
-                document.getElementById('profileUsername').innerHTML = packet.username;
-                document.getElementById('mainProfileUsername').innerHTML = packet.username;
-                document.getElementById('sidebarUsername').innerHTML = packet.username;
-                document.getElementById('profileEmail').innerHTML = packet.email;
-                document.getElementById('profileIcon').src = `/includes/images/icons/${packet.icon}.webp`;
-                document.getElementById('sidebarIcon').src = `/includes/images/icons/${packet.icon}.webp`;
+                document.getElementById('profileUsername').textContent = packet.username;
+                document.getElementById('mainProfileUsername').textContent = packet.username;
+                document.getElementById('sidebarUsername').textContent = packet.username;
+                document.getElementById('profileEmail').textContent = packet.email;
+                /** @type {HTMLImageElement} */ (document.getElementById('profileIcon')).src =
+                    `/includes/images/icons/${encodePath(packet.icon)}.webp`;
+                /** @type {HTMLImageElement} */ (document.getElementById('sidebarIcon')).src =
+                    `/includes/images/icons/${encodePath(packet.icon)}.webp`;
 
                 globalModals.$editProfileModal.hide();
                 document.getElementById('editProfileModal').remove();

@@ -1,0 +1,54 @@
+# Build context is the repo root: docker build -f docker/Dockerfile .
+# Only ./app is copied into the image, but keep secrets out of the context entirely
+
+# Secrets + env
+**/.env
+**/.env.*
+!**/.env.example
+!**/.env.docker.example
+.secrets
+env
+
+# Repo / tooling
+.git
+.github
+.vscode
+.claude
+docs
+config
+**/*.md
+
+# Engines + generated
+**/.engine
+**/WEB-INF
+**/logs
+**/.cbfs
+
+# Dependencies - installed during the build
+app/coldbox
+app/testbox
+app/modules
+app/includes/node_modules
+
+# Dev + test only
+app/tests
+app/_testemails
+app/.cfformat.json
+app/cflint-results.json
+app/includes/uploads
+app/includes/package.json
+app/includes/package-lock.json
+app/includes/eslint.config.js
+app/includes/.oxlintrc.json
+app/includes/jsconfig.json
+app/includes/knip.json
+app/includes/js/types
+app/includes/.terser.json
+app/includes/.prettierrc
+app/includes/.prettierignore
+app/includes/tests
+app/includes/playwright
+app/includes/playwright.config.js
+app/includes/playwright-report
+app/includes/test-results
+app/includes/blob-report

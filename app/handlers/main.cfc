@@ -120,6 +120,14 @@ component extends="base" {
         prc.title           = '';
         prc.metaDescription = '';
 
+        // CSRF - reject state changing requests the browser says came from another site
+        if(event.getHTTPMethod() == 'POST' && securityService.isCrossSiteRequest()) {
+            prc.unauthorizedEvent = event.getCurrentEvent();
+            prc.referer           = securityService.getReferer();
+            event.overrideEvent('error.unauthorized');
+            return;
+        }
+
         // If this user has the persist cookie and not authenticated
         if(
             (prc.currHandler != 'login' || prc.currEvent == 'login.loginform')
@@ -129,7 +137,8 @@ component extends="base" {
             // Override event with the persistLogin page
             rc.persistCookie                 = persistService.getCookie();
             rc[getSetting('csrfTokenField')] = csrfGenerateToken(forceNew = true);
-            prc.linkedEvent                  = '/#prc.currRoute#';
+            // Strip leading slashes so this can never become a protocol relative (//host) redirect
+            prc.linkedEvent                  = '/#reReplace(prc.currRoute, '^[/\\]+', '')#';
             event.overrideEvent('login.persistLogin');
             return;
         }
@@ -139,7 +148,8 @@ component extends="base" {
             session.authenticated &&
             !session.verified && (
                 prc.currEvent != 'login.verify' &&
-                prc.currEvent != 'login.verifyform'
+                prc.currEvent != 'login.verifyform' &&
+                prc.currEvent != 'login.logout'
             )
         ) {
             relocate(uri = '/verify');

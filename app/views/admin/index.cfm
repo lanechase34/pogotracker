@@ -1,7 +1,7 @@
 <cfoutput> 
 <div class="row mb-3">
     <div class="col-12 col-md-3 d-flex align-items-start mt-3">
-        <div class="list-group w-100">
+        <form method="post" class="list-group w-100">
             <a href="/admin/auditLog" class="list-group-item list-group-item-action d-flex gap-2 py-3">
                 <div class="d-flex gap-2 w-100 justify-content-between">Audit Log</div>
             </a>
@@ -41,32 +41,32 @@
             <a href="/admin/taskManager" class="list-group-item list-group-item-action d-flex gap-2 py-3">
                 <div class="d-flex gap-2 w-100 justify-content-between">Task Manager</div>
             </a>
-            <a href="/admin/updateSiteMap" class="list-group-item list-group-item-action d-flex gap-2 py-3">
+            <button type="submit" formaction="/admin/updateSiteMap" class="list-group-item list-group-item-action d-flex gap-2 py-3">
                 <div class="d-flex gap-2 w-100 justify-content-between">Update Sitemap</div>
-            </a>
+            </button>
             <a href="/blog/writeForm" class="list-group-item list-group-item-action d-flex gap-2 py-3">
                 <div class="d-flex gap-2 w-100 justify-content-between">Write Blog</div>
             </a>
-        </div>
+        </form>
     </div>
     <div class="col-12 col-md-3 d-flex align-items-start mt-3">
-        <div class="list-group w-100">
-            <a href="/admin/buildLevels" class="list-group-item list-group-item-action d-flex gap-2 py-3">
+        <form method="post" class="list-group w-100">
+            <button type="submit" formaction="/admin/buildLevels" class="list-group-item list-group-item-action d-flex gap-2 py-3">
                 <div class="d-flex gap-2 w-100 justify-content-between">Build Levels</div>
-            </a>
-            <a href="/admin/buildMedalData" class="list-group-item list-group-item-action d-flex gap-2 py-3">
+            </button>
+            <button type="submit" formaction="/admin/buildMedalData" class="list-group-item list-group-item-action d-flex gap-2 py-3">
                 <div class="d-flex gap-2 w-100 justify-content-between">Build Medals</div>
-            </a>
-            <a href="/admin/buildMoveData" class="list-group-item list-group-item-action d-flex gap-2 py-3">
+            </button>
+            <button type="submit" formaction="/admin/buildMoveData" class="list-group-item list-group-item-action d-flex gap-2 py-3">
                 <div class="d-flex gap-2 w-100 justify-content-between">Build Moves</div>
-            </a>
-            <a href="/admin/buildPokemonData" class="list-group-item list-group-item-action d-flex gap-2 py-3">
+            </button>
+            <button type="submit" formaction="/admin/buildPokemonData" class="list-group-item list-group-item-action d-flex gap-2 py-3">
                 <div class="d-flex gap-2 w-100 justify-content-between">Build Pokemon</div>
-            </a>
-            <a href="/admin/buildCostumeData" class="list-group-item list-group-item-action d-flex gap-2 py-3">
+            </button>
+            <button type="submit" formaction="/admin/buildCostumeData" class="list-group-item list-group-item-action d-flex gap-2 py-3">
                 <div class="d-flex gap-2 w-100 justify-content-between">Build Costume Pokemon</div>
-            </a>
-        </div>
+            </button>
+        </form>
     </div>
     <div class="col-12 col-md-6 d-flex mt-3">
         <div class="d-flex h-100 w-100 card">

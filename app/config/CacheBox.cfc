@@ -67,6 +67,26 @@ component {
 				 * blog, trainer data, etc). Isolated from the default and template caches.
 				 * All timeouts are in minutes.
 				 */
+                /**
+				 * --------------------------------------------------------------------------
+				 * Rate Limit Storage
+				 * --------------------------------------------------------------------------
+				 * Fixed window counters for the rate limiter interceptor. Never evicted on access.
+				 */
+                rateLimitStorage: {
+                    provider  : 'coldbox.system.cache.providers.CacheBoxColdBoxProvider',
+                    properties: {
+                        objectDefaultTimeout         : 60,
+                        useLastAccessTimeouts        : false,
+                        freeMemoryPercentageThreshold: 0,
+                        reapFrequency                : 5,
+                        evictionPolicy               : 'LRU',
+                        evictCount                   : 2,
+                        maxObjects                   : 20000,
+                        objectStore                  : 'ConcurrentStore',
+                        resetTimeoutOnAccess         : false
+                    }
+                },
                 appCache: {
                     provider  : 'coldbox.system.cache.providers.CacheBoxColdBoxProvider',
                     properties: {

@@ -1,3 +1,4 @@
+import { escapeHtml } from 'escape';
 import { createToast } from 'toast';
 
 // Validate the incoming json
@@ -6,7 +7,7 @@ export function validate(editor) {
         JSON.parse(editor.value);
         return true;
     } catch (e) {
-        createToast(`Invalid JSON: ${e.message}`, 'danger', 'bi-exclamation-triangle');
+        createToast(`Invalid JSON: ${escapeHtml(e.message)}`, 'danger', 'bi-exclamation-triangle');
         return false;
     }
 }
@@ -17,6 +18,6 @@ export function format(editor) {
         const parsed = JSON.parse(editor.value);
         editor.value = JSON.stringify(parsed, null, 4);
     } catch (e) {
-        createToast(`Invalid JSON: ${e.message}`, 'danger', 'bi-exclamation-triangle');
+        createToast(`Invalid JSON: ${escapeHtml(e.message)}`, 'danger', 'bi-exclamation-triangle');
     }
 }

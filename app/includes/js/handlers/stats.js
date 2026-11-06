@@ -1,5 +1,6 @@
 import { createAlert } from 'alert';
 import { copyString, lockCopyButtonWidth } from 'copy';
+import { escapeHtml } from 'escape';
 import { getWrapper, postWrapper } from 'fetch';
 import { $loading, $loadingCard, $submitBtn } from 'loading';
 import { resetHandler, submitHandler } from 'modals';
@@ -109,7 +110,7 @@ export async function getMedalSummary(trainerid, $div) {
 
 /**
  * Loads the trainer's top stat days card
- * @param {number} trainerid
+ * @param {number | string} trainerid
  * @param {HTMLElement} $div
  */
 export async function getTopDeltas(trainerid, $div) {
@@ -120,7 +121,7 @@ export async function getTopDeltas(trainerid, $div) {
         dataHandler: (data) => {
             $div.innerHTML = data;
 
-            const buttons = document.querySelectorAll('.topDeltaStat');
+            const buttons = /** @type {NodeListOf<HTMLButtonElement>} */ (document.querySelectorAll('.topDeltaStat'));
             const list = document.getElementById('topDeltaList');
             const deltas = JSON.parse(document.getElementById('topDeltaData').dataset.deltas);
 
@@ -164,7 +165,7 @@ function renderStat(rows, stat) {
             (row, i) => `
                 <div class="d-flex align-items-center gap-2 px-3 py-2 rounded shadow-sm bg-body-secondary">
                     <span class="text-muted small" style="min-width: 1rem; text-align: right;">${i + 1}.</span>
-                    <span class="text-muted small flex-grow-1">${row.date}</span>
+                    <span class="text-muted small flex-grow-1">${escapeHtml(row.date)}</span>
                     <span class="fw-semibold small">${fmtStatValue(row.delta)}${unit}</span>
                 </div>
             `
@@ -183,7 +184,7 @@ async function getTrackStats() {
             document.getElementById('loadedModal').appendChild(newDiv);
             const $trackStatsModal = document.getElementById('trackStatsModal');
             globalModals.$trackStatsModal = new bootstrap.Modal($trackStatsModal, {});
-            const $trackStatsForm = document.getElementById('trackStatsForm');
+            const $trackStatsForm = /** @type {HTMLFormElement} */ (document.getElementById('trackStatsForm'));
             const $submitTrackStatsForm = document.getElementById('submitTrackStatsForm');
 
             $submitTrackStatsForm.addEventListener('click', async (evt) => {
@@ -213,7 +214,7 @@ async function getTrackStats() {
                         .filter(({ key, latest }) => latest !== undefined && Number(packet[key]) < Number(latest))
                         .map(
                             ({ label, latest, key }) =>
-                                `<li>${label}: Entered <strong>${packet[key]}</strong>, last entry was <strong>${latest}</strong></li>`
+                                `<li>${label}: Entered <strong>${escapeHtml(packet[key])}</strong>, last entry was <strong>${escapeHtml(latest)}</strong></li>`
                         )
                         .join('');
 
@@ -296,7 +297,7 @@ function renderDeltaTable(stat) {
         .map((date) => {
             const val = statDataset.data[date][stat];
             const delta = statDataset.data[date][`delta${stat}`];
-            return `<tr><td>${date}</td><td>${fmtStatValue(val)}</td><td>${fmtStatValue(delta)}</td></tr>`;
+            return `<tr><td>${escapeHtml(date)}</td><td>${fmtStatValue(val)}</td><td>${fmtStatValue(delta)}</td></tr>`;
         })
         .join('');
 }
@@ -353,7 +354,7 @@ async function submitTrackStats(packet, $btn, $modal) {
                     document.getElementById('statAlert'),
                     'danger',
                     'bi-exclamation-diamond-fill',
-                    `${data.message}`
+                    escapeHtml(data.message)
                 );
                 resetHandler($modal);
                 throw new Error(data.message);
@@ -456,19 +457,19 @@ export const runtime = {
         // Add the change stat handler
         Array.from(document.querySelectorAll('.changeStat')).forEach((stat) => {
             stat.addEventListener('click', (evt) => {
-                const $activeBtn = document.querySelector('.changeStat.active');
+                const $activeBtn = /** @type {HTMLButtonElement} */ (document.querySelector('.changeStat.active'));
                 $activeBtn.classList.remove('active');
                 $activeBtn.disabled = false;
 
-                changeStat(evt.currentTarget.dataset.stat);
+                changeStat(/** @type {HTMLButtonElement} */ (evt.currentTarget).dataset.stat);
 
-                evt.currentTarget.classList.add('active');
-                evt.currentTarget.disabled = true;
+                /** @type {HTMLButtonElement} */ (evt.currentTarget).classList.add('active');
+                /** @type {HTMLButtonElement} */ (evt.currentTarget).disabled = true;
             });
         });
 
-        const startDateInput = document.getElementById('startDate');
-        const endDateInput = document.getElementById('endDate');
+        const startDateInput = /** @type {HTMLInputElement} */ (document.getElementById('startDate'));
+        const endDateInput = /** @type {HTMLInputElement} */ (document.getElementById('endDate'));
         const dateMask = 'MM-DD-YYYY';
 
         $('#dateRangePicker').daterangepicker(
@@ -498,7 +499,7 @@ export const runtime = {
             (start, end) => {
                 startDateInput.value = start.format(dateMask);
                 endDateInput.value = end.format(dateMask);
-                document.getElementById('statsOverviewForm').submit();
+                /** @type {HTMLFormElement} */ (document.getElementById('statsOverviewForm')).submit();
             }
         );
     },

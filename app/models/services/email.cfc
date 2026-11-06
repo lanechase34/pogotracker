@@ -63,12 +63,32 @@ component singleton accessors="true" {
                 view: 'email/bug',
                 args: {
                     error         : arguments.error,
-                    sessionData   : session,
-                    requestContext: arguments.requestContext,
-                    cookieData    : cookie
+                    sessionData   : redactSensitive(session),
+                    requestContext: redactSensitive(arguments.requestContext),
+                    // Cookie values are credentials (session, persist) - only send the names
+                    cookieData    : cookie.keyList()
                 }
             )
             .queue();
+    }
+
+    /**
+     * Shallow copy of a scope with credentials/tokens replaced so they never leave the server
+     */
+    private struct function redactSensitive(required struct data) {
+        var sensitive = 'password|passwd|csrf|token|secret|resetcode|persistcookie|verificationcode|sessionid|jsessionid|cfid|cftoken|recaptcha';
+        var csrfField = application.cbController.getSetting('csrfTokenField');
+
+        var result = {};
+        for(var key in arguments.data) {
+            if(key == csrfField || reFindNoCase(sensitive, key)) {
+                result[key] = '[REDACTED]';
+            }
+            else {
+                result[key] = arguments.data[key] ?: '';
+            }
+        }
+        return result;
     }
 
     /**

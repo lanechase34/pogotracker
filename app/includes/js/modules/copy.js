@@ -4,11 +4,11 @@ export function initCopyIcons() {
     const copyIcons = document.querySelectorAll('.copyIcon');
     Array.from(copyIcons).forEach((copyicon) => {
         copyicon.addEventListener('click', (evt) => {
-            const text = evt.currentTarget.dataset.copydata;
+            const text = /** @type {HTMLElement} */ (evt.currentTarget).dataset.copydata;
 
             navigator.clipboard.writeText(text);
 
-            evt.currentTarget.innerHTML = $copied;
+            /** @type {HTMLElement} */ (evt.currentTarget).innerHTML = $copied;
         });
     });
 }

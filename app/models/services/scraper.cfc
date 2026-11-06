@@ -2,6 +2,7 @@ component singleton accessors="true" {
 
     property name="auditService" inject="services.audit";
     property name="jsoup"        inject="javaloader:org.jsoup.Jsoup";
+    property name="scraperHosts" inject="coldbox:setting:scraperHosts";
 
     property name="proxies"    type="array";
     property name="retryCount" type="numeric";
@@ -85,6 +86,8 @@ component singleton accessors="true" {
      * If returnJSON is true, return the format as json, otherwise jsoup object
      */
     public any function getData(required string url, boolean returnJSON = false) {
+        checkAllowedUrl(arguments.url);
+
         var count    = 0;
         var response = javacast('null', '');
         while(count < getRetryCount() && isNull(response)) {
@@ -103,12 +106,11 @@ component singleton accessors="true" {
                     doc.header(key, value);
                 });
 
-                if(arguments.returnJSON) {
-                    response = doc.execute().body();
-                }
-                else {
-                    response = doc.get();
-                }
+                // Redirects are followed, so check where we actually ended up before using the response
+                var result = doc.execute();
+                checkAllowedUrl(result.url().toString());
+
+                response = arguments.returnJSON ? result.body() : result.parse();
             }
             catch(any e) {
                 auditService.audit(
@@ -131,14 +133,43 @@ component singleton accessors="true" {
      * CFHTTP to download an image from the url and write to the destination
      */
     public void function downloadImage(required string url, required string destination) {
+        checkAllowedUrl(arguments.url);
+
         cfhttp(
             url    = arguments.url,
-            result = "imgResult",
+            result = "local.imgResult",
             method = "GET"
         );
-        var img = imageNew(imgResult.filecontent);
+        var img = imageNew(local.imgResult.filecontent);
         img.write(arguments.destination);
         return;
+    }
+
+    /**
+     * Only scrape http(s) urls on the allowed hosts (or their subdomains)
+     * Stops admin supplied links from reaching internal addresses (localhost, metadata endpoints, etc)
+     *
+     * @url url to check, throws if not allowed
+     */
+    private void function checkAllowedUrl(required string url) {
+        var host = '';
+        try {
+            // URL (not URI) is as lenient as jsoup, ex: trailing whitespace
+            var parsed = createObject('java', 'java.net.URL').init(trim(arguments.url));
+            if(listFindNoCase('http,https', parsed.getProtocol() ?: '')) {
+                host = lCase(parsed.getHost() ?: '');
+            }
+        }
+        catch(any e) {
+        }
+
+        var allowed = host.len() && getScraperHosts().some((allowedHost) => {
+            return host == allowedHost || host.endsWith('.#allowedHost#');
+        });
+
+        if(!allowed) {
+            throw(type = 'ScraperHostNotAllowed', message = 'Scraping is not allowed for #arguments.url#');
+        }
     }
 
 }

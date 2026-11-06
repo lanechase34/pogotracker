@@ -1,4 +1,5 @@
 import { createAlert } from 'alert';
+import { escapeHtml } from 'escape';
 import { postWrapper } from 'fetch';
 import { checkFormValidity } from 'form';
 import { $submitBtn } from 'loading';
@@ -32,7 +33,13 @@ async function getTradePlan($form, $btn, event) {
         responseType: 'json',
         dataHandler: (data) => {
             if (data.message.length) {
-                createAlert($tradePlanAlert, data.type, 'bi-exclamation-diamond-fill', data.message, 0);
+                createAlert(
+                    $tradePlanAlert,
+                    escapeHtml(data.type),
+                    'bi-exclamation-diamond-fill',
+                    escapeHtml(data.message),
+                    0
+                );
             } else {
                 $tradePlanDiv.innerHTML = data.data;
             }

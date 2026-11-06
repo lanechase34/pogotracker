@@ -5,11 +5,11 @@
     #view(view='/layouts/header')#
 
     <!--- CSS Lib --->
-    <link rel="stylesheet" type="text/css" href="#getSetting('cssPath')#/multiselect#getSetting('minifiedCSS')#.css#getSetting('cacheBuster')#" media="print" onload="this.media='all'; this.onload=null;"/>
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" crossorigin="anonymous" media="print" onload="this.media='all'; this.onload=null;"/>
-    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/bs5/dt-2.1.8/b-3.2.0/fh-4.0.1/r-3.0.3/datatables.min.css" crossorigin="anonymous" media="print" onload="this.media='all'; this.onload=null;"/>
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" crossorigin="anonymous" media="print" onload="this.media='all'; this.onload=null;"/>
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" crossorigin="anonymous" media="print" onload="this.media='all'; this.onload=null;"/>
+    <link rel="stylesheet" type="text/css" href="#getSetting('cssPath')#/multiselect#getSetting('minifiedCSS')#.css#getSetting('cacheBuster')#" media="print" data-async-css/>
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker@3.1.0/daterangepicker.css" integrity="sha384-zLkQsiLfAQqGeIJeKLC+rcCR1YoYaQFLCL7cLDUoKE1ajKJzySpjzWGfYS2vjSG+" crossorigin="anonymous" media="print" data-async-css/>
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/bs5/dt-2.1.8/b-3.2.0/fh-4.0.1/r-3.0.3/datatables.min.css" integrity="sha384-LEBUQaRxOXSHy5b75ws2/XGuukLTe8bxOMaFEBZwqxipueCJndxN+ijmD8Zo1T7Z" crossorigin="anonymous" media="print" data-async-css/>
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" integrity="sha384-OXVF05DQEe311p6ohU11NwlnX08FzMCsyoXzGOaL+83dKAb3qS17yZJxESl8YrJQ" crossorigin="anonymous" media="print" data-async-css/>
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" integrity="sha384-IrMr0LFnIMa9H6HhC5VVqVuWNEIwspnRLKQc0SUyPj4Cy4s02DiWDZEoJOo5WNK6" crossorigin="anonymous" media="print" data-async-css/>
 
     <!--- Handler styles --->
     <cfif fileExists("#getSetting('rootPath')##getSetting('cssPath')#/#prc.currHandler##getSetting('minifiedCSS')#.css")>
@@ -297,13 +297,13 @@
 
 <!--- JS Lib --->
 <script type="text/javascript" defer src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
-<script type="text/javascript" defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script type="text/javascript" defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.js" integrity="sha384-G436+Z2nlA8+PNoeRvWdxKbvOf8E/y+lYxqht2iBwNHTQDV5CJr3+AGVj8fGZi5t" crossorigin="anonymous"></script>
 <script type="text/javascript" defer src="https://cdnjs.cloudflare.com/ajax/libs/masonry/4.2.2/masonry.pkgd.min.js" integrity="sha512-JRlcvSZAXT8+5SQQAvklXGJuxXTouyq8oIMaYERZQasB8SBDHZaUbeASsJWpk0UUrf89DP3/aefPPrlMR1h1yQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script type="text/javascript" defer src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script type="text/javascript" defer src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.30.1/moment.min.js" integrity="sha512-QoJS4DOhdmG8kbbHkxmB/rtPdN62cGWXAdAFWWJPvUFF1/zxcPSdAnn4HhYZSIlVoLVEJ0LesfNlusgm2bPfnA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-<script type="text/javascript" defer src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script> 
-<script type="text/javascript" defer src="https://cdn.datatables.net/v/bs5/dt-2.1.8/b-3.2.0/fh-4.0.1/r-3.0.3/datatables.min.js"></script>
-<script type="text/javascript" defer src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script type="text/javascript" defer src="https://cdn.jsdelivr.net/npm/daterangepicker@3.1.0/daterangepicker.js" integrity="sha384-mnAM7GRdEYmwFIfdpoD/nOPQFbdJrbTrXa7om4CrSzKCQfysFJ0jbwgw+55cdvi7" crossorigin="anonymous"></script>
+<script type="text/javascript" defer src="https://cdn.datatables.net/v/bs5/dt-2.1.8/b-3.2.0/fh-4.0.1/r-3.0.3/datatables.min.js" integrity="sha384-iQSEMJu0K+n5/meciE2xGh/DhMUVUTd47E2TGA+3Sy3BY2dh1FzjxHLpMVeA49s+" crossorigin="anonymous"></script>
+<script type="text/javascript" defer src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js" integrity="sha384-d3UHjPdzJkZuk5H3qKYMLRyWLAQBJbby2yr2Q58hXXtAGF8RSNO9jpLDlKKPv5v3" crossorigin="anonymous"></script>
 
 <script type="module" src="#getSetting('jsPath')#/global#getSetting('minifiedJS')#.js#getSetting('cacheBuster')#"></script>
 </body>
