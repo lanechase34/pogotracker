@@ -189,8 +189,8 @@ component singleton accessors="true" {
 
         if(isNull(news)) {
             news        = [];
-            var baseUrl = 'https://pokemongolive.com';
-            var newsUrl = 'https://pokemongolive.com/en/news';
+            var baseUrl = 'https://pokemongo.com';
+            var newsUrl = 'https://pokemongo.com/en/news';
 
             var newsDoc   = scraperService.getData(newsUrl);
             var blogPosts = newsDoc

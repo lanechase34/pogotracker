@@ -210,6 +210,7 @@ component {
                 'leekduck.com',
                 'nocookie.net',
                 'pokemondb.net',
+                'pokemongo.com',
                 'pokemongolive.com',
                 'pvpoke.com'
             ],
