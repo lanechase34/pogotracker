@@ -1,16 +1,16 @@
 component extends="base" {
 
     this.allowedMethods = {
-        index      : 'GET',
-        home       : 'GET,POST',
-        contactForm: 'GET',
-        contact    : 'POST'
+        index      : "GET",
+        home       : "GET,POST",
+        contactForm: "GET",
+        contact    : "POST"
     };
 
     property name="emailService" inject="services.email";
 
     function index(event, rc, prc) {
-        relocate(uri = '/');
+        relocate(uri = "/");
     }
 
     /**
@@ -23,7 +23,7 @@ component extends="base" {
      * Contact Form Modal
      */
     function contactForm(event, rc, prc) {
-        event.setView(view = '/views/modal/contactform', nolayout = true);
+        event.setView(view = "/views/modal/contactform", nolayout = true);
     }
 
     /**
@@ -33,8 +33,8 @@ component extends="base" {
      * @rc.message message
      */
     function contact(event, rc, prc) {
-        if(hasValidationErrors(target = rc, constraints = 'home.contactForm')) {
-            jsonValidationFailure(event = event, message = 'Unable to submit contact form at this time');
+        if(hasValidationErrors(target = rc, constraints = "home.contactForm")) {
+            jsonValidationFailure(event = event, message = "Unable to submit contact form at this time");
             return;
         }
 

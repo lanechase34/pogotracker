@@ -10,13 +10,13 @@ component singleton accessors="true" {
         var env = new coldbox.system.core.delegates.Env();
 
         try {
-            admin action = 'verifyMailServer'
-            type         = 'server'
-            password     = '#env.getEnv('CFCONFIG_ADMINPASSWORD')#'
-            hostname     = '#env.getEnv('EMAIL_SERVER')#'
-            port         = '#env.getEnv('EMAIL_PORT')#'
-            mailusername = '#env.getEnv('EMAIL_USERNAME')#'
-            mailpassword = '#env.getEnv('EMAIL_PASSWORD')#';
+            admin action = "verifyMailServer"
+            type         = "server"
+            password     = "#env.getEnv("CFCONFIG_ADMINPASSWORD")#"
+            hostname     = "#env.getEnv("EMAIL_SERVER")#"
+            port         = "#env.getEnv("EMAIL_PORT")#"
+            mailusername = "#env.getEnv("EMAIL_USERNAME")#"
+            mailpassword = "#env.getEnv("EMAIL_PASSWORD")#";
 
             return true;
         }
@@ -38,9 +38,9 @@ component singleton accessors="true" {
         required string message
     ) {
         mailService
-            .newMail(to: getContactEmail(), subject: 'User Submitted Feedback')
+            .newMail(to: getContactEmail(), subject: "User Submitted Feedback")
             .setView(
-                view: 'email/contact',
+                view: "email/contact",
                 args: {
                     email  : arguments.email,
                     subject: arguments.subject,
@@ -58,9 +58,9 @@ component singleton accessors="true" {
      */
     public void function sendBug(required struct error, required struct requestContext) {
         mailService
-            .newMail(to: getContactEmail(), subject: 'BUG Found')
+            .newMail(to: getContactEmail(), subject: "BUG Found")
             .setView(
-                view: 'email/bug',
+                view: "email/bug",
                 args: {
                     error         : arguments.error,
                     sessionData   : redactSensitive(session),
@@ -76,16 +76,16 @@ component singleton accessors="true" {
      * Shallow copy of a scope with credentials/tokens replaced so they never leave the server
      */
     private struct function redactSensitive(required struct data) {
-        var sensitive = 'password|passwd|csrf|token|secret|resetcode|persistcookie|verificationcode|sessionid|jsessionid|cfid|cftoken|recaptcha';
-        var csrfField = application.cbController.getSetting('csrfTokenField');
+        var sensitive = "password|passwd|csrf|token|secret|resetcode|persistcookie|verificationcode|sessionid|jsessionid|cfid|cftoken|recaptcha";
+        var csrfField = application.cbController.getSetting("csrfTokenField");
 
         var result = {};
         for(var key in arguments.data) {
             if(key == csrfField || reFindNoCase(sensitive, key)) {
-                result[key] = '[REDACTED]';
+                result[key] = "[REDACTED]";
             }
             else {
-                result[key] = arguments.data[key] ?: '';
+                result[key] = arguments.data[key] ?: "";
             }
         }
         return result;
@@ -106,9 +106,9 @@ component singleton accessors="true" {
         required numeric lifespan
     ) {
         mailService
-            .newMail(to: arguments.email, subject: 'Reset POGO Tracker Password')
+            .newMail(to: arguments.email, subject: "Reset POGO Tracker Password")
             .setView(
-                view: 'email/resetpassword',
+                view: "email/resetpassword",
                 args: {
                     resetLink: arguments.resetLink,
                     expires  : arguments.expires,
@@ -133,9 +133,9 @@ component singleton accessors="true" {
         required numeric lifespan
     ) {
         mailService
-            .newMail(to: arguments.email, subject: 'POGO Tracker Verification Code')
+            .newMail(to: arguments.email, subject: "POGO Tracker Verification Code")
             .setView(
-                view: 'email/verificationcode',
+                view: "email/verificationcode",
                 args: {
                     email           : arguments.email,
                     verificationCode: arguments.verificationCode,
@@ -151,10 +151,10 @@ component singleton accessors="true" {
      */
     public void function sendTestEmail() {
         mailService
-            .newMail(to: getContactEmail(), subject: 'Sending a test email!')
-            .setBody('
+            .newMail(to: getContactEmail(), subject: "Sending a test email!")
+            .setBody("
                 Sending an email from the testing server! #now()# #createUUID()#
-            ')
+            ")
             .send();
     }
 

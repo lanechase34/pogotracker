@@ -43,7 +43,7 @@ component extends="coldbox.system.Interceptor" {
             start     : getTickCount(),
             agent     : left(securityService.getUserAgent(), AGENT_LENGTH),
             referer   : left(securityService.getReferer(), REFERER_LENGTH),
-            response  : '',
+            response  : "",
             statuscode: -1,
             trainerid : session?.trainerid ?: -1
         };
@@ -65,7 +65,7 @@ component extends="coldbox.system.Interceptor" {
         // Get as much information about the layout, view, and data returned
         else {
             prc.requestAudit.statuscode = prc?.statuscode ?: event?.getStatusCode() ?: -1;
-            prc.requestAudit.response   = serializeJSON({'layout': event.getCurrentLayout(), 'view': event.getCurrentView()});
+            prc.requestAudit.response   = serializeJSON({"layout": event.getCurrentLayout(), "view": event.getCurrentView()});
 
             // If there's no layout or no view, this is not a valid request (relocated) so skip logging
             if(!event.getCurrentLayout().len() && !event.getCurrentView().len()) skip = true;
@@ -86,7 +86,7 @@ component extends="coldbox.system.Interceptor" {
 
             lock name="slowRequestsLock" timeout="5" type="exclusive" throwOnTimeout=false {
                 // Delete requests older than 24 hours
-                var oneHourAgo           = dateAdd('h', -24, timestamp);
+                var oneHourAgo           = dateAdd("h", -24, timestamp);
                 concurrency.slowRequests = concurrency.slowRequests.filter((req) => {
                     return req.time > oneHourAgo;
                 });

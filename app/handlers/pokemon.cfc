@@ -1,16 +1,16 @@
 component extends="base" {
 
     this.allowedMethods = {
-        detail           : 'GET',
-        updateDetail     : 'POST',
-        search           : 'GET',
-        getPreviousEvents: 'GET'
+        detail           : "GET",
+        updateDetail     : "POST",
+        search           : "GET",
+        getPreviousEvents: "GET"
     };
 
     property name="pokemonService" inject="services.pokemon";
 
     function preHandler(event, rc, prc, action, eventArguments) {
-        prc.metaDescription = 'View a detailed breakdown of all a Pokemon''s Information';
+        prc.metaDescription = "View a detailed breakdown of all a Pokemon's Information";
     }
 
     /**
@@ -19,8 +19,8 @@ component extends="base" {
      * @rc.ses SES url that is a unique key for a pokemon
      */
     function detail(event, rc, prc) {
-        if(hasValidationErrors(target = rc, constraints = 'pokemon.detail')) {
-            htmlValidationFailure(event = event, redirectEvent = 'home');
+        if(hasValidationErrors(target = rc, constraints = "pokemon.detail")) {
+            htmlValidationFailure(event = event, redirectEvent = "home");
             return;
         }
 
@@ -30,7 +30,7 @@ component extends="base" {
          */
         prc.detailInfo = pokemonService.getDetailInfo(ses = rc.ses);
         if(prc.detailInfo.isEmpty()) {
-            event.setLayout('basic');
+            event.setLayout("basic");
             htmlNotFound(event = event);
             return;
         }
@@ -44,7 +44,7 @@ component extends="base" {
         };
 
         prc.metaDescription = prc.detailInfo.metaDescription;
-        prc.title           = '#prc.detailInfo.title# | #getSetting('title')#';
+        prc.title           = "#prc.detailInfo.title# | #getSetting("title")#";
         prc.suppressH1      = true; // pokemon's name is h1
     }
 
@@ -55,7 +55,7 @@ component extends="base" {
      */
     private function detailContent(event, rc, prc, required string ses) {
         prc.detail = pokemonService.getDetail(ses = arguments.ses);
-        return view(view = '/views/pokemon/fragment/detailcontent', nolayout = true);
+        return view(view = "/views/pokemon/fragment/detailcontent", nolayout = true);
     }
 
     /**
@@ -69,8 +69,8 @@ component extends="base" {
      * @rc.tradableSwitch    (optional) on/off switch
      */
     function updateDetail(event, rc, prc) {
-        if(hasValidationErrors(target = rc, constraints = 'pokemon.updateDetail')) {
-            htmlValidationFailure(event = event, redirectEvent = 'home');
+        if(hasValidationErrors(target = rc, constraints = "pokemon.updateDetail")) {
+            htmlValidationFailure(event = event, redirectEvent = "home");
             return;
         }
 
@@ -78,14 +78,14 @@ component extends="base" {
 
         pokemonService.updateDetail(
             pokemon     = prc.pokemon,
-            live        = (rc?.liveSwitch ?: 'off') == 'on',
-            shiny       = (rc?.shinySwitch ?: 'off') == 'on',
-            shadow      = (rc?.shadowSwitch ?: 'off') == 'on',
-            shinyShadow = (rc?.shinyShadowSwitch ?: 'off') == 'on',
-            tradable    = (rc?.tradableSwitch ?: 'off') == 'on'
+            live        = (rc?.liveSwitch ?: "off") == "on",
+            shiny       = (rc?.shinySwitch ?: "off") == "on",
+            shadow      = (rc?.shadowSwitch ?: "off") == "on",
+            shinyShadow = (rc?.shinyShadowSwitch ?: "off") == "on",
+            tradable    = (rc?.tradableSwitch ?: "off") == "on"
         );
 
-        relocate(uri = '/pokemon/#prc.pokemon.getSes()#');
+        relocate(uri = "/pokemon/#prc.pokemon.getSes()#");
     }
 
     /**
@@ -95,7 +95,7 @@ component extends="base" {
      * @rc.offset number of events already shown
      */
     function getPreviousEvents(event, rc, prc) {
-        if(hasValidationErrors(target = rc, constraints = 'pokemon.getPreviousEvents')) {
+        if(hasValidationErrors(target = rc, constraints = "pokemon.getPreviousEvents")) {
             htmlValidationFailure(event = event);
             return;
         }
@@ -113,7 +113,7 @@ component extends="base" {
         );
 
         event.setView(
-            view     = '/views/pokemon/fragment/eventrows',
+            view     = "/views/pokemon/fragment/eventrows",
             nolayout = true,
             args     = {
                 events: prc.events,
@@ -131,12 +131,12 @@ component extends="base" {
      * @rc.page   numeric page number
      */
     function search(event, rc, prc) {
-        if(hasValidationErrors(target = rc, constraints = 'pokemon.search')) {
-            jsonValidationFailure(event = event, message = 'Invalid Pokemon Search');
+        if(hasValidationErrors(target = rc, constraints = "pokemon.search")) {
+            jsonValidationFailure(event = event, message = "Invalid Pokemon Search");
             return;
         }
 
-        prc.responseObj.data = pokemonService.searchPokemon(search = rc?.search ?: '', page = rc.page);
+        prc.responseObj.data = pokemonService.searchPokemon(search = rc?.search ?: "", page = rc.page);
 
         jsonOk(event = event, data = prc.responseObj.data);
     }

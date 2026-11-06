@@ -43,15 +43,15 @@ component persistent="true" extends="base" {
      * If the pokemon has a costume type, that comes before the name
      */
     string function getEvolutionText() {
-        if(isNull(getEvolution())) return '';
+        if(isNull(getEvolution())) return "";
 
         return getEvolution().reduce((result, evolution, index) => {
             var currItem = evolution.getEvolution().getName();
             if(evolution.getEvolution().getCostume()) {
-                currItem = '#evolution.getEvolution().getCostumeType()# #currItem#';
+                currItem = "#evolution.getEvolution().getCostumeType()# #currItem#";
             }
             if(index > 1) {
-                return '#result#, #currItem#';
+                return "#result#, #currItem#";
             }
             return currItem;
         });
@@ -65,10 +65,10 @@ component persistent="true" extends="base" {
      */
     string function getMovesText(required string type, required string pokemonType) {
         var moves = getMoves(arguments.type, arguments.pokemonType);
-        if(!moves.len()) return '';
+        if(!moves.len()) return "";
 
-        var moveText = moves.map((move) => ('#move.getMove().getName()##move.getShadow() ? '$' : ''##move.getLegacy() ? '*' : ''#'));
-        return moveText.sort('text', 'asc').toList('<br>');
+        var moveText = moves.map((move) => ("#move.getMove().getName()##move.getShadow() ? "$" : ""##move.getLegacy() ? "*" : ""#"));
+        return moveText.sort("text", "asc").toList("<br>");
     }
 
     /**
@@ -83,13 +83,13 @@ component persistent="true" extends="base" {
         return getPokemonMove().filter((move) => {
             if(
                 (
-                    (type == 'fast' && move.getMove().getTurns() > 0) ||
-                    (type == 'charge' && move.getMove().getTurns() == 0)
+                    (type == "fast" && move.getMove().getTurns() > 0) ||
+                    (type == "charge" && move.getMove().getTurns() == 0)
                 ) &&
                 (
-                    pokemonType == 'all' ||
-                    (pokemonType == 'normal' && !move.getShadow()) ||
-                    (pokemonType == 'shadow' && move.getShadow())
+                    pokemonType == "all" ||
+                    (pokemonType == "normal" && !move.getShadow()) ||
+                    (pokemonType == "shadow" && move.getShadow())
                 )
             ) {
                 return true;
@@ -98,35 +98,35 @@ component persistent="true" extends="base" {
         });
     }
 
-    string function getType1Img(string type = 'icon') {
+    string function getType1Img(string type = "icon") {
         // icon or symbol
-        return '/includes/images/type#arguments.type#/#lCase(getType1())#.webp';
+        return "/includes/images/type#arguments.type#/#lCase(getType1())#.webp";
     }
 
-    string function getType2Img(string type = 'icon') {
+    string function getType2Img(string type = "icon") {
         // icon or symbol
-        return '/includes/images/type#arguments.type#/#lCase(getType2())#.webp';
+        return "/includes/images/type#arguments.type#/#lCase(getType2())#.webp";
     }
 
     string function getOgImage() {
-        return '#application.cbController.getSetting('domain')#/includes/images/sprites/#getSprite()##application.cbController.getSetting('imageExtension')#';
+        return "#application.cbController.getSetting("domain")#/includes/images/sprites/#getSprite()##application.cbController.getSetting("imageExtension")#";
     }
 
     string function getGenderText() {
         // skip nidorans
         if(getNumber() == 32 || getNumber() == 29) return;
 
-        if(getGender() == 'Male') {
-            return ' (Male)';
+        if(getGender() == "Male") {
+            return " (Male)";
         }
-        else if(getGender() == 'Female') {
-            return ' (Female)';
+        else if(getGender() == "Female") {
+            return " (Female)";
         }
-        return '';
+        return "";
     }
 
     string function getFullname() {
-        return '#getName()##getGenderText()#';
+        return "#getName()##getGenderText()#";
     }
 
 }

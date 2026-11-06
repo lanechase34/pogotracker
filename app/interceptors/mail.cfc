@@ -11,9 +11,9 @@ component extends="coldbox.system.Interceptor" {
      */
     function preMailSend(event, data, buffer, rc, prc) {
         // Change the subject and mailer if we are on development/test
-        if(getSetting('environment') != 'production') {
-            data.mail.setMailer('devFiles');
-            data.mail.setSubject('[TESTING]  #data.mail.getSubject()#');
+        if(getSetting("environment") != "production") {
+            data.mail.setMailer("devFiles");
+            data.mail.setSubject("[TESTING]  #data.mail.getSubject()#");
         }
     }
 
@@ -24,9 +24,9 @@ component extends="coldbox.system.Interceptor" {
         if(data.result.error) {
             // Log bug
             prc.bugDetail = {
-                ip       : '-1',
-                event    : 'cbMailQueue',
-                message  : 'Failed to send email',
+                ip       : "-1",
+                event    : "cbMailQueue",
+                message  : "Failed to send email",
                 stack    : data.result,
                 trainerid: -1
             };

@@ -2,8 +2,8 @@ component extends="tests.resources.baseTest" asyncAll="true" {
 
     function beforeAll() {
         super.beforeAll();
-        mockTrainer    = getInstance('tests.resources.mocktrainer');
-        pokemonService = getInstance('services.pokemon');
+        mockTrainer    = getInstance("tests.resources.mocktrainer");
+        pokemonService = getInstance("services.pokemon");
     }
 
     function afterAll() {
@@ -11,27 +11,27 @@ component extends="tests.resources.baseTest" asyncAll="true" {
     }
 
     function run() {
-        describe('pokedexService.registerAll', () => {
+        describe("pokedexService.registerAll", () => {
             beforeEach(() => {
                 setup();
-                pokedexService = getInstance('services.pokedex');
+                pokedexService = getInstance("services.pokedex");
                 trainer        = mockTrainer.make();
             });
 
-            it('Can be created', () => {
+            it("Can be created", () => {
                 expect(pokedexService).toBeComponent();
             });
 
-            it('Can register all pokemon in Kanto Region', () => {
+            it("Can register all pokemon in Kanto Region", () => {
                 pokedexService.registerAll(
                     trainer = trainer,
-                    region  = 'Kanto',
+                    region  = "Kanto",
                     shiny   = false
                 );
 
                 registered = pokedexService.getRegistered(
                     trainer = trainer,
-                    region  = 'Kanto',
+                    region  = "Kanto",
                     form    = false,
                     mega    = false,
                     shadow  = false,
@@ -40,16 +40,16 @@ component extends="tests.resources.baseTest" asyncAll="true" {
                 expect(pokedexHelperFunctions.countRegistered(registered)).toBe(151);
             });
 
-            it('Can register all shiny pokemon in Johto Region', () => {
+            it("Can register all shiny pokemon in Johto Region", () => {
                 pokedexService.registerAll(
                     trainer = trainer,
-                    region  = 'Johto',
+                    region  = "Johto",
                     shiny   = true
                 );
 
                 registered = pokedexService.getRegistered(
                     trainer = trainer,
-                    region  = 'Johto',
+                    region  = "Johto",
                     form    = false,
                     mega    = false,
                     shadow  = false,
@@ -59,34 +59,34 @@ component extends="tests.resources.baseTest" asyncAll="true" {
                 expect(pokedexHelperFunctions.countRegistered(registered, true)).toBe(99);
             });
 
-            it('Can register all in Hoenn which only registers normal pokemon, not costume pokemon', () => {
+            it("Can register all in Hoenn which only registers normal pokemon, not costume pokemon", () => {
                 // Hoenn costume pokemon
                 wurmplePartyHatId = pokemonService.get({
                     number     : 265,
-                    name       : 'Wurmple',
-                    gender     : '',
+                    name       : "Wurmple",
+                    gender     : "",
                     costume    : true,
-                    costumetype: 'Party Hat'
+                    costumetype: "Party Hat"
                 })[1].getId();
                 sableyeHalloweenId = pokemonService.get({
                     number     : 302,
-                    name       : 'Sableye',
-                    gender     : '',
+                    name       : "Sableye",
+                    gender     : "",
                     costume    : true,
-                    costumetype: 'Halloween'
+                    costumetype: "Halloween"
                 })[1].getId();
 
                 // Register all Hoenn pokemon
                 pokedexService.registerAll(
                     trainer = trainer,
-                    region  = 'Hoenn',
+                    region  = "Hoenn",
                     shiny   = false
                 );
 
                 // Normal Hoenn pokemon should be registered
                 registered = pokedexService.getRegistered(
                     trainer = trainer,
-                    region  = 'Hoenn',
+                    region  = "Hoenn",
                     form    = false,
                     mega    = false,
                     shadow  = false,
@@ -98,7 +98,7 @@ component extends="tests.resources.baseTest" asyncAll="true" {
                 // Costume Hoenn pokemon should not be registered at all
                 costumeRegistered = pokedexService.getRegistered(
                     trainer = trainer,
-                    region  = 'Hoenn',
+                    region  = "Hoenn",
                     form    = false,
                     mega    = false,
                     shadow  = false,

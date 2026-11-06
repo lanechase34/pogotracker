@@ -11,7 +11,7 @@ component extends="coldbox.system.Interceptor" {
     function preProcess(event, data, buffer, rc, prc) {
         prc.responseObj = {
             success   : false,
-            message   : '',
+            message   : "",
             statusCode: 500
         };
     }

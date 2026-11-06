@@ -14,7 +14,7 @@ component persistent="true" extends="base" {
     property name="comment" fieldtype="one-to-many" cfc="comment" lazy="true";
 
     string function getOgImage() {
-        return '#application.cbController.getSetting('domain')#/includes/uploads/full/#getImage()#';
+        return "#application.cbController.getSetting("domain")#/includes/uploads/full/#getImage()#";
     }
 
     /**
@@ -26,10 +26,10 @@ component persistent="true" extends="base" {
     string function getExcerpt(numeric length = 200) {
         var rawBody = getBody();
         if(isNull(rawBody) || !len(rawBody)) {
-            return '';
+            return "";
         }
 
-        var jsoup = application.cbController.getWireBox().getInstance('javaloader:org.jsoup.Jsoup');
+        var jsoup = application.cbController.getWireBox().getInstance("javaloader:org.jsoup.Jsoup");
         var text  = jsoup.parse(rawBody).text();
         return left(text, arguments.length);
     }

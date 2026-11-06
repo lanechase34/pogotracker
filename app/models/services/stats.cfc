@@ -10,15 +10,15 @@ component singleton accessors="true" {
      */
     public any function getFromDay(required component trainer, required date suppliedDate) {
         return ormExecuteQuery(
-            '
+            "
             from stat as stat
             where trainer = :trainer
             and created >= :low and created < :high
-        ',
+        ",
             {
-                'trainer': arguments.trainer,
-                'low'    : utilService.makeLowDate(arguments.suppliedDate),
-                'high'   : utilService.makeHighDate(arguments.suppliedDate)
+                "trainer": arguments.trainer,
+                "low"    : utilService.makeLowDate(arguments.suppliedDate),
+                "high"   : utilService.makeHighDate(arguments.suppliedDate)
             },
             true
         );
@@ -35,13 +35,13 @@ component singleton accessors="true" {
         required numeric walked
     ) {
         var newStat = entityNew(
-            'stat',
+            "stat",
             {
-                'trainer': arguments.trainer,
-                'xp'     : arguments.xp,
-                'caught' : arguments.caught,
-                'spun'   : arguments.spun,
-                'walked' : arguments.walked
+                "trainer": arguments.trainer,
+                "xp"     : arguments.xp,
+                "caught" : arguments.caught,
+                "spun"   : arguments.spun,
+                "walked" : arguments.walked
             }
         );
 
@@ -49,7 +49,7 @@ component singleton accessors="true" {
         ormFlush();
 
         // Clears the trainer's stat cache entries whenever they track stats
-        cache.clearByKeySnippet('#arguments.trainer.getId()#|stats.getStats');
+        cache.clearByKeySnippet("#arguments.trainer.getId()#|stats.getStats");
         return;
     }
 
@@ -67,12 +67,12 @@ component singleton accessors="true" {
         required date startDate,
         required date endDate
     ) {
-        var cacheKey = '';
+        var cacheKey = "";
         var stats;
 
         // Cache if this is a week view OR month view OR year view
         if(
-            (dayOfWeek(arguments.startDate) == 1 && dateDiff('d', arguments.startDate, arguments.endDate) == 6) ||
+            (dayOfWeek(arguments.startDate) == 1 && dateDiff("d", arguments.startDate, arguments.endDate) == 6) ||
             (
                 month(arguments.startDate) == month(arguments.endDate) &&
                 day(arguments.startDate) == 1 &&
@@ -81,10 +81,10 @@ component singleton accessors="true" {
             (
                 month(arguments.startDate) == 1 &&
                 month(arguments.endDate) == 12 &&
-                dateDiff('d', arguments.startDate, arguments.endDate) + 1 == daysInYear(arguments.startDate)
+                dateDiff("d", arguments.startDate, arguments.endDate) + 1 == daysInYear(arguments.startDate)
             )
         ) {
-            cachekey = '#arguments.trainer.getId()#|stats.getStats|startDate=#dateFormat(arguments.startDate, 'short')#|endDate=#dateFormat(arguments.endDate, 'short')#';
+            cachekey = "#arguments.trainer.getId()#|stats.getStats|startDate=#dateFormat(arguments.startDate, "short")#|endDate=#dateFormat(arguments.endDate, "short")#";
             stats    = cache.get(cacheKey);
         }
 
@@ -93,34 +93,34 @@ component singleton accessors="true" {
                 labels : [],
                 data   : {},
                 summary: {
-                    totalxp    : '--',
-                    totalcaught: '--',
-                    totalspun  : '--',
-                    totalwalked: '--',
-                    avgxp      : '--',
-                    avgcaught  : '--',
-                    avgspun    : '--',
-                    avgwalked  : '--'
+                    totalxp    : "--",
+                    totalcaught: "--",
+                    totalspun  : "--",
+                    totalwalked: "--",
+                    avgxp      : "--",
+                    avgcaught  : "--",
+                    avgspun    : "--",
+                    avgwalked  : "--"
                 }
             };
 
             var qStats = ormExecuteQuery(
-                '
+                "
                 from stat as stat
                 where trainer = :trainer
                 and created >= :startDate and created < :endDate
                 order by created asc
             
-            ',
+            ",
                 {
-                    'trainer'  : arguments.trainer,
-                    'startDate': utilService.makeLowDate(arguments.startDate),
-                    'endDate'  : utilService.makeHighDate(arguments.endDate)
+                    "trainer"  : arguments.trainer,
+                    "startDate": utilService.makeLowDate(arguments.startDate),
+                    "endDate"  : utilService.makeHighDate(arguments.endDate)
                 }
             );
 
             qStats.each((currStats) => {
-                var currDate = dateFormat(currStats.getCreated(), 'short');
+                var currDate = dateFormat(currStats.getCreated(), "short");
                 stats.labels.append(currDate);
                 stats.data.insert(currDate, {});
                 stats.data[currDate].xp = currStats.getXp();
@@ -133,13 +133,13 @@ component singleton accessors="true" {
             for(var i = 1; i <= stats.labels.len(); i++) {
                 if(i == 1) {
                     // first date can't calculate deltas
-                    stats.data[stats.labels[i]].deltaxp = '--';
-                    stats.data[stats.labels[i]].deltacaught = '--';
-                    stats.data[stats.labels[i]].deltaspun = '--';
-                    stats.data[stats.labels[i]].deltawalked = '--';
+                    stats.data[stats.labels[i]].deltaxp = "--";
+                    stats.data[stats.labels[i]].deltacaught = "--";
+                    stats.data[stats.labels[i]].deltaspun = "--";
+                    stats.data[stats.labels[i]].deltawalked = "--";
                 }
                 else {
-                    var currDiff = dateDiff('d', stats.labels[i - 1], stats.labels[i]);
+                    var currDiff = dateDiff("d", stats.labels[i - 1], stats.labels[i]);
                     stats.data[stats.labels[i]].deltaxp = round(
                         (stats.data[stats.labels[i]].xp - stats.data[stats.labels[i - 1]].xp) / currDiff,
                         1
@@ -173,7 +173,7 @@ component singleton accessors="true" {
 
                 // Average for range
                 var daysTracked = dateDiff(
-                    'd',
+                    "d",
                     stats.labels[1],
                     stats.labels[stats.labels.len()]
                 ) + 1;
@@ -197,8 +197,8 @@ component singleton accessors="true" {
      * @date date to get month from
      * @stat stat to rank (xp/caught/spun/walked)
      */
-    public array function getLeaderboard(required date date, string stat = 'xp') {
-        var cacheKey    = 'stats.getLeaderboard|date=#month(arguments.date)#|stat=#arguments.stat#';
+    public array function getLeaderboard(required date date, string stat = "xp") {
+        var cacheKey    = "stats.getLeaderboard|date=#month(arguments.date)#|stat=#arguments.stat#";
         var leaderboard = cache.get(cacheKey);
 
         if(isNull(leaderboard)) {
@@ -210,11 +210,11 @@ component singleton accessors="true" {
                 0,
                 0
             );
-            var high        = dateAdd('s', -1, dateAdd('m', 1, low));
-            var daysElapsed = dateDiff('d', low, arguments.date) + 1;
+            var high        = dateAdd("s", -1, dateAdd("m", 1, low));
+            var daysElapsed = dateDiff("d", low, arguments.date) + 1;
 
             var trainerDeltas = ormExecuteQuery(
-                '
+                "
                 select trainer, max(stat.#lCase(arguments.stat)#) - min(stat.#lCase(arguments.stat)#) as delta
                 from trainer as trainer
                 left outer join trainer.stat as stat with stat.created >= :low and stat.created <= :high
@@ -222,19 +222,19 @@ component singleton accessors="true" {
                 and trainer.username is not null
                 group by trainer
                 having count(stat) > 1
-                ',
-                {'low': low, 'high': high},
+                ",
+                {"low": low, "high": high},
                 {maxResults: 10}
             );
 
             leaderboard = [];
             trainerDeltas.each((trainer, index) => {
-                leaderboard.append({username: trainer[1].getUsername(), delta: !isNull(trainer[2]) ? (trainer[2] / daysElapsed) : '--'});
+                leaderboard.append({username: trainer[1].getUsername(), delta: !isNull(trainer[2]) ? (trainer[2] / daysElapsed) : "--"});
             });
 
             leaderboard.sort((a, b) => {
-                if(a.delta == '--') return 1;
-                if(b.delta == '--') return -1;
+                if(a.delta == "--") return 1;
+                if(b.delta == "--") return -1;
                 return (a.delta - b.delta) > 0 ? -1 : 1;
             });
 
@@ -248,12 +248,12 @@ component singleton accessors="true" {
      * and total available pokemon and shiny pokemon
      */
     public array function getPokedexStats(required component trainer) {
-        var cacheKey     = '#arguments.trainer.getId()#|stats.getPokedexStats';
+        var cacheKey     = "#arguments.trainer.getId()#|stats.getPokedexStats";
         var pokedexStats = cache.get(cacheKey);
 
         if(isNull(pokedexStats)) {
             pokedexStats = ormExecuteQuery(
-                '
+                "
                 select 
                     sum(case when pokemon.live is true then 1 else 0 end) as total,
                     sum(case when pokemon.shiny is true then 1 else 0 end) as totalshiny,
@@ -268,8 +268,8 @@ component singleton accessors="true" {
                     and pokemon.costume = false
                 group by pokemon.generation.region, pokemon.generation.generation
                 order by pokemon.generation.generation asc
-                ',
-                {'trainer': arguments.trainer}
+                ",
+                {"trainer": arguments.trainer}
             );
 
             cache.set(cacheKey, pokedexStats, 10, 10);
@@ -287,7 +287,7 @@ component singleton accessors="true" {
      * @return struct of arrays in format: { xp: [{date, delta}, ...], caught: [...], spun: [...], walked: [...] }
      */
     public struct function getTopDeltas(required component trainer, numeric records = 5) {
-        var cacheKey  = '#arguments.trainer.getId()#|stats.getTopDeltas';
+        var cacheKey  = "#arguments.trainer.getId()#|stats.getTopDeltas";
         var topDeltas = cache.get(cacheKey);
 
         if(!isNull(topDeltas)) {
@@ -295,7 +295,7 @@ component singleton accessors="true" {
         }
 
         var qStats = queryExecute(
-            '
+            "
             SELECT
                 curr_date,
                 xp_delta,
@@ -305,10 +305,10 @@ component singleton accessors="true" {
             FROM (
                 SELECT
                     created AS curr_date,
-                    ROUND(CAST(xp     - LAG(xp)     OVER (ORDER BY created) AS numeric) / NULLIF(CAST(DATE_PART(''day'', created - LAG(created) OVER (ORDER BY created)) AS numeric), 0), 1) AS xp_delta,
-                    ROUND(CAST(caught - LAG(caught) OVER (ORDER BY created) AS numeric) / NULLIF(CAST(DATE_PART(''day'', created - LAG(created) OVER (ORDER BY created)) AS numeric), 0), 1) AS caught_delta,
-                    ROUND(CAST(spun   - LAG(spun)   OVER (ORDER BY created) AS numeric) / NULLIF(CAST(DATE_PART(''day'', created - LAG(created) OVER (ORDER BY created)) AS numeric), 0), 1) AS spun_delta,
-                    ROUND(CAST(walked - LAG(walked) OVER (ORDER BY created) AS numeric) / NULLIF(CAST(DATE_PART(''day'', created - LAG(created) OVER (ORDER BY created)) AS numeric), 0), 1) AS walked_delta
+                    ROUND(CAST(xp     - LAG(xp)     OVER (ORDER BY created) AS numeric) / NULLIF(CAST(DATE_PART('day', created - LAG(created) OVER (ORDER BY created)) AS numeric), 0), 1) AS xp_delta,
+                    ROUND(CAST(caught - LAG(caught) OVER (ORDER BY created) AS numeric) / NULLIF(CAST(DATE_PART('day', created - LAG(created) OVER (ORDER BY created)) AS numeric), 0), 1) AS caught_delta,
+                    ROUND(CAST(spun   - LAG(spun)   OVER (ORDER BY created) AS numeric) / NULLIF(CAST(DATE_PART('day', created - LAG(created) OVER (ORDER BY created)) AS numeric), 0), 1) AS spun_delta,
+                    ROUND(CAST(walked - LAG(walked) OVER (ORDER BY created) AS numeric) / NULLIF(CAST(DATE_PART('day', created - LAG(created) OVER (ORDER BY created)) AS numeric), 0), 1) AS walked_delta
                 FROM stat
                 WHERE trainerid = :trainerid
             ) AS deltas
@@ -316,8 +316,8 @@ component singleton accessors="true" {
             AND   caught_delta IS NOT NULL
             AND   spun_delta   IS NOT NULL
             AND   walked_delta IS NOT NULL
-            ',
-            {trainerid: {value: arguments.trainer.getId(), cfsqltype: 'integer'}}
+            ",
+            {trainerid: {value: arguments.trainer.getId(), cfsqltype: "integer"}}
         );
 
         var topDeltas = {
@@ -336,13 +336,13 @@ component singleton accessors="true" {
                 statKeys.map((stat) => {
                     return () => {
                         var sorted = queryExecute(
-                            '
+                            "
                             SELECT TOP :records curr_date, #stat#_delta AS delta
                             FROM qStats
                             ORDER BY #stat#_delta DESC
-                            ',
-                            {records: {value: records, cfsqltype: 'integer'}},
-                            {dbtype: 'query'}
+                            ",
+                            {records: {value: records, cfsqltype: "integer"}},
+                            {dbtype: "query"}
                         );
                         return {stat: stat, rows: sorted};
                     };
@@ -352,7 +352,7 @@ component singleton accessors="true" {
 
         futures.each((result) => {
             result.rows.each((row) => {
-                topDeltas[result.stat].append({date: dateFormat(row.curr_date, 'short'), delta: row.delta});
+                topDeltas[result.stat].append({date: dateFormat(row.curr_date, "short"), delta: row.delta});
             });
         });
 

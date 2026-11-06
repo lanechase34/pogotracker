@@ -10,7 +10,7 @@ component persistent="true" extends="base" {
 
     // functions
     string function getMoveText() {
-        return '#getMove().getName()##getShadow() ? '$' : ''##getLegacy() ? '*' : ''#';
+        return "#getMove().getName()##getShadow() ? "$" : ""##getLegacy() ? "*" : ""#";
     }
 
 }

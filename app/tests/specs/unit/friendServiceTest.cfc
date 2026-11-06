@@ -2,7 +2,7 @@ component extends="tests.resources.baseTest" asyncAll="false" {
 
     function beforeAll() {
         super.beforeAll();
-        mockTrainer    = getInstance('tests.resources.mocktrainer');
+        mockTrainer    = getInstance("tests.resources.mocktrainer");
         mocktrainerids = []; // 1 - friend, 2 - trainer
 
         // Set up trainer + friend that trainer will add
@@ -20,30 +20,30 @@ component extends="tests.resources.baseTest" asyncAll="false" {
     }
 
     function run() {
-        describe('Friend service tests', () => {
+        describe("Friend service tests", () => {
             beforeEach(() => {
                 setup();
-                friendService = getInstance('services.friend');
+                friendService = getInstance("services.friend");
             });
 
-            it('Can be created', () => {
+            it("Can be created", () => {
                 expect(friendService).toBeComponent();
             });
 
-            describe('friendService.getFriendsToAdd', () => {
-                it('Can paginate through friends list to find friend to add', () => {
+            describe("friendService.getFriendsToAdd", () => {
+                it("Can paginate through friends list to find friend to add", () => {
                     found     = false;
                     currPage  = 1;
                     morePages = true;
 
                     while(morePages && !found) {
                         // Load the current page
-                        page = friendService.getFriendsToAdd(trainer = trainer, search = '', page = currPage);
+                        page = friendService.getFriendsToAdd(trainer = trainer, search = "", page = currPage);
 
                         expect(page).toBeStruct();
-                        expect(page).toHaveKey('results');
+                        expect(page).toHaveKey("results");
                         expect(page.results).toBeArray();
-                        expect(page).toHaveKey('pagination');
+                        expect(page).toHaveKey("pagination");
 
                         // Try to find friend
                         page.results.each((row) => {
@@ -61,7 +61,7 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                     expect(found).toBeTrue();
                 });
 
-                it('Can search for friend to add', () => {
+                it("Can search for friend to add", () => {
                     // Search for friend explicitly and expect only friend to be returned
                     page = friendService.getFriendsToAdd(
                         trainer = trainer,
@@ -69,23 +69,23 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                         page    = 1
                     );
                     expect(page).toBeStruct();
-                    expect(page).toHaveKey('results');
+                    expect(page).toHaveKey("results");
                     expect(page.results).toBeArray();
-                    expect(page).toHaveKey('pagination');
+                    expect(page).toHaveKey("pagination");
                     expect(page.pagination.more).toBeFalse();
                     expect(page.results.len()).toBe(1);
                 });
             });
 
-            it('friendService.checkFriend', () => {
+            it("friendService.checkFriend", () => {
                 // Check if they are friends
                 expect(friendService.checkFriend(trainerid = mocktrainerids[2], friendid = mocktrainerids[1])).toBeFalse();
             });
 
-            describe('Friend request life cycle', () => {
-                it('Can send a friend request', () => {
+            describe("Friend request life cycle", () => {
+                it("Can send a friend request", () => {
                     event = post(
-                        route  = '/friend/sendFriendRequest',
+                        route  = "/friend/sendFriendRequest",
                         params = {trainerid: mocktrainerids[2], friendid: mocktrainerids[1]}
                     );
                     // Verify successful response
@@ -104,7 +104,7 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                     ).toBeTrue();
                 });
 
-                it('Can load pending friend requests', () => {
+                it("Can load pending friend requests", () => {
                     // Load the friend requests as the friend and make sure we see one pending decision
                     friendRequests = friendService.getFriendRequests(friend);
                     expect(friendRequests).toBeArray();
@@ -115,7 +115,7 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                     friendRequestId = friendRequests[1][2];
                 });
 
-                it('Can load sent friend requests', () => {
+                it("Can load sent friend requests", () => {
                     // Load the sent friend requests as the trainer and make sure we see one sent to friend
                     sentFriendRequests = friendService.getFriendsList(trainer = trainer, accepted = false);
                     expect(sentFriendRequests).toBeArray();
@@ -126,13 +126,13 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                     expect(sentFriendRequests[1][2]).toBeFalse();
                 });
 
-                it('Can accept a friend request', () => {
+                it("Can accept a friend request", () => {
                     // Login as friend and accept the friend request
                     mockTrainer.logout();
                     mockTrainer.login(friend);
 
                     event = post(
-                        route  = '/friend/decideFriendRequest',
+                        route  = "/friend/decideFriendRequest",
                         params = {friendrequestid: friendRequestId, accept: true}
                     );
                     // Verify successful response
@@ -160,7 +160,7 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                     ).toBeTrue();
                 });
 
-                it('Can load friends list', () => {
+                it("Can load friends list", () => {
                     // Login as trainer and load friends list
                     mockTrainer.logout();
                     mockTrainer.login(trainer);
@@ -175,7 +175,7 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                     expect(friendsList[1][2]).toBeTrue();
                 });
 
-                it('Can search friendslist for friend', () => {
+                it("Can search friendslist for friend", () => {
                     searchFriendsList = friendService.searchFriendsList(
                         trainer = trainer,
                         search  = friend.getUsername(),
@@ -183,9 +183,9 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                     );
 
                     expect(searchFriendsList).toBeStruct();
-                    expect(searchFriendsList).toHaveKey('results');
+                    expect(searchFriendsList).toHaveKey("results");
                     expect(searchFriendsList.results).toBeArray();
-                    expect(searchFriendsList).toHaveKey('pagination');
+                    expect(searchFriendsList).toHaveKey("pagination");
                     expect(searchFriendsList.pagination.more).toBeFalse();
                     expect(searchFriendsList.results.len()).toBe(1);
                 });

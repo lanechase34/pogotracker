@@ -6,16 +6,16 @@ component extends="base" {
 
         for(var i = 1; i <= total; i++) {
             data.append({
-                'created'  : dateAdd('d', -1 * i, now()),
-                'caught'   : randRange(100, 100000),
-                'spun'     : randRange(100, 100000),
-                'walked'   : randRange(100, 100000),
-                'xp'       : randRange(100, 100000),
-                'trainerid': 1
+                "created"  : dateAdd("d", -1 * i, now()),
+                "caught"   : randRange(100, 100000),
+                "spun"     : randRange(100, 100000),
+                "walked"   : randRange(100, 100000),
+                "xp"       : randRange(100, 100000),
+                "trainerid": 1
             });
         };
 
-        qb.table('stat').insert(data);
+        qb.table("stat").insert(data);
     }
 
 }

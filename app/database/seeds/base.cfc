@@ -2,7 +2,7 @@ component {
 
     // Stub
     function run() {
-        application.delete('pokemonData');
+        application.delete("pokemonData");
     }
 
     /**
@@ -12,11 +12,11 @@ component {
      * @str string that has mystery encoding
      */
     function toUTF8(string str) {
-        if(createObject('java', 'java.lang.System').getProperty('file.encoding') != 'UTF-8') {
-            var bytes = createObject('java', 'java.lang.String')
+        if(createObject("java", "java.lang.System").getProperty("file.encoding") != "UTF-8") {
+            var bytes = createObject("java", "java.lang.String")
                 .init(str)
-                .getBytes(createObject('java', 'java.lang.System').getProperty('file.encoding'));
-            return createObject('java', 'java.lang.String').init(bytes, 'UTF-8');
+                .getBytes(createObject("java", "java.lang.System").getProperty("file.encoding"));
+            return createObject("java", "java.lang.String").init(bytes, "UTF-8");
         }
         return str;
     }
@@ -26,11 +26,11 @@ component {
      * Store in application scope to be shared throughout seeder
      */
     function getPokemonData() {
-        if(!application.keyExists('pokemonData')) {
+        if(!application.keyExists("pokemonData")) {
             var pokedexFile = fileOpen(
-                file    = 'resources/pokedex.json',
-                mode    = 'read',
-                charset = 'UTF-8'
+                file    = "resources/pokedex.json",
+                mode    = "read",
+                charset = "UTF-8"
             );
 
             var pokemonData = deserializeJSON(fileRead(pokedexFile));
@@ -45,9 +45,9 @@ component {
      */
     function getCostumeData() {
         var costumeFile = fileOpen(
-            file    = '../../includes/assets/costumes.json',
-            mode    = 'read',
-            charset = 'UTF-8'
+            file    = "../../includes/assets/costumes.json",
+            mode    = "read",
+            charset = "UTF-8"
         );
 
         var costumeData = deserializeJSON(fileRead(costumeFile));
@@ -59,9 +59,9 @@ component {
      */
     function getPokedexOverrides() {
         var overridesFile = fileOpen(
-            file    = 'resources/pokedexoverrides.json',
-            mode    = 'read',
-            charset = 'UTF-8'
+            file    = "resources/pokedexoverrides.json",
+            mode    = "read",
+            charset = "UTF-8"
         );
 
         return deserializeJSON(toUTF8(fileRead(overridesFile)));

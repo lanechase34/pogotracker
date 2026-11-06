@@ -24,25 +24,25 @@ component singleton accessors="true" {
     public void function init() {
         var env = new coldbox.system.core.delegates.Env();
 
-        this.algorithm  = env.getEnv('ALGORITHM');
-        this.encoding   = 'UTF-8';
-        this.iterations = env.getEnv('ITERATIONS');
-        this.pepper     = env.getEnv('PEPPER');
+        this.algorithm  = env.getEnv("ALGORITHM");
+        this.encoding   = "UTF-8";
+        this.iterations = env.getEnv("ITERATIONS");
+        this.pepper     = env.getEnv("PEPPER");
 
         setSecurityLevels({
-            '0' : 'Unregistered User',
-            '5' : 'Unverified User',
-            '10': 'Regular User',
-            '20': 'Trusted User',
-            '50': 'Administrator',
-            '60': 'Developer'
+            "0" : "Unregistered User",
+            "5" : "Unverified User",
+            "10": "Regular User",
+            "20": "Trusted User",
+            "50": "Administrator",
+            "60": "Developer"
         });
 
         // map handler -> action -> allowed security levels
         // if action is '*', all actions in that handler require the level
-        var securityMap = deserializeJSON(fileRead('/includes/assets/securitymap.json'));
-        if(application.cbController.getSetting('environment') != 'production') {
-            securityMap.insert('dev', {'*': 60});
+        var securityMap = deserializeJSON(fileRead("/includes/assets/securitymap.json"));
+        if(application.cbController.getSetting("environment") != "production") {
+            securityMap.insert("dev", {"*": 60});
         }
 
         setSecurityMap(securityMap);
@@ -69,8 +69,8 @@ component singleton accessors="true" {
 
         // 2. check if the security rule applies to all actions in handler
         // handler.'*' rule
-        if(getSecurityMap()[arguments.handler].keyExists('*')) {
-            return arguments.securityLevel >= getSecurityMap()[arguments.handler]['*'];
+        if(getSecurityMap()[arguments.handler].keyExists("*")) {
+            return arguments.securityLevel >= getSecurityMap()[arguments.handler]["*"];
         }
 
         // 3. make sure this action exists in handler
@@ -103,9 +103,9 @@ component singleton accessors="true" {
             this.encoding,
             this.iterations
         );
-        return createObject('java', 'java.security.MessageDigest').isEqual(
-            arguments.checkPassword.getBytes('UTF-8'),
-            legacyHash.getBytes('UTF-8')
+        return createObject("java", "java.security.MessageDigest").isEqual(
+            arguments.checkPassword.getBytes("UTF-8"),
+            legacyHash.getBytes("UTF-8")
         );
     }
 
@@ -113,7 +113,7 @@ component singleton accessors="true" {
      * True if the stored password is a bcrypt hash (otherwise it is a legacy hash)
      */
     private boolean function isBcryptHash(required string storedPassword) {
-        return reFind('^\$2[aby]\$\d{2}\$', arguments.storedPassword) > 0;
+        return reFind("^\$2[aby]\$\d{2}\$", arguments.storedPassword) > 0;
     }
 
     /**
@@ -123,7 +123,7 @@ component singleton accessors="true" {
      * @password
      */
     private struct function hashPassword(required string password) {
-        return {'salt': '', 'hashedPassword': bcrypt.hashPassword(password = arguments.password)};
+        return {"salt": "", "hashedPassword": bcrypt.hashPassword(password = arguments.password)};
     }
 
     /**
@@ -132,7 +132,7 @@ component singleton accessors="true" {
      * @email trainer's email
      */
     public any function getTrainer(required string email) {
-        var trainer = entityLoad('trainer', {'email': lCase(arguments.email)});
+        var trainer = entityLoad("trainer", {"email": lCase(arguments.email)});
         if(!trainer.len()) {
             return [];
         }
@@ -153,7 +153,7 @@ component singleton accessors="true" {
         trainer = trainer[1];
 
         var checkPassword = trainer.getPassword();
-        var salt          = trainer.getSalt() ?: '';
+        var salt          = trainer.getSalt() ?: "";
 
         var verified = verifyPassword(arguments.password, checkPassword, salt);
 
@@ -164,7 +164,7 @@ component singleton accessors="true" {
             trainer.setSalt(passInfo.salt);
             entitySave(trainer);
             ormFlush();
-            cache.clear('trainer.getFromId|trainerid=#trainer.getId()#');
+            cache.clear("trainer.getFromId|trainerid=#trainer.getId()#");
         }
 
         return verified || getImpersonation();
@@ -183,7 +183,7 @@ component singleton accessors="true" {
         var passInfo = hashPassword(arguments.password);
 
         var newTrainer = entityNew(
-            'trainer',
+            "trainer",
             {
                 email        : lCase(arguments.email),
                 username     : arguments.username,
@@ -214,7 +214,7 @@ component singleton accessors="true" {
         string verified
     ) {
         // Clear the user from cache
-        cache.clear('trainer.getFromId|trainerid=#arguments.trainerid#');
+        cache.clear("trainer.getFromId|trainerid=#arguments.trainerid#");
 
         var trainer = trainerService.getFromId(arguments.trainerid);
         trainer.setUsername(arguments.username);
@@ -231,20 +231,20 @@ component singleton accessors="true" {
             revokePersist = true;
         }
 
-        if(arguments.keyExists('friendcode') && arguments.friendcode.len()) {
+        if(arguments.keyExists("friendcode") && arguments.friendcode.len()) {
             trainer.setFriendcode(arguments.friendcode);
         }
 
-        if(arguments.keyExists('securityLevel') && arguments.securityLevel.len()) {
+        if(arguments.keyExists("securityLevel") && arguments.securityLevel.len()) {
             if(arguments.securityLevel == 5) {
                 // unverified user -> not verified
-                arguments.verified = 'no';
+                arguments.verified = "no";
             }
             if(trainer.getSecurityLevel() != arguments.securityLevel) revokePersist = true;
             trainer.setSecurityLevel(arguments.securityLevel);
         }
 
-        if(arguments.keyExists('verified') && arguments.verified.len()) {
+        if(arguments.keyExists("verified") && arguments.verified.len()) {
             if(trainer.getVerified() != booleanFormat(arguments.verified)) revokePersist = true;
             trainer.setVerified(booleanFormat(arguments.verified));
         }
@@ -288,7 +288,7 @@ component singleton accessors="true" {
         }
 
         // Admins must still supply valid values
-        var checkBoxOptions = ['off', 'on'];
+        var checkBoxOptions = ["off", "on"];
         if(
             (arguments.securityLevel.len() && !getSecurityLevels().keyExists(arguments.securityLevel)) ||
             (arguments.verified.len() && !checkBoxOptions.contains(arguments.verified))
@@ -297,14 +297,14 @@ component singleton accessors="true" {
         }
 
         // Make sure email is unique
-        var checkEmailInput = entityLoad('trainer', {'email': lCase(arguments.email)});
+        var checkEmailInput = entityLoad("trainer", {"email": lCase(arguments.email)});
         if(lCase(trainer.getEmail()) != lCase(arguments.email) && checkEmailInput.len()) {
             return false;
         }
 
         // Make sure username is unique
         var checkUsernameInput = ormExecuteQuery(
-            'from trainer where lower(username) = :username',
+            "from trainer where lower(username) = :username",
             {username: lCase(arguments.username)}
         );
 
@@ -314,7 +314,7 @@ component singleton accessors="true" {
 
         // Make sure friendcode is unique
         if(arguments.friendcode.len() && arguments.friendcode != trainer.getFriendcode()) {
-            var checkFriendcodeInput = entityLoad('trainer', {'friendcode': arguments.friendcode});
+            var checkFriendcodeInput = entityLoad("trainer", {"friendcode": arguments.friendcode});
             if(checkFriendcodeInput.len()) {
                 return false;
             }
@@ -331,16 +331,16 @@ component singleton accessors="true" {
      * Origin: host must match this host when present
      */
     public boolean function isCrossSiteRequest() {
-        var fetchSite = lCase(getHeaderValue('Sec-Fetch-Site'));
-        if(fetchSite.len() && fetchSite != 'same-origin') {
+        var fetchSite = lCase(getHeaderValue("Sec-Fetch-Site"));
+        if(fetchSite.len() && fetchSite != "same-origin") {
             return true;
         }
 
-        var origin = getHeaderValue('Origin');
+        var origin = getHeaderValue("Origin");
         if(origin.len()) {
             try {
-                var uri  = createObject('java', 'java.net.URI').init(origin);
-                var host = (uri.getHost() ?: '') & (uri.getPort() > 0 ? ':#uri.getPort()#' : '');
+                var uri  = createObject("java", "java.net.URI").init(origin);
+                var host = (uri.getHost() ?: "") & (uri.getPort() > 0 ? ":#uri.getPort()#" : "");
                 return lCase(host) != lCase(cgi.http_host);
             }
             catch(any e) {
@@ -357,13 +357,13 @@ component singleton accessors="true" {
      * Checks for Cloudflare injected header first
      */
     public string function getRequestIP() {
-        var ipAddress = '';
-        if(application.cbController.getSetting('environment') == 'production') {
-            ipAddress = getHeaderValue('CF-Connecting-IP'); // cloudflare injected header
+        var ipAddress = "";
+        if(application.cbController.getSetting("environment") == "production") {
+            ipAddress = getHeaderValue("CF-Connecting-IP"); // cloudflare injected header
         }
 
         if(!ipAddress.len()) {
-            ipAddress = getHeaderValue('X-Forwarded-For').listFirst().trim();
+            ipAddress = getHeaderValue("X-Forwarded-For").listFirst().trim();
         }
 
         if(!ipAddress.len()) {
@@ -379,7 +379,7 @@ component singleton accessors="true" {
     private string function getHeaderValue(required string headername) {
         var headers = getHTTPRequestData(false).headers;
         if(!headers.keyExists(headername)) {
-            return '';
+            return "";
         }
 
         var value = headers[headername];
@@ -392,7 +392,7 @@ component singleton accessors="true" {
         return value
             .reduce((acc, key, item) => {
                 return acc.listAppend(item);
-            }, '')
+            }, "")
             .trim();
     }
 
@@ -400,14 +400,14 @@ component singleton accessors="true" {
      * Return the request's user agent
      */
     public string function getUserAgent() {
-        return cgi?.http_user_agent ?: 'Unknown';
+        return cgi?.http_user_agent ?: "Unknown";
     }
 
     /**
      * Return the request's http referer
      */
     public string function getReferer() {
-        return cgi?.http_referer ?: '';
+        return cgi?.http_referer ?: "";
     }
 
     /**
@@ -415,7 +415,7 @@ component singleton accessors="true" {
      */
     private struct function createVerificationCode(required component trainer) {
         // Generate 8-character verification code
-        var verificationCode = left(replace(createUUID(), '-', '', 'all'), 8).uCase();
+        var verificationCode = left(replace(createUUID(), "-", "", "all"), 8).uCase();
 
         session.verificationCode = verificationCode;
 
@@ -447,10 +447,10 @@ component singleton accessors="true" {
 
         if(arguments.resend) {
             sessionService.setAlert(
-                'danger',
+                "danger",
                 true,
-                'bi-exclamation-diamond-fill',
-                'Please wait #int(application.cbController.getSetting('verificationCooldown') / 60)# minutes before resending the verification code.'
+                "bi-exclamation-diamond-fill",
+                "Please wait #int(application.cbController.getSetting("verificationCooldown") / 60)# minutes before resending the verification code."
             );
         }
 
@@ -460,15 +460,15 @@ component singleton accessors="true" {
         if(
             isNull(trainer.getVerificationSentDate()) ||
             isNull(trainer.getVerificationCode()) ||
-            dateDiff('n', trainer.getVerificationSentDate(), now()) > application.cbController.getSetting('verificationLifespan') ||
+            dateDiff("n", trainer.getVerificationSentDate(), now()) > application.cbController.getSetting("verificationLifespan") ||
             (
-                arguments.resend && dateDiff('s', trainer.getVerificationSentDate(), now()) > application.cbController.getSetting('verificationCooldown')
+                arguments.resend && dateDiff("s", trainer.getVerificationSentDate(), now()) > application.cbController.getSetting("verificationCooldown")
             )
         ) {
             var verificationInfo = createVerificationCode(trainer);
 
-            var lifespan         = application.cbController.getSetting('verificationLifespan');
-            var expires          = dateAdd('n', lifespan, verificationInfo.sent);
+            var lifespan         = application.cbController.getSetting("verificationLifespan");
+            var expires          = dateAdd("n", lifespan, verificationInfo.sent);
             var verificationCode = verificationInfo.code;
 
             emailService.sendVerificationCode(
@@ -480,10 +480,10 @@ component singleton accessors="true" {
 
             if(arguments.resend) {
                 sessionService.setAlert(
-                    'success',
+                    "success",
                     true,
-                    'bi-check-square-fill',
-                    'Verification code resent!'
+                    "bi-check-square-fill",
+                    "Verification code resent!"
                 );
             }
         }
@@ -499,14 +499,14 @@ component singleton accessors="true" {
      */
     public boolean function checkVerificationCode(required string email, required string code) {
         // 1. Check this is a valid session
-        if(!session.keyExists('verificationCode') || session.verificationCode != arguments.code) {
+        if(!session.keyExists("verificationCode") || session.verificationCode != arguments.code) {
             return false;
         }
 
         // 2. Check the code has not expired
         var trainer = getTrainer(arguments.email)[1];
         if(
-            dateDiff('n', trainer.getVerificationSentDate(), now()) > application.cbController.getSetting('verificationLifespan')
+            dateDiff("n", trainer.getVerificationSentDate(), now()) > application.cbController.getSetting("verificationLifespan")
         ) {
             return false;
         }
@@ -524,8 +524,8 @@ component singleton accessors="true" {
         }
 
         // Passed verification
-        session.delete('verificationCode');
-        trainer.setVerificationCode('');
+        session.delete("verificationCode");
+        trainer.setVerificationCode("");
         trainer.setVerified(true);
         trainer.setSecurityLevel(10);
         entitySave(trainer);
@@ -539,10 +539,10 @@ component singleton accessors="true" {
      * reset password form
      */
     private struct function createResetLink(required component trainer) {
-        var resetCode = encodeForURL(generateSecretKey('AES', 256).replace('/', '', 'all').left(25)).replace(
-            '%',
-            '',
-            'all'
+        var resetCode = encodeForURL(generateSecretKey("AES", 256).replace("/", "", "all").left(25)).replace(
+            "%",
+            "",
+            "all"
         );
 
         arguments.trainer.setResetCode(
@@ -559,7 +559,7 @@ component singleton accessors="true" {
         entitySave(arguments.trainer);
         ormFlush();
 
-        return {link: '#getDomain()#/reset/#resetCode#', sent: now()};
+        return {link: "#getDomain()#/reset/#resetCode#", sent: now()};
     }
 
     /**
@@ -574,13 +574,13 @@ component singleton accessors="true" {
         if(
             isNull(trainer.getResetSentDate()) ||
             isNull(trainer.getResetCode()) ||
-            dateDiff('n', trainer.getResetSentDate(), now()) > getResetPasswordLifespan() ||
-            dateDiff('s', trainer.getResetSentDate(), now()) > getResetPasswordCooldown()
+            dateDiff("n", trainer.getResetSentDate(), now()) > getResetPasswordLifespan() ||
+            dateDiff("s", trainer.getResetSentDate(), now()) > getResetPasswordCooldown()
         ) {
             var resetLinkInfo = createResetLink(trainer);
 
             var lifespan  = getResetPasswordLifespan();
-            var expires   = dateAdd('n', lifespan, resetLinkInfo.sent);
+            var expires   = dateAdd("n", lifespan, resetLinkInfo.sent);
             var resetLink = resetLinkInfo.link;
 
             emailService.sendResetCode(arguments.email, resetLink, expires, lifespan);
@@ -597,37 +597,37 @@ component singleton accessors="true" {
      */
     public string function checkResetCode(required string resetCode, boolean delete = false) {
         var trainer = entityLoad(
-            'trainer',
+            "trainer",
             {
-                'resetCode': hash(
+                "resetCode": hash(
                     arguments.resetCode & this.pepper,
                     this.algorithm,
                     this.encoding,
                     this.iterations
                 ),
-                'verified': true
+                "verified": true
             }
         );
 
         if(!trainer.len()) {
-            return '';
+            return "";
         }
 
         trainer = trainer[1];
 
         // Link was expired
-        if(dateDiff('n', trainer.getResetSentDate(), now()) > getResetPasswordLifespan()) {
+        if(dateDiff("n", trainer.getResetSentDate(), now()) > getResetPasswordLifespan()) {
             sessionService.setAlert(
-                'danger',
+                "danger",
                 true,
-                'bi-exclamation-diamond-fill',
-                'Link has expired. Please request a new link'
+                "bi-exclamation-diamond-fill",
+                "Link has expired. Please request a new link"
             );
-            return '';
+            return "";
         }
 
         if(arguments.delete) {
-            trainer.setResetCode('');
+            trainer.setResetCode("");
             entitySave(trainer);
             ormFlush();
         }
@@ -646,7 +646,7 @@ component singleton accessors="true" {
             token    : arguments.token,
             valid    : !getUseRecaptcha(),
             timestamp: now(),
-            action   : ''
+            action   : ""
         };
 
         if(getUseRecaptcha()) {
@@ -675,7 +675,7 @@ component singleton accessors="true" {
             var recaptchaResponse = deserializeJSON(local.result.filecontent);
 
             recaptchaResult.valid  = recaptchaResponse.success && recaptchaResponse.score > 0.5;
-            recaptchaResult.action = recaptchaResponse?.action ?: '';
+            recaptchaResult.action = recaptchaResponse?.action ?: "";
         }
 
         // Store recaptcha result in session
@@ -693,7 +693,7 @@ component singleton accessors="true" {
         if(
             session.recaptcha.valid &&
             session.recaptcha.token.len() &&
-            dateDiff('s', session.recaptcha.timestamp, now()) <= 30 &&
+            dateDiff("s", session.recaptcha.timestamp, now()) <= 30 &&
             arguments.expectedAction == session.recaptcha.action
         ) {
             valid = true;
@@ -701,10 +701,10 @@ component singleton accessors="true" {
 
         // Blank the recaptcha struct
         session.recaptcha = {
-            token    : '',
+            token    : "",
             valid    : false,
             timestamp: now(),
-            action   : ''
+            action   : ""
         };
 
         return !getUseRecaptcha() ? true : valid;

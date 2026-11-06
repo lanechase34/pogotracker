@@ -9,26 +9,26 @@ component singleton accessors="true" {
 
     public void function init() {
         setIconMap([
-            'Bulbasaur',
-            'Squirtle',
-            'Charmander',
-            'Chikorita',
-            'Totodile',
-            'Cyndaquil',
-            'Treecko',
-            'Mudkip',
-            'Torchic',
-            'Substitute'
+            "Bulbasaur",
+            "Squirtle",
+            "Charmander",
+            "Chikorita",
+            "Totodile",
+            "Cyndaquil",
+            "Treecko",
+            "Mudkip",
+            "Torchic",
+            "Substitute"
         ]);
 
         setDatatableCols([
-            '',
-            'trainer.icon',
-            'trainer.username',
-            'trainer.email',
-            'trainer.verified',
-            'trainer.securitylevel',
-            'trainer.lastlogin'
+            "",
+            "trainer.icon",
+            "trainer.username",
+            "trainer.email",
+            "trainer.verified",
+            "trainer.securitylevel",
+            "trainer.lastlogin"
         ]);
     }
 
@@ -38,10 +38,10 @@ component singleton accessors="true" {
      * @trainerid pk of trainer
      */
     public component function getFromId(required numeric trainerid) {
-        var cacheKey = 'trainer.getFromId|trainerid=#arguments.trainerid#';
+        var cacheKey = "trainer.getFromId|trainerid=#arguments.trainerid#";
         var trainer  = cache.get(cacheKey);
         if(isNull(trainer)) {
-            trainer = entityLoadByPK('trainer', arguments.trainerid);
+            trainer = entityLoadByPK("trainer", arguments.trainerid);
             // Make sure relationships are loaded before being cached
             trainer.getCurrentLevel();
             trainer.getUnlockedIcons();
@@ -58,41 +58,41 @@ component singleton accessors="true" {
     public struct function get(
         required numeric records,
         required numeric offset,
-        required string search   = '',
-        required string orderCol = '',
-        required string orderDir = ''
+        required string search   = "",
+        required string orderCol = "",
+        required string orderDir = ""
     ) {
-        var orderBy = '';
+        var orderBy = "";
         if(arguments.orderCol.len() && arguments.orderDir.len()) {
-            orderBy = 'order by #getDatatableCols()[arguments.orderCol + 1]# #arguments.orderDir# nulls last';
+            orderBy = "order by #getDatatableCols()[arguments.orderCol + 1]# #arguments.orderDir# nulls last";
         }
 
         var results = async
             .all(
                 () => ormExecuteQuery(
-                    '
+                    "
                     select trainer
                     from trainer as trainer
                     where upper(trainer.username) like :search
                         or upper(trainer.email) like :search
                     #orderBy#
-                    ',
-                    {search: '%#uCase(search)#%'},
+                    ",
+                    {search: "%#uCase(search)#%"},
                     {
                         offset    : offset,
                         maxResults: records,
                         cacheable : true,
-                        cachename : 'defaultCache'
+                        cachename : "defaultCache"
                     }
                 ),
                 () => ormExecuteQuery(
-                    '
+                    "
                     select count(trainer.id)
                     from trainer as trainer
                     where upper(trainer.username) like :search
                         or upper(trainer.email) like :search
-                    ',
-                    {search: '%#uCase(search)#%'},
+                    ",
+                    {search: "%#uCase(search)#%"},
                     true
                 ),
                 () => getTotalRecords()
@@ -108,7 +108,7 @@ component singleton accessors="true" {
             data: trainers.map((trainer) => {
                 return {
                     trainerid    : trainer.getId(),
-                    edit         : '',
+                    edit         : "",
                     icon         : trainer.getIconPath(),
                     iconAltText  : trainer.getIconAltText(),
                     username     : trainer.getUsername(),
@@ -127,10 +127,10 @@ component singleton accessors="true" {
      * Return total number of trainers
      */
     public numeric function getTotalRecords() {
-        var cacheKey = 'trainer.getTotalRecords';
+        var cacheKey = "trainer.getTotalRecords";
         var count    = cache.get(cacheKey);
         if(isNull(count)) {
-            count = ormExecuteQuery('select count(id) from trainer', {}, true);
+            count = ormExecuteQuery("select count(id) from trainer", {}, true);
             cache.set(cacheKey, count, 5, 5);
         }
         return count;

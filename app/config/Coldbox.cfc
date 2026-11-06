@@ -5,7 +5,7 @@ component {
 	 * https://coldbox.ortusbooks.com/getting-started/configuration
 	 */
     function configure() {
-        var logPath = getPageContext().getServletContext().getRealPath('/WEB-INF/');
+        var logPath = getPageContext().getServletContext().getRealPath("/WEB-INF/");
 
         /**
 		 * --------------------------------------------------------------------------
@@ -18,36 +18,36 @@ component {
 		 */
         coldbox = {
             // Application Setup
-            appName                 : 'POGO Tracker',
-            eventName               : 'event',
+            appName                 : "POGO Tracker",
+            eventName               : "event",
             // Development Settings
-            reinitPassword          : getSystemSetting('REINITKEY'),
-            reinitKey               : 'fwreinit',
+            reinitPassword          : getSystemSetting("REINITKEY"),
+            reinitKey               : "fwreinit",
             handlersIndexAutoReload : false,
             implicitViews           : true,
             // Implicit Events
-            defaultEvent            : 'error.notFound',
-            requestStartHandler     : 'main.onRequestStart',
-            requestEndHandler       : '',
-            applicationStartHandler : '',
-            applicationEndHandler   : '',
-            sessionStartHandler     : 'main.onSessionStart',
-            sessionEndHandler       : '',
-            missingTemplateHandler  : 'error.notFound',
+            defaultEvent            : "error.notFound",
+            requestStartHandler     : "main.onRequestStart",
+            requestEndHandler       : "",
+            applicationStartHandler : "",
+            applicationEndHandler   : "",
+            sessionStartHandler     : "main.onSessionStart",
+            sessionEndHandler       : "",
+            missingTemplateHandler  : "error.notFound",
             // Extension Points
-            applicationHelper       : '',
-            viewsHelper             : '',
+            applicationHelper       : "",
+            viewsHelper             : "",
             modulesExternalLocation : [],
-            viewsExternalLocation   : '',
-            layoutsExternalLocation : '',
-            handlersExternalLocation: '',
-            requestContextDecorator : '',
-            controllerDecorator     : '',
+            viewsExternalLocation   : "",
+            layoutsExternalLocation : "",
+            handlersExternalLocation: "",
+            requestContextDecorator : "",
+            controllerDecorator     : "",
             // Error/Exception Handling
-            invalidHTTPMethodHandler: 'error.invalidHTTPMethod',
-            exceptionHandler        : 'error.onException',
-            invalidEventHandler     : 'error.notFound',
-            customErrorTemplate     : '/views/fragment/exception.cfm',
+            invalidHTTPMethodHandler: "error.invalidHTTPMethod",
+            exceptionHandler        : "error.onException",
+            invalidEventHandler     : "error.notFound",
+            customErrorTemplate     : "/views/fragment/exception.cfm",
             // Application Aspects
             handlerCaching          : true,
             eventCaching            : true,
@@ -64,8 +64,8 @@ component {
 		 * --------------------------------------------------------------------------
 		 */
         settings = {
-            rootPath        : replace(expandPath('/'), '\', '/', 'all'),
-            cacheBuster     : '?v=#right(hash(createUUID()), 10)#',
+            rootPath        : replace(expandPath("/"), "\", "/", "all"),
+            cacheBuster     : "?v=#right(hash(createUUID()), 10)#",
             cacheIdleTimeout: 30,
             cacheTimeout    : 120,
             concurrency     : {
@@ -73,7 +73,7 @@ component {
                 maxRequests   : 0,
                 slowRequests  : []
             },
-            contactEmail: 'chaselane@pogotracker.app',
+            contactEmail: "chaselane@pogotracker.app",
             costumeData : false, // get costume data from wiki
             csrfChecks  : {
                 // Validate the CSRF Token for these actions
@@ -87,54 +87,54 @@ component {
             csrfTokenField: left(
                 hash(
                     createGUID(),
-                    getSystemSetting('ALGORITHM'),
-                    'UTF-8',
-                    getSystemSetting('ITERATIONS')
+                    getSystemSetting("ALGORITHM"),
+                    "UTF-8",
+                    getSystemSetting("ITERATIONS")
                 ),
                 25
             ),
-            cssPath        : '/includes/build/css',
+            cssPath        : "/includes/build/css",
             debugging      : false,
             defaultSettings: {
-                defaultView  : '',
-                defaultRegion: 'Kanto',
-                defaultPage  : '/'
+                defaultView  : "",
+                defaultRegion: "Kanto",
+                defaultPage  : "/"
             },
-            domain         : 'https://pogotracker.app',
-            domainProd     : 'https://pogotracker.app',
+            domain         : "https://pogotracker.app",
+            domainProd     : "https://pogotracker.app",
             eventDaysBefore: 3, // task pulls in events up to 3 days before they start before creating custom entries automatically
             favIcoVersion  : 5,
             fetchCount     : 7, // number of news/leekduck posts to fetch on home page
-            fromEmail      : 'noreply@pogotracker.app',
+            fromEmail      : "noreply@pogotracker.app",
             healthCheck    : true,
-            httpPort       : getSystemSetting('HTTP_PORT'),
-            imageExtension : '.webp',
-            imageMagickPath: getSystemSetting('IMAGEMAGICKPATH'),
+            httpPort       : getSystemSetting("HTTP_PORT"),
+            imageExtension : ".webp",
+            imageMagickPath: getSystemSetting("IMAGEMAGICKPATH"),
             impersonation  : false,
-            jsPath         : '/includes/build/js',
+            jsPath         : "/includes/build/js",
             logPath        : logPath,
             logRequests    : false,
-            maxThreads     : createObject('java', 'java.lang.Runtime').getRuntime().availableProcessors(),
-            metaDescription: 'Track your Pokémon GO progress. Monitor XP, Pokédex completions, shiny collection, medals, and walking distance. Plan trades with friends and stay on top of events.',
-            metaKeywords   : 'Pokémon GO, pogotracker, POGO Tracker, Pokémon GO Pokédex, Pokémon GO stats, Pokémon GO statistics, Pokémon GO daily XP, POGO xp tracker, Pokémon GO Track Pokédex, shiny Pokémon tracker',
+            maxThreads     : createObject("java", "java.lang.Runtime").getRuntime().availableProcessors(),
+            metaDescription: "Track your Pokémon GO progress. Monitor XP, Pokédex completions, shiny collection, medals, and walking distance. Plan trades with friends and stay on top of events.",
+            metaKeywords   : "Pokémon GO, pogotracker, POGO Tracker, Pokémon GO Pokédex, Pokémon GO stats, Pokémon GO statistics, Pokémon GO daily XP, POGO xp tracker, Pokémon GO Track Pokédex, shiny Pokémon tracker",
             // Minified CSS, JS settings
-            minifiedCSS    : '.min',
-            minifiedJS     : '.min',
-            osType         : getSystemSetting('OS'),
+            minifiedCSS    : ".min",
+            minifiedJS     : ".min",
+            osType         : getSystemSetting("OS"),
             // Ordered struct, maps value -> display
             pageMap        : [
-                '/'                 : 'Home',
-                '/mypokedex'        : 'Pokedex',
-                '/myshadowpokedex'  : 'Shadow Pokedex',
-                '/custompokedexlist': 'Custom Pokedex',
-                '/buildtradeplan'   : 'Trade Plan',
-                '/overview'         : 'Stats'
+                "/"                 : "Home",
+                "/mypokedex"        : "Pokedex",
+                "/myshadowpokedex"  : "Shadow Pokedex",
+                "/custompokedexlist": "Custom Pokedex",
+                "/buildtradeplan"   : "Trade Plan",
+                "/overview"         : "Stats"
             ],
             persistCookieName: hash(
                 createGUID(),
-                getSystemSetting('ALGORITHM'),
-                'UTF-8',
-                getSystemSetting('ITERATIONS')
+                getSystemSetting("ALGORITHM"),
+                "UTF-8",
+                getSystemSetting("ITERATIONS")
             ),
             persistDuration: 30, // Persist cookie last 30 days
             persistUse     : 7, // If not used in 7 days, automatically expire
@@ -147,34 +147,34 @@ component {
              * window   : window length in minutes
              */
             rateLimits: {
-                'login.dologin': {
-                    redirect: '/login',
+                "login.dologin": {
+                    redirect: "/login",
                     rules   : [
-                        {by: 'ip', limit: 20, window: 15},
-                        {by: 'ip,email', limit: 5, window: 15},
+                        {by: "ip", limit: 20, window: 15},
+                        {by: "ip,email", limit: 5, window: 15},
                         // Credential stuffing against one account from many ips
-                        {by: 'email', limit: 10, window: 15}
+                        {by: "email", limit: 10, window: 15}
                     ]
                 },
-                'login.register': {
-                    redirect: '/register',
+                "login.register": {
+                    redirect: "/register",
                     rules   : [
-                        {by: 'ip', limit: 5, window: 60},
-                        {by: 'email', limit: 3, window: 60}
+                        {by: "ip", limit: 5, window: 60},
+                        {by: "email", limit: 3, window: 60}
                     ]
                 },
-                'login.forgotpassword': {
-                    redirect: '/forgot',
+                "login.forgotpassword": {
+                    redirect: "/forgot",
                     rules   : [
-                        {by: 'ip', limit: 5, window: 15},
+                        {by: "ip", limit: 5, window: 15},
                         // Stops flooding a user's inbox with resets
-                        {by: 'email', limit: 3, window: 60}
+                        {by: "email", limit: 3, window: 60}
                     ]
                 },
-                'login.verify'         : {redirect: '/verify', rules: [{by: 'ip', limit: 10, window: 15}]},
-                'login.resetpassword'  : {redirect: '/forgot', rules: [{by: 'ip', limit: 10, window: 15}]},
-                'login.verifyrecaptcha': {redirect: '', rules: [{by: 'ip', limit: 30, window: 15}]},
-                'home.contact'         : {redirect: '', rules: [{by: 'ip', limit: 5, window: 60}]}
+                "login.verify"         : {redirect: "/verify", rules: [{by: "ip", limit: 10, window: 15}]},
+                "login.resetpassword"  : {redirect: "/forgot", rules: [{by: "ip", limit: 10, window: 15}]},
+                "login.verifyrecaptcha": {redirect: "", rules: [{by: "ip", limit: 30, window: 15}]},
+                "home.contact"         : {redirect: "", rules: [{by: "ip", limit: 5, window: 60}]}
             },
             reCaptchaChecks: {
                 // Validate a user's recaptcha session data for these actions
@@ -182,15 +182,15 @@ component {
                 forgotpassword: true,
                 register      : true
             },
-            reCaptchaSiteKey  : getSystemSetting('RECAPTCHASITEKEY'),
-            reCaptchaSecretKey: getSystemSetting('RECAPTCHASECRETKEY'),
+            reCaptchaSiteKey  : getSystemSetting("RECAPTCHASITEKEY"),
+            reCaptchaSecretKey: getSystemSetting("RECAPTCHASECRETKEY"),
             refererChecks     : {
                 // Mapped action -> the referer
-                dologin       : '/login',
-                register      : '/register',
-                verify        : '/verify',
-                forgotpassword: '/forgot',
-                resetpassword : '/reset'
+                dologin       : "/login",
+                register      : "/register",
+                verify        : "/verify",
+                forgotpassword: "/forgot",
+                resetpassword : "/reset"
             },
             requestLog: {
                 // Request Log settings
@@ -205,29 +205,29 @@ component {
             resetPasswordLifespan: 30, // time in minutes the reset link is valid for
             // Hosts (and their subdomains) the scraper is allowed to fetch from
             scraperHosts         : [
-                'bulbagarden.net',
-                'fandom.com',
-                'leekduck.com',
-                'nocookie.net',
-                'pokemondb.net',
-                'pokemongo.com',
-                'pokemongolive.com',
-                'pvpoke.com'
+                "bulbagarden.net",
+                "fandom.com",
+                "leekduck.com",
+                "nocookie.net",
+                "pokemondb.net",
+                "pokemongo.com",
+                "pokemongolive.com",
+                "pvpoke.com"
             ],
-            sessionTimeout      : getSystemSetting('SESSIONTIMEOUT'),
+            sessionTimeout      : getSystemSetting("SESSIONTIMEOUT"),
             shadowData          : false, // get shadow data from wikipedia
             signups             : true, // whether signups are enabled
-            sitemap             : 'sitemap.xml',
-            systemTrainer       : 'lanechase34@outlook.com',
-            testEmailPath       : '#replace(expandPath('/'), '\', '/', 'all')#/_testemails',
-            uploadPath          : '#replace(expandPath('/'), '\', '/', 'all')#/includes/uploads',
-            title               : 'POGO Tracker - Track Your Pokémon GO Progress',
+            sitemap             : "sitemap.xml",
+            systemTrainer       : "lanechase34@outlook.com",
+            testEmailPath       : "#replace(expandPath("/"), "\", "/", "all")#/_testemails",
+            uploadPath          : "#replace(expandPath("/"), "\", "/", "all")#/includes/uploads",
+            title               : "POGO Tracker - Track Your Pokémon GO Progress",
             useRateLimiter      : true,
             useRecaptcha        : true,
             verificationLifespan: 15, // time in minutes the verification link is valid for
             verificationCooldown: 900, // time in seconds to wait for a new verification code
             // Ordered struct, maps value -> display
-            viewMap             : ['normal': 'Normal', 'shiny': 'Shiny'],
+            viewMap             : ["normal": "Normal", "shiny": "Shiny"],
             warmedUp            : false, // updates to true after server has finished warming up
             writeJson           : false
         };
@@ -255,10 +255,10 @@ component {
             // Define Appenders
             appenders: {
                 appLog: {
-                    class     : 'coldbox.system.logging.appenders.RollingFileAppender',
+                    class     : "coldbox.system.logging.appenders.RollingFileAppender",
                     properties: {
-                        filePath       : '#logPath#/../logs',
-                        filename       : 'app',
+                        filePath       : "#logPath#/../logs",
+                        filename       : "app",
                         autoExpand     : false,
                         fileMaxSize    : 10000,
                         fileMaxArchives: 10,
@@ -267,11 +267,11 @@ component {
                 },
                 // Changes made when rebuilding json asset files, one entry per write
                 jsonDiffLog: {
-                    class     : 'coldbox.system.logging.appenders.RollingFileAppender',
-                    layout    : 'models.logging.PlainLayout',
+                    class     : "coldbox.system.logging.appenders.RollingFileAppender",
+                    layout    : "models.logging.PlainLayout",
                     properties: {
-                        filePath       : '#logPath#/../logs',
-                        filename       : 'jsondiff',
+                        filePath       : "#logPath#/../logs",
+                        filename       : "jsondiff",
                         autoExpand     : false,
                         fileMaxSize    : 10000,
                         fileMaxArchives: 10,
@@ -281,31 +281,31 @@ component {
             },
             // Root Logger
             root: {
-                levelMin : 'FATAL',
-                levelMax : 'WARN',
-                appenders: 'appLog'
+                levelMin : "FATAL",
+                levelMax : "WARN",
+                appenders: "appLog"
             },
             // Implicit Level Categories
             categories: {
-                'coldbox.system': {
-                    levelMin : 'FATAL',
-                    levelMax : 'INFO',
-                    appenders: 'appLog'
+                "coldbox.system": {
+                    levelMin : "FATAL",
+                    levelMax : "INFO",
+                    appenders: "appLog"
                 },
-                'WebSocket': {
-                    levelMin : 'FATAL',
-                    levelMax : 'WARN',
-                    appenders: 'appLog'
+                "WebSocket": {
+                    levelMin : "FATAL",
+                    levelMax : "WARN",
+                    appenders: "appLog"
                 },
-                'adminLog': {
-                    levelMin : 'FATAL',
-                    levelMax : 'WARN',
-                    appenders: 'appLog'
+                "adminLog": {
+                    levelMin : "FATAL",
+                    levelMax : "WARN",
+                    appenders: "appLog"
                 },
-                'jsonDiff': {
-                    levelMin : 'FATAL',
-                    levelMax : 'INFO',
-                    appenders: 'jsonDiffLog'
+                "jsonDiff": {
+                    levelMin : "FATAL",
+                    levelMax : "INFO",
+                    appenders: "jsonDiffLog"
                 }
             }
         };
@@ -315,7 +315,7 @@ component {
 		 * Layout Settings
 		 * --------------------------------------------------------------------------
 		 */
-        layoutSettings = {defaultLayout: 'default.cfm', defaultView: 'fragment/blank.cfm'};
+        layoutSettings = {defaultLayout: "default.cfm", defaultView: "fragment/blank.cfm"};
 
         /**
 		 * --------------------------------------------------------------------------
@@ -332,33 +332,33 @@ component {
 		 */
         interceptors = [
             {
-                class     : 'interceptors.applifecycle',
-                name      : 'appLifeCycleInterceptor',
+                class     : "interceptors.applifecycle",
+                name      : "appLifeCycleInterceptor",
                 properties: {}
             },
             {
-                class     : 'interceptors.mail',
-                name      : 'mailInterceptor',
+                class     : "interceptors.mail",
+                name      : "mailInterceptor",
                 properties: {}
             },
             {
-                class     : 'interceptors.response',
-                name      : 'responseInterceptor',
+                class     : "interceptors.response",
+                name      : "responseInterceptor",
                 properties: {}
             },
             {
-                class     : 'interceptors.flashalert',
-                name      : 'flashAlertInterceptor',
+                class     : "interceptors.flashalert",
+                name      : "flashAlertInterceptor",
                 properties: {}
             },
             {
-                class     : 'interceptors.logrequest',
-                name      : 'logRequestInterceptor',
+                class     : "interceptors.logrequest",
+                name      : "logRequestInterceptor",
                 properties: {}
             },
             {
-                class     : 'interceptors.ratelimiter',
-                name      : 'rateLimiterInterceptor',
+                class     : "interceptors.ratelimiter",
+                name      : "rateLimiterInterceptor",
                 properties: {}
             }
         ];
@@ -385,7 +385,7 @@ component {
 		 * The available scopes are : session, client, cluster, ColdBoxCache, or a full instantiation CFC path
 		 */
         flash = {
-            scope       : 'session',
+            scope       : "session",
             properties  : {}, // constructor properties for the flash scope implementation
             inflateToRC : true, // automatically inflate flash data into the RC scope
             inflateToPRC: true, // automatically inflate flash data into the PRC scope
@@ -399,11 +399,11 @@ component {
 		 * --------------------------------------------------------------------------
 		 */
         conventions = {
-            handlersLocation: 'handlers',
-            viewsLocation   : 'views',
-            layoutsLocation : 'layouts',
-            modelsLocation  : 'models',
-            eventAction     : 'index'
+            handlersLocation: "handlers",
+            viewsLocation   : "views",
+            layoutsLocation : "layouts",
+            modelsLocation  : "models",
+            eventAction     : "index"
         };
     }
 
@@ -415,18 +415,18 @@ component {
         coldbox.handlerCaching          = false;
         coldbox.eventCaching            = false;
 
-        coldbox.reinitPassword      = '';
-        coldbox.customErrorTemplate = '/coldbox/system/exceptions/Whoops.cfm';
+        coldbox.reinitPassword      = "";
+        coldbox.customErrorTemplate = "/coldbox/system/exceptions/Whoops.cfm";
         coldbox.debugMode           = true;
 
         // Development settings
-        settings.title          = '[DEV #ucFirst(getSystemSetting('OS'))#] POGO Tracker';
+        settings.title          = "[DEV #ucFirst(getSystemSetting("OS"))#] POGO Tracker";
         settings.useRecaptcha   = false;
-        settings.useRateLimiter = getSystemSetting('RATE_LIMITER', false);
-        settings.scraperHosts.append('httpbin.io'); // dev.cfc user agent check
+        settings.useRateLimiter = getSystemSetting("RATE_LIMITER", false);
+        settings.scraperHosts.append("httpbin.io"); // dev.cfc user agent check
         settings.writeJson   = true;
         settings.logRequests = false;
-        settings.domain      = 'http://localhost:#getSystemSetting('HTTP_PORT')#';
+        settings.domain      = "http://localhost:#getSystemSetting("HTTP_PORT")#";
 
         // This allows the testing suite to test the login endpoints
         settings.impersonation = true;
@@ -437,15 +437,15 @@ component {
         settings.costumeData = true;
 
         // Comment to use minified files
-        settings.cssPath     = '/includes/css';
-        settings.jsPath      = '/includes/js';
-        settings.minifiedCSS = '';
-        settings.minifiedJS  = '';
+        settings.cssPath     = "/includes/css";
+        settings.jsPath      = "/includes/js";
+        settings.minifiedCSS = "";
+        settings.minifiedJS  = "";
 
         // Lower bcrypt workfactor for faster performance
         moduleSettings = {bcrypt: {workFactor: 4}};
 
-        logBox.root.levelmax = 'DEBUG';
+        logBox.root.levelmax = "DEBUG";
     }
 
     /**
@@ -454,13 +454,13 @@ component {
     function test() {
         settings.useRecaptcha   = false;
         settings.useRateLimiter = false;
-        settings.scraperHosts.append('httpbin.io'); // dev.cfc user agent check
-        settings.title         = '[TEST #ucFirst(getSystemSetting('OS'))#] POGO Tracker';
+        settings.scraperHosts.append("httpbin.io"); // dev.cfc user agent check
+        settings.title         = "[TEST #ucFirst(getSystemSetting("OS"))#] POGO Tracker";
         // This allows the testing suite to test the login endpoints
         settings.impersonation = true;
         settings.refererChecks = {};
         settings.logRequests   = false;
-        settings.domain        = 'http://localhost:#getSystemSetting('HTTP_PORT')#';
+        settings.domain        = "http://localhost:#getSystemSetting("HTTP_PORT")#";
 
         moduleSettings = {bcrypt: {workFactor: 4}};
     }

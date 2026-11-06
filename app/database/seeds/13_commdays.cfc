@@ -1,20 +1,20 @@
 component extends="base" {
 
     function run(qb, mockdata) {
-        var pastCommunityDays = deserializeJSON(fileRead('resources/commdays.json'));
+        var pastCommunityDays = deserializeJSON(fileRead("resources/commdays.json"));
 
         pastCommunityDays.each((commDay) => {
             // 1. Get the comm day featured pokemon
             var pokemonid = getByNameAndGender(
                 name   = toUTF8(commDay.name),
-                gender = commDay.keyExists('gender') ? commDay.gender : ''
+                gender = commDay.keyExists("gender") ? commDay.gender : ""
             );
 
             // 2. Get all the comm day's evolutions
             var evolutionIds = getEvolutionChainIds(pokemonid = pokemonid);
 
             // 3. Create the event
-            var eventName = commDay.KeyExists('eventname') ? '#commDay.name# #commDay.eventname#' : '#commDay.name# Community Day';
+            var eventName = commDay.KeyExists("eventname") ? "#commDay.name# #commDay.eventname#" : "#commDay.name# Community Day";
             var customid  = createEventRecord(
                 name   = eventName,
                 begins = parseDateTime(commDay.date),
@@ -35,19 +35,19 @@ component extends="base" {
      */
     private numeric function getByNameAndGender(required string name, required string gender) {
         return queryExecute(
-            '
+            "
             SELECT id
             FROM pokemon
             WHERE name = :name
                 AND gender = :gender
                 AND costume = :costume
                 AND costumetype = :costumetype
-            ',
+            ",
             {
-                name       : {value: name, cfsqltype: 'varchar'},
-                gender     : {value: gender, cfsqltype: 'varchar'},
-                costume    : {value: false, cfsqltype: 'boolean'},
-                costumetype: {value: '', cfsqltype: 'varchar'}
+                name       : {value: name, cfsqltype: "varchar"},
+                gender     : {value: gender, cfsqltype: "varchar"},
+                costume    : {value: false, cfsqltype: "boolean"},
+                costumetype: {value: "", cfsqltype: "varchar"}
             }
         ).id;
     }
@@ -59,7 +59,7 @@ component extends="base" {
      */
     private array function getEvolutionChainIds(required numeric pokemonid) {
         var results = queryExecute(
-            '
+            "
             WITH RECURSIVE evolution_chain AS (
                 SELECT evolutionid, special
                 FROM evolution
@@ -74,11 +74,11 @@ component extends="base" {
             SELECT DISTINCT evolutionid
             FROM evolution_chain
             WHERE special = false
-            ',
-            {pokemonid: {value: pokemonid, cfsqltype: 'integer'}}
+            ",
+            {pokemonid: {value: pokemonid, cfsqltype: "integer"}}
         );
 
-        return valueArray(results, 'evolutionid');
+        return valueArray(results, "evolutionid");
     }
 
     /**
@@ -95,16 +95,16 @@ component extends="base" {
         required date ends
     ) {
         var result = queryExecute(
-            '
+            "
         INSERT INTO custom (name, public, begins, ends, trainerid, created, updated, commday)
         VALUES (:name, true, :begins, :ends, :trainerid, now(), now(), true)
         RETURNING id
-        ',
+        ",
             {
-                name     : {value: name, cfsqltype: 'varchar'},
-                begins   : {value: begins, cfsqltype: 'timestamp'},
-                ends     : {value: ends, cfsqltype: 'timestamp'},
-                trainerid: {value: 1, cfsqltype: 'integer'}
+                name     : {value: name, cfsqltype: "varchar"},
+                begins   : {value: begins, cfsqltype: "timestamp"},
+                ends     : {value: ends, cfsqltype: "timestamp"},
+                trainerid: {value: 1, cfsqltype: "integer"}
             }
         );
 
@@ -120,7 +120,7 @@ component extends="base" {
     private void function insertEventSpawns(required numeric customid, required array pokemon) {
         pokemon.each((pokemonid) => {
             queryExecute(
-                '
+                "
                 INSERT INTO custompokedex (customid, pokemonid, created, updated)
                 SELECT :customid, :pokemonid, now(), now()
                 WHERE NOT EXISTS (
@@ -128,8 +128,8 @@ component extends="base" {
                     WHERE customid = :customid
                     AND pokemonid = :pokemonid
                 )
-                ',
-                {customid: {value: customid, cfsqltype: 'integer'}, pokemonid: {value: pokemonid, cfsqltype: 'integer'}}
+                ",
+                {customid: {value: customid, cfsqltype: "integer"}, pokemonid: {value: pokemonid, cfsqltype: "integer"}}
             );
         });
 

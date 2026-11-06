@@ -1,6 +1,6 @@
 component extends="base" {
 
-    this.allowedMethods = {tradePlanForm: 'GET', tradePlan: 'POST'}
+    this.allowedMethods = {tradePlanForm: "GET", tradePlan: "POST"}
 
     property name="async"             inject="asyncManager@coldbox";
     property name="customService"     inject="services.custom";
@@ -9,12 +9,12 @@ component extends="base" {
     property name="tradeService"      inject="services.trade";
     property name="trainerService"    inject="services.trainer";
 
-    this.prehandler_only = 'tradePlanForm';
+    this.prehandler_only = "tradePlanForm";
 
     function preHandler(event, rc, prc, action, eventArguments) {
-        prc.title           = 'Trade | #getSetting('title')#';
-        prc.metaDescription = 'Compare your Pokedex with a friend''s and find Pokemon to trade.';
-        prc.metaRobots      = 'noindex, nofollow';
+        prc.title           = "Trade | #getSetting("title")#";
+        prc.metaDescription = "Compare your Pokedex with a friend's and find Pokemon to trade.";
+        prc.metaRobots      = "noindex, nofollow";
     }
 
     /**
@@ -36,24 +36,24 @@ component extends="base" {
      * @rc.shiny    (optional) on/off
      */
     function tradePlan(event, rc, prc) {
-        rc.region   = rc?.region ?: '';
+        rc.region   = rc?.region ?: "";
         rc.customid = rc?.customid ?: -1;
-        rc.shiny    = rc?.shiny ?: 'off';
+        rc.shiny    = rc?.shiny ?: "off";
 
-        prc.responseObj.type = 'danger';
-        prc.responseObj.data = '';
+        prc.responseObj.type = "danger";
+        prc.responseObj.data = "";
 
         // Validation and make sure trainer is friends with target
-        prc.validation = validate(target = rc, constraints = 'trade.tradePlan');
+        prc.validation = validate(target = rc, constraints = "trade.tradePlan");
         if(
             prc.validation.hasErrors() ||
             (rc.region.len() && rc.customid > 0)
         ) {
-            prc.responseObj.message = 'Invalid Trade Plan.';
+            prc.responseObj.message = "Invalid Trade Plan.";
         }
 
         if(!prc.responseObj.message.len()) {
-            prc.shiny   = rc.shiny == 'on' ? true : false;
+            prc.shiny   = rc.shiny == "on" ? true : false;
             prc.trainer = trainerService.getFromId(session.trainerid);
             prc.friend  = trainerService.getFromId(parseNumber(rc.friend));
 
@@ -78,7 +78,7 @@ component extends="base" {
                 // Check trainer access to custom pokedex
                 prc.custom = customService.get(parseNumber(rc.customid), prc.trainer);
                 if(!prc.custom.len()) {
-                    prc.responseObj.message = 'Invalid Trade Plan.';
+                    prc.responseObj.message = "Invalid Trade Plan.";
                 }
                 else {
                     prc.trainerOnlyArgs.custom = prc.custom[1];
@@ -100,14 +100,14 @@ component extends="base" {
 
             // Check if trade plan has pokemon
             if(!prc.tradePlan.trainerOnly.len() && !prc.tradePlan.friendOnly.len()) {
-                prc.responseObj.message = 'No Pokemon Eligible For Trade Plan.';
-                prc.responseObj.type    = 'warning';
+                prc.responseObj.message = "No Pokemon Eligible For Trade Plan.";
+                prc.responseObj.type    = "warning";
             }
             else {
-                prc.header           = '#prc.shiny ? 'Shiny - ' : ''##rc.region.len() ? rc.region : encodeForHTML(prc.custom[1].getName())# Trade Plan';
+                prc.header           = "#prc.shiny ? "Shiny - " : ""##rc.region.len() ? rc.region : encodeForHTML(prc.custom[1].getName())# Trade Plan";
                 prc.loop             = prc.tradePlan.trainerOnly.len() > prc.tradePlan.friendOnly.len() ? prc.tradePlan.trainerOnly.len() : prc.tradePlan.friendOnly.len();
                 prc.responseObj.data = view(
-                    view = '/views/trade/tradeplan',
+                    view = "/views/trade/tradeplan",
                     args = {
                         header   : prc.header,
                         loop     : prc.loop,

@@ -15,10 +15,10 @@ component mappedSuperClass="true" accessors="true" {
      */
     string function getFormattedCreated() {
         if(isNull(getCreated())) {
-            return '---';
+            return "---";
         }
 
-        return dateFormat(getCreated(), 'short');
+        return dateFormat(getCreated(), "short");
     }
 
     /**
@@ -27,17 +27,17 @@ component mappedSuperClass="true" accessors="true" {
      */
     string function getFormattedUpdated() {
         if(isNull(getUpdated())) {
-            return '---';
+            return "---";
         }
 
-        return dateFormat(getUpdated(), 'short');
+        return dateFormat(getUpdated(), "short");
     }
 
     /**
      * Get the created date time formatted as short (m/d/y h:nn tt)
      */
     string function getTimestamp() {
-        return dateTimeFormat(getCreated(), 'short');
+        return dateTimeFormat(getCreated(), "short");
     }
 
     /**
@@ -51,7 +51,7 @@ component mappedSuperClass="true" accessors="true" {
      * Return timestamp in blog format (mmm d, yyyy)
      */
     string function getBlogFormat() {
-        return dateFormat(getCreated(), 'mmm d, yyyy');
+        return dateFormat(getCreated(), "mmm d, yyyy");
     }
 
 }

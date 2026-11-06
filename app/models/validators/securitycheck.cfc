@@ -6,7 +6,7 @@ component accessors="true" singleton hint="Validator for checking if a user has 
      * Init validator
      */
     function init() {
-        this.name = 'securityCheck';
+        this.name = "securityCheck";
     }
 
     /**
@@ -33,10 +33,10 @@ component accessors="true" singleton hint="Validator for checking if a user has 
         any validationData
     ) {
         var errorStruct = {
-            message       : '',
+            message       : "",
             field         : arguments.field,
             validationType: getName(),
-            rejectedValue : (isSimpleValue(arguments.targetValue) ? arguments.targetValue : ''),
+            rejectedValue : (isSimpleValue(arguments.targetValue) ? arguments.targetValue : ""),
             validationData: arguments.validationData
         };
 
@@ -46,7 +46,7 @@ component accessors="true" singleton hint="Validator for checking if a user has 
             !isSimpleValue(arguments.targetValue) ||
             !arguments.targetValue.len()
         ) {
-            errorStruct.message = 'Invalid security check call.';
+            errorStruct.message = "Invalid security check call.";
             validationResult.addError(
                 validationResult
                     .newError(argumentCollection = errorStruct)
@@ -66,7 +66,7 @@ component accessors="true" singleton hint="Validator for checking if a user has 
         }
 
         // Failed check
-        errorStruct.message = 'Failed security check';
+        errorStruct.message = "Failed security check";
         validationResult.addError(
             validationResult
                 .newError(argumentCollection = errorStruct)

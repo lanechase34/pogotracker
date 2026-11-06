@@ -3,13 +3,13 @@ component singleton accessors="true" {
     property name="cache" inject="cachebox:appCache";
 
     private void function create(required struct medalProperties) {
-        var newMedal = entityNew('medal', arguments.medalProperties);
+        var newMedal = entityNew("medal", arguments.medalProperties);
         entitySave(newMedal);
     }
 
     public void function update(required struct medalProperties) {
         // Attempt to load medal
-        var currMedal = entityLoad('medal', {'name': arguments.medalProperties.name});
+        var currMedal = entityLoad("medal", {"name": arguments.medalProperties.name});
 
         // Create if this is a new medal
         if(!currMedal.len()) {
@@ -31,21 +31,21 @@ component singleton accessors="true" {
     }
 
     public array function getAll() {
-        var cacheKey  = 'medal.getAll';
+        var cacheKey  = "medal.getAll";
         var allMedals = cache.get(cacheKey);
         if(isNull(allMedals)) {
-            allMedals = entityLoad('medal', {}, 'displayorder asc');
+            allMedals = entityLoad("medal", {}, "displayorder asc");
             cache.set(cacheKey, allMedals, 720, 720);
         }
         return allMedals;
     }
 
     public array function get(required string name) {
-        return entityLoad('medal', {'name': arguments.name});
+        return entityLoad("medal", {"name": arguments.name});
     }
 
     public component function getFromId(required numeric id) {
-        return entityLoadByPK('medal', arguments.id);
+        return entityLoadByPK("medal", arguments.id);
     }
 
     /**
@@ -55,7 +55,7 @@ component singleton accessors="true" {
      * @medal   medal cfc
      */
     public array function getTrainerMedal(required component trainer, required component medal) {
-        return entityLoad('trainermedal', {'trainer': arguments.trainer, 'medal': arguments.medal});
+        return entityLoad("trainermedal", {"trainer": arguments.trainer, "medal": arguments.medal});
     }
 
     /**
@@ -64,18 +64,18 @@ component singleton accessors="true" {
      * @trainer trainer cfc
      */
     public array function getProgress(required component trainer) {
-        var cacheKey      = '#arguments.trainer.getId()#|medal.getProgress';
+        var cacheKey      = "#arguments.trainer.getId()#|medal.getProgress";
         var medalProgress = cache.get(cacheKey);
 
         if(isNull(medalStats)) {
             medalProgress = ormExecuteQuery(
-                '
+                "
                 select medal as medal, trainermedal as trainermedal
                 from medal as medal
                 left outer join medal.trainermedal as trainermedal with trainermedal.trainer = :trainer
                 order by medal.displayorder asc
-                ',
-                {'trainer': arguments.trainer}
+                ",
+                {"trainer": arguments.trainer}
             );
 
             cache.set(cacheKey, medalProgress, 10, 10);
@@ -100,7 +100,7 @@ component singleton accessors="true" {
 
         // If trainer medal doesnt exist
         if(!trainerMedal.len()) {
-            trainerMedal = entityNew('trainermedal', {'trainer': arguments.trainer, 'medal': arguments.medal});
+            trainerMedal = entityNew("trainermedal", {"trainer": arguments.trainer, "medal": arguments.medal});
         }
         else {
             trainerMedal = trainerMedal[1];
@@ -111,7 +111,7 @@ component singleton accessors="true" {
         ormFlush();
 
         // Clear the cache
-        cache.clear('#arguments.trainer.getId()#|medal.getProgress');
+        cache.clear("#arguments.trainer.getId()#|medal.getProgress");
         return;
     }
 

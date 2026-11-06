@@ -8,8 +8,8 @@ component extends="coldbox.system.testing.BaseTestCase" {
      * Makes mock user for testing
      */
     component function make(numeric securityLevel = 10, boolean autoLogin = true) {
-        var username = 'TEST_#left(createUUID().replace('-', '', 'all'), 10)#';
-        var email    = '#username#@gmail.com';
+        var username = "TEST_#left(createUUID().replace("-", "", "all"), 10)#";
+        var email    = "#username#@gmail.com";
         var password = createUUID();
 
         securityService.register(
@@ -17,7 +17,7 @@ component extends="coldbox.system.testing.BaseTestCase" {
             password   = password,
             email      = email,
             friendcode = makeFriendcode(),
-            icon       = 'charmander'
+            icon       = "charmander"
         );
 
         var trainer = securityService.getTrainer(email)[1];
@@ -31,7 +31,7 @@ component extends="coldbox.system.testing.BaseTestCase" {
         }
         else {
             setup();
-            execute(route = '/', renderResults = true);
+            execute(route = "/", renderResults = true);
             expect(session.authenticated).toBeFalse();
         }
 
@@ -50,26 +50,26 @@ component extends="coldbox.system.testing.BaseTestCase" {
         // Attempt to delete the mock user from
         // May fail due to asynchronous db inserts/updates, if fails, just continue
         try {
-            ormExecuteQuery('delete from requestlog where trainer = :trainer', {trainer: trainer});
-            ormExecuteQuery('delete from audit where trainer = :trainer', {trainer: trainer});
-            ormExecuteQuery('delete from blog where trainer = :trainer', {trainer: trainer});
-            ormExecuteQuery('delete from bug where trainer = :trainer', {trainer: trainer});
-            ormExecuteQuery('delete from comment where trainer = :trainer', {trainer: trainer});
+            ormExecuteQuery("delete from requestlog where trainer = :trainer", {trainer: trainer});
+            ormExecuteQuery("delete from audit where trainer = :trainer", {trainer: trainer});
+            ormExecuteQuery("delete from blog where trainer = :trainer", {trainer: trainer});
+            ormExecuteQuery("delete from bug where trainer = :trainer", {trainer: trainer});
+            ormExecuteQuery("delete from comment where trainer = :trainer", {trainer: trainer});
 
             ormExecuteQuery(
-                'delete from custompokedex where custom in (from custom where trainer = :trainer)',
+                "delete from custompokedex where custom in (from custom where trainer = :trainer)",
                 {trainer: trainer}
             );
-            ormExecuteQuery('delete from custom where trainer = :trainer', {trainer: trainer});
+            ormExecuteQuery("delete from custom where trainer = :trainer", {trainer: trainer});
 
-            ormExecuteQuery('delete from friend where trainer = :trainer', {trainer: trainer});
-            ormExecuteQuery('delete from friend where friend = :trainer', {trainer: trainer});
-            ormExecuteQuery('delete from persist where trainer = :trainer', {trainer: trainer});
-            ormExecuteQuery('delete from pokedex where trainer = :trainer', {trainer: trainer});
-            ormExecuteQuery('delete from stat where trainer = :trainer', {trainer: trainer});
+            ormExecuteQuery("delete from friend where trainer = :trainer", {trainer: trainer});
+            ormExecuteQuery("delete from friend where friend = :trainer", {trainer: trainer});
+            ormExecuteQuery("delete from persist where trainer = :trainer", {trainer: trainer});
+            ormExecuteQuery("delete from pokedex where trainer = :trainer", {trainer: trainer});
+            ormExecuteQuery("delete from stat where trainer = :trainer", {trainer: trainer});
 
             // ormExecuteQuery('delete from team where trainer = :trainer', {trainer: trainer});
-            ormExecuteQuery('delete from trainermedal where trainer = :trainer', {trainer: trainer});
+            ormExecuteQuery("delete from trainermedal where trainer = :trainer", {trainer: trainer});
 
             entityDelete(trainer);
             ormFlush();
@@ -79,27 +79,27 @@ component extends="coldbox.system.testing.BaseTestCase" {
 
         // Always clear session though
         sessionService.destroy(false);
-        expect(session.keyExists('trainerid')).toBeFalse();
+        expect(session.keyExists("trainerid")).toBeFalse();
     }
 
     /**
      * Log in the mock trainer
      */
-    void function login(required component trainer, string relocate_uri = '/') {
+    void function login(required component trainer, string relocate_uri = "/") {
         // Force valid recaptcha
         session.recaptcha = {
-            token    : 'a',
+            token    : "a",
             valid    : true,
             timestamp: now(),
-            action   : 'doLogin'
+            action   : "doLogin"
         };
 
         // Mock submitting login form
         setup();
         event = post(
-            route  = '/login/doLogin',
+            route  = "/login/doLogin",
             params = {
-                '#application.cbController.getSetting('csrfTokenField')#': csrfGenerateToken(forceNew = true),
+                "#application.cbController.getSetting("csrfTokenField")#": csrfGenerateToken(forceNew = true),
                 email   : arguments.trainer.getEmail(),
                 password: createUUID()
             }
@@ -107,18 +107,18 @@ component extends="coldbox.system.testing.BaseTestCase" {
 
         // After log in, you will be redirected to home page - did a lucee update break this?
         var response = event.getResponse();
-        if(isStruct(response) && (response?.keyExists('statuscode') ?: false)) {
+        if(isStruct(response) && (response?.keyExists("statuscode") ?: false)) {
             expect(response.statuscode).toBe(200);
-            expect(event.getValue('relocate_uri')).toBe(arguments.relocate_uri);
+            expect(event.getValue("relocate_uri")).toBe(arguments.relocate_uri);
         }
         else {
             expect(response.getStatusCode()).toBe(200);
-            expect(event.getValue('relocate_uri')).toBe(arguments.relocate_uri);
+            expect(event.getValue("relocate_uri")).toBe(arguments.relocate_uri);
         }
 
         // Force the session rotate to work
         setup();
-        execute(route = '/', renderResults = true);
+        execute(route = "/", renderResults = true);
 
         // Verify session data
         expect(session.trainerid).toBe(arguments.trainer.getId());
@@ -133,15 +133,15 @@ component extends="coldbox.system.testing.BaseTestCase" {
      */
     void function logout() {
         temp  = session.mocktrainerid;
-        event = get(route = '/logout');
+        event = get(route = "/logout");
         expect(event.getResponse().getStatusCode()).toBe(200);
-        expect(event.getValue('relocate_URI')).toBe('/'); // home page
+        expect(event.getValue("relocate_URI")).toBe("/"); // home page
 
         // session deleted
-        expect(session).notToHaveKey('trainerid');
+        expect(session).notToHaveKey("trainerid");
 
         // Force the session rotate to work
-        execute(route = '/', renderResults = true);
+        execute(route = "/", renderResults = true);
 
         expect(session.trainerid).toBe(-1);
         expect(session.authenticated).toBeFalse();
@@ -152,7 +152,7 @@ component extends="coldbox.system.testing.BaseTestCase" {
     }
 
     string function makeFriendcode() {
-        return '#left(randRange(1, 999999999999) & '00000000000', 12)#';
+        return "#left(randRange(1, 999999999999) & "00000000000", 12)#";
     }
 
 }

@@ -10,7 +10,7 @@ component extends="coldbox.system.Interceptor" {
      * Delete the session key
      */
     function postEvent(event, data, buffer, rc, prc) {
-        if(session.keyExists('alert')) {
+        if(session.keyExists("alert")) {
             request.alert = session.alert;
             sessionService.clearAlert();
         }
@@ -20,7 +20,7 @@ component extends="coldbox.system.Interceptor" {
      * Clean up request scope
      */
     function postProcess(event, data, buffer, rc, prc) {
-        request.delete('alert');
+        request.delete("alert");
     }
 
 }

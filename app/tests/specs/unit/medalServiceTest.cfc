@@ -2,47 +2,47 @@ component extends="tests.resources.baseTest" asyncAll="false" {
 
     function beforeAll() {
         super.beforeAll();
-        mockTrainer = getInstance('tests.resources.mocktrainer');
+        mockTrainer = getInstance("tests.resources.mocktrainer");
         trainer     = mockTrainer.make();
-        testMedal   = left('Test Medal #createUUID()#', 50);
+        testMedal   = left("Test Medal #createUUID()#", 50);
     }
 
     function afterAll() {
         super.afterAll();
         mockTrainer.delete();
 
-        queryExecute('delete from medal where name like ''%Test Medal%''');
+        queryExecute("delete from medal where name like '%Test Medal%'");
     }
 
     function run() {
-        describe('Medal service tests', () => {
+        describe("Medal service tests", () => {
             beforeEach(() => {
                 setup();
-                medalService = getInstance('services.medal');
+                medalService = getInstance("services.medal");
             });
 
-            it('Can be created', () => {
+            it("Can be created", () => {
                 expect(medalService).toBeComponent();
             });
 
-            it('Can getAll medals', () => {
+            it("Can getAll medals", () => {
                 medals = medalService.getAll();
                 expect(medals).toBeArray();
                 expect(medals.len()).toBeGT(1);
             });
 
-            it('Cam load medal by name', () => {
-                name  = 'Ultra League Veteran';
+            it("Cam load medal by name", () => {
+                name  = "Ultra League Veteran";
                 medal = medalService.get(name);
                 expect(medal).toBeArray();
                 expect(medal.len()).toBe(1);
                 expect(medal[1].getName()).toBe(name);
             });
 
-            it('Can create a new medal', () => {
+            it("Can create a new medal", () => {
                 medalProperties = {
                     name        : testMedal,
-                    description : 'Testing',
+                    description : "Testing",
                     bronze      : 1,
                     silver      : 2,
                     gold        : 3,
@@ -59,10 +59,10 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                 expect(medal[1].getName()).toBe(medalProperties.name);
             });
 
-            it('Can update a medal', () => {
+            it("Can update a medal", () => {
                 medalProperties = {
                     name        : testMedal,
-                    description : 'Updated',
+                    description : "Updated",
                     bronze      : 1,
                     silver      : 2,
                     gold        : 3,
@@ -76,19 +76,19 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                 medal = medalService.get(medalProperties.name);
                 expect(medal).toBeArray();
                 expect(medal.len()).toBe(1);
-                expect(medal[1].getDescription()).toBe('Updated');
+                expect(medal[1].getDescription()).toBe("Updated");
             });
 
-            describe('Trainer medal lifecycle', () => {
-                it('Can get medal by name', () => {
-                    medal = medalService.get('Youngster');
+            describe("Trainer medal lifecycle", () => {
+                it("Can get medal by name", () => {
+                    medal = medalService.get("Youngster");
                     expect(medal).toBeArray();
                     expect(medal.len()).toBe(1);
                     medal = medal[1];
-                    expect(medal.getName()).toBe('Youngster');
+                    expect(medal.getName()).toBe("Youngster");
                 });
 
-                it('Can get no progress against medal', () => {
+                it("Can get no progress against medal", () => {
                     medalProgress = medalService.getProgress(trainer);
                     expect(medalProgress).toBeArray();
 
@@ -104,11 +104,11 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                     expect(found).toBeTrue();
                 });
 
-                it('Can track progress against medal', () => {
+                it("Can track progress against medal", () => {
                     silverProg = medal.getSilver();
                     data       = {medal: medal.getId(), current: silverProg};
 
-                    event = post(route = '/stats/trackMedalProgress', params = data);
+                    event = post(route = "/stats/trackMedalProgress", params = data);
                     // Verify successful response
                     expect(event.getStatusCode()).toBe(200);
 
@@ -116,7 +116,7 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                     expect(response.success).toBeTrue();
                 });
 
-                it('Can get new progress against medal', () => {
+                it("Can get new progress against medal", () => {
                     medalProgress = medalService.getProgress(trainer);
                     expect(medalProgress).toBeArray();
 

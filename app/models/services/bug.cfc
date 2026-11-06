@@ -8,12 +8,12 @@ component singleton accessors="true" {
 
     public void function init() {
         setDatatableCols([
-            'bug.created',
-            'bug.ip',
-            'bug.event',
-            'bug.message',
-            'trainer.username',
-            'bug.stack'
+            "bug.created",
+            "bug.ip",
+            "bug.event",
+            "bug.message",
+            "trainer.username",
+            "bug.stack"
         ]);
     }
 
@@ -28,12 +28,12 @@ component singleton accessors="true" {
         numeric trainerid = -1
     ) {
         var bug = entityNew(
-            'bug',
+            "bug",
             {
-                'ip'     : arguments.ip,
-                'event'  : arguments.event,
-                'message': arguments.message,
-                'stack'  : arguments.stack
+                "ip"     : arguments.ip,
+                "event"  : arguments.event,
+                "message": arguments.message,
+                "stack"  : arguments.stack
             }
         );
 
@@ -53,19 +53,19 @@ component singleton accessors="true" {
     public struct function get(
         required numeric records,
         required numeric offset,
-        required string search   = '',
-        required string orderCol = '',
-        required string orderDir = ''
+        required string search   = "",
+        required string orderCol = "",
+        required string orderDir = ""
     ) {
-        var orderBy = '';
+        var orderBy = "";
         if(orderCol.len() && orderDir.len()) {
-            orderBy = 'order by #getDatatableCols()[orderCol + 1]# #orderDir#';
+            orderBy = "order by #getDatatableCols()[orderCol + 1]# #orderDir#";
         }
 
         var results = async
             .all(
                 () => ormExecuteQuery(
-                    '
+                    "
                     select bug
                     from bug as bug
                     left outer join bug.trainer as trainer
@@ -73,25 +73,25 @@ component singleton accessors="true" {
                         or upper(bug.message) like :search
                         or upper(trainer.username) like :search
                     #orderBy#
-                    ',
-                    {search: '%#uCase(search)#%'},
+                    ",
+                    {search: "%#uCase(search)#%"},
                     {
                         offset    : offset,
                         maxResults: records,
                         cacheable : true,
-                        cachename : 'defaultCache'
+                        cachename : "defaultCache"
                     }
                 ),
                 () => ormExecuteQuery(
-                    '
+                    "
                     select count(bug.id)
                     from bug as bug
                     left outer join bug.trainer as trainer
                     where upper(bug.event) like :search
                         or upper(bug.message) like :search
                         or upper(trainer.username) like :search
-                    ',
-                    {search: '%#uCase(search)#%'}
+                    ",
+                    {search: "%#uCase(search)#%"}
                 ),
                 () => getTotalRecords()
             )
@@ -104,13 +104,13 @@ component singleton accessors="true" {
         return {
             data: bugs.map((bug) => {
                 return {
-                    'id'       : bug.getId(),
-                    'timestamp': bug.getTimestamp(),
-                    'ip'       : bug.getIP() ?: '',
-                    'event'    : bug.getEvent() ?: '',
-                    'message'  : bug.getMessage() ?: '',
-                    'username' : bug.getUsername(),
-                    'stack'    : bug.getStack() ?: ''
+                    "id"       : bug.getId(),
+                    "timestamp": bug.getTimestamp(),
+                    "ip"       : bug.getIP() ?: "",
+                    "event"    : bug.getEvent() ?: "",
+                    "message"  : bug.getMessage() ?: "",
+                    "username" : bug.getUsername(),
+                    "stack"    : bug.getStack() ?: ""
                 };
             }),
             recordsTotal   : totalRecords,
@@ -122,10 +122,10 @@ component singleton accessors="true" {
      * Get total count of records in bug table
      */
     public numeric function getTotalRecords() {
-        var cacheKey = 'bug.getTotalRecords';
+        var cacheKey = "bug.getTotalRecords";
         var count    = cache.get(cacheKey);
         if(isNull(count)) {
-            count = ormExecuteQuery('select count(id) from bug')[1];
+            count = ormExecuteQuery("select count(id) from bug")[1];
             cache.set(cacheKey, count, 5, 5);
         }
         return count;

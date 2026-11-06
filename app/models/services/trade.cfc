@@ -16,31 +16,31 @@ component singleton accessors="true" {
         component generation,
         component custom
     ) {
-        var conditionL  = 'and pokedexL.caught = true';
-        var conditionR  = 'and pokedexR.caught = true';
-        var whereClause = 'where pokemon.tradable = true and pokedexR.pokemon is null';
+        var conditionL  = "and pokedexL.caught = true";
+        var conditionR  = "and pokedexR.caught = true";
+        var whereClause = "where pokemon.tradable = true and pokedexR.pokemon is null";
 
         if(arguments.shiny) {
-            conditionL = ' and pokedexL.shiny = true';
-            conditionR = ' and pokedexR.shiny = true';
-            whereClause &= ' and pokemon.shiny = true';
+            conditionL = " and pokedexL.shiny = true";
+            conditionR = " and pokedexR.shiny = true";
+            whereClause &= " and pokemon.shiny = true";
         }
 
-        var params = {'leftTrainer': arguments.leftTrainer, 'rightTrainer': arguments.rightTrainer};
+        var params = {"leftTrainer": arguments.leftTrainer, "rightTrainer": arguments.rightTrainer};
 
         if(!isNull(arguments.generation)) {
-            whereClause &= ' and pokemon.generation = :generation and pokemon.costume = false';
-            params.insert('generation', arguments.generation);
+            whereClause &= " and pokemon.generation = :generation and pokemon.costume = false";
+            params.insert("generation", arguments.generation);
         }
 
-        var customClause = '';
+        var customClause = "";
         if(!isNull(arguments.custom)) {
-            customClause = 'inner join pokemon.custompokedex as custompokedex with custompokedex.custom = :custom';
-            params.insert('custom', arguments.custom);
+            customClause = "inner join pokemon.custompokedex as custompokedex with custompokedex.custom = :custom";
+            params.insert("custom", arguments.custom);
         }
 
         return ormExecuteQuery(
-            '
+            "
             select pokemon
             from pokemon as pokemon
             #customClause#
@@ -52,7 +52,7 @@ component singleton accessors="true" {
                 #conditionR#
             #whereClause#
             order by pokemon.number asc
-            ',
+            ",
             params
         );
     }

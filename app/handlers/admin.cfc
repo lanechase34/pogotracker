@@ -1,39 +1,39 @@
 component extends="base" {
 
     this.allowedMethods = {
-        index                 : 'GET',
-        buildPokemonData      : 'POST',
-        listPokemon           : 'GET',
-        getPokemon            : 'GET',
-        listTrainers          : 'GET',
-        getTrainers           : 'GET',
-        editTrainer           : 'GET',
-        createRegistrationLink: 'GET',
-        buildLevels           : 'POST',
-        auditLog              : 'GET',
-        getAudits             : 'GET',
-        bugLog                : 'GET',
-        getBugs               : 'GET',
-        serverInfo            : 'GET',
-        buildMedalData        : 'POST',
-        showMedalData         : 'GET',
-        buildMoveData         : 'POST',
-        showMoveData          : 'GET',
-        saveState             : 'POST',
-        taskManager           : 'GET',
-        runTask               : 'POST',
-        readOverrides         : 'GET',
-        saveOverrides         : 'POST',
-        readEventOverrides    : 'GET',
-        saveEventOverrides    : 'POST',
-        readNameOverrides     : 'GET',
-        saveNameOverrides     : 'POST',
-        logViewer             : 'GET',
-        requestLog            : 'GET',
-        getRequests           : 'GET',
-        updateSiteMap         : 'POST',
-        buildCostumeData      : 'POST',
-        getCacheData          : 'GET'
+        index                 : "GET",
+        buildPokemonData      : "POST",
+        listPokemon           : "GET",
+        getPokemon            : "GET",
+        listTrainers          : "GET",
+        getTrainers           : "GET",
+        editTrainer           : "GET",
+        createRegistrationLink: "GET",
+        buildLevels           : "POST",
+        auditLog              : "GET",
+        getAudits             : "GET",
+        bugLog                : "GET",
+        getBugs               : "GET",
+        serverInfo            : "GET",
+        buildMedalData        : "POST",
+        showMedalData         : "GET",
+        buildMoveData         : "POST",
+        showMoveData          : "GET",
+        saveState             : "POST",
+        taskManager           : "GET",
+        runTask               : "POST",
+        readOverrides         : "GET",
+        saveOverrides         : "POST",
+        readEventOverrides    : "GET",
+        saveEventOverrides    : "POST",
+        readNameOverrides     : "GET",
+        saveNameOverrides     : "POST",
+        logViewer             : "GET",
+        requestLog            : "GET",
+        getRequests           : "GET",
+        updateSiteMap         : "POST",
+        buildCostumeData      : "POST",
+        getCacheData          : "GET"
     };
 
     property name="auditService"      inject="services.audit";
@@ -52,8 +52,8 @@ component extends="base" {
     property name="trainerService"    inject="services.trainer";
 
     function preHandler(event, rc, prc, action, eventArguments) {
-        prc.title      = 'Admin | #getSetting('title')#';
-        prc.metaRobots = 'noindex, nofollow';
+        prc.title      = "Admin | #getSetting("title")#";
+        prc.metaRobots = "noindex, nofollow";
     }
 
     function index(event, rc, prc) {
@@ -62,7 +62,7 @@ component extends="base" {
     function buildPokemonData(event, rc, prc) {
         cfsetting(requestTimeout = 600);
         adminService.buildPokemonData();
-        relocate(event = 'admin.listPokemon');
+        relocate(event = "admin.listPokemon");
     }
 
     function listPokemon(event, rc, prc) {
@@ -79,7 +79,7 @@ component extends="base" {
         param name="rc['order[1][column]']" default="";
         param name="rc['order[1][dir]']"    default="";
 
-        if(hasValidationErrors(target = rc, constraints = 'admin.getPokemon')) {
+        if(hasValidationErrors(target = rc, constraints = "admin.getPokemon")) {
             jsonValidationFailure(event = event);
             return;
         }
@@ -87,12 +87,12 @@ component extends="base" {
         prc.responseObj.data = pokemonService.getTable(
             rc.length,
             rc.start,
-            rc['search[value]'],
-            rc['order[0][column]'],
-            rc['order[0][dir]'],
-            rc['order[1][column]'],
-            rc['order[1][dir]'],
-            rc.costume == 'true'
+            rc["search[value]"],
+            rc["order[0][column]"],
+            rc["order[0][dir]"],
+            rc["order[1][column]"],
+            rc["order[1][dir]"],
+            rc.costume == "true"
         );
         prc.responseObj.data.draw  = rc.draw;
         prc.responseObj.statusCode = 200;
@@ -111,7 +111,7 @@ component extends="base" {
         param name="rc['order[0][column]']" default="";
         param name="rc['order[0][dir]']"    default="";
 
-        if(hasValidationErrors(target = rc, constraints = 'admin.getTrainers')) {
+        if(hasValidationErrors(target = rc, constraints = "admin.getTrainers")) {
             jsonValidationFailure(event = event);
             return;
         }
@@ -119,9 +119,9 @@ component extends="base" {
         prc.responseObj.data = trainerService.get(
             rc.length,
             rc.start,
-            rc['search[value]'],
-            rc['order[0][column]'],
-            rc['order[0][dir]']
+            rc["search[value]"],
+            rc["order[0][column]"],
+            rc["order[0][dir]"]
         );
         prc.responseObj.data.draw  = rc.draw;
         prc.responseObj.statusCode = 200;
@@ -132,9 +132,9 @@ component extends="base" {
     function editTrainer(event, rc, prc) {
         param name="rc.trainerid" default="";
 
-        prc.validation = validate(target = rc, constraints = 'editTrainer');
+        prc.validation = validate(target = rc, constraints = "editTrainer");
         if(prc.validation.hasErrors()) {
-            relocate(uri = '/');
+            relocate(uri = "/");
         }
 
         prc.trainerid      = parseNumber(rc.trainerid);
@@ -144,16 +144,16 @@ component extends="base" {
         prc.securityLevels = securityService.getSecurityLevels();
 
         event.setView(
-            view     = '/views/trainer/modal/editProfile',
+            view     = "/views/trainer/modal/editProfile",
             nolayout = true,
             args     = {
                 trainer       : prc.trainer,
                 iconMap       : arrayMerge(prc.baseIcons, prc.unlockedIcons),
                 admin         : true,
                 securityLevels: prc.securityLevels,
-                viewMap       : getSetting('viewMap'),
+                viewMap       : getSetting("viewMap"),
                 generations   : generationService.getAll(),
-                pageMap       : getSetting('pageMap')
+                pageMap       : getSetting("pageMap")
             }
         );
     }
@@ -161,12 +161,12 @@ component extends="base" {
     function buildLevels(event, rc, prc) {
         adminService.buildLevels();
         sessionService.setAlert(
-            'success',
+            "success",
             true,
-            'bi-check-square-fill',
-            'Success!'
+            "bi-check-square-fill",
+            "Success!"
         );
-        relocate('admin.index');
+        relocate("admin.index");
     }
 
     function auditLog(event, rc, prc) {
@@ -188,7 +188,7 @@ component extends="base" {
         param name="rc['order[0][column]']" default="";
         param name="rc['order[0][dir]']"    default="";
 
-        if(hasValidationErrors(target = rc, constraints = 'admin.getAudits')) {
+        if(hasValidationErrors(target = rc, constraints = "admin.getAudits")) {
             jsonValidationFailure(event = event);
             return;
         }
@@ -196,9 +196,9 @@ component extends="base" {
         prc.responseObj.data = auditService.get(
             rc.length,
             rc.start,
-            rc['search[value]'],
-            rc['order[0][column]'],
-            rc['order[0][dir]']
+            rc["search[value]"],
+            rc["order[0][column]"],
+            rc["order[0][dir]"]
         );
         prc.responseObj.data.draw  = rc.draw;
         prc.responseObj.statusCode = 200;
@@ -217,7 +217,7 @@ component extends="base" {
         param name="rc['order[0][column]']" default="";
         param name="rc['order[0][dir]']"    default="";
 
-        if(hasValidationErrors(target = rc, constraints = 'admin.getRequests')) {
+        if(hasValidationErrors(target = rc, constraints = "admin.getRequests")) {
             jsonValidationFailure(event = event);
             return;
         }
@@ -225,9 +225,9 @@ component extends="base" {
         prc.responseObj.data = auditService.getRequests(
             rc.length,
             rc.start,
-            rc['search[value]'],
-            rc['order[0][column]'],
-            rc['order[0][dir]']
+            rc["search[value]"],
+            rc["order[0][column]"],
+            rc["order[0][dir]"]
         );
         prc.responseObj.data.draw  = rc.draw;
         prc.responseObj.statusCode = 200;
@@ -246,7 +246,7 @@ component extends="base" {
         param name="rc['order[0][column]']" default="";
         param name="rc['order[0][dir]']"    default="";
 
-        if(hasValidationErrors(target = rc, constraints = 'admin.getBugs')) {
+        if(hasValidationErrors(target = rc, constraints = "admin.getBugs")) {
             jsonValidationFailure(event = event);
             return;
         }
@@ -254,9 +254,9 @@ component extends="base" {
         prc.responseObj.data = bugService.get(
             rc.length,
             rc.start,
-            rc['search[value]'],
-            rc['order[0][column]'],
-            rc['order[0][dir]']
+            rc["search[value]"],
+            rc["order[0][column]"],
+            rc["order[0][dir]"]
         );
         prc.responseObj.data.draw  = rc.draw;
         prc.responseObj.statusCode = 200;
@@ -268,7 +268,7 @@ component extends="base" {
         prc.timezone    = getTimezone();
         prc.timestamp   = now();
         prc.securityMap = securityService.getSecurityMap();
-        prc.baseURL     = getSetting('environment') != 'production' ? 'localhost' : '';
+        prc.baseURL     = getSetting("environment") != "production" ? "localhost" : "";
     }
 
     function getCacheData(event, rc, prc) {
@@ -278,7 +278,7 @@ component extends="base" {
     function buildMedalData(event, rc, prc) {
         cfsetting(requestTimeout = 600);
         adminService.buildMedalData();
-        relocate(event = 'admin.showMedalData');
+        relocate(event = "admin.showMedalData");
     }
 
     function showMedalData(event, rc, prc) {
@@ -288,7 +288,7 @@ component extends="base" {
     function buildMoveData(event, rc, prc) {
         cfsetting(requestTimeout = 600);
         adminService.buildMoveData();
-        relocate(event = 'admin.showMoveData');
+        relocate(event = "admin.showMoveData");
     }
 
     function showMoveData(event, rc, prc) {
@@ -303,10 +303,10 @@ component extends="base" {
         param name="rc.pokemonLink"     default="";
         param name="rc.pokemonJson"     default="";
 
-        setSetting('signups', (rc?.signupsSwitch ?: 'off') == 'on');
-        setSetting('fetchCount', parseNumber(rc.fetchCount));
-        setSetting('eventDaysBefore', parseNumber(rc.eventDaysBefore));
-        setSetting('logRequests', (rc?.logRequestsSwitch ?: 'off') == 'on');
+        setSetting("signups", (rc?.signupsSwitch ?: "off") == "on");
+        setSetting("fetchCount", parseNumber(rc.fetchCount));
+        setSetting("eventDaysBefore", parseNumber(rc.eventDaysBefore));
+        setSetting("logRequests", (rc?.logRequestsSwitch ?: "off") == "on");
 
         if(rc.eventLink.len()) {
             adminService.createEvent(eventLink = rc.eventLink);
@@ -321,12 +321,12 @@ component extends="base" {
         }
 
         sessionService.setAlert(
-            'success',
+            "success",
             true,
-            'bi bi-file-earmark-check',
-            'Successfully Saved.'
+            "bi bi-file-earmark-check",
+            "Successfully Saved."
         );
-        relocate(event = 'admin');
+        relocate(event = "admin");
     }
 
     function taskManager(event, rc, prc) {
@@ -337,7 +337,7 @@ component extends="base" {
         param name="rc.scheduler" default="";
         param name="rc.name"      default="";
 
-        if(hasValidationErrors(target = rc, constraints = 'admin.runTask')) {
+        if(hasValidationErrors(target = rc, constraints = "admin.runTask")) {
             jsonValidationFailure(event = event);
             return;
         }
@@ -363,7 +363,7 @@ component extends="base" {
         param name="rc.end"      default="1000";
 
         prc.logs       = adminService.getLogs();
-        prc.logContent = '';
+        prc.logContent = "";
         if(rc.filename.len()) {
             // Validate this is a known log file
             if(!prc.logs.recordCount || !listFindNoCase(valueList(prc.logs.name), rc.filename)) {
@@ -373,129 +373,129 @@ component extends="base" {
             prc.logContent = adminService.readLog(rc.filename, rc.start, rc.end);
         }
 
-        prc.header = 'Log Viewer';
+        prc.header = "Log Viewer";
     }
 
     function readOverrides(event, rc, prc) {
-        prc.description   = 'Pokemon Env Overrides';
-        prc.overridesJSON = serializeJSON(adminService.getOverride(name = 'envpokedexoverrides'));
-        prc.submitAction  = 'admin.saveOverrides';
+        prc.description   = "Pokemon Env Overrides";
+        prc.overridesJSON = serializeJSON(adminService.getOverride(name = "envpokedexoverrides"));
+        prc.submitAction  = "admin.saveOverrides";
     }
 
     function saveOverrides(event, rc, prc) {
         try {
-            var raw = toString(rc.json ?: '');
+            var raw = toString(rc.json ?: "");
 
             // Validate it's actually JSON before saving
             raw = deserializeJSON(raw);
 
-            adminService.saveOverride(name = 'envpokedexoverrides', override = raw);
+            adminService.saveOverride(name = "envpokedexoverrides", override = raw);
 
             sessionService.setAlert(
-                'success',
+                "success",
                 true,
-                'bi bi-copy',
-                'Successfully saved!'
+                "bi bi-copy",
+                "Successfully saved!"
             );
         }
         catch(any e) {
             sessionService.setAlert(
-                'danger',
+                "danger",
                 true,
-                'bi-exclamation-diamond-fill',
-                'Error saving. Please try again. #e.message#'
+                "bi-exclamation-diamond-fill",
+                "Error saving. Please try again. #e.message#"
             );
         }
-        relocate(event = 'admin.readOverrides');
+        relocate(event = "admin.readOverrides");
     }
 
     function readEventOverrides(event, rc, prc) {
-        prc.description   = 'Event Env Overrides';
-        prc.overridesJSON = serializeJSON(adminService.getOverride(name = 'enveventoverrides'));
-        prc.submitAction  = 'admin.saveEventOverrides';
+        prc.description   = "Event Env Overrides";
+        prc.overridesJSON = serializeJSON(adminService.getOverride(name = "enveventoverrides"));
+        prc.submitAction  = "admin.saveEventOverrides";
 
-        event.setView(view = '/views/admin/readoverrides');
+        event.setView(view = "/views/admin/readoverrides");
     }
 
     function saveEventOverrides(event, rc, prc) {
         try {
-            var raw = toString(rc.json ?: '');
+            var raw = toString(rc.json ?: "");
 
             // Validate it's actually JSON before saving
             raw = deserializeJSON(raw);
 
-            adminService.saveOverride(name = 'enveventoverrides', override = raw);
+            adminService.saveOverride(name = "enveventoverrides", override = raw);
 
             sessionService.setAlert(
-                'success',
+                "success",
                 true,
-                'bi bi-copy',
-                'Successfully saved!'
+                "bi bi-copy",
+                "Successfully saved!"
             );
         }
         catch(any e) {
             sessionService.setAlert(
-                'danger',
+                "danger",
                 true,
-                'bi-exclamation-diamond-fill',
-                'Error saving. Please try again. #e.message#'
+                "bi-exclamation-diamond-fill",
+                "Error saving. Please try again. #e.message#"
             );
         }
 
-        relocate(event = 'admin.readEventOverrides');
+        relocate(event = "admin.readEventOverrides");
     }
 
     function readNameOverrides(event, rc, prc) {
-        prc.description   = 'Name Env Overrides';
-        prc.overridesJSON = serializeJSON(adminService.getOverride(name = 'leekducknamemap'));
-        prc.submitAction  = 'admin.saveNameOverrides';
+        prc.description   = "Name Env Overrides";
+        prc.overridesJSON = serializeJSON(adminService.getOverride(name = "leekducknamemap"));
+        prc.submitAction  = "admin.saveNameOverrides";
 
-        event.setView(view = '/views/admin/readoverrides');
+        event.setView(view = "/views/admin/readoverrides");
     }
 
     function saveNameOverrides(event, rc, prc) {
         try {
-            var raw = toString(rc.json ?: '');
+            var raw = toString(rc.json ?: "");
 
             // Validate it's actually JSON before saving
             raw = deserializeJSON(raw);
 
-            adminService.saveOverride(name = 'leekducknamemap', override = raw);
+            adminService.saveOverride(name = "leekducknamemap", override = raw);
 
             sessionService.setAlert(
-                'success',
+                "success",
                 true,
-                'bi bi-copy',
-                'Successfully saved!'
+                "bi bi-copy",
+                "Successfully saved!"
             );
         }
         catch(any e) {
             sessionService.setAlert(
-                'danger',
+                "danger",
                 true,
-                'bi-exclamation-diamond-fill',
-                'Error saving. Please try again. #e.message#'
+                "bi-exclamation-diamond-fill",
+                "Error saving. Please try again. #e.message#"
             );
         }
-        relocate(event = 'admin.readNameOverrides');
+        relocate(event = "admin.readNameOverrides");
     }
 
     function updateSiteMap(event, rc, prc) {
         adminService.updateSiteMap();
 
         sessionService.setAlert(
-            'success',
+            "success",
             true,
-            'bi bi-file-earmark-check',
-            'Successfully Updated.'
+            "bi bi-file-earmark-check",
+            "Successfully Updated."
         );
-        relocate(event = 'admin');
+        relocate(event = "admin");
     }
 
     function buildCostumeData(event, rc, prc) {
         cfsetting(requestTimeout = 600);
         adminService.buildCostumeData();
-        relocate(event = 'admin.listPokemon');
+        relocate(event = "admin.listPokemon");
     }
 
 }

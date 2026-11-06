@@ -15,7 +15,7 @@ component persistent="true" extends="base" {
      * Get the username of the trainer, if exists, that the bug belongs to
      */
     string function getUsername() {
-        return getTrainer()?.getUsername() ?: '';
+        return getTrainer()?.getUsername() ?: "";
     }
 
 }

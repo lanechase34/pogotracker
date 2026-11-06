@@ -7,8 +7,8 @@ component extends="base" {
     property name="securityService" inject="services.security";
     property name="utilService"     inject="services.util";
 
-    this.prehandler_only  = 'unauthorized,invalidHTTPMethod,notFound';
-    this.posthandler_only = 'unauthorized,invalidHTTPMethod,notFound';
+    this.prehandler_only  = "unauthorized,invalidHTTPMethod,notFound";
+    this.posthandler_only = "unauthorized,invalidHTTPMethod,notFound";
 
     /**
      * Clear the current orm session so we know the audit will work
@@ -18,8 +18,8 @@ component extends="base" {
         ormClearSession(); // Clear the current session so we know the audit will work
         prc.auditInfo = auditService.getAuditObj(
             trainerid = session?.trainerid ?: -1,
-            referer   = rc?.referer ?: '',
-            event     = rc?.event ?: 'NA'
+            referer   = rc?.referer ?: "",
+            event     = rc?.event ?: "NA"
         );
     }
 
@@ -27,7 +27,7 @@ component extends="base" {
      * Fire async promise to audit
      */
     function postHandler(event, rc, prc, action, eventArguments) {
-        if(!validate(target = prc.auditInfo, constraints = 'audit').hasErrors()) {
+        if(!validate(target = prc.auditInfo, constraints = "audit").hasErrors()) {
             async.newFuture(() => {
                 auditService.audit(argumentCollection = prc.auditInfo);
             });
@@ -39,14 +39,14 @@ component extends="base" {
      */
     function unauthorized(event, rc, prc) {
         prc.auditInfo.event  = left(prc?.unauthorizedEvent ?: event.getFullPath(), 250);
-        prc.auditInfo.detail = 'Unauthorized Event';
+        prc.auditInfo.detail = "Unauthorized Event";
 
         // Page metadata
-        prc.title           = 'Access Denied';
-        prc.metaDescription = 'You do not have permission to access this resource.';
+        prc.title           = "Access Denied";
+        prc.metaDescription = "You do not have permission to access this resource.";
 
         event.setHTTPHeader(statusCode = 403);
-        event.setView(view = '/views/fragment/unauthorized', layout = 'basic');
+        event.setView(view = "/views/fragment/unauthorized", layout = "basic");
     }
 
     /**
@@ -54,16 +54,16 @@ component extends="base" {
      */
     function invalidHTTPMethod(event, rc, prc) {
         prc.auditInfo.event  = left(event.getFullPath(), 250);
-        prc.auditInfo.detail = 'Invalid HTTP Method #event.getHTTPMethod()#';
+        prc.auditInfo.detail = "Invalid HTTP Method #event.getHTTPMethod()#";
 
         if(utilService.isJsonRequest()) {
             prc.responseObj.statusCode = 405;
-            prc.responseObj.message    = 'Method Not Allowed';
+            prc.responseObj.message    = "Method Not Allowed";
             renderJson(event = event, response = prc.responseObj);
         }
         else {
             event.setHTTPHeader(statusCode = 405);
-            event.setView(view = '/views/fragment/invalidmethod', layout = 'basic');
+            event.setView(view = "/views/fragment/invalidmethod", layout = "basic");
         }
     }
 
@@ -82,7 +82,7 @@ component extends="base" {
         /**
          * Audit and email bug
          */
-        if(!validate(target = prc.bugInfo, constraints = 'bug').hasErrors()) {
+        if(!validate(target = prc.bugInfo, constraints = "bug").hasErrors()) {
             async.newFuture(() => {
                 bugService.logBug(argumentCollection = prc.bugInfo);
             });
@@ -90,7 +90,7 @@ component extends="base" {
 
         emailService.sendBug(prc.exception.getExceptionStruct(), rc);
 
-        relocate(uri = '/exception', persistStruct = {details: prc.exception, erroredEvent: event.getCurrentEvent()});
+        relocate(uri = "/exception", persistStruct = {details: prc.exception, erroredEvent: event.getCurrentEvent()});
     }
 
     /**
@@ -98,15 +98,15 @@ component extends="base" {
      */
     function displayException(event, rc, prc) {
         // Page metadata
-        prc.title           = 'Something Went Wrong';
-        prc.metaDescription = 'An unexpected error occurred while processing your request.';
+        prc.title           = "Something Went Wrong";
+        prc.metaDescription = "An unexpected error occurred while processing your request.";
 
         // Debugging mode
-        prc.debuggingMode = getSetting('environment') != 'production';
-        prc.erroredEvent  = prc?.erroredEvent ?: 'home.home';
+        prc.debuggingMode = getSetting("environment") != "production";
+        prc.erroredEvent  = prc?.erroredEvent ?: "home.home";
 
         event.setHTTPHeader(statusCode = 500);
-        event.setView(view = '/views/fragment/exception').setLayout('basic');
+        event.setView(view = "/views/fragment/exception").setLayout("basic");
     }
 
     /**
@@ -114,14 +114,14 @@ component extends="base" {
      */
     function notFound(event, rc, prc) {
         prc.auditInfo.event  = left(event.getFullPath(), 250);
-        prc.auditInfo.detail = '404 Not Found';
+        prc.auditInfo.detail = "404 Not Found";
 
         // Page metadata
-        prc.title           = '404 - Page Not Found';
-        prc.metaDescription = 'The page you are looking for does not exist.';
+        prc.title           = "404 - Page Not Found";
+        prc.metaDescription = "The page you are looking for does not exist.";
 
         event.setHTTPHeader(statusCode = 404);
-        event.setView(view = '/views/fragment/404');
+        event.setView(view = "/views/fragment/404");
     }
 
 }

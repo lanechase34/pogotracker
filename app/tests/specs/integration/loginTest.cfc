@@ -3,94 +3,94 @@ component extends="tests.resources.baseTest" asyncAll="false" {
     function beforeAll() {
         super.beforeAll();
 
-        mockTrainer = getInstance('tests.resources.mocktrainer');
+        mockTrainer = getInstance("tests.resources.mocktrainer");
     }
 
     function afterAll() {
         super.afterAll();
-        if(session.keyExists('mocktrainerid')) mockTrainer.delete();
+        if(session.keyExists("mocktrainerid")) mockTrainer.delete();
     }
 
     function run() {
-        describe('Login handler tests', () => {
+        describe("Login handler tests", () => {
             beforeEach(() => {
                 setup();
 
-                securityService = getInstance('services.security');
-                sessionService  = getInstance('services.session');
+                securityService = getInstance("services.security");
+                sessionService  = getInstance("services.session");
             });
 
-            it('Authenticate with a valid email/password and receive a session', () => {
-                email    = 'test_0@gmail.com';
+            it("Authenticate with a valid email/password and receive a session", () => {
+                email    = "test_0@gmail.com";
                 password = createUUID();
 
                 login = securityService.login(email, password);
                 expect(login).toBeTrue();
 
                 sessionService.create(email, false);
-                execute(event = 'home.home', renderResults = true); // Force the session rotate to work
+                execute(event = "home.home", renderResults = true); // Force the session rotate to work
 
                 expect(session.authenticated).toBeTrue();
                 sessionService.destroy(false);
-                expect(session.keyExists('trainerid')).toBeFalse();
+                expect(session.keyExists("trainerid")).toBeFalse();
             });
 
-            it('Can rotate a session and retrieve new sessionid', () => {
+            it("Can rotate a session and retrieve new sessionid", () => {
                 trainer   = mockTrainer.make();
                 trainerid = session.trainerid;
                 sessionid = session.sessionid;
 
                 sessionService.rotate();
-                execute(event = 'home.home', renderResults = true); // Force the session rotate to work
+                execute(event = "home.home", renderResults = true); // Force the session rotate to work
 
                 expect(trainerid).toBe(session.trainerid);
                 expect(sessionid).notToBe(session.sessionid); // sessionid should rotate
                 mockTrainer.delete();
             });
 
-            describe('Registration -> Login lifecycle', () => {
-                it('Can get the login form', () => {
-                    event = get(route = '/login');
+            describe("Registration -> Login lifecycle", () => {
+                it("Can get the login form", () => {
+                    event = get(route = "/login");
                     expect(event.getResponse().getStatusCode()).toBe(200);
-                    expect(event.getRenderedContent()).toInclude('data-handler=login');
-                    expect(event.getRenderedContent()).toInclude('data-action=loginform');
+                    expect(event.getRenderedContent()).toInclude("data-handler=login");
+                    expect(event.getRenderedContent()).toInclude("data-action=loginform");
                 });
 
-                it('Can register a new user', () => {
+                it("Can register a new user", () => {
                     before = globalFunctions.countTestEmails();
 
                     // Force valid recaptcha
                     session.recaptcha = {
-                        token    : 'a',
+                        token    : "a",
                         valid    : true,
                         timestamp: now(),
-                        action   : 'register'
+                        action   : "register"
                     };
 
                     // Mock user
-                    username     = left(replace('register_#createUUID()#', '-', '', 'all'), 30);
-                    testingEmail = '#username#@gmail.com'; // used in subsequent tests
+                    username     = left(replace("register_#createUUID()#", "-", "", "all"), 30);
+                    testingEmail = "#username#@gmail.com"; // used in subsequent tests
 
                     event = post(
-                        route  = '/login/register',
+                        route  = "/login/register",
                         params = {
-                            '#application.cbController.getSetting('csrfTokenField')#': csrfGenerateToken(
+                            "#application.cbController.getSetting("csrfTokenField")#": csrfGenerateToken(
                                 forceNew = true
                             ),
                             username  : username,
                             password  : createUUID(),
                             email     : testingEmail,
                             friendcode: mockTrainer.makeFriendcode(),
-                            icon      : 'mudkip'
+                            icon      : "mudkip"
                         }
                     );
 
                     expect(event.getResponse().getStatusCode()).toBe(200);
                     // Redirect directly to verify form
-                    expect(event.getValue('relocate_URI')).toBe('/verify');
+                    expect(event.getValue("relocate_URI")).toBe("/verify");
 
                     // Force the session rotate to work
-                    execute(route = '/', renderResults = true);
+                    execute(route = "/", renderResults = true);
 
                     expect(session.trainerid).toBeGT(0);
                     expect(session.securityLevel).toBe(5); // unverified trainer
@@ -101,20 +101,20 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                     expect(globalFunctions.countTestEmails()).toBe(before + 1);
                 });
 
-                it('Can verify a new user', () => {
+                it("Can verify a new user", () => {
                     // Send verification code
-                    event = get(route = '/verify', renderResults = true);
+                    event = get(route = "/verify", renderResults = true);
                     expect(event.getResponse().getStatusCode()).toBe(200);
 
                     // Read most recent email to get the code
                     email = globalFunctions.readEmail();
-                    code  = email.select('##verificationCode').text();
+                    code  = email.select("##verificationCode").text();
 
                     // Mock submitting verification code
                     event = post(
-                        route  = '/login/verify',
+                        route  = "/login/verify",
                         params = {
-                            '#application.cbController.getSetting('csrfTokenField')#': csrfGenerateToken(
+                            "#application.cbController.getSetting("csrfTokenField")#": csrfGenerateToken(
                                 forceNew = true
                             ),
                             code: code
@@ -122,7 +122,7 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                     );
 
                     expect(event.getResponse().getStatusCode()).toBe(200);
-                    expect(event.getValue('relocate_URI')).toBe('/'); // home page
+                    expect(event.getValue("relocate_URI")).toBe("/"); // home page
 
                     // Verify session
                     expect(session.securityLevel).toBe(10); // Regular Trainer
@@ -132,37 +132,37 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                     sleep(4000);
                 });
 
-                it('User can log out', () => {
-                    event = get(route = '/logout');
+                it("User can log out", () => {
+                    event = get(route = "/logout");
 
                     expect(event.getResponse().getStatusCode()).toBe(200);
-                    expect(event.getValue('relocate_URI')).toBe('/'); // home page
+                    expect(event.getValue("relocate_URI")).toBe("/"); // home page
 
                     // session deleted
-                    expect(session).notToHaveKey('trainerid');
+                    expect(session).notToHaveKey("trainerid");
 
                     // Force the session rotate to work
-                    execute(route = '/', renderResults = true);
+                    execute(route = "/", renderResults = true);
 
                     expect(session.trainerid).toBe(-1);
                     expect(session.authenticated).toBeFalse();
                     expect(session.verified).toBeFalse();
                 });
 
-                it('Can get to forgot password form', () => {
-                    event = get(route = '/forgot');
+                it("Can get to forgot password form", () => {
+                    event = get(route = "/forgot");
                     expect(event.getResponse().getStatusCode()).toBe(200);
-                    expect(event.getRenderedContent()).toInclude('data-handler=login');
-                    expect(event.getRenderedContent()).toInclude('data-action=forgotpasswordform');
+                    expect(event.getRenderedContent()).toInclude("data-handler=login");
+                    expect(event.getRenderedContent()).toInclude("data-action=forgotpasswordform");
                 });
 
-                it('Can request a reset password email and reset password', () => {
+                it("Can request a reset password email and reset password", () => {
                     before = globalFunctions.countTestEmails();
 
                     event = post(
-                        route  = '/login/forgotPassword',
+                        route  = "/login/forgotPassword",
                         params = {
-                            '#application.cbController.getSetting('csrfTokenField')#': csrfGenerateToken(
+                            "#application.cbController.getSetting("csrfTokenField")#": csrfGenerateToken(
                                 forceNew = true
                             ),
                             email: testingEmail
@@ -172,9 +172,9 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                     expect(globalFunctions.countTestEmails()).toBe(before + 1);
 
                     email = globalFunctions.readEmail();
-                    link  = email.select('##resetLink').attr('href');
+                    link  = email.select("##resetLink").attr("href");
 
-                    uri  = right(link, link.len() - link.find(application.cbController.getSetting('httpPort')) - 3);
+                    uri  = right(link, link.len() - link.find(application.cbController.getSetting("httpPort")) - 3);
                     code = right(uri, uri.len() - 7);
 
                     expect(uri.len()).toBeGTE(1);
@@ -182,14 +182,14 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                     // Get the reset password form using the link emailed
                     event = get(route = uri, params = {});
                     expect(event.getResponse().getStatusCode()).toBe(200);
-                    expect(event.getRenderedContent()).toInclude('data-handler=login');
-                    expect(event.getRenderedContent()).toInclude('data-action=resetpasswordform');
+                    expect(event.getRenderedContent()).toInclude("data-handler=login");
+                    expect(event.getRenderedContent()).toInclude("data-action=resetpasswordform");
 
                     // Reset the password
                     event = post(
-                        route  = '/login/resetPassword',
+                        route  = "/login/resetPassword",
                         params = {
-                            '#application.cbController.getSetting('csrfTokenField')#': csrfGenerateToken(
+                            "#application.cbController.getSetting("csrfTokenField")#": csrfGenerateToken(
                                 forceNew = true
                             ),
                             resetCode: code,
@@ -198,9 +198,9 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                     );
 
                     expect(event.getResponse().getStatusCode()).toBe(200);
-                    expect(event.getValue('relocate_URI')).toBe('/login'); // login form
-                    expect(session).toHaveKey('alert');
-                    expect(session.alert.message).toBe('Successfully reset password.');
+                    expect(event.getValue("relocate_URI")).toBe("/login"); // login form
+                    expect(session).toHaveKey("alert");
+                    expect(session.alert.message).toBe("Successfully reset password.");
 
                     expect(session.trainerid).toBe(-1);
                     expect(session.authenticated).toBeFalse();
@@ -209,7 +209,7 @@ component extends="tests.resources.baseTest" asyncAll="false" {
             });
 
             afterEach(() => {
-                if(session.keyExists('mocktrainerid')) mockTrainer.delete();
+                if(session.keyExists("mocktrainerid")) mockTrainer.delete();
             });
         });
     }

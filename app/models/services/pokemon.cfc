@@ -19,41 +19,41 @@ component singleton accessors="true" {
     property name="cacheTime"         type="numeric";
 
     public void function init() {
-        setCatchModifiersMap(deserializeJSON(fileRead('/includes/assets/catchmodifiersmap.json')));
-        setCpMultiplierMap(deserializeJSON(fileRead('/includes/assets/cpmultipliermap.json')));
+        setCatchModifiersMap(deserializeJSON(fileRead("/includes/assets/catchmodifiersmap.json")));
+        setCpMultiplierMap(deserializeJSON(fileRead("/includes/assets/cpmultipliermap.json")));
         var levels = [];
         for(var i = 1; i <= 50; i++) levels.append(i);
         setLevels(levels);
-        setTypes(deserializeJSON(fileRead('/includes/assets/types.json')).types);
+        setTypes(deserializeJSON(fileRead("/includes/assets/types.json")).types);
 
         setDatatableCols([
-            'pokemon.generation',
-            'pokemon.number',
-            'pokemon.gender',
-            'pokemon.name',
-            'pokemon.costumetype',
-            '',
-            '',
-            '',
-            '',
-            '',
-            '',
-            ''
+            "pokemon.generation",
+            "pokemon.number",
+            "pokemon.gender",
+            "pokemon.name",
+            "pokemon.costumetype",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""
         ]);
 
         setCacheTime(1400); // 23 hours, 20 mins
     }
 
     private component function create(required struct pokemonProperties) {
-        var newPokemon = entityNew('pokemon', arguments.pokemonProperties);
+        var newPokemon = entityNew("pokemon", arguments.pokemonProperties);
         entitySave(newPokemon);
         ormFlush();
         auditService.audit(
-            ip      = 'localhost',
-            event   = 'pokemonService.create',
-            referer = '',
-            detail  = 'Created Pokemon: #arguments.pokemonProperties.number# | #arguments.pokemonProperties.name# | #arguments.pokemonProperties.gender# | #arguments.pokemonProperties.costumetype#',
-            agent   = ''
+            ip      = "localhost",
+            event   = "pokemonService.create",
+            referer = "",
+            detail  = "Created Pokemon: #arguments.pokemonProperties.number# | #arguments.pokemonProperties.name# | #arguments.pokemonProperties.gender# | #arguments.pokemonProperties.costumetype#",
+            agent   = ""
         );
         return newPokemon;
     }
@@ -103,15 +103,15 @@ component singleton accessors="true" {
      * Get all non-costume pokemon
      */
     public array function getAll() {
-        var cacheKey   = 'pokemon.getAll';
+        var cacheKey   = "pokemon.getAll";
         var allPokemon = cache.get(cacheKey);
         if(isNull(allPokemon)) {
-            allPokemon = get({'costume': false}, 'generation asc, number asc, form asc');
+            allPokemon = get({"costume": false}, "generation asc, number asc, form asc");
 
             // Make sure relationships are loaded before being cached
             allPokemon.each((pokemon) => {
-                pokemon.getMovesText('fast', 'all');
-                pokemon.getMovesText('charge', 'all');
+                pokemon.getMovesText("fast", "all");
+                pokemon.getMovesText("charge", "all");
                 pokemon.getEvolutionText();
                 pokemon.getGeneration().getRegion();
             });
@@ -128,11 +128,11 @@ component singleton accessors="true" {
 
     public array function get(
         required struct params,
-        string order   = 'number asc',
+        string order   = "number asc",
         struct options = {}
     ) {
         return entityLoad(
-            'pokemon',
+            "pokemon",
             arguments.params,
             arguments.order,
             arguments.options
@@ -140,19 +140,19 @@ component singleton accessors="true" {
     }
 
     public component function getFromId(required numeric pokemonid) {
-        return entityLoadByPK('pokemon', arguments.pokemonid);
+        return entityLoadByPK("pokemon", arguments.pokemonid);
     }
 
     public any function getFromSes(required string ses) {
-        return entityLoad('pokemon', {ses: ses, costume: false}, true);
+        return entityLoad("pokemon", {ses: ses, costume: false}, true);
     }
 
     public array function getEvolution(required component pokemon, component evolution) {
-        var params = {'pokemon': arguments.pokemon};
+        var params = {"pokemon": arguments.pokemon};
         if(!isNull(arguments.evolution)) {
-            params.insert('evolution', arguments.evolution);
+            params.insert("evolution", arguments.evolution);
         }
-        return entityLoad('evolution', params);
+        return entityLoad("evolution", params);
     }
 
     /**
@@ -162,11 +162,11 @@ component singleton accessors="true" {
         evolutions.each((evolution) => {
             // Attempt to load the evolution pokemon trying to be made
             var evolvedPokemon = get({
-                'number'     : evolution.number,
-                'name'       : evolution.name,
-                'gender'     : evolution.gender,
-                'costume'    : evolution?.costume ?: false,
-                'costumetype': evolution?.costumetype ?: ''
+                "number"     : evolution.number,
+                "name"       : evolution.name,
+                "gender"     : evolution.gender,
+                "costume"    : evolution?.costume ?: false,
+                "costumetype": evolution?.costumetype ?: ""
             });
 
             // have to skip since the evolved pokemon hasn't been created yet
@@ -177,13 +177,13 @@ component singleton accessors="true" {
             // See if the evolution has already been created
             if(!getEvolution(pokemon, evolvedPokemon).len()) {
                 var newEvolution = entityNew(
-                    'evolution',
+                    "evolution",
                     {
-                        'cost'     : evolution.cost,
-                        'condition': evolution.condition,
-                        'pokemon'  : pokemon,
-                        'evolution': evolvedPokemon,
-                        'special'  : evolution.special
+                        "cost"     : evolution.cost,
+                        "condition": evolution.condition,
+                        "pokemon"  : pokemon,
+                        "evolution": evolvedPokemon,
+                        "special"  : evolution.special
                     }
                 );
 
@@ -197,13 +197,13 @@ component singleton accessors="true" {
      * Determine the max attack, defense, and hp of all live pokemon
      */
     public struct function getMaxStats() {
-        var cacheKey = 'pokemon.getMaxStats';
+        var cacheKey = "pokemon.getMaxStats";
         var max      = cache.get(cacheKey);
         if(isNull(max)) {
-            var stats = ormExecuteQuery('
+            var stats = ormExecuteQuery("
                 select max(attack), max(defense), max(hp)
                 from pokemon
-            ')[1];
+            ")[1];
 
             max = {
                 attack : stats[1],
@@ -223,11 +223,11 @@ component singleton accessors="true" {
      */
     public array function getEvolvers(required component pokemon) {
         return ormExecuteQuery(
-            '
+            "
             select evolution.pokemon
             from evolution as evolution
             where evolution.evolution = :pokemon
-            ',
+            ",
             {pokemon: arguments.pokemon}
         );
     }
@@ -270,8 +270,8 @@ component singleton accessors="true" {
         numeric offset = 0
     ) {
         var events = queryExecute(
-            '
-            SELECT c.id, c.created, c.begins, c.ends, c.name, c.link, c.commday, STRING_AGG(costumetype, '','') AS form_list
+            "
+            SELECT c.id, c.created, c.begins, c.ends, c.name, c.link, c.commday, STRING_AGG(costumetype, ',') AS form_list
             FROM custom c
             JOIN custompokedex cp ON cp.customid = c.id
             JOIN pokemon p ON cp.pokemonid = p.id
@@ -280,33 +280,33 @@ component singleton accessors="true" {
             AND p.gender = :gender
             AND (
                 c.commday = true
-                OR (c.link IS NOT NULL AND c.link <> '''')
+                OR (c.link IS NOT NULL AND c.link <> '')
             )
             GROUP BY c.id, c.created, c.begins, c.ends, c.name, c.link, p.name, p.number, p.gender
             ORDER BY c.ends DESC
             LIMIT :limit
             OFFSET :offset
-            ',
+            ",
             {
-                name  : {value: pokemon.getName(), cfsqltype: 'varchar'},
-                number: {value: pokemon.getNumber(), cfsqltype: 'integer'},
-                gender: {value: pokemon.getGender(), cfsqltype: 'varchar'},
-                limit : {value: limit, cfsqltype: 'integer'},
-                offset: {value: offset, cfsqltype: 'integer'}
+                name  : {value: pokemon.getName(), cfsqltype: "varchar"},
+                number: {value: pokemon.getNumber(), cfsqltype: "integer"},
+                gender: {value: pokemon.getGender(), cfsqltype: "varchar"},
+                limit : {value: limit, cfsqltype: "integer"},
+                offset: {value: offset, cfsqltype: "integer"}
             }
         );
 
         return events.reduce((result, row) => {
             result.append({
                 id      : row.id,
-                begins  : dateFormat((!isDate(row.begins) ? row.created : row.begins), 'mmm d, yyyy'),
-                ends    : dateFormat((!isDate(row.ends) ? row.created : row.ends), 'mmm d, yyyy'),
+                begins  : dateFormat((!isDate(row.begins) ? row.created : row.begins), "mmm d, yyyy"),
+                ends    : dateFormat((!isDate(row.ends) ? row.created : row.ends), "mmm d, yyyy"),
                 name    : row.name,
                 link    : row.link,
                 commday : row.commday,
                 costumes: listToArray(
                     list               = row.form_list,
-                    delimiters         = ',',
+                    delimiters         = ",",
                     includeEmptyFields = false
                 )
             });
@@ -321,7 +321,7 @@ component singleton accessors="true" {
      */
     public array function getCostumes(required component pokemon) {
         return ormExecuteQuery(
-            '
+            "
             select pokemon
             from pokemon as pokemon
             where pokemon.costume = true
@@ -329,7 +329,7 @@ component singleton accessors="true" {
             and pokemon.number = :number
             and pokemon.gender = :gender
             and pokemon.live = true
-            ',
+            ",
             {
                 name  : pokemon.getName(),
                 number: pokemon.getNumber(),
@@ -396,7 +396,7 @@ component singleton accessors="true" {
     public void function clearDetailCache(required string ses) {
         cache.clear(getDetailCacheKey(ses));
         // Rendered detailContent viewlets, keys are lower cased by ColdBox: <prefix>pokemon.detailcontent-<ses>|<audience>-<hash>
-        templateCache.clearByKeySnippet('pokemon.detailcontent-#lCase(ses)#|');
+        templateCache.clearByKeySnippet("pokemon.detailcontent-#lCase(ses)#|");
         return;
     }
 
@@ -407,11 +407,11 @@ component singleton accessors="true" {
      * @isAdmin admins see the update detail form
      */
     public string function getDetailContentCacheSuffix(required string ses, required boolean isAdmin) {
-        return '#ses#|#isAdmin ? 'admin' : 'public'#';
+        return "#ses#|#isAdmin ? "admin" : "public"#";
     }
 
     private string function getDetailCacheKey(required string ses) {
-        return 'pokemon.getDetail|pokemonses=#ses#';
+        return "pokemon.getDetail|pokemonses=#ses#";
     }
 
     /**
@@ -423,7 +423,7 @@ component singleton accessors="true" {
         // CP Info | Research(lvl15), egg/raid(lvl20), weather boosted raid(lvl25), max cp(lvl50)
         info.cp = {};
         getLevels().each((level) => {
-            info.cp['lvl#level#'] = [
+            info.cp["lvl#level#"] = [
                 calculateCP(pokemon, level, 10),
                 calculateCP(pokemon, level, 15)
             ];
@@ -439,9 +439,9 @@ component singleton accessors="true" {
         };
         info.events   = getPreviousEvents(pokemon);
         info.fullname = pokemon.getFullname();
-        info.title    = '#pokemon.getNumber()# - #info.fullname#';
+        info.title    = "#pokemon.getNumber()# - #info.fullname#";
 
-        info.metaDescription = '#ucFirst(info.fullname)#''s (###pokemon.getNumber()#) evolutions, CP range, stats, moveset, and events in Pokemon GO.';
+        info.metaDescription = "#ucFirst(info.fullname)#'s (###pokemon.getNumber()#) evolutions, CP range, stats, moveset, and events in Pokemon GO.";
         info.ogImage         = pokemon.getOgImage();
 
         cache.set(
@@ -464,7 +464,7 @@ component singleton accessors="true" {
         required boolean shinyShadow,
         required boolean tradable
     ) {
-        var overrides = adminService.getOverride(name = 'envpokedexoverrides');
+        var overrides = adminService.getOverride(name = "envpokedexoverrides");
 
         // Update env pokedex overrides
         overrides[pokemon.getName()].live = live;
@@ -473,7 +473,7 @@ component singleton accessors="true" {
         overrides[pokemon.getName()].shadowshiny = shinyShadow;
         overrides[pokemon.getName()].tradable = tradable;
 
-        adminService.saveOverride(name = 'envpokedexoverrides', override = overrides);
+        adminService.saveOverride(name = "envpokedexoverrides", override = overrides);
 
         // Update the DB
         pokemon.setLive(live);
@@ -492,16 +492,16 @@ component singleton accessors="true" {
      * Build array for pokemon search box
      */
     public array function getSearchArray() {
-        var cacheKey    = 'pokemon.getSearchArray';
+        var cacheKey    = "pokemon.getSearchArray";
         var searchArray = cache.get(cacheKey);
         if(isNull(searchArray)) {
             searchArray = getAll().map((pokemon) => {
                 return {
                     id   : pokemon.getId(),
-                    text : '#pokemon.getFullname()#',
-                    image: '#pokemon.getSprite()##getImageExtension()#',
-                    alt  : 'Pokemon #pokemon.getFullname()#',
-                    ses  : '#pokemon.getSes()#'
+                    text : "#pokemon.getFullname()#",
+                    image: "#pokemon.getSprite()##getImageExtension()#",
+                    alt  : "Pokemon #pokemon.getFullname()#",
+                    ses  : "#pokemon.getSes()#"
                 };
             });
             cache.set(
@@ -553,40 +553,40 @@ component singleton accessors="true" {
     public struct function getTable(
         required numeric records,
         required numeric offset,
-        required string search    = '',
-        required string orderCol1 = '',
-        required string orderDir1 = '',
-        string orderCol2          = '',
-        string orderDir2          = '',
+        required string search    = "",
+        required string orderCol1 = "",
+        required string orderDir1 = "",
+        string orderCol2          = "",
+        string orderDir2          = "",
         boolean costume           = false
     ) {
-        var params = {search: '%#uCase(search)#%', costume: costume};
+        var params = {search: "%#uCase(search)#%", costume: costume};
 
         // Default order by
-        var orderBy = '';
+        var orderBy = "";
         if(orderCol1.len() && orderDir1.len()) {
-            orderBy = 'order by #getDatatableCols()[orderCol1 + 1]# #orderDir1#';
+            orderBy = "order by #getDatatableCols()[orderCol1 + 1]# #orderDir1#";
         }
         if(orderCol2.len() && orderDir2.len()) {
-            orderBy &= ', #getDatatableCols()[orderCol2 + 1]# #orderDir2#';
+            orderBy &= ", #getDatatableCols()[orderCol2 + 1]# #orderDir2#";
         }
         if(!orderBy.len()) {
-            orderBy = 'order by generation asc, number asc';
+            orderBy = "order by generation asc, number asc";
         }
         else {
-            orderBy &= ', pokemon.form asc';
+            orderBy &= ", pokemon.form asc";
         }
 
-        var numericSearch = '';
+        var numericSearch = "";
         if(isNumeric(search)) {
-            numericSearch = 'or pokemon.number = :numericSearch';
-            params.insert('numericSearch', search);
+            numericSearch = "or pokemon.number = :numericSearch";
+            params.insert("numericSearch", search);
         }
 
         var results = async
             .all(
                 () => ormExecuteQuery(
-                    '
+                    "
                     select pokemon
                     from pokemon as pokemon
                     where costume = :costume
@@ -598,13 +598,13 @@ component singleton accessors="true" {
                         #numericSearch#
                     )
                     #orderBy#
-                    ',
+                    ",
                     params,
                     {offset: offset, maxResults: records}
                 ).map((currPokemon) => {
                     var currSes = currPokemon.getSes();
                     if(currPokemon.getCostume()) {
-                        currSes = listToArray(currSes, '-')[1];
+                        currSes = listToArray(currSes, "-")[1];
                     }
 
                     return {
@@ -613,20 +613,20 @@ component singleton accessors="true" {
                         number       : currPokemon.getNumber(),
                         gender       : currPokemon.getGender(),
                         name         : currPokemon.getName(),
-                        costumetype  : currPokemon.getCostumetype() ?: '',
-                        sprite       : '/includes/images/sprites/#currPokemon.getSprite()##getImageExtension()#',
-                        shiny        : currPokemon.getShiny() ? '/includes/images/shinysprites/#currPokemon.getSprite()##getImageExtension()#' : '',
+                        costumetype  : currPokemon.getCostumetype() ?: "",
+                        sprite       : "/includes/images/sprites/#currPokemon.getSprite()##getImageExtension()#",
+                        shiny        : currPokemon.getShiny() ? "/includes/images/shinysprites/#currPokemon.getSprite()##getImageExtension()#" : "",
                         shadow       : currPokemon.getShadow(),
                         shadowshiny  : currPokemon.getShadowShiny(),
-                        fastmoves    : currPokemon.getMovesText('fast', 'all'),
-                        chargemoves  : currPokemon.getMovesText('charge', 'all'),
+                        fastmoves    : currPokemon.getMovesText("fast", "all"),
+                        chargemoves  : currPokemon.getMovesText("charge", "all"),
                         evolutiontext: currPokemon.getEvolutionText(),
-                        shadowicon   : '/includes/images/shadow-pokemon#getImageExtension()#',
+                        shadowicon   : "/includes/images/shadow-pokemon#getImageExtension()#",
                         ses          : currSes
                     };
                 }),
                 () => ormExecuteQuery(
-                    '
+                    "
                     select count(pokemon.id)
                     from pokemon as pokemon
                     where costume = :costume
@@ -637,12 +637,12 @@ component singleton accessors="true" {
                         or upper(pokemon.costumetype) like :search
                         #numericSearch#
                     )
-                    ',
+                    ",
                     params,
                     true
                 ),
                 () => ormExecuteQuery(
-                    'select count(pokemon.id) from pokemon as pokemon where costume = :costume',
+                    "select count(pokemon.id) from pokemon as pokemon where costume = :costume",
                     {costume: costume},
                     true
                 )

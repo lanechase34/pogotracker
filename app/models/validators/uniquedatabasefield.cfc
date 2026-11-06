@@ -6,7 +6,7 @@ component accessors="true" singleton hint="Validator for checking a field is uni
      * Init validator
      */
     function init() {
-        this.name = 'uniqueDatabaseField';
+        this.name = "uniqueDatabaseField";
     }
 
     /**
@@ -35,10 +35,10 @@ component accessors="true" singleton hint="Validator for checking a field is uni
         any validationData
     ) {
         var errorStruct = {
-            message       : '',
+            message       : "",
             field         : arguments.field,
             validationType: getName(),
-            rejectedValue : (isSimpleValue(arguments.targetValue) ? arguments.targetValue : ''),
+            rejectedValue : (isSimpleValue(arguments.targetValue) ? arguments.targetValue : ""),
             validationData: arguments.validationData
         };
 
@@ -47,10 +47,10 @@ component accessors="true" singleton hint="Validator for checking a field is uni
             isNull(arguments.targetValue) ||
             !isSimpleValue(arguments.targetValue) ||
             !arguments.targetValue.len() ||
-            !arguments.validationData.keyExists('table') ||
-            !arguments.validationData.keyExists('column')
+            !arguments.validationData.keyExists("table") ||
+            !arguments.validationData.keyExists("column")
         ) {
-            errorStruct.message = 'Invalid unique database field call.';
+            errorStruct.message = "Invalid unique database field call.";
             validationResult.addError(
                 validationResult
                     .newError(argumentCollection = errorStruct)
@@ -61,17 +61,17 @@ component accessors="true" singleton hint="Validator for checking a field is uni
 
         // Run query to make sure value is unique in column in table
         var check = ormExecuteQuery(
-            '
+            "
             select #validationData.column#
             from #validationData.table#
             where upper(#validationData.column#) = :targetValue
-            ',
+            ",
             {targetValue: uCase(arguments.targetValue)}
         );
 
         // Already taken
         if(check.len()) {
-            errorStruct.message = 'The #validationData.column# field is not unique.';
+            errorStruct.message = "The #validationData.column# field is not unique.";
             validationResult.addError(
                 validationResult
                     .newError(argumentCollection = errorStruct)

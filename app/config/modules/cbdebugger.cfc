@@ -4,21 +4,21 @@ component {
         return {
             // This flag enables/disables the tracking of request data to our storage facilities
             // To disable all tracking, turn this master key off
-            enabled         : controller.getSetting('debugging'),
+            enabled         : controller.getSetting("debugging"),
             // This setting controls if you will activate the debugger for visualizations ONLY
             // The debugger will still track requests even in non debug mode.
-            debugMode       : controller.getSetting(name = 'environment', defaultValue = 'production') == 'development',
+            debugMode       : controller.getSetting(name = "environment", defaultValue = "production") == "development",
             // The URL password to use to activate it on demand
-            debugPassword   : 'DDR5u>4Q2~g7',
+            debugPassword   : "DDR5u>4Q2~g7",
             // This flag enables/disables the end of request debugger panel docked to the bottem of the page.
             // If you disable i, then the only way to visualize the debugger is via the `/cbdebugger` endpoint
             requestPanelDock: true,
             // Request Tracker Options
             requestTracker  : {
                 // Store the request profilers in heap memory or in cachebox, default is memory
-                storage                     : 'memory',
+                storage                     : "memory",
                 // Which cache region to store the profilers in
-                cacheName                   : 'template',
+                cacheName                   : "template",
                 // Track all cbdebugger events, by default this is off, turn on, when actually profiling yourself :) How Meta!
                 trackDebuggerEvents         : true,
                 // Expand by default the tracker panel or not

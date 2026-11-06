@@ -10,25 +10,25 @@ component singleton accessors="true" {
 
     public void function init() {
         setDatatableCols([
-            'audit.created',
-            'audit.ip',
-            'audit.event',
-            'audit.referer',
-            'audit.detail',
-            'audit.agent',
-            'trainer.username'
+            "audit.created",
+            "audit.ip",
+            "audit.event",
+            "audit.referer",
+            "audit.detail",
+            "audit.agent",
+            "trainer.username"
         ]);
 
         setRequestDatatableCols([
-            'requestlog.created',
-            'requestlog.ip',
-            'requestlog.urlpath',
-            'requestlog.method',
-            'requestlog.agent',
-            'requestlog.response',
-            'requestlog.statuscode',
-            'requestlog.referer',
-            'trainer.username'
+            "requestlog.created",
+            "requestlog.ip",
+            "requestlog.urlpath",
+            "requestlog.method",
+            "requestlog.agent",
+            "requestlog.response",
+            "requestlog.statuscode",
+            "requestlog.referer",
+            "trainer.username"
         ]);
     }
 
@@ -44,13 +44,13 @@ component singleton accessors="true" {
         numeric trainerid = -1
     ) {
         var audit = entityNew(
-            'audit',
+            "audit",
             {
-                'ip'     : arguments.ip,
-                'event'  : arguments.event,
-                'referer': arguments.referer,
-                'detail' : arguments.detail,
-                'agent'  : arguments.agent
+                "ip"     : arguments.ip,
+                "event"  : arguments.event,
+                "referer": arguments.referer,
+                "detail" : arguments.detail,
+                "agent"  : arguments.agent
             }
         );
 
@@ -70,19 +70,19 @@ component singleton accessors="true" {
     public struct function get(
         required numeric records,
         required numeric offset,
-        required string search   = '',
-        required string orderCol = '',
-        required string orderDir = ''
+        required string search   = "",
+        required string orderCol = "",
+        required string orderDir = ""
     ) {
-        var orderBy = '';
+        var orderBy = "";
         if(orderCol.len() && orderDir.len()) {
-            orderBy = 'order by #getDatatableCols()[orderCol + 1]# #orderDir#';
+            orderBy = "order by #getDatatableCols()[orderCol + 1]# #orderDir#";
         }
 
         var results = async
             .all(
                 () => ormExecuteQuery(
-                    '
+                    "
                     select audit
                     from audit as audit
                     left outer join audit.trainer as trainer
@@ -92,17 +92,17 @@ component singleton accessors="true" {
                         or upper(audit.agent) like :search
                         or upper(trainer.username) like :search
                     #orderBy#
-                    ',
-                    {search: '%#uCase(search)#%'},
+                    ",
+                    {search: "%#uCase(search)#%"},
                     {
                         offset    : offset,
                         maxResults: records,
                         cacheable : true,
-                        cachename : 'defaultCache'
+                        cachename : "defaultCache"
                     }
                 ),
                 () => ormExecuteQuery(
-                    '
+                    "
                     select count(audit.id)
                     from audit as audit
                     left outer join audit.trainer as trainer
@@ -111,8 +111,8 @@ component singleton accessors="true" {
                         or upper(audit.detail) like :search
                         or upper(audit.agent) like :search
                         or upper(trainer.username) like :search
-                    ',
-                    {search: '%#uCase(search)#%'}
+                    ",
+                    {search: "%#uCase(search)#%"}
                 ),
                 () => getTotalRecords()
             )
@@ -144,10 +144,10 @@ component singleton accessors="true" {
      * Get total count of records in audit table
      */
     private numeric function getTotalRecords() {
-        var cacheKey = 'audit.getTotalRecords';
+        var cacheKey = "audit.getTotalRecords";
         var count    = cache.get(cacheKey);
         if(isNull(count)) {
-            count = ormExecuteQuery('select count(id) from audit')[1];
+            count = ormExecuteQuery("select count(id) from audit")[1];
             cache.set(cacheKey, count, 5, 5);
         }
         return count;
@@ -168,16 +168,16 @@ component singleton accessors="true" {
         numeric delta      = -1
     ) {
         var requestLog = entityNew(
-            'requestlog',
+            "requestlog",
             {
-                'ip'        : ip,
-                'urlpath'   : urlpath,
-                'method'    : method,
-                'agent'     : agent,
-                'referer'   : referer,
-                'response'  : response,
-                'statuscode': statuscode,
-                'delta'     : delta
+                "ip"        : ip,
+                "urlpath"   : urlpath,
+                "method"    : method,
+                "agent"     : agent,
+                "referer"   : referer,
+                "response"  : response,
+                "statuscode": statuscode,
+                "delta"     : delta
             }
         );
 
@@ -196,19 +196,19 @@ component singleton accessors="true" {
     public struct function getRequests(
         required numeric records,
         required numeric offset,
-        required string search   = '',
-        required string orderCol = '',
-        required string orderDir = ''
+        required string search   = "",
+        required string orderCol = "",
+        required string orderDir = ""
     ) {
-        var orderBy = '';
+        var orderBy = "";
         if(orderCol.len() && orderDir.len()) {
-            orderBy = 'order by #getRequestDatatableCols()[orderCol + 1]# #orderDir#';
+            orderBy = "order by #getRequestDatatableCols()[orderCol + 1]# #orderDir#";
         }
 
         var results = async
             .all(
                 () => ormExecuteQuery(
-                    '
+                    "
                     select requestlog
                     from requestlog as requestlog
                     left outer join requestlog.trainer as trainer
@@ -221,17 +221,17 @@ component singleton accessors="true" {
                         or upper(cast(requestlog.statuscode as string)) like :search
                         or upper(trainer.username) like :search
                     #orderBy#
-                    ',
-                    {search: '%#uCase(search)#%'},
+                    ",
+                    {search: "%#uCase(search)#%"},
                     {
                         offset    : offset,
                         maxResults: records,
                         cacheable : true,
-                        cachename : 'defaultCache'
+                        cachename : "defaultCache"
                     }
                 ),
                 () => ormExecuteQuery(
-                    '
+                    "
                     select count(requestlog.id)
                     from requestlog as requestlog
                     left outer join requestlog.trainer as trainer
@@ -243,8 +243,8 @@ component singleton accessors="true" {
                         or upper(requestlog.referer) like :search
                         or cast(requestlog.statuscode as string) like :search
                         or upper(trainer.username) like :search
-                    ',
-                    {search: '%#uCase(search)#%'}
+                    ",
+                    {search: "%#uCase(search)#%"}
                 ),
                 () => getTotalRequestRecords()
             )
@@ -259,10 +259,10 @@ component singleton accessors="true" {
                 return [
                     requestObj.getTimestamp(),
                     requestObj.getIP(),
-                    '#left(requestObj.getUrlPath(), 150)##requestObj.getUrlPath().len() > 150 ? '...' : ''#',
+                    "#left(requestObj.getUrlPath(), 150)##requestObj.getUrlPath().len() > 150 ? "..." : ""#",
                     requestObj.getMethod(),
                     requestObj.getAgent(),
-                    '#left(requestObj.getResponse(), 150)##requestObj.getResponse().len() > 150 ? '...' : ''#',
+                    "#left(requestObj.getResponse(), 150)##requestObj.getResponse().len() > 150 ? "..." : ""#",
                     requestObj.getStatusCode(),
                     requestObj.getReferer(),
                     requestObj.getUsername()
@@ -277,10 +277,10 @@ component singleton accessors="true" {
      * Get total count of records in request_log table
      */
     private numeric function getTotalRequestRecords() {
-        var cacheKey = 'audit.getTotalRequestRecords';
+        var cacheKey = "audit.getTotalRequestRecords";
         var count    = cache.get(cacheKey);
         if(isNull(count)) {
-            count = ormExecuteQuery('select count(id) from requestlog')[1];
+            count = ormExecuteQuery("select count(id) from requestlog")[1];
             cache.set(cacheKey, count, 5, 5);
         }
         return count;
@@ -292,13 +292,13 @@ component singleton accessors="true" {
     public struct function getAuditObj(
         required numeric trainerid,
         string referer,
-        string event = ''
+        string event = ""
     ) {
         return {
             ip       : securityService.getRequestIP(),
             event    : left(event, 250),
             referer  : left(arguments?.referer ?: securityService.getReferer(), 250),
-            detail   : '',
+            detail   : "",
             agent    : left(securityService.getUserAgent(), 250),
             trainerid: trainerid
         }

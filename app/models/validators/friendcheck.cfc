@@ -7,7 +7,7 @@ component acecssors="true" singleton hint="Validator for checking if two trainer
      * Init validator
      */
     function init() {
-        this.name = 'friendCheck';
+        this.name = "friendCheck";
     }
 
     /**
@@ -37,10 +37,10 @@ component acecssors="true" singleton hint="Validator for checking if two trainer
         any validationData
     ) {
         var errorStruct = {
-            message       : '',
+            message       : "",
             field         : arguments.field,
             validationType: getName(),
-            rejectedValue : (isSimpleValue(arguments.targetValue) ? arguments.targetValue : ''),
+            rejectedValue : (isSimpleValue(arguments.targetValue) ? arguments.targetValue : ""),
             validationData: arguments.validationData
         };
 
@@ -61,7 +61,7 @@ component acecssors="true" singleton hint="Validator for checking if two trainer
         );
 
         if(!check) {
-            errorStruct.message = 'You are not valid friends with this trainer.';
+            errorStruct.message = "You are not valid friends with this trainer.";
             validationResult.addError(
                 validationResult
                     .newError(argumentCollection = errorStruct)

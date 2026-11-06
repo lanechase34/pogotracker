@@ -11,14 +11,14 @@ component singleton accessors="true" {
      * Gets blog list sorted by created desc
      */
     public array function get(required numeric count, required numeric offset) {
-        var cacheKey = 'blog.get|count=#arguments.count#|offset=#arguments.offset#';
+        var cacheKey = "blog.get|count=#arguments.count#|offset=#arguments.offset#";
         var blogs    = cache.get(cacheKey);
         if(isNull(blogs)) {
             blogs = ormExecuteQuery(
-                '
+                "
                 from blog as blog
                 order by blog.created desc
-                ',
+                ",
                 {},
                 false,
                 {maxResults: arguments.count, offset: arguments.offset}
@@ -33,10 +33,10 @@ component singleton accessors="true" {
      * Get single blog by PK
      */
     public component function getFromId(required numeric blogid, boolean useCache = true) {
-        var cacheKey = 'blog.getFromId|blogid=#arguments.blogid#';
+        var cacheKey = "blog.getFromId|blogid=#arguments.blogid#";
         var blog     = cache.get(cacheKey);
         if(isNull(blog) || !arguments.useCache) {
-            blog = entityLoadByPK('blog', arguments.blogid);
+            blog = entityLoadByPK("blog", arguments.blogid);
             blog.getComment();
 
             if(arguments.useCache) {
@@ -51,10 +51,10 @@ component singleton accessors="true" {
      * Returns blog cfc or empty
      */
     public any function getFromHeader(required string header) {
-        var cacheKey = 'blog.getFromHeader|header=#lCase(arguments.header)#';
+        var cacheKey = "blog.getFromHeader|header=#lCase(arguments.header)#";
         var blog     = cache.get(cacheKey);
         if(isNull(blog)) {
-            blog = entityLoad('blog', {header: arguments.header}, true);
+            blog = entityLoad("blog", {header: arguments.header}, true);
             if(isNull(blog)) return; // Invalid blog return null here
 
             blog.getComment();
@@ -73,22 +73,22 @@ component singleton accessors="true" {
         required string body
     ) {
         var newBlog = entityNew(
-            'blog',
+            "blog",
             {
-                'header'  : arguments.header,
-                'meta'    : arguments.meta,
-                'image'   : arguments.image,
-                'alttext' : arguments.alt,
-                'bodyjson': arguments.bodyjson,
-                'body'    : arguments.body,
-                'trainer' : arguments.trainer
+                "header"  : arguments.header,
+                "meta"    : arguments.meta,
+                "image"   : arguments.image,
+                "alttext" : arguments.alt,
+                "bodyjson": arguments.bodyjson,
+                "body"    : arguments.body,
+                "trainer" : arguments.trainer
             }
         );
         entitySave(newBlog);
         ormFlush();
 
         // Clear the blog cache whenever a new entry is saved
-        cache.clearByKeySnippet('blog.');
+        cache.clearByKeySnippet("blog.");
         return;
     }
 
@@ -119,7 +119,7 @@ component singleton accessors="true" {
         ormFlush();
 
         // Clear the blog cache whenever a new entry is saved
-        cache.clearByKeySnippet('blog.');
+        cache.clearByKeySnippet("blog.");
         return;
     }
 
@@ -133,7 +133,7 @@ component singleton accessors="true" {
         return jsoup
             .parse(comment)
             .text()
-            .replace(chr(10), '<br/>', 'all');
+            .replace(chr(10), "<br/>", "all");
     }
 
     /**
@@ -152,7 +152,7 @@ component singleton accessors="true" {
         var blog    = getFromId(blogid = blogid);
 
         if(isNull(blog)) {
-            throw(type = 'EntityNotFound', message = 'Blog not found');
+            throw(type = "EntityNotFound", message = "Blog not found");
         }
 
         /**
@@ -160,7 +160,7 @@ component singleton accessors="true" {
          */
         var sanitizedComment = sanitizeComment(comment);
         var newComment       = entityNew(
-            'comment',
+            "comment",
             {
                 trainer: trainer,
                 blog   : blog,
@@ -172,8 +172,8 @@ component singleton accessors="true" {
         ormFlush();
 
         // Clear the read blog cache
-        cache.clearByKeySnippet('blog.getFromId|blogid=#blog.getId()#');
-        cache.clearByKeySnippet('blog.getFromHeader|header=#lCase(blog.getHeader())#');
+        cache.clearByKeySnippet("blog.getFromId|blogid=#blog.getId()#");
+        cache.clearByKeySnippet("blog.getFromHeader|header=#lCase(blog.getHeader())#");
         return;
     }
 
@@ -183,46 +183,46 @@ component singleton accessors="true" {
      * @count  number of posts to return
      * @offset number of posts to skip
      */
-    public array function getNews(numeric count = application.cbController.getSetting('fetchCount'), numeric offset = 0) {
-        var cacheKey = 'blog.getNews|count=#arguments.count#|offset=#arguments.offset#';
+    public array function getNews(numeric count = application.cbController.getSetting("fetchCount"), numeric offset = 0) {
+        var cacheKey = "blog.getNews|count=#arguments.count#|offset=#arguments.offset#";
         var news     = cache.get(cacheKey);
 
         if(isNull(news)) {
             news        = [];
-            var baseUrl = 'https://pokemongo.com';
-            var newsUrl = 'https://pokemongo.com/en/news';
+            var baseUrl = "https://pokemongo.com";
+            var newsUrl = "https://pokemongo.com/en/news";
 
             var newsDoc   = scraperService.getData(newsUrl);
             var blogPosts = newsDoc
                 .body()
-                .select('main##main')
-                .select('div[class*=''_newsCards_'']')
-                .select('a[class*=''_newsCard_'']');
+                .select("main##main")
+                .select("div[class*='_newsCards_']")
+                .select("a[class*='_newsCard_']");
 
             blogPosts.each((post, index) => {
                 if(index <= offset) continue;
                 if(index > offset + count) break;
 
                 news.append({
-                    link: '#baseUrl##post.attr('href')#',
+                    link: "#baseUrl##post.attr("href")#",
                     img : post
-                        .select('div[class*=''_newsCardImage_'']')
-                        .select('div[class*=''_image_'']')
-                        .select('picture')
-                        .select('img')
-                        .attr('src'),
+                        .select("div[class*='_newsCardImage_']")
+                        .select("div[class*='_image_']")
+                        .select("picture")
+                        .select("img")
+                        .attr("src"),
                     date: dateAdd(
-                        's',
+                        "s",
                         (
-                            post.select('div[class*=''_newsCardContent_'']')
-                                .select('pg-date-format[class*=''_newsCardDate_'']')
-                                .attr('timestamp')
+                            post.select("div[class*='_newsCardContent_']")
+                                .select("pg-date-format[class*='_newsCardDate_']")
+                                .attr("timestamp")
                         ) / 1000,
-                        dateConvert('utc2Local', 'January 1 1970 00:00')
+                        dateConvert("utc2Local", "January 1 1970 00:00")
                     ),
                     header: post
-                        .select('div[class*=''_newsCardContent_'']')
-                        .select('div[class*=''heading_'']')
+                        .select("div[class*='_newsCardContent_']")
+                        .select("div[class*='heading_']")
                         .text()
                 });
             });
@@ -240,28 +240,28 @@ component singleton accessors="true" {
      * @offset number of upcoming events to skip
      */
     public array function getEvents(
-        numeric count  = application.cbController.getSetting('fetchCount'),
+        numeric count  = application.cbController.getSetting("fetchCount"),
         numeric offset = 0
     ) {
-        var cacheKey = 'blog.getEvents|count=#arguments.count#|offset=#arguments.offset#';
+        var cacheKey = "blog.getEvents|count=#arguments.count#|offset=#arguments.offset#";
         var events   = cache.get(cacheKey);
 
         if(isNull(events)) {
             events        = [];
             var skipped   = 0;
-            var baseUrl   = 'https://leekduck.com';
-            var eventsUrl = 'https://leekduck.com/events/';
+            var baseUrl   = "https://leekduck.com";
+            var eventsUrl = "https://leekduck.com/events/";
 
             var eventsDoc  = scraperService.getData(eventsUrl);
             var eventPosts = eventsDoc
                 .body()
-                .select('div.upcoming-events')
-                .select('span.event-header-item-wrapper');
+                .select("div.upcoming-events")
+                .select("span.event-header-item-wrapper");
             eventPosts.each((post, index) => {
                 if(events.len() == count) break;
 
-                var postTimestamp = parseDateTime(date = post.attr('data-event-date-sort'), timezone = 'UTC');
-                if(dateDiff('h', postTimestamp, now()) >= 4) continue;
+                var postTimestamp = parseDateTime(date = post.attr("data-event-date-sort"), timezone = "UTC");
+                if(dateDiff("h", postTimestamp, now()) >= 4) continue;
 
                 // Skip past already loaded events before scraping the event page
                 if(skipped < offset) {
@@ -269,38 +269,38 @@ component singleton accessors="true" {
                     continue;
                 }
 
-                var link     = '#baseUrl##post.select('a').attr('href')#';
+                var link     = "#baseUrl##post.select("a").attr("href")#";
                 var eventDoc = scraperService.getData(link);
 
                 events.append({
                     type: post
-                        .select('a')
-                        .select('div.event-item-wrapper')
-                        .select('p')
+                        .select("a")
+                        .select("div.event-item-wrapper")
+                        .select("p")
                         ?.first()
-                        ?.text() ?: '#index# nope',
+                        ?.text() ?: "#index# nope",
                     title: post
-                        .select('a')
-                        .select('div.event-item-wrapper')
-                        .select('div.event-item')
-                        .select('div.event-text-container')
-                        .select('div.event-text')
-                        .select('h2')
+                        .select("a")
+                        .select("div.event-item-wrapper")
+                        .select("div.event-item")
+                        .select("div.event-text-container")
+                        .select("div.event-text")
+                        .select("h2")
                         .text(),
-                    timestamp: post.attr('data-event-local-time') == true ? post
-                        .select('a')
-                        .select('div.event-item-wrapper')
-                        .select('div.event-item')
-                        .select('div.event-text-container')
-                        .select('div.event-text')
-                        .select('p')
-                        .text() : '#dayOfWeekShortAsString(dayOfWeek(postTimestamp))#, #monthShortAsString(month(postTimestamp))# #day(postTimestamp)#, at #timeFormat(postTimestamp, 'h:mm tt')# EST',
+                    timestamp: post.attr("data-event-local-time") == true ? post
+                        .select("a")
+                        .select("div.event-item-wrapper")
+                        .select("div.event-item")
+                        .select("div.event-text-container")
+                        .select("div.event-text")
+                        .select("p")
+                        .text() : "#dayOfWeekShortAsString(dayOfWeek(postTimestamp))#, #monthShortAsString(month(postTimestamp))# #day(postTimestamp)#, at #timeFormat(postTimestamp, "h:mm tt")# EST",
                     link            : link,
                     datatimestamp   : postTimestamp,
                     locationSpecific: !eventDoc
                         .body()
-                        .select('div.page-tags')
-                        .select('div.tag.location-specific')
+                        .select("div.page-tags")
+                        .select("div.tag.location-specific")
                         .isEmpty()
                 });
             });
@@ -321,24 +321,24 @@ component singleton accessors="true" {
     public string function imageUpload() {
         // Convert to webp
         var image = imageService.validateUpload(
-            formField = 'blogimage',
-            outputs   = [{uploadDir: getUploadPath(), type: 'webp'}]
+            formField = "blogimage",
+            outputs   = [{uploadDir: getUploadPath(), type: "webp"}]
         );
 
         // Add .webp extension to the filename
-        image &= '.webp';
+        image &= ".webp";
 
         // Resize
         imageService.resize(
-            path    = '#getUploadPath()#/#image#',
+            path    = "#getUploadPath()#/#image#",
             outputs = [
-                {resizeDir: '#getUploadPath()#/cards', height: 250},
-                {resizeDir: '#getUploadPath()#/full', height: 350}
+                {resizeDir: "#getUploadPath()#/cards", height: 250},
+                {resizeDir: "#getUploadPath()#/full", height: 350}
             ]
         );
 
         // Delete the original converted
-        fileDelete('#getUploadPath()#/#image#');
+        fileDelete("#getUploadPath()#/#image#");
         return image;
     }
 

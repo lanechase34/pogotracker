@@ -1,28 +1,28 @@
 component extends="base" {
 
     this.allowedMethods = {
-        get       : 'GET',
-        read      : 'GET',
-        addComment: 'POST',
-        writeForm : 'GET',
-        write     : 'POST',
-        addImage  : 'POST',
-        editForm  : 'GET',
-        edit      : 'POST',
-        getNews   : 'GET',
-        getEvents : 'GET'
+        get       : "GET",
+        read      : "GET",
+        addComment: "POST",
+        writeForm : "GET",
+        write     : "POST",
+        addImage  : "POST",
+        editForm  : "GET",
+        edit      : "POST",
+        getNews   : "GET",
+        getEvents : "GET"
     };
 
     property name="blogService"    inject="services.blog";
     property name="imageService"   inject="Helpers@ImageMagick";
     property name="trainerService" inject="services.trainer";
 
-    this.prehandler_only = 'read,writeForm,editForm';
+    this.prehandler_only = "read,writeForm,editForm";
 
     function preHandler(event, rc, prc, action, eventArguments) {
-        prc.title           = 'Blog | #getSetting('title')#';
-        prc.metaDescription = 'POGO Tracker blog. Read latest news about POGO Tracker.';
-        prc.metaRobots      = 'noindex, nofollow';
+        prc.title           = "Blog | #getSetting("title")#";
+        prc.metaDescription = "POGO Tracker blog. Read latest news about POGO Tracker.";
+        prc.metaRobots      = "noindex, nofollow";
     }
 
     /**
@@ -35,14 +35,14 @@ component extends="base" {
      * @rc.sidebar   t/f whether this is a sidebar view
      */
     function get(event, rc, prc) {
-        if(hasValidationErrors(target = rc, constraints = 'blog.get')) {
+        if(hasValidationErrors(target = rc, constraints = "blog.get")) {
             htmlValidationFailure(event = event);
             return;
         }
 
         prc.blogs = blogService.get(count = rc.count, offset = rc.offset);
         event.setView(
-            view     = '/views/blog/list',
+            view     = "/views/blog/list",
             nolayout = true,
             args     = {
                 blogs    : prc.blogs,
@@ -60,9 +60,9 @@ component extends="base" {
      * @rc.blogheader the blog's header (spaces replaced with - for URLs)
      */
     function read(event, rc, prc) {
-        rc.blogheader = trim((rc?.blogheader ?: '')).replace('-', ' ', 'all');
-        if(hasValidationErrors(target = rc, constraints = 'blog.read')) {
-            htmlValidationFailure(event = event, redirectEvent = 'home');
+        rc.blogheader = trim((rc?.blogheader ?: "")).replace("-", " ", "all");
+        if(hasValidationErrors(target = rc, constraints = "blog.read")) {
+            htmlValidationFailure(event = event, redirectEvent = "home");
             return;
         }
 
@@ -73,15 +73,15 @@ component extends="base" {
 
         // Does not exist
         if(isNull(prc.blog)) {
-            event.setLayout('basic');
+            event.setLayout("basic");
             htmlNotFound(event);
             return;
         }
 
-        prc.header          = '';
-        prc.title           = '#prc.blog.getHeader()# | #getSetting('title')#';
+        prc.header          = "";
+        prc.title           = "#prc.blog.getHeader()# | #getSetting("title")#";
         prc.metaDescription = !isNull(prc.blog.getMeta()) && prc.blog.getMeta().len() ? prc.blog.getMeta() : prc.title;
-        prc.metaRobots      = 'index, follow';
+        prc.metaRobots      = "index, follow";
         prc.ogImage         = prc.blog.getOgImage();
         prc.suppressH1      = true; // article provides its own h1 inside the card
     }
@@ -93,8 +93,8 @@ component extends="base" {
      * @rc.blogid  blog pk
      */
     function addComment(event, rc, prc) {
-        if(hasValidationErrors(target = rc, constraints = 'blog.addComment')) {
-            jsonValidationFailure(event = event, message = 'Invalid Comment');
+        if(hasValidationErrors(target = rc, constraints = "blog.addComment")) {
+            jsonValidationFailure(event = event, message = "Invalid Comment");
             return;
         }
 
@@ -120,8 +120,8 @@ component extends="base" {
      * Write a new blog form
      */
     function writeForm(event, rc, prc) {
-        prc.header = 'New Blog';
-        event.setView(view = '/views/blog/writeform', args = {editing: false, submit: '/blog/write'});
+        prc.header = "New Blog";
+        event.setView(view = "/views/blog/writeform", args = {editing: false, submit: "/blog/write"});
     }
 
     /**
@@ -135,7 +135,7 @@ component extends="base" {
      * @rc.blogbody     body html
      */
     function write(event, rc, prc) {
-        if(hasValidationErrors(target = rc, constraints = 'blog.write')) {
+        if(hasValidationErrors(target = rc, constraints = "blog.write")) {
             jsonValidationFailure(event = event);
             return;
         }
@@ -178,12 +178,12 @@ component extends="base" {
         try {
             // Convert to webp
             prc.image = imageService.validateUpload(
-                formField = 'image',
-                outputs   = [{uploadDir: '#getSetting('uploadPath')#/extra/', type: 'webp'}]
+                formField = "image",
+                outputs   = [{uploadDir: "#getSetting("uploadPath")#/extra/", type: "webp"}]
             );
 
             // Add .webp extension to the filename
-            prc.image &= '.webp';
+            prc.image &= ".webp";
         }
         catch(ImageMagick.UploadValidationException e) {
             jsonValidationFailure(event = event, e.message);
@@ -191,7 +191,7 @@ component extends="base" {
         }
 
         prc.responseObj.file = {
-            url: '/includes/uploads/extra/#prc.image#'
+            url: "/includes/uploads/extra/#prc.image#"
             // additional properties here
         };
 
@@ -206,21 +206,21 @@ component extends="base" {
      * @rc.blogid blog pk
      */
     function editForm(event, rc, prc) {
-        if(hasValidationErrors(target = rc, constraints = 'blog.editForm')) {
-            htmlValidationFailure(event = event, redirectEvent = 'blog.writeForm');
+        if(hasValidationErrors(target = rc, constraints = "blog.editForm")) {
+            htmlValidationFailure(event = event, redirectEvent = "blog.writeForm");
             return;
         }
 
         prc.blog     = blogService.getFromId(parseNumber(rc.blogid));
-        prc.bodyjson = prc.blog?.getBodyJson() ?: '{}';
-        prc.header   = 'Editing Blog';
+        prc.bodyjson = prc.blog?.getBodyJson() ?: "{}";
+        prc.header   = "Editing Blog";
 
         event.setView(
-            view = '/views/blog/writeform',
+            view = "/views/blog/writeform",
             args = {
                 editing : true,
                 blog    : prc.blog,
-                submit  : '/blog/edit',
+                submit  : "/blog/edit",
                 bodyJson: prc.bodyjson
             }
         );
@@ -238,7 +238,7 @@ component extends="base" {
      * @rc.blogbody     body html
      */
     function edit(event, rc, prc) {
-        if(hasValidationErrors(target = rc, constraints = 'blog.edit')) {
+        if(hasValidationErrors(target = rc, constraints = "blog.edit")) {
             jsonValidationFailure(event = event);
             return;
         }
@@ -246,7 +246,7 @@ component extends="base" {
         /**
          * Optional, attempt image upload if it changed
          */
-        prc.image = '';
+        prc.image = "";
         if(rc.blogimage.len()) {
             try {
                 prc.image = blogService.imageUpload();
@@ -275,18 +275,18 @@ component extends="base" {
      * Get latest news from Pokemon Go's website
      */
     function getNews(event, rc, prc) {
-        if(hasValidationErrors(target = rc, constraints = 'blog.getNews')) {
+        if(hasValidationErrors(target = rc, constraints = "blog.getNews")) {
             htmlValidationFailure(event = event);
             return;
         }
 
         prc.offset = parseNumber(rc.offset);
-        prc.count  = getSetting('fetchCount');
+        prc.count  = getSetting("fetchCount");
         prc.news   = blogService.getNews(count = prc.count, offset = prc.offset);
 
         // Load more requests only need the news items to append to the existing card
         event.setView(
-            view     = prc.offset ? '/views/blog/fragment/newsitems' : '/views/blog/news',
+            view     = prc.offset ? "/views/blog/fragment/newsitems" : "/views/blog/news",
             nolayout = true,
             args     = {news: prc.news, count: prc.count}
         );
@@ -296,18 +296,18 @@ component extends="base" {
      * Get upcoming events from LeekDuck
      */
     function getEvents(event, rc, prc) {
-        if(hasValidationErrors(target = rc, constraints = 'blog.getEvents')) {
+        if(hasValidationErrors(target = rc, constraints = "blog.getEvents")) {
             htmlValidationFailure(event = event);
             return;
         }
 
         prc.offset = parseNumber(rc.offset);
-        prc.count  = getSetting('fetchCount');
+        prc.count  = getSetting("fetchCount");
         prc.events = blogService.getEvents(count = prc.count, offset = prc.offset);
 
         // Load more requests only need the event items to append to the existing card
         event.setView(
-            view     = prc.offset ? '/views/blog/fragment/eventitems' : '/views/blog/events',
+            view     = prc.offset ? "/views/blog/fragment/eventitems" : "/views/blog/events",
             nolayout = true,
             args     = {events: prc.events, count: prc.count}
         );

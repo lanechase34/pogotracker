@@ -9,17 +9,17 @@ component extends="tests.resources.baseTest" {
     }
 
     function run() {
-        describe('MailService', () => {
+        describe("MailService", () => {
             beforeEach(() => {
                 setup();
-                mailModel = getInstance('services.email');
+                mailModel = getInstance("services.email");
             });
 
-            it('Can be created', () => {
+            it("Can be created", () => {
                 expect(mailModel).toBeComponent();
             });
 
-            it('Can send a test email to the testemails directory', () => {
+            it("Can send a test email to the testemails directory", () => {
                 var beforeCount = globalFunctions.countTestEmails();
                 mailModel.sendTestEmail();
 

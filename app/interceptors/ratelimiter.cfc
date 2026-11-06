@@ -56,14 +56,14 @@ component extends="coldbox.system.Interceptor" {
         }
 
         // Not allowed - too many requests
-        var message = 'Too many attempts. Please try again later.';
+        var message = "Too many attempts. Please try again later.";
 
         // Form posts go back to their page with an alert
-        if(len(limit?.redirect ?: '')) {
+        if(len(limit?.redirect ?: "")) {
             sessionService.setAlert(
-                'danger',
+                "danger",
                 true,
-                'bi-exclamation-diamond-fill',
+                "bi-exclamation-diamond-fill",
                 message
             );
             relocate(uri = limit.redirect);
@@ -72,7 +72,7 @@ component extends="coldbox.system.Interceptor" {
 
         // AJAX endpoints get a json 429
         event.renderData(
-            type = 'json',
+            type = "json",
             data = {
                 success   : false,
                 message   : message,

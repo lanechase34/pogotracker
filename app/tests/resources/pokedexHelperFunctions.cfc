@@ -1,8 +1,8 @@
 component extends="coldbox.system.testing.BaseTestCase" {
 
     function init() {
-        pokedexService = getInstance('services.pokedex');
-        pokemonService = getInstance('services.pokemon');
+        pokedexService = getInstance("services.pokedex");
+        pokemonService = getInstance("services.pokemon");
     }
 
     /**
@@ -39,8 +39,8 @@ component extends="coldbox.system.testing.BaseTestCase" {
                 var currPokemon = pokemonService.getFromId(info.ids[randRange(1, len(arguments.info.ids))]);
                 // Has to be unique pokemon
                 var check       = entityLoad(
-                    'pokedex',
-                    {'trainer': trainer, 'pokemon': currPokemon},
+                    "pokedex",
+                    {"trainer": trainer, "pokemon": currPokemon},
                     true
                 );
 
@@ -67,31 +67,31 @@ component extends="coldbox.system.testing.BaseTestCase" {
      */
     public struct function getGenerationInfo(required numeric generation) {
         var info = queryExecute(
-            '
+            "
             select 
-                string_agg(cast(id as text), '','') as idList, 
-                string_agg(cast(number as text), '','') as numberList
+                string_agg(cast(id as text), ',') as idList, 
+                string_agg(cast(number as text), ',') as numberList
             from pokemon
             where generation = :generation
             and costume = false
             and mega = false
             and giga = false
-            ',
-            {generation: {value: arguments.generation, cfsqltype: 'numeric'}}
+            ",
+            {generation: {value: arguments.generation, cfsqltype: "numeric"}}
         );
 
         var generation = queryExecute(
-            '
+            "
             select region
             from generation
             where generation = :generation
-            ',
-            {generation: {value: arguments.generation, cfsqltype: 'numeric'}}
+            ",
+            {generation: {value: arguments.generation, cfsqltype: "numeric"}}
         )
 
         return {
-            numbers: listToArray(info.numberList, ','),
-            ids    : listToArray(info.idList, ','),
+            numbers: listToArray(info.numberList, ","),
+            ids    : listToArray(info.idList, ","),
             region : generation.region
         };
     }

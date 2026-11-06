@@ -20,26 +20,26 @@ component singleton accessors="true" {
         required boolean public,
         date begins     = now(),
         date ends       = now(),
-        string link     = '',
+        string link     = "",
         boolean commday = false
     ) {
         var newCustom = entityNew(
-            'custom',
+            "custom",
             {
-                'name'   : arguments.name,
-                'trainer': arguments.trainer,
-                'public' : arguments.public,
-                'begins' : arguments.begins,
-                'ends'   : arguments.ends,
-                'link'   : arguments.link,
-                'commday': arguments.commday
+                "name"   : arguments.name,
+                "trainer": arguments.trainer,
+                "public" : arguments.public,
+                "begins" : arguments.begins,
+                "ends"   : arguments.ends,
+                "link"   : arguments.link,
+                "commday": arguments.commday
             }
         );
         entitySave(newCustom);
         ormFlush();
 
         // Clear the custom list cache
-        cache.clearByKeySnippet('custom.getMine');
+        cache.clearByKeySnippet("custom.getMine");
         return newCustom.getId();
     }
 
@@ -57,13 +57,13 @@ component singleton accessors="true" {
         entitySave(custom);
         ormFlush();
 
-        cache.clearByKeySnippet('custom.getMine');
-        cache.clearByKeySnippet('|pokedex.getCustomRegistered|custom=#arguments.customid#');
+        cache.clearByKeySnippet("custom.getMine");
+        cache.clearByKeySnippet("|pokedex.getCustomRegistered|custom=#arguments.customid#");
         return;
     }
 
     public any function getFromId(required numeric id) {
-        return entityLoadByPK('custom', arguments.id);
+        return entityLoadByPK("custom", arguments.id);
     }
 
     /**
@@ -77,20 +77,20 @@ component singleton accessors="true" {
 
         // Find which records to add
         arguments.pokemon.each((pokemonid) => {
-            abstractedPokemon['#pokemonid#'] = true;
+            abstractedPokemon["#pokemonid#"] = true;
             var currPokemon                  = pokemonService.getFromId(pokemonid);
 
             // If the custom pokedex entry doesn't exist, create
             if(
                 isNull(
                     entityLoad(
-                        'custompokedex',
-                        {'custom': custom, 'pokemon': currPokemon},
+                        "custompokedex",
+                        {"custom": custom, "pokemon": currPokemon},
                         true
                     )
                 )
             ) {
-                var customPokedex = entityNew('custompokedex', {'custom': custom, 'pokemon': currPokemon});
+                var customPokedex = entityNew("custompokedex", {"custom": custom, "pokemon": currPokemon});
                 entitySave(customPokedex);
             }
         });
@@ -121,22 +121,22 @@ component singleton accessors="true" {
         numeric offset,
         numeric count
     ) {
-        var cacheKey = '#arguments.trainer.getId()#|custom.getMine';
+        var cacheKey = "#arguments.trainer.getId()#|custom.getMine";
         var options  = {};
         if(!isNull(arguments.offset)) {
-            options.insert('offset', arguments.offset);
-            cacheKey &= '|offset=#arguments.offset#';
+            options.insert("offset", arguments.offset);
+            cacheKey &= "|offset=#arguments.offset#";
         }
         if(!isNull(arguments.count)) {
-            options.insert('maxResults', arguments.count);
-            cacheKey &= '|count=#arguments.count#';
+            options.insert("maxResults", arguments.count);
+            cacheKey &= "|count=#arguments.count#";
         }
 
         var custom = cache.get(cacheKey);
         if(isNull(custom)) {
             // Custom pokedex list where you are the creator, or the pokedex is public
             custom = ormExecuteQuery(
-                '
+                "
                 from custom as custom
                 where custom.commday = false
                 and (
@@ -144,8 +144,8 @@ component singleton accessors="true" {
                     or custom.public = true
                 )
                 order by custom.id desc, custom.name asc
-                ',
-                {'trainer': arguments.trainer},
+                ",
+                {"trainer": arguments.trainer},
                 false,
                 options
             );
@@ -164,12 +164,12 @@ component singleton accessors="true" {
      */
     public any function get(required numeric id, required component trainer) {
         return ormExecuteQuery(
-            '
+            "
             from custom as custom
             where custom.id = :id
             and (custom.trainer = :trainer or custom.public = true)
-            ',
-            {'id': arguments.id, 'trainer': arguments.trainer}
+            ",
+            {"id": arguments.id, "trainer": arguments.trainer}
         );
     }
 
@@ -181,8 +181,8 @@ component singleton accessors="true" {
      */
     public any function getCreated(required numeric id, required component trainer) {
         return entityLoad(
-            'custom',
-            {'id': arguments.id, 'trainer': arguments.trainer},
+            "custom",
+            {"id": arguments.id, "trainer": arguments.trainer},
             true
         );
     }
@@ -206,7 +206,7 @@ component singleton accessors="true" {
 
         entityDelete(arguments.custom);
         ormFlush();
-        cache.clearByKeySnippet('custom.getMine');
+        cache.clearByKeySnippet("custom.getMine");
         return;
     }
 
@@ -227,7 +227,7 @@ component singleton accessors="true" {
         var results = async
             .all(
                 () => ormExecuteQuery(
-                    '
+                    "
                     from custom as custom
                     where custom.commday = false
                     and upper(custom.name) like :search
@@ -236,12 +236,12 @@ component singleton accessors="true" {
                         or custom.public = true
                     )
                     order by custom.id desc, custom.name asc
-                    ',
-                    {trainer: trainer, search: '%#uCase(search)#%'},
+                    ",
+                    {trainer: trainer, search: "%#uCase(search)#%"},
                     {offset: (page - 1) * pageSize, maxResults: pageSize}
                 ),
                 () => ormExecuteQuery(
-                    '
+                    "
                     select count(custom.id)
                     from custom as custom
                     where custom.commday = false
@@ -250,8 +250,8 @@ component singleton accessors="true" {
                         custom.trainer = :trainer
                         or custom.public = true
                     )
-                    ',
-                    {trainer: trainer, search: '%#uCase(search)#%'}
+                    ",
+                    {trainer: trainer, search: "%#uCase(search)#%"}
                 )
             )
             .get();

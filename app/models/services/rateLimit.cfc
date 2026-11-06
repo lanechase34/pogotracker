@@ -67,15 +67,15 @@ component singleton {
 
         for(var field in by) {
             // The ip is passed in - other values come from rc scope
-            var value = field == 'ip' ? ip : (context[field] ?: '');
+            var value = field == "ip" ? ip : (context[field] ?: "");
             if(!isSimpleValue(value) || !len(trim(value))) {
-                return '';
+                return "";
             }
 
-            parts.append('#field#=#lCase(trim(value))#');
+            parts.append("#field#=#lCase(trim(value))#");
         }
 
-        return 'ratelimit:#currentEvent#:#by.toList('+')#:#hash(parts.toList('|'), 'SHA-256')#';
+        return "ratelimit:#currentEvent#:#by.toList("+")#:#hash(parts.toList("|"), "SHA-256")#";
     }
 
 }

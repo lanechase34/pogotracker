@@ -16,7 +16,7 @@ component persistent="true" extends="base" {
      * Return alt text for the image using the medal's name
      */
     string function getAltText() {
-        return '#ucFirst(getName())# medal icon';
+        return "#ucFirst(getName())# medal icon";
     }
 
 }

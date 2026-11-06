@@ -1,15 +1,15 @@
 component extends="base" {
 
     this.allowedMethods = {
-        overview          : 'GET,POST',
-        leaderboard       : 'GET',
-        trackForm         : 'GET',
-        track             : 'POST',
-        getPokedexStats   : 'GET',
-        getMedalSummary   : 'GET',
-        getMedalProgress  : 'GET',
-        trackMedalProgress: 'POST',
-        topDeltas         : 'GET'
+        overview          : "GET,POST",
+        leaderboard       : "GET",
+        trackForm         : "GET",
+        track             : "POST",
+        getPokedexStats   : "GET",
+        getMedalSummary   : "GET",
+        getMedalProgress  : "GET",
+        trackMedalProgress: "POST",
+        topDeltas         : "GET"
     };
 
     property name="async"          inject="asyncManager@coldbox";
@@ -20,12 +20,12 @@ component extends="base" {
     property name="statsService"   inject="services.stats";
     property name="trainerService" inject="services.trainer";
 
-    this.prehandler_only = 'overview';
+    this.prehandler_only = "overview";
 
     function preHandler(event, rc, prc, action, eventArguments) {
-        prc.title           = 'Stats | #getSetting('title')#';
-        prc.metaDescription = 'Keep an eye on your progress with detailed tracking of your total XP, Pokemon caught, PokeStops spun, distance walked, and medals.';
-        prc.metaRobots      = 'noindex, nofollow';
+        prc.title           = "Stats | #getSetting("title")#";
+        prc.metaDescription = "Keep an eye on your progress with detailed tracking of your total XP, Pokemon caught, PokeStops spun, distance walked, and medals.";
+        prc.metaRobots      = "noindex, nofollow";
     }
 
     /**
@@ -37,16 +37,16 @@ component extends="base" {
      * @rc.summary   (optional) t/f quick summary view 
      */
     function overview(event, rc, prc) {
-        var currDate  = dateFormat(now(), 'short');
+        var currDate  = dateFormat(now(), "short");
         var dayOfWeek = dayOfWeek(currDate);
 
         rc.trainerid = rc?.trainerid ?: session.trainerid;
-        rc.startDate = rc?.startDate ?: dateAdd('d', -(dayOfWeek - 1), currDate);
-        rc.endDate   = rc?.endDate ?: dateAdd('d', (7 - dayOfWeek), currDate);
+        rc.startDate = rc?.startDate ?: dateAdd("d", -(dayOfWeek - 1), currDate);
+        rc.endDate   = rc?.endDate ?: dateAdd("d", (7 - dayOfWeek), currDate);
         rc.summary   = rc?.summary ?: false;
 
-        if(hasValidationErrors(target = rc, constraints = 'stats.overview')) {
-            htmlValidationFailure(event = event, redirectEvent = 'home');
+        if(hasValidationErrors(target = rc, constraints = "stats.overview")) {
+            htmlValidationFailure(event = event, redirectEvent = "home");
             return;
         }
 
@@ -61,7 +61,7 @@ component extends="base" {
                 accepted  = true
             )
         ) {
-            htmlValidationFailure(event = event, redirectEvent = 'home');
+            htmlValidationFailure(event = event, redirectEvent = "home");
             return;
         }
 
@@ -70,7 +70,7 @@ component extends="base" {
         prc.trainer   = trainerService.getFromId(trainerid = prc.trainerid);
         prc.stats     = statsService.get(
             trainer   = prc.trainer,
-            datePart  = 'd',
+            datePart  = "d",
             startDate = prc.startDate,
             endDate   = prc.endDate
         );
@@ -78,7 +78,7 @@ component extends="base" {
         prc.trainerStatStruct = prc.myProfile ? session.statStruct : prc.trainer.getCurrentLevel();
 
         if(rc.summary) {
-            event.setView(view = '/views/stats/summary', nolayout = true);
+            event.setView(view = "/views/stats/summary", nolayout = true);
         }
     }
 
@@ -89,28 +89,28 @@ component extends="base" {
      */
     function leaderboard(event, rc, prc) {
         rc.epochdate = now().getTime();
-        rc.stat      = rc?.stat ?: 'XP';
+        rc.stat      = rc?.stat ?: "XP";
 
-        if(hasValidationErrors(target = rc, constraints = 'stats.leaderboard')) {
+        if(hasValidationErrors(target = rc, constraints = "stats.leaderboard")) {
             htmlValidationFailure(event = event);
             return;
         }
 
         prc.leaderboard = [];
         prc.date        = dateAdd(
-            's',
+            "s",
             rc.epochdate / 1000,
-            dateConvert('utc2Local', 'January 1 1970 00:00')
+            dateConvert("utc2Local", "January 1 1970 00:00")
         );
         prc.leaderboard = statsService.getLeaderboard(date = prc.date, stat = rc.stat);
 
         event.setView(
-            view     = '/views/stats/leaderboard',
+            view     = "/views/stats/leaderboard",
             nolayout = true,
             args     = {
                 leaderboard: prc.leaderboard,
                 stat       : rc.stat,
-                title      : '#dateFormat(prc.date, 'mmm')# #ucFirst(rc.stat)# Leaderboard'
+                title      : "#dateFormat(prc.date, "mmm")# #ucFirst(rc.stat)# Leaderboard"
             }
         );
     }
@@ -122,12 +122,12 @@ component extends="base" {
         prc.trainer    = trainerService.getFromId(session.trainerid);
         prc.latestStat = prc.trainer.getLatestStat();
         event.setView(
-            view     = '/views/stats/modal/track',
+            view     = "/views/stats/modal/track",
             nolayout = true,
             args     = {
                 currDate  : now(),
                 trainer   : prc.trainer,
-                latestStat: isNull(prc.latestStat) ? '' : prc.latestStat
+                latestStat: isNull(prc.latestStat) ? "" : prc.latestStat
             }
         );
     }
@@ -143,8 +143,8 @@ component extends="base" {
      */
     function track(event, rc, prc) {
         rc.trainerid = rc?.trainerid ?: session.trainerid;
-        if(hasValidationErrors(target = rc, constraints = 'stats.track')) {
-            jsonValidationFailure(event = event, message = 'Unable To Track Stats');
+        if(hasValidationErrors(target = rc, constraints = "stats.track")) {
+            jsonValidationFailure(event = event, message = "Unable To Track Stats");
             return;
         }
 
@@ -153,7 +153,7 @@ component extends="base" {
 
         // Make sure user hasn't already tracked stats on this day
         if(!isNull(statsService.getFromDay(trainer = prc.trainer, suppliedDate = now()))) {
-            jsonValidationFailure(event = event, message = 'Unable To Track Stats');
+            jsonValidationFailure(event = event, message = "Unable To Track Stats");
             return;
         }
 
@@ -213,7 +213,7 @@ component extends="base" {
         prc.missingShinyString = results[3];
 
         event.setView(
-            view     = '/views/stats/pokedexstats',
+            view     = "/views/stats/pokedexstats",
             nolayout = true,
             args     = {
                 pokedexstats      : prc.pokedexStats,
@@ -249,7 +249,7 @@ component extends="base" {
         prc.medalProgress = medalService.getProgress(trainer = prc.trainer);
 
         event.setView(
-            view     = '/views/stats/medalsummary',
+            view     = "/views/stats/medalsummary",
             nolayout = true,
             args     = {medalProgress: prc.medalProgress}
         );
@@ -275,7 +275,7 @@ component extends="base" {
         prc.medalProgress = medalService.getProgress(trainer = prc.trainer);
 
         event.setView(
-            view     = '/views/stats/medalprogress',
+            view     = "/views/stats/medalprogress",
             nolayout = true,
             args     = {medalProgress: prc.medalProgress}
         );
@@ -289,8 +289,8 @@ component extends="base" {
      * @rc.current value to track
      */
     function trackMedalProgress(event, rc, prc) {
-        if(hasValidationErrors(target = rc, constraints = 'stat.trackMedalProgress')) {
-            jsonValidationFailure(event = event, message = 'Unable to track medal progress');
+        if(hasValidationErrors(target = rc, constraints = "stat.trackMedalProgress")) {
+            jsonValidationFailure(event = event, message = "Unable to track medal progress");
             return;
         }
 
@@ -332,7 +332,7 @@ component extends="base" {
         prc.topDeltas = statsService.getTopDeltas(trainer = prc.trainer);
 
         event.setView(
-            view     = '/views/stats/topdeltas',
+            view     = "/views/stats/topdeltas",
             nolayout = true,
             args     = {topDeltas: prc.topDeltas}
         );

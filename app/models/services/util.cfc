@@ -9,7 +9,7 @@ component singleton accessors="true" {
      * @sentence  the string
      * @delimiter optional delimiter for the sentence, defaults to space
      */
-    function capitalizeWords(required string sentence, string delimiter = ' ') {
+    function capitalizeWords(required string sentence, string delimiter = " ") {
         return sentence
             .listToArray(delimiter)
             .map((word) => {
@@ -24,7 +24,7 @@ component singleton accessors="true" {
      * @list      The list with potential duplicates
      * @delimiter The list delimiter
      */
-    public string function removeDuplicates(required string list, string delimiter = ',') {
+    public string function removeDuplicates(required string list, string delimiter = ",") {
         return arrayToList(
             listToArray(arguments.list, arguments.delimiter)
                 .map((item) => trim(item))
@@ -49,7 +49,7 @@ component singleton accessors="true" {
     public date function formatStringToDate(required string toFormat) {
         try {
             // Remove trailing comma
-            if(toFormat[toFormat.len()] == ',') {
+            if(toFormat[toFormat.len()] == ",") {
                 toFormat = toFormat.left(toFormat.len() - 1);
             }
 
@@ -68,7 +68,7 @@ component singleton accessors="true" {
      */
     public date function parseDateString(required string toParse) {
         try {
-            var parts = toParse.listToArray('-');
+            var parts = toParse.listToArray("-");
             return createDate(parts[1], parts[2], parts[3]);
         }
         catch(any e) {
@@ -80,9 +80,9 @@ component singleton accessors="true" {
      * Determine if the request is accepting json by looking at the headers
      */
     public boolean function isJsonRequest() {
-        if(!getHTTPRequestData().headers.keyExists('Accept')) return false;
-        var accept = getHTTPRequestData().headers.accept.listToArray(',');
-        return accept.some((type) => type.trim() == 'application/json');
+        if(!getHTTPRequestData().headers.keyExists("Accept")) return false;
+        var accept = getHTTPRequestData().headers.accept.listToArray(",");
+        return accept.some((type) => type.trim() == "application/json");
     }
 
     /**
@@ -101,10 +101,10 @@ component singleton accessors="true" {
      */
     public date function makeHighDate(required date high) {
         return dateAdd(
-            's',
+            "s",
             -1,
             dateAdd(
-                'd',
+                "d",
                 1,
                 createDateTime(year(high), month(high), day(high), 0, 0, 0)
             )
@@ -124,7 +124,7 @@ component singleton accessors="true" {
         required struct data,
         required string name
     ) {
-        var fullPath = '#getRootPath()##arguments.path#';
+        var fullPath = "#getRootPath()##arguments.path#";
         var previous = fileExists(fullPath) ? deserializeJSON(fileRead(fullPath)) : {};
 
         writeJsonDiff(
@@ -136,7 +136,7 @@ component singleton accessors="true" {
         fileWrite(
             fullPath,
             serializeJSON(orderJson(arguments.data)),
-            'UTF-8'
+            "UTF-8"
         );
 
         runPrettier(fullPath);
@@ -149,8 +149,8 @@ component singleton accessors="true" {
      * @fullPath absolute path of the file to format
      */
     private boolean function runPrettier(required string fullPath) {
-        var includesPath = '#getRootPath()#/includes';
-        var prettierBin  = '#includesPath#/node_modules/prettier/bin/prettier.cjs';
+        var includesPath = "#getRootPath()#/includes";
+        var prettierBin  = "#includesPath#/node_modules/prettier/bin/prettier.cjs";
         if(!fileExists(prettierBin)) return false;
 
         try {
@@ -184,7 +184,7 @@ component singleton accessors="true" {
     public any function orderJson(required any data) {
         if(isStruct(arguments.data)) {
             var source  = arguments.data;
-            var ordered = structNew('ordered');
+            var ordered = structNew("ordered");
             sortJsonKeys(source.keyArray()).each((key) => {
                 ordered[key] = orderJson(source[key]);
             });
@@ -215,11 +215,11 @@ component singleton accessors="true" {
 
         sortedKeyUnion(previousRec, currentRec).each((key) => {
             if(!previousRec.keyExists(key)) {
-                lines.append('+ #key#');
+                lines.append("+ #key#");
                 return;
             }
             if(!currentRec.keyExists(key)) {
-                lines.append('- #key#');
+                lines.append("- #key#");
                 return;
             }
 
@@ -227,7 +227,7 @@ component singleton accessors="true" {
             var after  = currentRec[key];
             if(!isStruct(before) || !isStruct(after)) {
                 if(!jsonValueEquals(before, after)) {
-                    lines.append('~ #key#: #jsonValueText(before)# -> #jsonValueText(after)#');
+                    lines.append("~ #key#: #jsonValueText(before)# -> #jsonValueText(after)#");
                 }
                 return;
             }
@@ -238,15 +238,15 @@ component singleton accessors="true" {
                 var hasAfter  = after.keyExists(field);
                 if(hasBefore && hasAfter && jsonValueEquals(before[field], after[field])) return;
 
-                var beforeText = hasBefore ? jsonValueText(before[field]) : '(none)';
-                var afterText  = hasAfter ? jsonValueText(after[field]) : '(none)';
-                lines.append('~ #key#.#field#: #beforeText# -> #afterText#');
+                var beforeText = hasBefore ? jsonValueText(before[field]) : "(none)";
+                var afterText  = hasAfter ? jsonValueText(after[field]) : "(none)";
+                lines.append("~ #key#.#field#: #beforeText# -> #afterText#");
             });
         });
 
         if(!lines.len()) return;
 
-        lines.prepend('#arguments.name# changes (+ added, - removed, ~ changed)');
+        lines.prepend("#arguments.name# changes (+ added, - removed, ~ changed)");
         jsonDiffLog.info(lines.toList(chr(10)));
     }
 
@@ -291,7 +291,7 @@ component singleton accessors="true" {
      * Stable text representation of a json value for diffing
      */
     private string function jsonValueText(any value) {
-        return isSimpleValue(arguments.value) ? '"#arguments.value#"' : serializeJSON(orderJson(arguments.value));
+        return isSimpleValue(arguments.value) ? """#arguments.value#""" : serializeJSON(orderJson(arguments.value));
     }
 
 }

@@ -2,19 +2,19 @@ component extends="tests.resources.baseTest" asyncAll="false" {
 
     function beforeAll() {
         super.beforeAll();
-        adminService = getInstance('services.admin');
-        mockTrainer  = getInstance('tests.resources.mocktrainer');
+        adminService = getInstance("services.admin");
+        mockTrainer  = getInstance("tests.resources.mocktrainer");
 
         // Make sure events needed during the tests are deleted before running
         eventNames = [
-            'Psychic Spectacular: Taken Over',
-            'Cozy Companions',
-            'Steeled Resolve',
-            'Steeled Resolve 2026',
-            'Spring Marathon 2026',
-            'Candela''s Quest for Victory',
-            'Frigibax Community Day',
-            'Deino Community Day Classic'
+            "Psychic Spectacular: Taken Over",
+            "Cozy Companions",
+            "Steeled Resolve",
+            "Steeled Resolve 2026",
+            "Spring Marathon 2026",
+            "Candela's Quest for Victory",
+            "Frigibax Community Day",
+            "Deino Community Day Classic"
         ];
         eventNames.each((name) => {
             customHelperFunctions.deleteByName(name);
@@ -26,21 +26,21 @@ component extends="tests.resources.baseTest" asyncAll="false" {
     }
 
     function run() {
-        describe('adminService.createEvent', () => {
+        describe("adminService.createEvent", () => {
             beforeEach(() => {
                 setup();
 
-                customService = getInstance('services.custom');
+                customService = getInstance("services.custom");
                 trainer       = mockTrainer.make(50); // admin trainer
                 customid      = -1;
             });
 
-            it('Can be created', () => {
+            it("Can be created", () => {
                 expect(customService).toBeComponent();
             });
 
-            it('Can create custom pokedex event with correct information from leekduck', () => {
-                eventLink   = 'https://leekduck.com/events/cozy-companions/';
+            it("Can create custom pokedex event with correct information from leekduck", () => {
+                eventLink   = "https://leekduck.com/events/cozy-companions/";
                 beforeCount = customHelperFunctions.count();
 
                 adminService.createEvent(eventLink);
@@ -53,7 +53,7 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                 expect(custom).toBeComponent();
 
                 // Verify the contents of the custom pokedex
-                expect(custom.getName()).toBe('Cozy Companions');
+                expect(custom.getName()).toBe("Cozy Companions");
                 expect(custom.getPublic()).toBeTrue();
                 expect(custom.getCommday()).toBeFalse();
                 expect(custom.getTrainer().getId()).toBe(1); // defaults to administrator since this is a scheduled task typically
@@ -65,68 +65,68 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                 customPokedex  = custom.getCustomPokedex();
                 // This is the list of expected spawns for the event
                 expectedSpawns = {
-                    'Snom'                    : 1,
-                    'Frosmoth'                : 1,
-                    'Abra'                    : 1,
-                    'Kadabra'                 : 1,
-                    'Alakazam'                : 1,
-                    'Geodude'                 : 1,
-                    'Graveler'                : 1,
-                    'Golem'                   : 1,
-                    'Karrablast'              : 1,
-                    'Escavalier'              : 1,
-                    'Shelmet'                 : 1,
-                    'Accelgor'                : 1,
-                    'Phantump'                : 1,
-                    'Trevenant'               : 1,
-                    'Alolan Geodude'          : 1,
-                    'Alolan Graveler'         : 1,
-                    'Alolan Golem'            : 1,
-                    'Pancham'                 : 1,
-                    'Pangoro'                 : 1,
-                    'Charcadet'               : 1,
-                    'Armarouge'               : 1,
-                    'Ceruledge'               : 1,
-                    'Maushold Family of Three': 1,
-                    'Maushold Family of Four' : 1,
-                    'Tandemaus'               : 1,
-                    'Diglett'                 : 1,
-                    'Dugtrio'                 : 1,
-                    'Magnemite'               : 1,
-                    'Magneton'                : 1,
-                    'Magnezone'               : 1,
-                    'Lapras'                  : 1,
-                    'Klink'                   : 1,
-                    'Klang'                   : 1,
-                    'Klinklang'               : 1,
-                    'Binacle'                 : 1,
-                    'Barbaracle'              : 1,
-                    'Nosepass'                : 1,
-                    'Probopass'               : 1,
-                    'Eevee'                   : 1,
-                    'Vaporeon'                : 1,
-                    'Jolteon'                 : 1,
-                    'Flareon'                 : 1,
-                    'Espeon'                  : 1,
-                    'Umbreon'                 : 1,
-                    'Leafeon'                 : 1,
-                    'Glaceon'                 : 1,
-                    'Sylveon'                 : 1,
-                    'Beldum'                  : 1,
-                    'Metang'                  : 1,
-                    'Metagross'               : 1,
-                    'Koffing'                 : 1,
-                    'Weezing'                 : 1,
-                    'Galarian Weezing'        : 1,
-                    'Chansey'                 : 1,
-                    'Blissey'                 : 1,
-                    'Cherubi'                 : 1,
-                    'Cherrim Overcast Form'   : 1,
-                    'Cherrim Sunshine Form'   : 1,
-                    'Combee'                  : 1,
-                    'Vespiquen'               : 1,
-                    'Galarian Farfetch''d': 1,
-                    'Sirfetch''d': 1
+                    "Snom"                    : 1,
+                    "Frosmoth"                : 1,
+                    "Abra"                    : 1,
+                    "Kadabra"                 : 1,
+                    "Alakazam"                : 1,
+                    "Geodude"                 : 1,
+                    "Graveler"                : 1,
+                    "Golem"                   : 1,
+                    "Karrablast"              : 1,
+                    "Escavalier"              : 1,
+                    "Shelmet"                 : 1,
+                    "Accelgor"                : 1,
+                    "Phantump"                : 1,
+                    "Trevenant"               : 1,
+                    "Alolan Geodude"          : 1,
+                    "Alolan Graveler"         : 1,
+                    "Alolan Golem"            : 1,
+                    "Pancham"                 : 1,
+                    "Pangoro"                 : 1,
+                    "Charcadet"               : 1,
+                    "Armarouge"               : 1,
+                    "Ceruledge"               : 1,
+                    "Maushold Family of Three": 1,
+                    "Maushold Family of Four" : 1,
+                    "Tandemaus"               : 1,
+                    "Diglett"                 : 1,
+                    "Dugtrio"                 : 1,
+                    "Magnemite"               : 1,
+                    "Magneton"                : 1,
+                    "Magnezone"               : 1,
+                    "Lapras"                  : 1,
+                    "Klink"                   : 1,
+                    "Klang"                   : 1,
+                    "Klinklang"               : 1,
+                    "Binacle"                 : 1,
+                    "Barbaracle"              : 1,
+                    "Nosepass"                : 1,
+                    "Probopass"               : 1,
+                    "Eevee"                   : 1,
+                    "Vaporeon"                : 1,
+                    "Jolteon"                 : 1,
+                    "Flareon"                 : 1,
+                    "Espeon"                  : 1,
+                    "Umbreon"                 : 1,
+                    "Leafeon"                 : 1,
+                    "Glaceon"                 : 1,
+                    "Sylveon"                 : 1,
+                    "Beldum"                  : 1,
+                    "Metang"                  : 1,
+                    "Metagross"               : 1,
+                    "Koffing"                 : 1,
+                    "Weezing"                 : 1,
+                    "Galarian Weezing"        : 1,
+                    "Chansey"                 : 1,
+                    "Blissey"                 : 1,
+                    "Cherubi"                 : 1,
+                    "Cherrim Overcast Form"   : 1,
+                    "Cherrim Sunshine Form"   : 1,
+                    "Combee"                  : 1,
+                    "Vespiquen"               : 1,
+                    "Galarian Farfetch'd"     : 1,
+                    "Sirfetch'd"              : 1
                 };
 
                 expect(customPokedex.len()).toBe(expectedSpawns.count());
@@ -139,14 +139,14 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                 expect(expectedSpawns.count()).toBe(0);
             });
 
-            it('Will skip shadow pokemon when creating event', () => {
+            it("Will skip shadow pokemon when creating event", () => {
                 // Save custom name map
                 adminService.saveOverride(
-                    name     = 'leekducknamemap',
-                    override = {'Indeedee (Female)': 'Indeedee Female', 'Indeedee (Male)': 'Indeedee Male'}
+                    name     = "leekducknamemap",
+                    override = {"Indeedee (Female)": "Indeedee Female", "Indeedee (Male)": "Indeedee Male"}
                 );
 
-                eventLink   = 'https://leekduck.com/events/psychic-spectacular-taken-over-2025/ ';
+                eventLink   = "https://leekduck.com/events/psychic-spectacular-taken-over-2025/ ";
                 beforeCount = customHelperFunctions.count();
 
                 adminService.createEvent(eventLink);
@@ -159,7 +159,7 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                 expect(custom).toBeComponent();
 
                 // Verify the contents of the custom pokedex
-                expect(custom.getName()).toBe('Psychic Spectacular: Taken Over');
+                expect(custom.getName()).toBe("Psychic Spectacular: Taken Over");
                 expect(custom.getPublic()).toBeTrue();
                 expect(custom.getCommday()).toBeFalse();
                 expect(custom.getTrainer().getId()).toBe(1); // defaults to administrator since this is a scheduled task typically
@@ -172,39 +172,39 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                 // This is the list of expected spawns for the event
                 // This list has no shadow pokemon
                 expectedSpawns = {
-                    'Abra'             : 1,
-                    'Kadabra'          : 1,
-                    'Alakazam'         : 1,
-                    'Starmie'          : 1,
-                    'Jynx'             : 1,
-                    'Girafarig'        : 1,
-                    'Smoochum'         : 1,
-                    'Spoink'           : 1,
-                    'Grumpig'          : 1,
-                    'Lunatone'         : 1,
-                    'Solrock'          : 1,
-                    'Chimecho'         : 1,
-                    'Beldum'           : 1,
-                    'Metang'           : 1,
-                    'Metagross'        : 1,
-                    'Chingling'        : 1,
-                    'Elgyem'           : 1,
-                    'Beheeyem'         : 1,
-                    'Espurr'           : 1,
-                    'Meowstic Male'    : 1,
-                    'Meowstic Female'  : 1,
-                    'Inkay'            : 1,
-                    'Malamar'          : 1,
-                    'Alolan Raichu'    : 1,
-                    'Galarian Ponyta'  : 1,
-                    'Galarian Rapidash': 1,
-                    'Galarian Slowpoke': 1,
-                    'Galarian Slowbro' : 1,
-                    'Galarian Slowking': 1,
-                    'Hisuian Braviary' : 1,
-                    'Wyrdeer'          : 1,
-                    'Indeedee Female'  : 1,
-                    'Indeedee Male'    : 1
+                    "Abra"             : 1,
+                    "Kadabra"          : 1,
+                    "Alakazam"         : 1,
+                    "Starmie"          : 1,
+                    "Jynx"             : 1,
+                    "Girafarig"        : 1,
+                    "Smoochum"         : 1,
+                    "Spoink"           : 1,
+                    "Grumpig"          : 1,
+                    "Lunatone"         : 1,
+                    "Solrock"          : 1,
+                    "Chimecho"         : 1,
+                    "Beldum"           : 1,
+                    "Metang"           : 1,
+                    "Metagross"        : 1,
+                    "Chingling"        : 1,
+                    "Elgyem"           : 1,
+                    "Beheeyem"         : 1,
+                    "Espurr"           : 1,
+                    "Meowstic Male"    : 1,
+                    "Meowstic Female"  : 1,
+                    "Inkay"            : 1,
+                    "Malamar"          : 1,
+                    "Alolan Raichu"    : 1,
+                    "Galarian Ponyta"  : 1,
+                    "Galarian Rapidash": 1,
+                    "Galarian Slowpoke": 1,
+                    "Galarian Slowbro" : 1,
+                    "Galarian Slowking": 1,
+                    "Hisuian Braviary" : 1,
+                    "Wyrdeer"          : 1,
+                    "Indeedee Female"  : 1,
+                    "Indeedee Male"    : 1
                 };
 
                 expect(customPokedex.len()).toBe(expectedSpawns.count());
@@ -217,7 +217,7 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                             .getGender()
                             .len()
                     ) {
-                        currName = '#entry.getPokemon().getName()# #entry.getPokemon().getGender()#';
+                        currName = "#entry.getPokemon().getName()# #entry.getPokemon().getGender()#";
                     }
                     expect(expectedSpawns).toHaveKey(currName);
                     structDelete(expectedSpawns, currName);
@@ -226,11 +226,11 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                 expect(expectedSpawns.count()).toBe(0);
             });
 
-            it('Will append current year to event name if same name already exists', () => {
-                var firstLink  = 'https://leekduck.com/events/steeled-resolve/';
-                var secondLink = 'https://leekduck.com/events/steeled-resolve-2026/';
+            it("Will append current year to event name if same name already exists", () => {
+                var firstLink  = "https://leekduck.com/events/steeled-resolve/";
+                var secondLink = "https://leekduck.com/events/steeled-resolve-2026/";
                 var customid2  = -1;
-                var custom2    = javacast('null', '');
+                var custom2    = javacast("null", "");
 
                 beforeCount = customHelperFunctions.count();
 
@@ -243,7 +243,7 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                 customid = customHelperFunctions.getMostRecentCreated();
                 custom   = customService.getFromId(customid);
                 expect(custom).toBeComponent();
-                expect(custom.getName()).toBe('Steeled Resolve');
+                expect(custom.getName()).toBe("Steeled Resolve");
                 expect(custom.getCommday()).toBeFalse();
 
                 // Create the second event with the same name - should have year appended
@@ -255,29 +255,29 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                 customid2 = customHelperFunctions.getMostRecentCreated();
                 custom2   = customService.getFromId(customid2);
                 expect(custom2).toBeComponent();
-                expect(custom2.getName()).toBe('Steeled Resolve 2026');
+                expect(custom2.getName()).toBe("Steeled Resolve 2026");
                 expect(custom2.getCommday()).toBeFalse();
 
                 // Clean up second event - first is handled by afterEach
                 customService.delete(custom2);
             });
 
-            it('Can create custom pokedex event with normal and costume pokemon from leekduck', () => {
+            it("Can create custom pokedex event with normal and costume pokemon from leekduck", () => {
                 // Save custom name map
                 adminService.saveOverride(
-                    name     = 'leekducknamemap',
+                    name     = "leekducknamemap",
                     override = {
-                        'Flower Crown Buneary'  : {'name': 'Buneary', 'costumetype': 'Flower Crown'},
-                        'Cherry Blossom Eevee'  : {'name': 'Eevee', 'costumetype': 'Cherry Blossom'},
-                        'Flower Crown Cottonee' : {'name': 'Cottonee', 'costumetype': 'Flower Crown'},
-                        'Flower Crown Happiny'  : {'name': 'Happiny', 'costumetype': 'Flower Crown'},
-                        'Flower Crown Pichu'    : {'name': 'Pichu', 'costumetype': 'Flower Crown'},
-                        'Flower Crown Togepi'   : {'name': 'Togepi', 'costumetype': 'Flower Crown'},
-                        'Marathon Visor Pikachu': {'name': 'Pikachu', 'costumetype': 'Marathon Visor'}
+                        "Flower Crown Buneary"  : {"name": "Buneary", "costumetype": "Flower Crown"},
+                        "Cherry Blossom Eevee"  : {"name": "Eevee", "costumetype": "Cherry Blossom"},
+                        "Flower Crown Cottonee" : {"name": "Cottonee", "costumetype": "Flower Crown"},
+                        "Flower Crown Happiny"  : {"name": "Happiny", "costumetype": "Flower Crown"},
+                        "Flower Crown Pichu"    : {"name": "Pichu", "costumetype": "Flower Crown"},
+                        "Flower Crown Togepi"   : {"name": "Togepi", "costumetype": "Flower Crown"},
+                        "Marathon Visor Pikachu": {"name": "Pikachu", "costumetype": "Marathon Visor"}
                     }
                 );
 
-                eventLink   = 'https://leekduck.com/events/spring-marathon-2026/';
+                eventLink   = "https://leekduck.com/events/spring-marathon-2026/";
                 beforeCount = customHelperFunctions.count();
 
                 adminService.createEvent(eventLink);
@@ -290,7 +290,7 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                 expect(custom).toBeComponent();
 
                 // Verify the contents of the custom pokedex
-                expect(custom.getName()).toBe('Spring Marathon 2026');
+                expect(custom.getName()).toBe("Spring Marathon 2026");
                 expect(custom.getPublic()).toBeTrue();
                 expect(custom.getCommday()).toBeFalse();
                 expect(custom.getTrainer().getId()).toBe(1); // defaults to administrator since this is a scheduled task typically
@@ -302,31 +302,31 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                 customPokedex  = custom.getCustomPokedex();
                 // This is the list of expected spawns for the event
                 expectedSpawns = {
-                    'Flower Crown Blissey'   : 1,
-                    'Flower Crown Buneary'   : 1,
-                    'Flower Crown Chansey'   : 1,
-                    'Flower Crown Cottonee'  : 1,
-                    'Cherry Blossom Eevee'   : 1,
-                    'Espathra'               : 1,
-                    'Cherry Blossom Espeon'  : 1,
-                    'Cherry Blossom Flareon' : 1,
-                    'Flittle'                : 1,
-                    'Cherry Blossom Glaceon' : 1,
-                    'Flower Crown Happiny'   : 1,
-                    'Cherry Blossom Jolteon' : 1,
-                    'Cherry Blossom Leafeon' : 1,
-                    'Flower Crown Lopunny'   : 1,
-                    'Flower Crown Pichu'     : 1,
-                    'Flower Crown Pikachu'   : 1,
-                    'Flower Crown Raichu'    : 1,
-                    'Cherry Blossom Sylveon' : 1,
-                    'Flower Crown Togekiss'  : 1,
-                    'Flower Crown Togepi'    : 1,
-                    'Flower Crown Togetic'   : 1,
-                    'Cherry Blossom Umbreon' : 1,
-                    'Cherry Blossom Vaporeon': 1,
-                    'Flower Crown Whimsicott': 1,
-                    'Marathon Visor Pikachu' : 1
+                    "Flower Crown Blissey"   : 1,
+                    "Flower Crown Buneary"   : 1,
+                    "Flower Crown Chansey"   : 1,
+                    "Flower Crown Cottonee"  : 1,
+                    "Cherry Blossom Eevee"   : 1,
+                    "Espathra"               : 1,
+                    "Cherry Blossom Espeon"  : 1,
+                    "Cherry Blossom Flareon" : 1,
+                    "Flittle"                : 1,
+                    "Cherry Blossom Glaceon" : 1,
+                    "Flower Crown Happiny"   : 1,
+                    "Cherry Blossom Jolteon" : 1,
+                    "Cherry Blossom Leafeon" : 1,
+                    "Flower Crown Lopunny"   : 1,
+                    "Flower Crown Pichu"     : 1,
+                    "Flower Crown Pikachu"   : 1,
+                    "Flower Crown Raichu"    : 1,
+                    "Cherry Blossom Sylveon" : 1,
+                    "Flower Crown Togekiss"  : 1,
+                    "Flower Crown Togepi"    : 1,
+                    "Flower Crown Togetic"   : 1,
+                    "Cherry Blossom Umbreon" : 1,
+                    "Cherry Blossom Vaporeon": 1,
+                    "Flower Crown Whimsicott": 1,
+                    "Marathon Visor Pikachu" : 1
                 };
 
                 expect(customPokedex.len()).toBe(expectedSpawns.count());
@@ -335,7 +335,7 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                     // Build the pokemon key using costumetype too
                     var curr = entry.getPokemon().getName();
                     if(entry.getPokemon().getCostume()) {
-                        curr = '#entry.getPokemon().getCostumeType()# #curr#';
+                        curr = "#entry.getPokemon().getCostumeType()# #curr#";
                     }
                     expect(expectedSpawns).toHaveKey(curr);
                     structDelete(expectedSpawns, curr);
@@ -344,14 +344,14 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                 expect(expectedSpawns.count()).toBe(0);
             });
 
-            it('Can create event with a normal pokemon and its costume form from the battle pass', () => {
+            it("Can create event with a normal pokemon and its costume form from the battle pass", () => {
                 // Save custom name map
                 adminService.saveOverride(
-                    name     = 'leekducknamemap',
-                    override = {'Candela Accessory Ponyta': {'name': 'Ponyta', 'costumetype': 'Candela'}}
+                    name     = "leekducknamemap",
+                    override = {"Candela Accessory Ponyta": {"name": "Ponyta", "costumetype": "Candela"}}
                 );
 
-                eventLink   = 'https://leekduck.com/events/candelas-quest-for-victory/';
+                eventLink   = "https://leekduck.com/events/candelas-quest-for-victory/";
                 beforeCount = customHelperFunctions.count();
 
                 adminService.createEvent(eventLink);
@@ -364,7 +364,7 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                 expect(custom).toBeComponent();
 
                 // Verify the contents of the custom pokedex
-                expect(custom.getName()).toBe('Candela''s Quest for Victory');
+                expect(custom.getName()).toBe("Candela's Quest for Victory");
                 expect(custom.getPublic()).toBeTrue();
                 expect(custom.getCommday()).toBeFalse();
                 expect(custom.getTrainer().getId()).toBe(1); // defaults to administrator since this is a scheduled task typically
@@ -377,17 +377,17 @@ component extends="tests.resources.baseTest" asyncAll="false" {
 
                 // Only check the base + costume variant (from battle pass)
                 expectedSpawns = {
-                    'Ponyta'          : 1,
-                    'Candela Ponyta'  : 1,
-                    'Rapidash'        : 1,
-                    'Candela Rapidash': 1
+                    "Ponyta"          : 1,
+                    "Candela Ponyta"  : 1,
+                    "Rapidash"        : 1,
+                    "Candela Rapidash": 1
                 };
 
                 customPokedex.each((entry) => {
                     // Build the pokemon key using costumetype too
                     var curr = entry.getPokemon().getName();
                     if(entry.getPokemon().getCostume()) {
-                        curr = '#entry.getPokemon().getCostumeType()# #curr#';
+                        curr = "#entry.getPokemon().getCostumeType()# #curr#";
                     }
                     structDelete(expectedSpawns, curr);
                 });
@@ -395,8 +395,8 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                 expect(expectedSpawns.count()).toBe(0);
             });
 
-            it('Can create community day event and flags it as commday', () => {
-                eventLink   = 'https://leekduck.com/events/june-communityday2026/';
+            it("Can create community day event and flags it as commday", () => {
+                eventLink   = "https://leekduck.com/events/june-communityday2026/";
                 beforeCount = customHelperFunctions.count();
 
                 adminService.createEvent(eventLink);
@@ -409,7 +409,7 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                 expect(custom).toBeComponent();
 
                 // Verify the contents of the custom pokedex
-                expect(custom.getName()).toBe('Frigibax Community Day');
+                expect(custom.getName()).toBe("Frigibax Community Day");
                 expect(custom.getPublic()).toBeTrue();
                 // Community day events are flagged so they can be excluded from user pokedex lists
                 expect(custom.getCommday()).toBeTrue();
@@ -422,9 +422,9 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                 customPokedex  = custom.getCustomPokedex();
                 // This is the list of expected spawns for the event
                 expectedSpawns = {
-                    'Frigibax'  : 1,
-                    'Arctibax'  : 1,
-                    'Baxcalibur': 1
+                    "Frigibax"  : 1,
+                    "Arctibax"  : 1,
+                    "Baxcalibur": 1
                 };
 
                 expect(customPokedex.len()).toBe(expectedSpawns.count());
@@ -437,8 +437,8 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                 expect(expectedSpawns.count()).toBe(0);
             });
 
-            it('Can create community day classic event and flags it as commday', () => {
-                eventLink   = 'https://leekduck.com/events/may-communitydayclassic2026/';
+            it("Can create community day classic event and flags it as commday", () => {
+                eventLink   = "https://leekduck.com/events/may-communitydayclassic2026/";
                 beforeCount = customHelperFunctions.count();
 
                 adminService.createEvent(eventLink);
@@ -451,7 +451,7 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                 expect(custom).toBeComponent();
 
                 // Verify the contents of the custom pokedex
-                expect(custom.getName()).toBe('Deino Community Day Classic');
+                expect(custom.getName()).toBe("Deino Community Day Classic");
                 expect(custom.getPublic()).toBeTrue();
                 // Community day classic events are flagged so they can be excluded from user pokedex lists
                 expect(custom.getCommday()).toBeTrue();
@@ -464,9 +464,9 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                 customPokedex  = custom.getCustomPokedex();
                 // This is the list of expected spawns for the event
                 expectedSpawns = {
-                    'Deino'    : 1,
-                    'Zweilous' : 1,
-                    'Hydreigon': 1
+                    "Deino"    : 1,
+                    "Zweilous" : 1,
+                    "Hydreigon": 1
                 };
 
                 expect(customPokedex.len()).toBe(expectedSpawns.count());
@@ -487,16 +487,16 @@ component extends="tests.resources.baseTest" asyncAll="false" {
             });
         });
 
-        describe('customService.getMine', () => {
+        describe("customService.getMine", () => {
             beforeEach(() => {
                 setup();
-                customService = getInstance('services.custom');
+                customService = getInstance("services.custom");
                 trainer       = mockTrainer.make();
             });
 
-            it('Excludes community day events but includes normal custom pokedexes', () => {
-                var normalName  = 'Normal Custom #createUUID()#';
-                var commdayName = 'Commday Custom #createUUID()#';
+            it("Excludes community day events but includes normal custom pokedexes", () => {
+                var normalName  = "Normal Custom #createUUID()#";
+                var commdayName = "Commday Custom #createUUID()#";
 
                 var normalId = customService.create(
                     trainer = trainer,
@@ -526,17 +526,17 @@ component extends="tests.resources.baseTest" asyncAll="false" {
             });
         });
 
-        describe('customService.searchMyCustom', () => {
+        describe("customService.searchMyCustom", () => {
             beforeEach(() => {
                 setup();
-                customService = getInstance('services.custom');
+                customService = getInstance("services.custom");
                 trainer       = mockTrainer.make();
             });
 
-            it('Excludes community day events but includes normal custom pokedexes', () => {
-                var searchTerm  = 'SearchTerm#createUUID()#';
-                var normalName  = '#searchTerm# Normal';
-                var commdayName = '#searchTerm# Commday';
+            it("Excludes community day events but includes normal custom pokedexes", () => {
+                var searchTerm  = "SearchTerm#createUUID()#";
+                var normalName  = "#searchTerm# Normal";
+                var commdayName = "#searchTerm# Commday";
 
                 var normalId = customService.create(
                     trainer = trainer,
@@ -566,31 +566,31 @@ component extends="tests.resources.baseTest" asyncAll="false" {
             });
         });
 
-        describe('pokemonService.getPreviousEvents', () => {
+        describe("pokemonService.getPreviousEvents", () => {
             beforeEach(() => {
                 setup();
-                customService  = getInstance('services.custom');
-                pokemonService = getInstance('services.pokemon');
+                customService  = getInstance("services.custom");
+                pokemonService = getInstance("services.pokemon");
                 trainer        = mockTrainer.make();
             });
 
-            it('Includes community day events without a link but excludes user-made pokedexes', () => {
+            it("Includes community day events without a link but excludes user-made pokedexes", () => {
                 var targetPokemon = pokemonService.get({
                     number : 1,
-                    name   : 'Bulbasaur',
-                    gender : '',
+                    name   : "Bulbasaur",
+                    gender : "",
                     costume: false
                 })[1];
 
-                var commdayName = 'Commday Previous Event #createUUID()#';
-                var userName    = 'User Pokedex #createUUID()#';
+                var commdayName = "Commday Previous Event #createUUID()#";
+                var userName    = "User Pokedex #createUUID()#";
 
                 // Community day events are not guaranteed to have a leekduck link
                 var commdayId = customService.create(
                     trainer = trainer,
                     name    = commdayName,
                     public  = true,
-                    link    = '',
+                    link    = "",
                     commday = true
                 );
                 // A normal user-made pokedex also has no link and must not show up as a "previous event"
@@ -598,7 +598,7 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                     trainer = trainer,
                     name    = userName,
                     public  = true,
-                    link    = '',
+                    link    = "",
                     commday = false
                 );
 

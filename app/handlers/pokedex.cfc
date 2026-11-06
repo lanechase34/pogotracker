@@ -1,21 +1,21 @@
 component extends="base" {
 
     this.allowedMethods = {
-        register               : 'POST',
-        registerAll            : 'POST',
-        myPokedex              : 'GET',
-        getPokedex             : 'GET',
-        myCustomPokedex        : 'GET',
-        getCustomPokedex       : 'GET',
-        customPokedexList      : 'GET',
-        addCustomPokedexForm   : 'GET',
-        editCustomPokedexForm  : 'GET',
-        addCustomPokedex       : 'POST',
-        editCustomPokedex      : 'POST',
-        deleteCustomPokedex    : 'POST',
-        searchCustomPokedexList: 'GET',
-        myCostumePokedex       : 'GET',
-        myShadowPokedex        : 'GET'
+        register               : "POST",
+        registerAll            : "POST",
+        myPokedex              : "GET",
+        getPokedex             : "GET",
+        myCustomPokedex        : "GET",
+        getCustomPokedex       : "GET",
+        customPokedexList      : "GET",
+        addCustomPokedexForm   : "GET",
+        editCustomPokedexForm  : "GET",
+        addCustomPokedex       : "POST",
+        editCustomPokedex      : "POST",
+        deleteCustomPokedex    : "POST",
+        searchCustomPokedexList: "GET",
+        myCostumePokedex       : "GET",
+        myShadowPokedex        : "GET"
     };
 
     property name="customService"     inject="services.custom";
@@ -24,12 +24,12 @@ component extends="base" {
     property name="pokemonService"    inject="services.pokemon";
     property name="trainerService"    inject="services.trainer";
 
-    this.prehandler_only = 'myPokedex,myCustomPokedex,customPokedexList,myShadowPokedex';
+    this.prehandler_only = "myPokedex,myCustomPokedex,customPokedexList,myShadowPokedex";
 
     function preHandler(event, rc, prc, action, eventArguments) {
-        prc.title           = 'Pokedex | #getSetting('title')#';
-        prc.metaDescription = 'Track your Pokemon and Shiny Pokemon collection in the Pokedex.';
-        prc.metaRobots      = 'noindex, nofollow';
+        prc.title           = "Pokedex | #getSetting("title")#";
+        prc.metaDescription = "Track your Pokemon and Shiny Pokemon collection in the Pokedex.";
+        prc.metaRobots      = "noindex, nofollow";
     }
 
     /**
@@ -43,8 +43,8 @@ component extends="base" {
      * @rc.shadowshiny t/f
      */
     function register(event, rc, prc) {
-        if(hasValidationErrors(target = rc, constraints = 'pokedex.register')) {
-            jsonValidationFailure(event = event, message = 'Invalid Register');
+        if(hasValidationErrors(target = rc, constraints = "pokedex.register")) {
+            jsonValidationFailure(event = event, message = "Invalid Register");
             return;
         }
 
@@ -70,8 +70,8 @@ component extends="base" {
      * @rc.shiny  t/f if registering all shiny
      */
     function registerAll(event, rc, prc) {
-        if(hasValidationErrors(target = rc, constraints = 'pokedex.registerAll')) {
-            jsonValidationFailure(event = event, message = 'Invalid RegisterAll');
+        if(hasValidationErrors(target = rc, constraints = "pokedex.registerAll")) {
+            jsonValidationFailure(event = event, message = "Invalid RegisterAll");
             return;
         }
 
@@ -91,10 +91,10 @@ component extends="base" {
      */
     function myPokedex(event, rc, prc) {
         rc.region = rc?.region ?: session.settings.defaultRegion;
-        rc.shiny  = rc?.shiny ?: session.settings.defaultView == 'shiny';
+        rc.shiny  = rc?.shiny ?: session.settings.defaultView == "shiny";
 
-        if(hasValidationErrors(target = rc, constraints = 'pokedex.myPokedex')) {
-            htmlValidationFailure(event = event, redirectEvent = 'home');
+        if(hasValidationErrors(target = rc, constraints = "pokedex.myPokedex")) {
+            htmlValidationFailure(event = event, redirectEvent = "home");
             return;
         }
 
@@ -114,16 +114,16 @@ component extends="base" {
      * @rc.trainerid (optional) defaults to current session
      */
     function getPokedex(event, rc, prc) {
-        rc.region    = rc?.region ?: '';
+        rc.region    = rc?.region ?: "";
         rc.form      = rc?.form ?: false;
-        rc.shiny     = rc?.shiny ?: session.settings.defaultView == 'shiny';
+        rc.shiny     = rc?.shiny ?: session.settings.defaultView == "shiny";
         rc.hundo     = rc?.hundo ?: false;
         rc.shadow    = rc?.shadow ?: false;
         rc.costume   = rc?.costume ?: false;
         rc.trainerid = rc?.trainerid ?: session.trainerid;
 
-        if(hasValidationErrors(target = rc, constraints = 'pokedex.getPokedex')) {
-            event.setLayout('basic');
+        if(hasValidationErrors(target = rc, constraints = "pokedex.getPokedex")) {
+            event.setLayout("basic");
             htmlNotFound(event = event);
             return;
         }
@@ -131,36 +131,36 @@ component extends="base" {
         // Handle mega/giga classification
         prc.mega = false;
         prc.giga = false;
-        if(rc.region == 'Mega') {
+        if(rc.region == "Mega") {
             prc.mega  = true;
-            rc.region = '';
+            rc.region = "";
             rc.shiny  = false;
         }
-        else if(rc.region == 'Giga') {
+        else if(rc.region == "Giga") {
             prc.giga  = true;
-            rc.region = '';
+            rc.region = "";
             rc.shiny  = false;
         }
 
         // Shadow pokedex is not split up by region
         if(rc.shadow) {
-            rc.region = '';
+            rc.region = "";
         }
 
         // Costume pokedex is not split up by region
         if(rc.costume) {
-            rc.region = '';
+            rc.region = "";
         }
 
         prc.trainerid   = parseNumber(rc.trainerid);
         prc.pokedexView =
-        rc.costume && rc.shiny ? 'costumeshiny'
-         : rc.costume ? 'costume'
-         : rc.shadow && rc.shiny ? 'shadowshiny'
-         : rc.shadow ? 'shadow'
-         : rc.shiny ? 'shiny'
-         : rc.hundo ? 'hundo'
-         : 'caught';
+        rc.costume && rc.shiny ? "costumeshiny"
+         : rc.costume ? "costume"
+         : rc.shadow && rc.shiny ? "shadowshiny"
+         : rc.shadow ? "shadow"
+         : rc.shiny ? "shiny"
+         : rc.hundo ? "hundo"
+         : "caught";
 
         prc.trainer = trainerService.getFromId(trainerid = prc.trainerid);
         prc.pokedex = pokedexService.getRegistered(
@@ -174,7 +174,7 @@ component extends="base" {
         );
 
         event.setView(
-            view     = '/views/pokedex/pokedextable',
+            view     = "/views/pokedex/pokedextable",
             nolayout = true,
             args     = {
                 pokedex    : prc.pokedex,
@@ -195,10 +195,10 @@ component extends="base" {
      */
     function myCustomPokedex(event, rc, prc) {
         rc.trainerid = rc?.trainerid ?: session.trainerid;
-        rc.shiny     = rc?.shiny ?: session.settings.defaultView == 'shiny';
+        rc.shiny     = rc?.shiny ?: session.settings.defaultView == "shiny";
 
-        if(hasValidationErrors(target = rc, constraints = 'pokedex.myCustomPokedex')) {
-            htmlValidationFailure(event = event, redirectEvent = 'pokedex.customPokedexList');
+        if(hasValidationErrors(target = rc, constraints = "pokedex.myCustomPokedex")) {
+            htmlValidationFailure(event = event, redirectEvent = "pokedex.customPokedexList");
             return;
         }
 
@@ -209,14 +209,14 @@ component extends="base" {
 
         // Check trainer access to custom pokedex
         if(!prc.custom.len()) {
-            htmlValidationFailure(event = event, redirectEvent = 'pokedex.customPokedexList');
+            htmlValidationFailure(event = event, redirectEvent = "pokedex.customPokedexList");
             return;
         }
 
         prc.custom = prc.custom[1];
         prc.name   = prc.custom.getName();
 
-        prc.header = '#encodeForHTML(prc.name)#';
+        prc.header = "#encodeForHTML(prc.name)#";
     }
 
     /**
@@ -230,8 +230,8 @@ component extends="base" {
      */
     function getCustomPokedex(event, rc, prc) {
         rc.trainerid = rc?.trainerid ?: session.trainerid;
-        if(hasValidationErrors(target = rc, constraints = 'pokedex.getCustomPokedex')) {
-            htmlValidationFailure(event = event, redirectEvent = 'pokedex.customPokedexList');
+        if(hasValidationErrors(target = rc, constraints = "pokedex.getCustomPokedex")) {
+            htmlValidationFailure(event = event, redirectEvent = "pokedex.customPokedexList");
             return;
         }
 
@@ -242,18 +242,18 @@ component extends="base" {
 
         // Check trainer access to custom pokedex
         if(!prc.custom.len()) {
-            htmlValidationFailure(event = event, redirectEvent = 'pokedex.customPokedexList');
+            htmlValidationFailure(event = event, redirectEvent = "pokedex.customPokedexList");
             return;
         }
 
-        prc.pokedexView = rc.shiny ? 'shiny' : rc.hundo ? 'hundo' : 'caught';
+        prc.pokedexView = rc.shiny ? "shiny" : rc.hundo ? "hundo" : "caught";
         prc.custom      = prc.custom[1];
         prc.name        = prc.custom.getName();
 
         prc.pokedex = pokedexService.getCustomRegistered(trainer = prc.trainer, custom = prc.custom);
 
         event.setView(
-            view     = '/views/pokedex/pokedextable',
+            view     = "/views/pokedex/pokedextable",
             nolayout = true,
             args     = {
                 pokedex    : prc.pokedex,
@@ -272,7 +272,7 @@ component extends="base" {
      */
     function customPokedexList(event, rc, prc) {
         rc.offset = rc?.offset ?: 0;
-        if(hasValidationErrors(target = rc, constraints = 'pokedex.customPokedexList')) {
+        if(hasValidationErrors(target = rc, constraints = "pokedex.customPokedexList")) {
             htmlValidationFailure(event = event);
             return;
         }
@@ -288,7 +288,7 @@ component extends="base" {
         );
 
         event.setView(
-            view     = '/views/pokedex/custompokedexlist',
+            view     = "/views/pokedex/custompokedexlist",
             nolayout = prc.offset > 0,
             args     = {
                 trainer        : prc.trainer,
@@ -304,9 +304,9 @@ component extends="base" {
      */
     function addCustomPokedexForm(event, rc, prc) {
         prc.pokemon = pokemonService.getAll();
-        prc.header  = 'Add Custom Pokedex';
+        prc.header  = "Add Custom Pokedex";
         event.setView(
-            view     = '/views/pokedex/modal/custompokedexform',
+            view     = "/views/pokedex/modal/custompokedexform",
             nolayout = true,
             args     = {
                 edit   : false,
@@ -323,7 +323,7 @@ component extends="base" {
      * @rc.customid custom pk
      */
     function editCustomPokedexForm(event, rc, prc) {
-        if(hasValidationErrors(target = rc, constraints = 'pokedex.editCustomPokedexForm')) {
+        if(hasValidationErrors(target = rc, constraints = "pokedex.editCustomPokedexForm")) {
             htmlValidationFailure(event = event);
             return;
         }
@@ -335,12 +335,12 @@ component extends="base" {
         prc.custom
             .getCustomPokedex()
             .each((pokedex) => {
-                prc.customPokedex['#pokedex.getPokemon().getId()#'] = true;
+                prc.customPokedex["#pokedex.getPokemon().getId()#"] = true;
             });
 
-        prc.header = 'Editing #encodeForHTML(prc.custom.getName())#';
+        prc.header = "Editing #encodeForHTML(prc.custom.getName())#";
         event.setView(
-            view     = '/views/pokedex/modal/custompokedexform',
+            view     = "/views/pokedex/modal/custompokedexform",
             nolayout = true,
             args     = {
                 edit         : true,
@@ -360,8 +360,8 @@ component extends="base" {
      * @rc.pokemon [] of pokemon objects
      */
     function addCustomPokedex(event, rc, prc) {
-        if(hasValidationErrors(target = rc, constraints = 'pokedex.addCustomPokedex')) {
-            jsonValidationFailure(event = event, message = 'Invalid Custom Pokedex');
+        if(hasValidationErrors(target = rc, constraints = "pokedex.addCustomPokedex")) {
+            jsonValidationFailure(event = event, message = "Invalid Custom Pokedex");
             return;
         }
 
@@ -393,8 +393,8 @@ component extends="base" {
      * @rc.pokemon  [] of pokemon objects
      */
     function editCustomPokedex(event, rc, prc) {
-        if(hasValidationErrors(target = rc, constraints = 'pokedex.editCustomPokedex')) {
-            jsonValidationFailure(event = event, message = 'Invalid Custom Pokedex');
+        if(hasValidationErrors(target = rc, constraints = "pokedex.editCustomPokedex")) {
+            jsonValidationFailure(event = event, message = "Invalid Custom Pokedex");
             return;
         }
 
@@ -424,16 +424,16 @@ component extends="base" {
      * @rc.shiny t/f, defaults to session defaultView type
      */
     function myShadowPokedex(event, rc, prc) {
-        rc.shiny = rc?.shiny ?: session.settings.defaultView == 'shiny';
+        rc.shiny = rc?.shiny ?: session.settings.defaultView == "shiny";
 
-        if(hasValidationErrors(target = rc, constraints = 'pokedex.myShadowPokedex')) {
-            htmlValidationFailure(event = event, redirectEvent = 'home');
+        if(hasValidationErrors(target = rc, constraints = "pokedex.myShadowPokedex")) {
+            htmlValidationFailure(event = event, redirectEvent = "home");
             return;
         }
 
         prc.trainerid       = session.trainerid;
-        prc.title           = 'Shadow Pokedex | #getSetting('title')#';
-        prc.metaDescription = 'Track your Shadow Pokemon and Shiny Shadow Pokemon collection in the Pokedex.';
+        prc.title           = "Shadow Pokedex | #getSetting("title")#";
+        prc.metaDescription = "Track your Shadow Pokemon and Shiny Shadow Pokemon collection in the Pokedex.";
     }
 
     /**
@@ -442,16 +442,16 @@ component extends="base" {
      * @rc.shiny t/f, defaults to session defaultView type
      */
     function myCostumePokedex(event, rc, prc) {
-        rc.shiny = rc?.shiny ?: session.settings.defaultView == 'shiny';
+        rc.shiny = rc?.shiny ?: session.settings.defaultView == "shiny";
 
-        if(hasValidationErrors(target = rc, constraints = 'pokedex.myCostumePokedex')) {
-            htmlValidationFailure(event = event, redirectEvent = 'home');
+        if(hasValidationErrors(target = rc, constraints = "pokedex.myCostumePokedex")) {
+            htmlValidationFailure(event = event, redirectEvent = "home");
             return;
         }
 
         prc.trainerid       = session.trainerid;
-        prc.title           = 'Costume Pokedex | #getSetting('title')#';
-        prc.metaDescription = 'Track your Costume Pokemon and Shiny Costume Pokemon collection in the Pokedex.';
+        prc.title           = "Costume Pokedex | #getSetting("title")#";
+        prc.metaDescription = "Track your Costume Pokemon and Shiny Costume Pokemon collection in the Pokedex.";
     }
 
     /**
@@ -460,8 +460,8 @@ component extends="base" {
      * @rc.customid custom pk, must have been created by current trainer
      */
     function deleteCustomPokedex(event, rc, prc) {
-        if(hasValidationErrors(target = rc, constraints = 'pokedex.deleteCustomPokedex')) {
-            jsonValidationFailure(event = event, message = 'Invalid Delete');
+        if(hasValidationErrors(target = rc, constraints = "pokedex.deleteCustomPokedex")) {
+            jsonValidationFailure(event = event, message = "Invalid Delete");
             return;
         }
 
@@ -477,15 +477,15 @@ component extends="base" {
      * @rc.page   numeric page number
      */
     function searchCustomPokedexList(event, rc, prc) {
-        if(hasValidationErrors(target = rc, constraints = 'pokedex.searchCustom')) {
-            jsonValidationFailure(event = event, message = 'Invalid Custom Search');
+        if(hasValidationErrors(target = rc, constraints = "pokedex.searchCustom")) {
+            jsonValidationFailure(event = event, message = "Invalid Custom Search");
             return;
         }
 
         // Passed input validation
         prc.responseObj.data = customService.searchMyCustom(
             trainer = session.trainer,
-            search  = rc?.search ?: '',
+            search  = rc?.search ?: "",
             page    = rc.page
         );
         jsonOk(event = event, data = prc.responseObj.data);

@@ -2,8 +2,8 @@ component extends="tests.resources.baseTest" asyncAll="true" {
 
     function beforeAll() {
         super.beforeAll();
-        pokemonService = getInstance('services.pokemon');
-        mockTrainer    = getInstance('tests.resources.mocktrainer');
+        pokemonService = getInstance("services.pokemon");
+        mockTrainer    = getInstance("tests.resources.mocktrainer");
 
         // Plain, live, tradable, non-form pokemon
         bulbasaur = pokemonService.get({
@@ -26,10 +26,10 @@ component extends="tests.resources.baseTest" asyncAll="true" {
         // Costume variant shares its name with the base pokemon, but is excluded via costume=false
         bulbasaurPartyHat = pokemonService.get({
             number     : 1,
-            name       : 'Bulbasaur',
-            gender     : '',
+            name       : "Bulbasaur",
+            gender     : "",
             costume    : true,
-            costumetype: 'Party Hat'
+            costumetype: "Party Hat"
         })[1];
 
         // Mythical - tradable=false, otherwise a normal live/non-form pokemon
@@ -47,10 +47,10 @@ component extends="tests.resources.baseTest" asyncAll="true" {
     }
 
     function run() {
-        describe('pokedexService.getMissingString', () => {
+        describe("pokedexService.getMissingString", () => {
             beforeEach(() => {
                 setup();
-                pokedexService = getInstance('services.pokedex');
+                pokedexService = getInstance("services.pokedex");
                 trainer        = mockTrainer.make(autoLogin = false);
             });
 
@@ -58,28 +58,28 @@ component extends="tests.resources.baseTest" asyncAll="true" {
                 mockTrainer.delete();
             });
 
-            it('Can be created', () => {
+            it("Can be created", () => {
                 expect(pokedexService).toBeComponent();
             });
 
-            it('Prefixes non-form pokemon with + when missing from the caught dex', () => {
+            it("Prefixes non-form pokemon with + when missing from the caught dex", () => {
                 var missingCaught = pokedexService.getMissingString(trainer, false);
-                var items         = listToArray(missingCaught, ',');
+                var items         = listToArray(missingCaught, ",");
 
-                expect(items).toContain('+#bulbasaur.getName()#');
-                expect(items).toContain('+#victreebel.getName()#');
+                expect(items).toContain("+#bulbasaur.getName()#");
+                expect(items).toContain("+#victreebel.getName()#");
             });
 
-            it('Uses the plain number (no +) for form-variant pokemon that are missing', () => {
+            it("Uses the plain number (no +) for form-variant pokemon that are missing", () => {
                 var missingCaught = pokedexService.getMissingString(trainer, false);
-                var items         = listToArray(missingCaught, ',');
+                var items         = listToArray(missingCaught, ",");
 
-                expect(items).toContain('#deerlingSpring.getNumber()#');
+                expect(items).toContain("#deerlingSpring.getNumber()#");
                 // No '+' for numbers
-                expect(items.some((item) => compare(item, '+#deerlingSpring.getNumber()#') == 0)).toBeFalse();
+                expect(items.some((item) => compare(item, "+#deerlingSpring.getNumber()#") == 0)).toBeFalse();
             });
 
-            it('Excludes pokemon the trainer has already caught', () => {
+            it("Excludes pokemon the trainer has already caught", () => {
                 pokedexService.register(
                     trainer     = trainer,
                     pokemon     = bulbasaur,
@@ -91,37 +91,37 @@ component extends="tests.resources.baseTest" asyncAll="true" {
                 );
 
                 var missingCaught = pokedexService.getMissingString(trainer, false);
-                var items         = listToArray(missingCaught, ',');
+                var items         = listToArray(missingCaught, ",");
 
-                expect(items).notToContain('+#bulbasaur.getName()#');
+                expect(items).notToContain("+#bulbasaur.getName()#");
                 // Still-uncaught pokemon should remain, proving the list isn't just empty
-                expect(items).toContain('+#victreebel.getName()#');
+                expect(items).toContain("+#victreebel.getName()#");
             });
 
-            it('Excludes pokemon that are not yet live even if uncaught', () => {
+            it("Excludes pokemon that are not yet live even if uncaught", () => {
                 var missingCaught = pokedexService.getMissingString(trainer, false);
-                var items         = listToArray(missingCaught, ',');
+                var items         = listToArray(missingCaught, ",");
 
-                expect(items).notToContain('+#zeraora.getName()#');
+                expect(items).notToContain("+#zeraora.getName()#");
             });
 
-            it('Excludes pokemon that are not tradable even if uncaught', () => {
+            it("Excludes pokemon that are not tradable even if uncaught", () => {
                 var missingCaught = pokedexService.getMissingString(trainer, false);
-                var items         = listToArray(missingCaught, ',');
+                var items         = listToArray(missingCaught, ",");
 
-                expect(items).notToContain('+#mew.getName()#');
+                expect(items).notToContain("+#mew.getName()#");
             });
 
-            it('Excludes mega, giga, and unown regardless of catch status', () => {
+            it("Excludes mega, giga, and unown regardless of catch status", () => {
                 var missingCaught = pokedexService.getMissingString(trainer, false);
-                var items         = listToArray(missingCaught, ',');
+                var items         = listToArray(missingCaught, ",");
 
-                expect(items).notToContain('+#megaGengar.getName()#');
-                expect(items).notToContain('+#gigaCharizard.getName()#');
-                expect(items).notToContain('201');
+                expect(items).notToContain("+#megaGengar.getName()#");
+                expect(items).notToContain("+#gigaCharizard.getName()#");
+                expect(items).notToContain("201");
             });
 
-            it('Excludes costume pokemon and catching a costume does not affect the base pokemon', () => {
+            it("Excludes costume pokemon and catching a costume does not affect the base pokemon", () => {
                 pokedexService.register(
                     trainer     = trainer,
                     pokemon     = bulbasaurPartyHat,
@@ -133,23 +133,23 @@ component extends="tests.resources.baseTest" asyncAll="true" {
                 );
 
                 var missingCaught = pokedexService.getMissingString(trainer, false);
-                var items         = listToArray(missingCaught, ',');
+                var items         = listToArray(missingCaught, ",");
 
                 // Base Bulbasaur is unaffected by registering its costume variant
-                expect(items).toContain('+#bulbasaur.getName()#');
+                expect(items).toContain("+#bulbasaur.getName()#");
             });
 
-            it('Returns the shiny missing string prefixed with ''shiny&'' and excludes pokemon without a shiny release', () => {
+            it("Returns the shiny missing string prefixed with 'shiny&' and excludes pokemon without a shiny release", () => {
                 var missingShiny = pokedexService.getMissingString(trainer, true);
 
-                expect(left(missingShiny, 6)).toBe('shiny&');
+                expect(left(missingShiny, 6)).toBe("shiny&");
 
-                var items = listToArray(replace(missingShiny, 'shiny&', '', 'one'), ',');
-                expect(items).notToContain('+#morpeko.getName()#');
-                expect(items).toContain('+#bulbasaur.getName()#');
+                var items = listToArray(replace(missingShiny, "shiny&", "", "one"), ",");
+                expect(items).notToContain("+#morpeko.getName()#");
+                expect(items).toContain("+#bulbasaur.getName()#");
             });
 
-            it('Excludes pokemon whose shiny has already been registered', () => {
+            it("Excludes pokemon whose shiny has already been registered", () => {
                 pokedexService.register(
                     trainer     = trainer,
                     pokemon     = bulbasaur,
@@ -161,13 +161,13 @@ component extends="tests.resources.baseTest" asyncAll="true" {
                 );
 
                 var missingShiny = pokedexService.getMissingString(trainer, true);
-                var items        = listToArray(replace(missingShiny, 'shiny&', '', 'one'), ',');
+                var items        = listToArray(replace(missingShiny, "shiny&", "", "one"), ",");
 
-                expect(items).notToContain('+#bulbasaur.getName()#');
-                expect(items).toContain('+#victreebel.getName()#');
+                expect(items).notToContain("+#bulbasaur.getName()#");
+                expect(items).toContain("+#victreebel.getName()#");
             });
 
-            it('Caches the result and invalidates the cache after a new registration', () => {
+            it("Caches the result and invalidates the cache after a new registration", () => {
                 var first  = pokedexService.getMissingString(trainer, false);
                 var second = pokedexService.getMissingString(trainer, false);
                 expect(second).toBe(first);
@@ -184,7 +184,7 @@ component extends="tests.resources.baseTest" asyncAll="true" {
 
                 var third = pokedexService.getMissingString(trainer, false);
                 expect(third).notToBe(first);
-                expect(listToArray(third, ',')).notToContain('+#torchic.getName()#');
+                expect(listToArray(third, ",")).notToContain("+#torchic.getName()#");
             });
         });
     }

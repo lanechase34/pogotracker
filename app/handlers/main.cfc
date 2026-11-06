@@ -12,7 +12,7 @@ component extends="base" {
     property name="sessionService"    inject="services.session";
     property name="statsService"      inject="services.stats";
 
-    this.prehandler_only = 'warmup';
+    this.prehandler_only = "warmup";
 
     /**
      * Clear the current orm session so we know the audit will work
@@ -21,23 +21,23 @@ component extends="base" {
     function preHandler(event, rc, prc, action, eventArguments) {
         prc.auditInfo = auditService.getAuditObj(
             trainerid = session?.trainerid ?: -1,
-            referer   = rc?.referer ?: '',
-            event     = rc?.event ?: 'NA'
+            referer   = rc?.referer ?: "",
+            event     = rc?.event ?: "NA"
         );
     }
 
     function warmup(event, rc, prc) {
         // Skips warmup in test environment
-        if(application.cbController.getSetting('environment') == 'test') {
-            setSetting('warmedUp', true);
+        if(application.cbController.getSetting("environment") == "test") {
+            setSetting("warmedUp", true);
         }
 
         // Fires on server start
-        var trustedIPs = ['0:0:0:0:0:0:0:1', '127.0.0.1'];
+        var trustedIPs = ["0:0:0:0:0:0:0:1", "127.0.0.1"];
         if(
-            !getSetting('warmedUp')
+            !getSetting("warmedUp")
             && trustedIPs.contains(securityService.getRequestIP())
-            && findNoCase('Java', cgi.http_user_agent) > 0
+            && findNoCase("Java", cgi.http_user_agent) > 0
         ) {
             setting requestTimeout=300;
 
@@ -82,30 +82,30 @@ component extends="base" {
                         return pokemonService.getSearchArray();
                     },
                     () => {
-                        return statsService.getLeaderboard(now(), 'xp');
+                        return statsService.getLeaderboard(now(), "xp");
                     }
                 )
                 .get();
 
-            setSetting('warmedUp', true);
-            prc.auditInfo.event  = 'main.warmup';
-            prc.auditInfo.detail = 'Successfully warmed up server in #getTickCount() - start#ms.';
+            setSetting("warmedUp", true);
+            prc.auditInfo.event  = "main.warmup";
+            prc.auditInfo.detail = "Successfully warmed up server in #getTickCount() - start#ms.";
             async.newFuture(() => {
                 auditService.audit(argumentCollection = prc.auditInfo);
             });
         }
 
-        jsonOk(event = event, data = 'Ok!');
+        jsonOk(event = event, data = "Ok!");
     }
 
     function healthCheck(event, rc, prc) {
-        if(!getSetting('healthCheck')) throw('Failed health check');
-        jsonOk(event = event, data = 'Ok!');
+        if(!getSetting("healthCheck")) throw("Failed health check");
+        jsonOk(event = event, data = "Ok!");
     }
 
     function onRequestStart(event, rc, prc) {
         // Handle session creation
-        if(!session.keyExists('trainerid')) {
+        if(!session.keyExists("trainerid")) {
             onSessionStart();
         }
 
@@ -113,33 +113,33 @@ component extends="base" {
         prc.currHandler = lCase(event.getCurrentHandler());
         prc.currAction  = lCase(event.getCurrentAction());
         prc.currEvent   = lCase(event.getCurrentEvent());
-        prc.currRoute   = reReplace(event.getCurrentRoutedURL(), '/$', '');
+        prc.currRoute   = reReplace(event.getCurrentRoutedURL(), "/$", "");
 
-        prc.canonicalURL = '#getSetting('domain')##prc.currRoute.len() ? '/#prc.currRoute#' : '/'#';
+        prc.canonicalURL = "#getSetting("domain")##prc.currRoute.len() ? "/#prc.currRoute#" : "/"#";
 
-        prc.title           = '';
-        prc.metaDescription = '';
+        prc.title           = "";
+        prc.metaDescription = "";
 
         // CSRF - reject state changing requests the browser says came from another site
-        if(event.getHTTPMethod() == 'POST' && securityService.isCrossSiteRequest()) {
+        if(event.getHTTPMethod() == "POST" && securityService.isCrossSiteRequest()) {
             prc.unauthorizedEvent = event.getCurrentEvent();
             prc.referer           = securityService.getReferer();
-            event.overrideEvent('error.unauthorized');
+            event.overrideEvent("error.unauthorized");
             return;
         }
 
         // If this user has the persist cookie and not authenticated
         if(
-            (prc.currHandler != 'login' || prc.currEvent == 'login.loginform')
+            (prc.currHandler != "login" || prc.currEvent == "login.loginform")
             && !session.authenticated
             && persistService.checkCookie()
         ) {
             // Override event with the persistLogin page
             rc.persistCookie                 = persistService.getCookie();
-            rc[getSetting('csrfTokenField')] = csrfGenerateToken(forceNew = true);
+            rc[getSetting("csrfTokenField")] = csrfGenerateToken(forceNew = true);
             // Strip leading slashes so this can never become a protocol relative (//host) redirect
-            prc.linkedEvent                  = '/#reReplace(prc.currRoute, '^[/\\]+', '')#';
-            event.overrideEvent('login.persistLogin');
+            prc.linkedEvent                  = "/#reReplace(prc.currRoute, "^[/\\]+", "")#";
+            event.overrideEvent("login.persistLogin");
             return;
         }
 
@@ -147,12 +147,12 @@ component extends="base" {
         if(
             session.authenticated &&
             !session.verified && (
-                prc.currEvent != 'login.verify' &&
-                prc.currEvent != 'login.verifyform' &&
-                prc.currEvent != 'login.logout'
+                prc.currEvent != "login.verify" &&
+                prc.currEvent != "login.verifyform" &&
+                prc.currEvent != "login.logout"
             )
         ) {
-            relocate(uri = '/verify');
+            relocate(uri = "/verify");
         }
 
         // Check whether this user is allowed to view this handler->action
@@ -167,20 +167,20 @@ component extends="base" {
             if(!session.authenticated) {
                 // Clicked on of the links available on sidebar
                 if(
-                    'mypokedex,myshadowpokedex,mycostumepokedex,custompokedexlist,buildtradeplan,overview'.contains(
+                    "mypokedex,myshadowpokedex,mycostumepokedex,custompokedexlist,buildtradeplan,overview".contains(
                         prc.currRoute
                     )
                 ) {
-                    session.linkedEvent = '/#prc.currRoute#';
+                    session.linkedEvent = "/#prc.currRoute#";
                 }
 
-                relocate(uri = '/login');
+                relocate(uri = "/login");
             }
             // Immediately stop the current event and process the unauthorized page
             else {
                 prc.unauthorizedEvent = event.getCurrentEvent();
                 prc.referer           = securityService.getReferer();
-                event.overrideEvent('error.unauthorized');
+                event.overrideEvent("error.unauthorized");
                 return;
             }
         }
@@ -192,10 +192,10 @@ component extends="base" {
         session.authenticated = false;
         session.verified      = false;
         session.recaptcha     = {
-            token    : '',
+            token    : "",
             valid    : false,
             timestamp: now(),
-            action   : ''
+            action   : ""
         };
     }
 

@@ -2,8 +2,8 @@ component extends="tests.resources.baseTest" asyncAll="true" {
 
     function beforeAll() {
         super.beforeAll();
-        pokemonService = getInstance('services.pokemon');
-        mockTrainer    = getInstance('tests.resources.mocktrainer');
+        pokemonService = getInstance("services.pokemon");
+        mockTrainer    = getInstance("tests.resources.mocktrainer");
     }
 
     function afterAll() {
@@ -11,10 +11,10 @@ component extends="tests.resources.baseTest" asyncAll="true" {
     }
 
     function run() {
-        describe('pokedexService.register', () => {
+        describe("pokedexService.register", () => {
             beforeEach(() => {
                 setup();
-                pokedexService = getInstance('services.pokedex');
+                pokedexService = getInstance("services.pokedex");
                 trainer        = mockTrainer.make();
             });
 
@@ -22,15 +22,15 @@ component extends="tests.resources.baseTest" asyncAll="true" {
                 mockTrainer.delete();
             });
 
-            it('Can be created', () => {
+            it("Can be created", () => {
                 expect(pokedexService).toBeComponent();
             });
 
-            it('Can register a pokemon (gyarados)', () => {
+            it("Can register a pokemon (gyarados)", () => {
                 gyaradosCfc = pokemonService.get({
                     number : 130,
-                    name   : 'Gyarados',
-                    gender : '',
+                    name   : "Gyarados",
+                    gender : "",
                     costume: false
                 })[1];
                 expect(gyaradosCfc).toBeComponent();
@@ -45,7 +45,7 @@ component extends="tests.resources.baseTest" asyncAll="true" {
                 );
                 registered = pokedexService.getRegistered(
                     trainer = trainer,
-                    region  = 'Kanto',
+                    region  = "Kanto",
                     form    = false,
                     mega    = false,
                     shadow  = false,
@@ -54,11 +54,11 @@ component extends="tests.resources.baseTest" asyncAll="true" {
                 expect(pokedexHelperFunctions.countRegistered(registered)).toBe(1);
             });
 
-            it('Can register a pokemon (mewtwo) normal and then also shiny', () => {
+            it("Can register a pokemon (mewtwo) normal and then also shiny", () => {
                 mewtwoCfc = pokemonService.get({
                     number : 150,
-                    name   : 'Mewtwo',
-                    gender : '',
+                    name   : "Mewtwo",
+                    gender : "",
                     costume: false
                 })[1];
                 expect(mewtwoCfc).toBeComponent();
@@ -85,7 +85,7 @@ component extends="tests.resources.baseTest" asyncAll="true" {
 
                 registered = pokedexService.getRegistered(
                     trainer = trainer,
-                    region  = 'Kanto',
+                    region  = "Kanto",
                     form    = false,
                     mega    = false,
                     shadow  = false,
@@ -96,28 +96,28 @@ component extends="tests.resources.baseTest" asyncAll="true" {
                 expect(pokedexHelperFunctions.countRegistered(registered, true)).toBe(1);
             });
 
-            it('Can register a costume form (charizard party hat) and also a shiny and will not collide with other forms', () => {
+            it("Can register a costume form (charizard party hat) and also a shiny and will not collide with other forms", () => {
                 charizard = pokemonService.get({
                     number : 6,
-                    name   : 'Charizard',
-                    gender : '',
+                    name   : "Charizard",
+                    gender : "",
                     costume: false
                 })[1];
 
                 charizardPartyHat = pokemonService.get({
                     number     : 6,
-                    name       : 'Charizard',
-                    gender     : '',
+                    name       : "Charizard",
+                    gender     : "",
                     costume    : true,
-                    costumetype: 'Party Hat'
+                    costumetype: "Party Hat"
                 })[1];
 
                 charizardPikaVisor = pokemonService.get({
                     number     : 6,
-                    name       : 'Charizard',
-                    gender     : '',
+                    name       : "Charizard",
+                    gender     : "",
                     costume    : true,
-                    costumetype: 'Pikachu Visor'
+                    costumetype: "Pikachu Visor"
                 })[1];
 
                 // Register party hat
@@ -135,7 +135,7 @@ component extends="tests.resources.baseTest" asyncAll="true" {
                 // Normal kanto dex should be 0 registered
                 registered = pokedexService.getRegistered(
                     trainer = trainer,
-                    region  = 'Kanto',
+                    region  = "Kanto",
                     form    = false,
                     mega    = false,
                     shadow  = false,
@@ -146,7 +146,7 @@ component extends="tests.resources.baseTest" asyncAll="true" {
                 // Costume dex should have 1 entry
                 registered = pokedexService.getRegistered(
                     trainer = trainer,
-                    region  = 'Kanto',
+                    region  = "Kanto",
                     form    = false,
                     mega    = false,
                     shadow  = false,
@@ -191,7 +191,7 @@ component extends="tests.resources.baseTest" asyncAll="true" {
                 // Costume dex should have 2 entries
                 registered = pokedexService.getRegistered(
                     trainer = trainer,
-                    region  = 'Kanto',
+                    region  = "Kanto",
                     form    = false,
                     mega    = false,
                     shadow  = false,
@@ -203,7 +203,7 @@ component extends="tests.resources.baseTest" asyncAll="true" {
                 // Shiny costume dex should have 1 entry
                 registered = pokedexService.getRegistered(
                     trainer = trainer,
-                    region  = 'Kanto',
+                    region  = "Kanto",
                     form    = false,
                     mega    = false,
                     shadow  = false,

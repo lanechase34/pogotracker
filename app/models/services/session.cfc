@@ -9,8 +9,8 @@ component singleton accessors="true" {
     property name="defaultSettings" inject="coldbox:setting:defaultSettings";
 
     public void function destroy(required boolean idle) {
-        if(session.keyExists('trainerid')) {
-            cache.clear('trainer.getFromId|trainerid=#session.trainerid#');
+        if(session.keyExists("trainerid")) {
+            cache.clear("trainer.getFromId|trainerid=#session.trainerid#");
         }
 
         // Invalidate JEE session
@@ -46,8 +46,8 @@ component singleton accessors="true" {
             if(len(inboundId) && currentId == inboundId) {
                 destroy(idle = false);
                 throw(
-                    type    = 'SessionRotationFailed',
-                    message = 'Failed to rotate session id; aborting authentication to prevent session fixation.'
+                    type    = "SessionRotationFailed",
+                    message = "Failed to rotate session id; aborting authentication to prevent session fixation."
                 );
             }
 
@@ -63,7 +63,7 @@ component singleton accessors="true" {
      * The session id the client presented on this request (empty string if none)
      */
     private string function getRequestedSessionId() {
-        return getPageContext().getRequest().getRequestedSessionId() ?: '';
+        return getPageContext().getRequest().getRequestedSessionId() ?: "";
     }
 
     /**
@@ -150,7 +150,7 @@ component singleton accessors="true" {
             trainer.setSettings(session.settings);
         }
 
-        if(!session.keyExists('linkedEvent')) {
+        if(!session.keyExists("linkedEvent")) {
             session.linkedEvent = session.settings.defaultPage;
         }
 
@@ -174,7 +174,7 @@ component singleton accessors="true" {
 
     public void function update(required numeric trainerid) {
         // Clear cache first
-        cache.clear('trainer.getFromId|trainerid=#session.trainerid#');
+        cache.clear("trainer.getFromId|trainerid=#session.trainerid#");
 
         var trainer = trainerService.getFromId(arguments.trainerid);
 
@@ -197,17 +197,17 @@ component singleton accessors="true" {
         numeric margin = 3
     ) {
         session.alert = {
-            'type'       : arguments.type,
-            'dismissible': arguments.dismissible,
-            'icon'       : arguments.icon,
-            'message'    : arguments.message,
-            'margin'     : arguments.margin
+            "type"       : arguments.type,
+            "dismissible": arguments.dismissible,
+            "icon"       : arguments.icon,
+            "message"    : arguments.message,
+            "margin"     : arguments.margin
         };
         return;
     }
 
     public void function clearAlert() {
-        session.delete('alert');
+        session.delete("alert");
         return;
     }
 

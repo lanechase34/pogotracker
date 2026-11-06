@@ -3,14 +3,14 @@ component singleton accessors="true" {
     property name="cache" inject="cachebox:appCache";
 
     private void function create(required struct moveProperties) {
-        var newMove = entityNew('move', arguments.moveProperties);
+        var newMove = entityNew("move", arguments.moveProperties);
         entitySave(newMove);
         return;
     }
 
     public void function update(required struct moveProperties) {
         // Attempt to load move
-        var currMove = entityLoad('move', {'nameid': arguments.moveProperties.nameid});
+        var currMove = entityLoad("move", {"nameid": arguments.moveProperties.nameid});
 
         // Create if this is a new move
         if(!currMove.len()) {
@@ -34,31 +34,31 @@ component singleton accessors="true" {
     }
 
     public array function getAllFastMoves() {
-        var cacheKey     = 'move.getAllFastMoves';
+        var cacheKey     = "move.getAllFastMoves";
         var allFastMoves = cache.get(cacheKey);
         if(isNull(allFastMoves)) {
-            allFastMoves = ormExecuteQuery('from move as move where move.turns > 0 order by move.name asc');
+            allFastMoves = ormExecuteQuery("from move as move where move.turns > 0 order by move.name asc");
             cache.set(cacheKey, allFastMoves, 720, 720);
         }
         return allFastMoves;
     }
 
     public array function getAllChargeMoves() {
-        var cacheKey       = 'move.getAllChargeMoves';
+        var cacheKey       = "move.getAllChargeMoves";
         var allChargeMoves = cache.get(cacheKey);
         if(isNull(allChargeMoves)) {
-            allChargeMoves = ormExecuteQuery('from move as move where move.turns = 0 order by move.name asc');
+            allChargeMoves = ormExecuteQuery("from move as move where move.turns = 0 order by move.name asc");
             cache.set(cacheKey, allChargeMoves, 720, 720);
         }
         return allChargeMoves;
     }
 
     public component function get(required string name) {
-        return entityLoad('move', {'nameid': arguments.name}, true);
+        return entityLoad("move", {"nameid": arguments.name}, true);
     }
 
     public boolean function check(required string name) {
-        return !isNull(entityLoad('move', {'nameid': arguments.name}, true));
+        return !isNull(entityLoad("move", {"nameid": arguments.name}, true));
     }
 
     public void function updatePokemonMoves(required component pokemon, required array moves) {
@@ -68,8 +68,8 @@ component singleton accessors="true" {
             if(
                 isNull(
                     entityLoad(
-                        'pokemonmove',
-                        {'pokemon': pokemon, 'move': move.move},
+                        "pokemonmove",
+                        {"pokemon": pokemon, "move": move.move},
                         true
                     )
                 )
@@ -90,12 +90,12 @@ component singleton accessors="true" {
         required boolean legacy
     ) {
         var pokemonMove = entityNew(
-            'pokemonMove',
+            "pokemonMove",
             {
-                'pokemon': arguments.pokemon,
-                'move'   : arguments.move,
-                'shadow' : arguments.shadow,
-                'legacy' : arguments.legacy
+                "pokemon": arguments.pokemon,
+                "move"   : arguments.move,
+                "shadow" : arguments.shadow,
+                "legacy" : arguments.legacy
             }
         );
         entitySave(pokemonMove);

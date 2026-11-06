@@ -1,18 +1,18 @@
 component extends="base" {
 
     this.allowedMethods = {
-        loginForm         : 'GET',
-        doLogin           : 'POST',
-        persistLogin      : 'GET',
-        registrationForm  : 'GET',
-        register          : 'POST',
-        verifyForm        : 'GET,POST',
-        verify            : 'POST',
-        forgotPasswordForm: 'GET',
-        forgotPassword    : 'POST',
-        resetPasswordForm : 'GET',
-        resetPassword     : 'POST',
-        verifyRecaptcha   : 'POST'
+        loginForm         : "GET",
+        doLogin           : "POST",
+        persistLogin      : "GET",
+        registrationForm  : "GET",
+        register          : "POST",
+        verifyForm        : "GET,POST",
+        verify            : "POST",
+        forgotPasswordForm: "GET",
+        forgotPassword    : "POST",
+        resetPasswordForm : "GET",
+        resetPassword     : "POST",
+        verifyRecaptcha   : "POST"
     };
 
     property name="auditService"    inject="services.audit";
@@ -21,83 +21,83 @@ component extends="base" {
     property name="securityService" inject="services.security";
     property name="sessionService"  inject="services.session";
 
-    this.prehandler_except = 'logout';
+    this.prehandler_except = "logout";
 
     // Fires before the handler action is invoked
     function preHandler(event, rc, prc, action, eventArguments) {
         // If the user is already logged in and verified -> relocate home
         if(session.authenticated && session.verified) {
-            relocate(uri = '/')
+            relocate(uri = "/")
         }
 
         // Validate the incoming user
         prc.auditInfo = auditService.getAuditObj(trainerid = session?.trainerid ?: -1, event = rc.event);
-        if(hasValidationErrors(target = prc.auditInfo, constraints = 'audit')) {
-            htmlValidationFailure(event = event, redirectUri = '/unauthorized');
+        if(hasValidationErrors(target = prc.auditInfo, constraints = "audit")) {
+            htmlValidationFailure(event = event, redirectUri = "/unauthorized");
             return;
         }
 
         prc.genericFailure = {
-            type       : 'danger',
+            type       : "danger",
             dismissible: true,
-            icon       : 'bi-exclamation-diamond-fill',
-            message    : 'Invalid. Please try again.'
+            icon       : "bi-exclamation-diamond-fill",
+            message    : "Invalid. Please try again."
         };
 
         // Ensure signups are allowed if attempting signup
-        var signupEndpoints = ['register', 'registrationform'];
+        var signupEndpoints = ["register", "registrationform"];
         if(
-            !getSetting('signups') &&
+            !getSetting("signups") &&
             signupEndpoints.contains(prc.currAction)
         ) {
-            relocate(uri = '/login');
+            relocate(uri = "/login");
         }
 
         // Ensure these actions are submitted from correct referer
         if(
-            getSetting('refererChecks').keyExists(prc.currAction) &&
-            !isValidReferer(getSetting('refererChecks')[prc.currAction])
+            getSetting("refererChecks").keyExists(prc.currAction) &&
+            !isValidReferer(getSetting("refererChecks")[prc.currAction])
         ) {
             sessionService.setAlert(argumentCollection = prc.genericFailure);
-            prc.auditInfo.detail = 'Failed Referer Check';
+            prc.auditInfo.detail = "Failed Referer Check";
             auditService.audit(argumentCollection = prc.auditInfo);
-            relocate(uri = '/login');
+            relocate(uri = "/login");
         }
 
         // Ensure the CSRF Token validates for these actions
         if(
-            getSetting('csrfChecks').keyExists(prc.currAction) && (
-                !rc.keyExists(getSetting('csrfTokenField')) ||
-                !csrfVerifyToken(rc[getSetting('csrfTokenField')])
+            getSetting("csrfChecks").keyExists(prc.currAction) && (
+                !rc.keyExists(getSetting("csrfTokenField")) ||
+                !csrfVerifyToken(rc[getSetting("csrfTokenField")])
             )
         ) {
             sessionService.setAlert(argumentCollection = prc.genericFailure);
             persistService.deleteCookie(); // delete persist cookie if exists
-            prc.auditInfo.detail = 'Failed CSRF Validation';
+            prc.auditInfo.detail = "Failed CSRF Validation";
             auditService.audit(argumentCollection = prc.auditInfo);
-            relocate(uri = '/login');
+            relocate(uri = "/login");
         }
 
         // Ensure the user has passed the recaptcha check
         if(
-            getSetting('recaptchaChecks').keyExists(prc.currAction) &&
+            getSetting("recaptchaChecks").keyExists(prc.currAction) &&
             !securityService.checkRecaptcha(prc.currAction)
         ) {
             sessionService.setAlert(argumentCollection = prc.genericFailure);
-            prc.auditInfo.detail = 'Failed Recaptcha Check';
+            prc.auditInfo.detail = "Failed Recaptcha Check";
             auditService.audit(argumentCollection = prc.auditInfo);
-            relocate(uri = '/login');
+            relocate(uri = "/login");
         }
 
-        prc.title      = 'Sign In | #getSetting('title')#';
-        prc.metaRobots = 'noindex, nofollow';
+        prc.title      = "Sign In | #getSetting("title")#";
+        prc.metaRobots = "noindex, nofollow";
 
-        event.setLayout('basic');
+        event.setLayout("basic");
     }
 
     function loginForm(event, rc, prc) {
-        prc.title           = 'Sign In | #getSetting('title')#';
-        prc.metaDescription = 'Sign in to POGO Tracker to track your Pokémon GO journey — Pokédex, XP, medals, shiny collection, and more.';
+        prc.title           = "Sign In | #getSetting("title")#";
+        prc.metaDescription = "Sign in to POGO Tracker to track your Pokémon GO journey — Pokédex, XP, medals, shiny collection, and more.";
     }
 
     function persistLogin(event, rc, prc) {
@@ -106,20 +106,20 @@ component extends="base" {
         // Atempt to receive valid user with this persist cookie
         prc.loginStruct = persistService.login(rc.persistCookie);
         if(!prc.loginStruct.success) {
-            prc.auditInfo.detail = 'Failed Persist Login';
+            prc.auditInfo.detail = "Failed Persist Login";
             auditService.audit(argumentCollection = prc.auditInfo);
             persistService.deleteCookie();
-            relocate(uri = '/login');
+            relocate(uri = "/login");
         }
 
-        prc.auditInfo.detail = 'Successful Persist Login from #prc?.linkedEvent ?: '/'#';
+        prc.auditInfo.detail = "Successful Persist Login from #prc?.linkedEvent ?: "/"#";
         sessionService.create(
             email     = prc.loginStruct.email,
             persist   = false,
             auditInfo = prc.auditInfo
         );
 
-        relocate(uri = prc?.linkedEvent ?: '/');
+        relocate(uri = prc?.linkedEvent ?: "/");
     }
 
     function doLogin(event, rc, prc) {
@@ -127,28 +127,28 @@ component extends="base" {
         param name="rc.password" default="";
         param name="rc.persist"  default="off";
 
-        prc.validation = validate(target = rc, constraints = 'loginForm');
+        prc.validation = validate(target = rc, constraints = "loginForm");
         if(prc.validation.hasErrors()) {
-            prc.auditInfo.detail = 'Failed Login Validation';
+            prc.auditInfo.detail = "Failed Login Validation";
             auditService.audit(argumentCollection = prc.auditInfo);
 
             sessionService.setAlert(argumentCollection = prc.genericFailure);
-            relocate(uri = '/login');
+            relocate(uri = "/login");
         }
 
         rc.email  = lCase(rc.email);
         prc.login = securityService.login(rc.email, rc.password);
         if(!prc.login) {
-            prc.auditInfo.detail = 'Incorrect Login Credentials';
+            prc.auditInfo.detail = "Incorrect Login Credentials";
             auditService.audit(argumentCollection = prc.auditInfo);
 
             sessionService.setAlert(argumentCollection = prc.genericFailure);
-            relocate(uri = '/login');
+            relocate(uri = "/login");
         }
 
-        prc.persist = rc.persist == 'on' ? true : false;
+        prc.persist = rc.persist == "on" ? true : false;
 
-        prc.auditInfo.detail = 'Successful Login';
+        prc.auditInfo.detail = "Successful Login";
         sessionService.create(
             email     = rc.email,
             persist   = prc.persist,
@@ -159,8 +159,8 @@ component extends="base" {
     }
 
     function registrationForm(event, rc, prc) {
-        prc.title           = 'Create Account | #getSetting('title')#';
-        prc.metaDescription = 'Create your free POGO Tracker account. Track your Pokémon GO Pokédex, XP, medals, shinies, walking distance, and plan trades with friends.';
+        prc.title           = "Create Account | #getSetting("title")#";
+        prc.metaDescription = "Create your free POGO Tracker account. Track your Pokémon GO Pokédex, XP, medals, shinies, walking distance, and plan trades with friends.";
         prc.iconMap         = trainerService.getIconMap();
     }
 
@@ -171,16 +171,16 @@ component extends="base" {
         param name="rc.friendcode" default="";
         param name="rc.icon"       default="";
 
-        prc.validation = validate(target = rc, constraints = 'registrationForm');
+        prc.validation = validate(target = rc, constraints = "registrationForm");
         if(prc.validation.hasErrors()) {
             sessionService.setAlert(
-                'danger',
+                "danger",
                 true,
-                'bi-exclamation-diamond-fill',
-                'Invalid registration. Username/email/friendcode already taken, please try again.',
+                "bi-exclamation-diamond-fill",
+                "Invalid registration. Username/email/friendcode already taken, please try again.",
                 0
             );
-            relocate(event = 'register');
+            relocate(event = "register");
         }
 
         securityService.register(
@@ -192,13 +192,13 @@ component extends="base" {
         );
 
         sessionService.setAlert(
-            'success',
+            "success",
             true,
-            'bi-check-square-fill',
-            'Registration complete!'
+            "bi-check-square-fill",
+            "Registration complete!"
         );
 
-        prc.auditInfo.detail = 'Successful Registration';
+        prc.auditInfo.detail = "Successful Registration";
         sessionService.create(
             email     = rc.email,
             persist   = false,
@@ -207,15 +207,15 @@ component extends="base" {
 
         securityService.sendVerificationCode(session.email, false);
 
-        relocate(uri = '/verify');
+        relocate(uri = "/verify");
     }
 
     function verifyForm(event, rc, prc) {
-        if(session.verified) relocate(uri = '/');
-        if(!session.authenticated) relocate(uri = '/login');
+        if(session.verified) relocate(uri = "/");
+        if(!session.authenticated) relocate(uri = "/login");
 
-        prc.title           = 'Verify Your Account | #getSetting('title')#';
-        prc.metaDescription = 'Verify your POGO Tracker account with the confirmation code sent to your email address.';
+        prc.title           = "Verify Your Account | #getSetting("title")#";
+        prc.metaDescription = "Verify your POGO Tracker account with the confirmation code sent to your email address.";
 
         param name="rc.resend" type="boolean" default="false";
 
@@ -225,80 +225,80 @@ component extends="base" {
     }
 
     function verify(event, rc, prc) {
-        if(session.verified) relocate(uri = '/');
-        if(!session.authenticated) relocate(uri = '/login');
+        if(session.verified) relocate(uri = "/");
+        if(!session.authenticated) relocate(uri = "/login");
 
         param name="rc.code" default="";
 
-        prc.validation = validate(target = rc, constraints = 'verifyForm');
+        prc.validation = validate(target = rc, constraints = "verifyForm");
         if(prc.validation.hasErrors()) {
-            prc.auditInfo.detail = 'Failed Verification Code Validation';
+            prc.auditInfo.detail = "Failed Verification Code Validation";
             auditService.audit(argumentCollection = prc.auditInfo);
             sessionService.setAlert(
-                'danger',
+                "danger",
                 true,
-                'bi-exclamation-diamond-fill',
-                'Invalid verification code. Please try again.',
+                "bi-exclamation-diamond-fill",
+                "Invalid verification code. Please try again.",
                 0
             );
-            relocate(uri = '/verify');
+            relocate(uri = "/verify");
         }
 
         rc.code = trim(rc.code);
         if(!securityService.checkVerificationCode(session.email, rc.code)) {
             sessionService.setAlert(
-                'danger',
+                "danger",
                 true,
-                'bi-exclamation-diamond-fill',
-                'Invalid verification code. Please try again.',
+                "bi-exclamation-diamond-fill",
+                "Invalid verification code. Please try again.",
                 0
             );
-            relocate(uri = '/verify');
+            relocate(uri = "/verify");
         }
 
-        prc.auditInfo.detail    = 'Successfully Verified';
+        prc.auditInfo.detail    = "Successfully Verified";
         prc.auditInfo.trainerid = session.trainerid;
         auditService.audit(argumentCollection = prc.auditInfo);
 
         sessionService.update(session.trainerid);
-        relocate(uri = '/');
+        relocate(uri = "/");
     }
 
     function logout(event, rc, prc) {
         param name="rc.idle" default="false";
         sessionService.destroy(rc.idle);
-        relocate(uri = '/');
+        relocate(uri = "/");
     }
 
     function forgotPasswordForm(event, rc, prc) {
-        prc.title           = 'Reset Password | #getSetting('title')#';
-        prc.metaDescription = 'Forgot your POGO Tracker password? Enter your email and we will send you a link to reset it.';
+        prc.title           = "Reset Password | #getSetting("title")#";
+        prc.metaDescription = "Forgot your POGO Tracker password? Enter your email and we will send you a link to reset it.";
     }
 
     function forgotPassword(event, rc, prc) {
         param name="rc.email" default="";
 
-        prc.validation = validate(target = rc, constraints = 'forgotPasswordForm');
+        prc.validation = validate(target = rc, constraints = "forgotPasswordForm");
         if(prc.validation.hasErrors()) {
-            prc.auditInfo.detail = 'Failed Forgot Password Validation. User attempting to reset password #rc.email# that does not exist.';
+            prc.auditInfo.detail = "Failed Forgot Password Validation. User attempting to reset password #rc.email# that does not exist.";
             auditService.audit(argumentCollection = prc.auditInfo);
         }
         else {
             rc.email = lCase(rc.email);
             securityService.sendResetCode(rc.email);
 
-            prc.auditInfo.detail = 'Forgot password email sent for #rc.email#';
+            prc.auditInfo.detail = "Forgot password email sent for #rc.email#";
             auditService.audit(argumentCollection = prc.auditInfo);
         }
 
         sessionService.setAlert(
-            'success',
+            "success",
             true,
-            'bi-check-square-fill',
-            'Reset password email sent. Please check your email.',
+            "bi-check-square-fill",
+            "Reset password email sent. Please check your email.",
             0
         );
-        relocate(uri = '/login');
+        relocate(uri = "/login");
     }
 
     function resetPasswordForm(event, rc, prc) {
@@ -307,10 +307,10 @@ component extends="base" {
         // Check the reset code for a valid user
         prc.email = securityService.checkResetCode(rc.resetCode);
         if(!prc.email.len()) {
-            prc.auditInfo.detail = 'Failed Reset Code Check';
+            prc.auditInfo.detail = "Failed Reset Code Check";
             auditService.audit(argumentCollection = prc.auditInfo);
 
-            relocate(uri = '/login');
+            relocate(uri = "/login");
         }
     }
 
@@ -318,13 +318,13 @@ component extends="base" {
         param name="rc.resetCode" default="";
         param name="rc.password"  default="";
 
-        prc.validation = validate(target = rc, constraints = 'resetPasswordForm');
+        prc.validation = validate(target = rc, constraints = "resetPasswordForm");
         prc.email      = securityService.checkResetCode(rc.resetCode, true);
         if(prc.validation.hasErrors() || !prc.email.len()) {
-            prc.auditInfo.detail = 'Failed Reset Password Validation';
+            prc.auditInfo.detail = "Failed Reset Password Validation";
             auditService.audit(argumentCollection = prc.auditInfo);
 
-            relocate(uri = '/login');
+            relocate(uri = "/login");
         }
 
         prc.trainer = securityService.getTrainer(prc.email)[1];
@@ -337,13 +337,13 @@ component extends="base" {
         );
 
         sessionService.setAlert(
-            'success',
+            "success",
             true,
-            'bi-check-square-fill',
-            'Successfully reset password.',
+            "bi-check-square-fill",
+            "Successfully reset password.",
             0
         );
-        relocate(uri = '/login');
+        relocate(uri = "/login");
     }
 
     /**
@@ -352,7 +352,7 @@ component extends="base" {
      * @rc.recaptchaToken user's unique token
      */
     function verifyRecaptcha(event, rc, prc) {
-        if(hasValidationErrors(target = rc, constraints = 'verifyRecaptcha')) {
+        if(hasValidationErrors(target = rc, constraints = "verifyRecaptcha")) {
             jsonValidationFailure(event = event);
             return;
         }
@@ -361,11 +361,11 @@ component extends="base" {
 
         prc.responseObj.success = prc.verifyRecaptcha;
         if(!prc.verifyRecaptcha) {
-            prc.responseObj.message    = 'Please try again.';
+            prc.responseObj.message    = "Please try again.";
             prc.responseObj.statusCode = 400;
         }
         else {
-            prc.responseObj.message    = 'Success';
+            prc.responseObj.message    = "Success";
             prc.responseObj.statusCode = 200;
         }
 
@@ -379,9 +379,9 @@ component extends="base" {
      */
     private boolean function isValidReferer(required string expectedPath) {
         try {
-            var uri  = createObject('java', 'java.net.URI').init(securityService.getReferer());
-            var host = (uri.getHost() ?: '') & (uri.getPort() > 0 ? ':#uri.getPort()#' : '');
-            var path = uri.getPath() ?: '';
+            var uri  = createObject("java", "java.net.URI").init(securityService.getReferer());
+            var host = (uri.getHost() ?: "") & (uri.getPort() > 0 ? ":#uri.getPort()#" : "");
+            var path = uri.getPath() ?: "";
 
             return lCase(host) == lCase(cgi.http_host) && lCase(path).startsWith(lCase(arguments.expectedPath));
         }

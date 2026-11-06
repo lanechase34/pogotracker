@@ -16,17 +16,17 @@ component persistent="true" extends="base" {
 
     // methods
     string function getDamagePerEnergy() {
-        if(getEnergy() == 0) return '--';
+        if(getEnergy() == 0) return "--";
         return round(getDamage() / getEnergy(), 2);
     }
 
     string function getDamagePerTurn() {
-        if(!getTurns()) return '--';
+        if(!getTurns()) return "--";
         return round(getDamage() / getTurns(), 2);
     }
 
     string function getEnergyPerTurn() {
-        if(!getTurns()) return '--';
+        if(!getTurns()) return "--";
         return round(getEnergy() / getTurns(), 2);
     }
 
@@ -39,17 +39,17 @@ component persistent="true" extends="base" {
     }
 
     string function getBuff() {
-        if(getBuffChance() == 0) return '';
-        return '#getBuffChance() * 100#% chance | #getBuffEffect()# #getBuffSelf() == 1 ? 'Self' : 'Opponent'#';
+        if(getBuffChance() == 0) return "";
+        return "#getBuffChance() * 100#% chance | #getBuffEffect()# #getBuffSelf() == 1 ? "Self" : "Opponent"#";
     }
 
-    string function getTypeImg(string type = 'icon') {
+    string function getTypeImg(string type = "icon") {
         // icon or symbol
-        return '/includes/images/type#arguments.type#/#lCase(getType())#.webp';
+        return "/includes/images/type#arguments.type#/#lCase(getType())#.webp";
     }
 
     string function getTypeImgAltText() {
-        return '#ucFirst(getType())# type icon';
+        return "#ucFirst(getType())# type icon";
     }
 
 }

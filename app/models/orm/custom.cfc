@@ -17,8 +17,8 @@ component persistent="true" table="custom" extends="base" {
      * If begins is null, use when entity was created
      */
     string function getFormattedBegins() {
-        if(isNull(getBegins())) return dateFormat(getCreated(), 'mmm d, yyyy');
-        return dateFormat(getBegins(), 'mmm d, yyyy');
+        if(isNull(getBegins())) return dateFormat(getCreated(), "mmm d, yyyy");
+        return dateFormat(getBegins(), "mmm d, yyyy");
     }
 
     /**
@@ -26,8 +26,8 @@ component persistent="true" table="custom" extends="base" {
      * If ends is null, use when entity was created
      */
     string function getFormattedEnds() {
-        if(isNull(getEnds())) return dateFormat(getCreated(), 'mmm d, yyyy');
-        return dateFormat(getEnds(), 'mmm d, yyyy');
+        if(isNull(getEnds())) return dateFormat(getCreated(), "mmm d, yyyy");
+        return dateFormat(getEnds(), "mmm d, yyyy");
     }
 
 }

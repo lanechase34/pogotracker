@@ -28,15 +28,15 @@ component persistent="true" extends="base" {
 
     // methods
     string function getFormattedFriendCode() {
-        return reReplace(getFriendCode(), '([0-9]{4})', '\1-', 'all').left(-1);
+        return reReplace(getFriendCode(), "([0-9]{4})", "\1-", "all").left(-1);
     }
 
     any function getFormattedLastLogin() {
         if(isNull(getLastLogin())) {
-            return '---';
+            return "---";
         }
 
-        return dateTimeFormat(getLastLogin(), 'mmm-dd-yyyy HH:nn:ss')
+        return dateTimeFormat(getLastLogin(), "mmm-dd-yyyy HH:nn:ss")
     }
 
     number function getEpochLastLogin() {
@@ -56,8 +56,8 @@ component persistent="true" extends="base" {
         var latestStat = getLatestStat();
         if(isNull(latestStat)) {
             return {
-                level      : '--',
-                totalxp    : '',
+                level      : "--",
+                totalxp    : "",
                 dateTracked: createDate(2000, 1, 1)
             };
         }
@@ -67,21 +67,21 @@ component persistent="true" extends="base" {
 
         // Select the current level and the next level
         var levelData = queryExecute(
-            '
+            "
             SELECT curr.level, curr.requiredxp AS currlevelxp, next.requiredxp AS nextlevelxp
             FROM level curr
             LEFT JOIN level next ON next.level = curr.level + 1
             WHERE :totalxp > curr.requiredxp
             ORDER BY curr.level DESC
             LIMIT 1
-            ',
-            {totalxp: {value: totalxp, cfsqltype: 'bigint'}}
+            ",
+            {totalxp: {value: totalxp, cfsqltype: "bigint"}}
         );
 
         var result = {
             level      : levelData.level,
-            totalxp    : numberFormat(totalxp, ','),
-            dateTracked: dateFormat(latestStat.getCreated(), 'short')
+            totalxp    : numberFormat(totalxp, ","),
+            dateTracked: dateFormat(latestStat.getCreated(), "short")
         };
 
         // Calculate progress to the next level
@@ -102,7 +102,7 @@ component persistent="true" extends="base" {
 
         // Caught badges
         var caught = ormExecuteQuery(
-            '
+            "
             select count(pokedex.id) as caught, pokedex.pokemon.generation.region as region
             from pokedex as pokedex
             where pokedex.caught = true
@@ -110,7 +110,7 @@ component persistent="true" extends="base" {
             and pokedex.trainer = :trainer
             group by pokedex.pokemon.generation.region, pokedex.pokemon.generation
             order by pokedex.pokemon.generation asc
-            ',
+            ",
             {trainer: this}
         );
 
@@ -118,66 +118,66 @@ component persistent="true" extends="base" {
             var registered = curr[1];
             var region     = curr[2];
 
-            if(region == 'Kanto') {
+            if(region == "Kanto") {
                 if(registered >= 76) {
-                    icons.append('Venusaur');
-                    icons.append('Blastoise');
-                    icons.append('Charizard');
+                    icons.append("Venusaur");
+                    icons.append("Blastoise");
+                    icons.append("Charizard");
                 }
                 if(registered == 151) {
-                    icons.append('Mewtwo');
+                    icons.append("Mewtwo");
                 }
             }
 
-            if(region == 'Johto') {
+            if(region == "Johto") {
                 if(registered >= 75) {
-                    icons.append('Lugia');
-                    icons.append('Ho-Oh');
+                    icons.append("Lugia");
+                    icons.append("Ho-Oh");
                 }
                 if(registered == 100) {
-                    icons.append('Celebi');
+                    icons.append("Celebi");
                 }
             }
         });
 
         if(getSecurityLevel() >= 60) {
-            icons.append('Wobbuffet');
+            icons.append("Wobbuffet");
         }
 
         return icons;
     }
 
     string function getIconPath() {
-        return '/includes/images/icons/#getIcon()##application.cbController.getSetting('imageExtension')#';
+        return "/includes/images/icons/#getIcon()##application.cbController.getSetting("imageExtension")#";
     }
 
     string function getIconAltText() {
-        return '#ucFirst(getIcon())# profile icon';
+        return "#ucFirst(getIcon())# profile icon";
     }
 
     // ORM does not play nice with JSON. The settings property is a jsonb field in postgres
     struct function getSettings() {
         var settings = queryExecute(
-            '
+            "
             select settings
             from trainer
             where id = :trainerid
-            ',
-            {trainerid: {value: getId(), cfsqltype: 'integer'}}
+            ",
+            {trainerid: {value: getId(), cfsqltype: "integer"}}
         ).settings;
         return deserializeJSON(settings);
     }
 
     void function setSettings(required struct settings) {
         queryExecute(
-            '
+            "
             update trainer
             set settings = cast(:settings as jsonb)
             where id = :trainerid
-            ',
+            ",
             {
-                settings : {value: serializeJSON(arguments.settings), cfsqltype: 'other'},
-                trainerid: {value: getId(), cfsqltype: 'integer'}
+                settings : {value: serializeJSON(arguments.settings), cfsqltype: "other"},
+                trainerid: {value: getId(), cfsqltype: "integer"}
             }
         );
     }

@@ -2,29 +2,29 @@ component extends="tests.resources.baseTest" asyncAll="true" {
 
     function beforeAll() {
         super.beforeAll();
-        pokemonService = getInstance('services.pokemon');
-        mockTrainer    = getInstance('tests.resources.mocktrainer');
+        pokemonService = getInstance("services.pokemon");
+        mockTrainer    = getInstance("tests.resources.mocktrainer");
 
         bulbasaur = pokemonService.get({
             number : 1,
-            name   : 'Bulbasaur',
-            gender : '',
+            name   : "Bulbasaur",
+            gender : "",
             costume: false
         })[1];
 
         bulbasaurPartyHat = pokemonService.get({
             number     : 1,
-            name       : 'Bulbasaur',
-            gender     : '',
+            name       : "Bulbasaur",
+            gender     : "",
             costume    : true,
-            costumetype: 'Party Hat'
+            costumetype: "Party Hat"
         })[1];
 
         // Torchic is Hoenn — used to verify region filter excludes non-Kanto
         torchic = pokemonService.get({
             number : 255,
-            name   : 'Torchic',
-            gender : '',
+            name   : "Torchic",
+            gender : "",
             costume: false
         })[1];
 
@@ -46,10 +46,10 @@ component extends="tests.resources.baseTest" asyncAll="true" {
     }
 
     function run() {
-        describe('pokedexService.getRegistered', () => {
+        describe("pokedexService.getRegistered", () => {
             beforeEach(() => {
                 setup();
-                pokedexService = getInstance('services.pokedex');
+                pokedexService = getInstance("services.pokedex");
                 trainer        = mockTrainer.make(autoLogin = false);
             });
 
@@ -57,11 +57,11 @@ component extends="tests.resources.baseTest" asyncAll="true" {
                 mockTrainer.delete();
             });
 
-            it('Can be created', () => {
+            it("Can be created", () => {
                 expect(pokedexService).toBeComponent();
             });
 
-            it('Default call excludes costume, mega, and giga pokemon', () => {
+            it("Default call excludes costume, mega, and giga pokemon", () => {
                 registered = pokedexService.getRegistered(
                     trainer = trainer,
                     form    = false,
@@ -81,10 +81,10 @@ component extends="tests.resources.baseTest" asyncAll="true" {
                 expect(allIds).notToContain(gigaCharizard.getId());
             });
 
-            it('Unregistered pokemon have a null pokedex entry', () => {
+            it("Unregistered pokemon have a null pokedex entry", () => {
                 registered = pokedexService.getRegistered(
                     trainer = trainer,
-                    region  = 'Kanto',
+                    region  = "Kanto",
                     form    = false,
                     mega    = false,
                     shadow  = false,
@@ -99,7 +99,7 @@ component extends="tests.resources.baseTest" asyncAll="true" {
                 expect(isNull(bulbasaurEntry[1][2])).toBeTrue();
             });
 
-            it('Registered pokemon have a populated entry with correct caught and shiny status', () => {
+            it("Registered pokemon have a populated entry with correct caught and shiny status", () => {
                 pokedexService.register(
                     trainer     = trainer,
                     pokemon     = bulbasaur,
@@ -112,7 +112,7 @@ component extends="tests.resources.baseTest" asyncAll="true" {
 
                 registered = pokedexService.getRegistered(
                     trainer = trainer,
-                    region  = 'Kanto',
+                    region  = "Kanto",
                     form    = false,
                     mega    = false,
                     shadow  = false,
@@ -125,10 +125,10 @@ component extends="tests.resources.baseTest" asyncAll="true" {
                 expect(bulbasaurEntry[1][2].getShiny()).toBeTrue();
             });
 
-            it('Filters results to the given region only', () => {
+            it("Filters results to the given region only", () => {
                 registered = pokedexService.getRegistered(
                     trainer = trainer,
-                    region  = 'Kanto',
+                    region  = "Kanto",
                     form    = false,
                     mega    = false,
                     shadow  = false,
@@ -145,14 +145,14 @@ component extends="tests.resources.baseTest" asyncAll="true" {
 
                 // Every result should belong to Kanto
                 registered.each((entry) => {
-                    expect(entry[1].getGeneration().getRegion()).toBe('Kanto');
+                    expect(entry[1].getGeneration().getRegion()).toBe("Kanto");
                 });
             });
 
-            it('costume=true returns only costume pokemon', () => {
+            it("costume=true returns only costume pokemon", () => {
                 registered = pokedexService.getRegistered(
                     trainer = trainer,
-                    region  = 'Kanto',
+                    region  = "Kanto",
                     form    = false,
                     mega    = false,
                     shadow  = false,
@@ -174,10 +174,10 @@ component extends="tests.resources.baseTest" asyncAll="true" {
                 });
             });
 
-            it('mega=true returns only mega pokemon', () => {
+            it("mega=true returns only mega pokemon", () => {
                 registered = pokedexService.getRegistered(
                     trainer = trainer,
-                    region  = 'Kanto',
+                    region  = "Kanto",
                     form    = false,
                     mega    = true,
                     shadow  = false,
@@ -198,10 +198,10 @@ component extends="tests.resources.baseTest" asyncAll="true" {
                 });
             });
 
-            it('giga=true returns only giga pokemon', () => {
+            it("giga=true returns only giga pokemon", () => {
                 registered = pokedexService.getRegistered(
                     trainer = trainer,
-                    region  = 'Kanto',
+                    region  = "Kanto",
                     form    = false,
                     mega    = false,
                     shadow  = false,
@@ -222,7 +222,7 @@ component extends="tests.resources.baseTest" asyncAll="true" {
                 });
             });
 
-            it('shadow=true returns only shadow-eligible pokemon', () => {
+            it("shadow=true returns only shadow-eligible pokemon", () => {
                 registered = pokedexService.getRegistered(
                     trainer = trainer,
                     form    = false,
@@ -242,7 +242,7 @@ component extends="tests.resources.baseTest" asyncAll="true" {
                 });
             });
 
-            it('form=true returns only form variant pokemon', () => {
+            it("form=true returns only form variant pokemon", () => {
                 registered = pokedexService.getRegistered(
                     trainer = trainer,
                     form    = true,
@@ -265,7 +265,7 @@ component extends="tests.resources.baseTest" asyncAll="true" {
                 });
             });
 
-            it('Results are ordered by generation, number, form, name', () => {
+            it("Results are ordered by generation, number, form, name", () => {
                 registered = pokedexService.getRegistered(
                     trainer = trainer,
                     form    = false,
@@ -282,7 +282,7 @@ component extends="tests.resources.baseTest" asyncAll="true" {
                 expect(firstEntry.getNumber()).toBeLTE(lastEntry.getNumber());
             });
 
-            it('Registrations are isolated per trainer and do not affect other trainers', () => {
+            it("Registrations are isolated per trainer and do not affect other trainers", () => {
                 trainerAId = trainer.getId();
                 trainerB   = mockTrainer.make(autoLogin = false);
                 trainerBId = trainerB.getId();
@@ -301,7 +301,7 @@ component extends="tests.resources.baseTest" asyncAll="true" {
                 // Trainer B should see Bulbasaur as unregistered
                 registeredForB = pokedexService.getRegistered(
                     trainer = trainerB,
-                    region  = 'Kanto',
+                    region  = "Kanto",
                     form    = false,
                     mega    = false,
                     shadow  = false,
@@ -314,7 +314,7 @@ component extends="tests.resources.baseTest" asyncAll="true" {
                 // Trainer A should still see Bulbasaur as registered
                 registeredForA = pokedexService.getRegistered(
                     trainer = trainer,
-                    region  = 'Kanto',
+                    region  = "Kanto",
                     form    = false,
                     mega    = false,
                     shadow  = false,

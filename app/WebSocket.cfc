@@ -3,11 +3,11 @@ component extends="modules.socketbox.models.WebSocketSTOMP" hint="WebSocket Endp
     /**
 	 * Socket destination -> Allowed security level
 	 */
-    this.validSockets = {'metrics': 50};
+    this.validSockets = {"metrics": 50};
 
     // Initialize dependencies and store in app scope
     function initDeps() {
-        application.wsLog = application.wirebox.getInstance('logbox:logger:WebSocket');
+        application.wsLog = application.wirebox.getInstance("logbox:logger:WebSocket");
     }
 
     function configure() {
@@ -16,7 +16,7 @@ component extends="modules.socketbox.models.WebSocketSTOMP" hint="WebSocket Endp
             heartBeatMS: 10000,
             exchanges  : {
                 // Topic exchange routes messages based on a pattern match to their incoming destination
-                topic: {bindings: {metrics: 'metrics'}}
+                topic: {bindings: {metrics: "metrics"}}
             },
             subscriptions: {}
         };
@@ -42,7 +42,7 @@ component extends="modules.socketbox.models.WebSocketSTOMP" hint="WebSocket Endp
             return authenticated && trainerid > 0;
         }
         catch(any e) {
-            application.wsLog.error('WebSocket authentication failed unexpectedly: #e.message#', e.stackTrace);
+            application.wsLog.error("WebSocket authentication failed unexpectedly: #e.message#", e.stackTrace);
         }
 
         return false;
@@ -70,10 +70,10 @@ component extends="modules.socketbox.models.WebSocketSTOMP" hint="WebSocket Endp
 		 * We want the sessionID for this connection, so we'll get the details about this channel's connectio
 		 */
         var connectionDetails = getConnectionDetails(channel);
-        var sessionID         = connectionDetails['sessionID'] ?: '';
+        var sessionID         = connectionDetails["sessionID"] ?: "";
 
         if(!sessionID.len()) {
-            application.wsLog.warn('WebSocket authorization failed - no sessionID for destination: #arguments.destination#');
+            application.wsLog.warn("WebSocket authorization failed - no sessionID for destination: #arguments.destination#");
             return false;
         }
 
@@ -83,7 +83,7 @@ component extends="modules.socketbox.models.WebSocketSTOMP" hint="WebSocket Endp
         }
         catch(any e) {
             application.wsLog.error(
-                'WebSocket authorization failed unexpectedly for destination "#arguments.destination#": #e.message#',
+                "WebSocket authorization failed unexpectedly for destination ""#arguments.destination#"": #e.message#",
                 e.stackTrace
             );
         }

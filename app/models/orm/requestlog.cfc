@@ -14,7 +14,7 @@ component persistent="true" table="request_log" extends="base" {
     property name="trainer" fieldtype="many-to-one" fkcolumn="trainerid" cfc="trainer" lazy="true";
 
     string function getUsername() {
-        return getTrainer()?.getUsername() ?: '';
+        return getTrainer()?.getUsername() ?: "";
     }
 
 }

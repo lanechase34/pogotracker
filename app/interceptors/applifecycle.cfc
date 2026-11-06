@@ -17,34 +17,34 @@ component extends="coldbox.system.Interceptor" {
             directoryCreate(uploadPath);
         }
 
-        if(!directoryExists('#uploadPath#/cards')) {
-            directoryCreate('#uploadPath#/cards');
+        if(!directoryExists("#uploadPath#/cards")) {
+            directoryCreate("#uploadPath#/cards");
         }
 
-        if(!directoryExists('#uploadPath#/full')) {
-            directoryCreate('#uploadPath#/full');
+        if(!directoryExists("#uploadPath#/full")) {
+            directoryCreate("#uploadPath#/full");
         }
 
-        if(!directoryExists('#uploadPath#/extra')) {
-            directoryCreate('#uploadPath#/extra');
+        if(!directoryExists("#uploadPath#/extra")) {
+            directoryCreate("#uploadPath#/extra");
         }
 
         // Check DB
         try {
-            queryExecute('SELECT 1', []);
+            queryExecute("SELECT 1", []);
         }
         catch(any e) {
-            throw('Cannot connect to database');
+            throw("Cannot connect to database");
         }
 
         // Check imagemagick
-        if(environment == 'production') {
+        if(environment == "production") {
             imageService.verifyImageMagick();
         }
 
         // Check email
-        if(environment == 'production' && !emailService.verifyConnection()) {
-            throw('Cannot connect to email server');
+        if(environment == "production" && !emailService.verifyConnection()) {
+            throw("Cannot connect to email server");
         }
 
         // Set up websocket cfc

@@ -14,18 +14,18 @@ component persistent="true" extends="base" {
         var current = getCurrent();
         var medal   = getMedal();
         if(current >= medal.getPlatinum()) {
-            return 'platinum';
+            return "platinum";
         }
         else if(current >= medal.getGold()) {
-            return 'gold';
+            return "gold";
         }
         else if(current >= medal.getSilver()) {
-            return 'silver';
+            return "silver";
         }
         else if(current >= medal.getBronze()) {
-            return 'bronze';
+            return "bronze";
         }
-        return '';
+        return "";
     }
 
 }

@@ -9,27 +9,27 @@ component extends="tests.resources.baseTest" {
     }
 
     function run() {
-        describe('Image Service Test', () => {
+        describe("Image Service Test", () => {
             beforeEach(() => {
                 setup();
 
-                imageService = getInstance('Helpers@ImageMagick');
+                imageService = getInstance("Helpers@ImageMagick");
             });
 
-            it('Service can be created', () => {
+            it("Service can be created", () => {
                 expect(imageService).toBeComponent();
             });
 
             // Skip check in test env
             it(
-                'Can verify image magickis functioning',
+                "Can verify image magickis functioning",
                 () => {
                     expect(() => {
                         imageService.verifyImageMagick()
                     }).notToThrow();
                 },
-                '',
-                application.cbController.getSetting('environment') == 'test'
+                "",
+                application.cbController.getSetting("environment") == "test"
             );
         });
     }

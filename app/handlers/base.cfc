@@ -9,8 +9,8 @@ component extends="coldbox.system.EventHandler" {
 
         for(var action in this.allowedMethods) {
             var methods = this.allowedMethods[action];
-            if(listFindNoCase(methods, 'GET') && !listFindNoCase(methods, 'HEAD')) {
-                this.allowedMethods[action] = listAppend(methods, 'HEAD');
+            if(listFindNoCase(methods, "GET") && !listFindNoCase(methods, "HEAD")) {
+                this.allowedMethods[action] = listAppend(methods, "HEAD");
             }
         }
 
@@ -22,7 +22,7 @@ component extends="coldbox.system.EventHandler" {
      */
     function renderJson(required any event, required struct response) {
         event.renderData(
-            type       = 'json',
+            type       = "json",
             data       = response,
             statusCode = response?.statusCode ?: 200
         );
@@ -31,7 +31,7 @@ component extends="coldbox.system.EventHandler" {
     /**
      * JSON validation failure (400)
      */
-    function jsonValidationFailure(required any event, string message = 'Invalid request') {
+    function jsonValidationFailure(required any event, string message = "Invalid request") {
         renderJson(
             event,
             {
@@ -45,7 +45,7 @@ component extends="coldbox.system.EventHandler" {
     /**
      * JSON not found failure (404)
      */
-    function jsonNotFound(required any event, string message = 'Resource not found') {
+    function jsonNotFound(required any event, string message = "Resource not found") {
         renderJson(
             event,
             {
@@ -76,9 +76,9 @@ component extends="coldbox.system.EventHandler" {
      */
     function htmlValidationFailure(
         required any event,
-        string redirectEvent = '',
-        string redirectUri   = '',
-        string view          = '/views/fragment/blank'
+        string redirectEvent = "",
+        string redirectUri   = "",
+        string view          = "/views/fragment/blank"
     ) {
         if(len(redirectEvent)) {
             relocate(event = redirectEvent);
@@ -91,7 +91,7 @@ component extends="coldbox.system.EventHandler" {
     /**
      * HTML not found (404)
      */
-    function htmlNotFound(required any event, string view = '/views/fragment/404') {
+    function htmlNotFound(required any event, string view = "/views/fragment/404") {
         event.setHTTPHeader(statusCode = 404);
         event.setView(view = view);
     }
@@ -107,7 +107,7 @@ component extends="coldbox.system.EventHandler" {
     /**
      * Safe deserializeJSON wrapper
      */
-    function safeDeserializeJSON(required string json, any fallback = '') {
+    function safeDeserializeJSON(required string json, any fallback = "") {
         try {
             return deserializeJSON(json);
         }

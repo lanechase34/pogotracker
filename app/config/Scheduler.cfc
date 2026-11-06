@@ -30,9 +30,9 @@ component {
 		 */
 
         // Update the pokemon data nightly
-        task('nightlyUpdatePokemonData')
+        task("nightlyUpdatePokemonData")
             .before((task) => {
-                task.overviewStruct.event = 'nightlyUpdatePokemonData';
+                task.overviewStruct.event = "nightlyUpdatePokemonData";
             })
             .call(() => {
                 adminService.buildPokemonData();
@@ -43,12 +43,12 @@ component {
             .onSuccess((task, results) => {
                 callbackOnSuccess(task);
             })
-            .everyDayAt('07:00');
+            .everyDayAt("07:00");
 
         // Update the move data nightly
-        task('nightlyUpdateMoveData')
+        task("nightlyUpdateMoveData")
             .before((task) => {
-                task.overviewStruct.event = 'nightlyUpdateMoveData';
+                task.overviewStruct.event = "nightlyUpdateMoveData";
             })
             .call(() => {
                 adminService.buildMoveData();
@@ -59,12 +59,12 @@ component {
             .onSuccess((task, results) => {
                 callbackOnSuccess(task);
             })
-            .everyDayAt('06:00');
+            .everyDayAt("06:00");
 
         // Update medal data every week
-        task('weeklyUpdateMedalData')
+        task("weeklyUpdateMedalData")
             .before((task) => {
-                task.overviewStruct.event = 'weeklyUpdateMedalData';
+                task.overviewStruct.event = "weeklyUpdateMedalData";
             })
             .call(() => {
                 adminService.buildMedalData();
@@ -75,12 +75,12 @@ component {
             .onSuccess((task, results) => {
                 callbackOnSuccess(task);
             })
-            .onMondays('06:30');
+            .onMondays("06:30");
 
         // Create custom pokedexs based on upcoming events
-        task('nightlyCreateEvents')
+        task("nightlyCreateEvents")
             .before((task) => {
-                task.overviewStruct.event = 'nightlyCreateEvents';
+                task.overviewStruct.event = "nightlyCreateEvents";
             })
             .call(() => {
                 adminService.createEvents();
@@ -91,12 +91,12 @@ component {
             .onSuccess((task, results) => {
                 callbackOnSuccess(task);
             })
-            .everyDayAt('07:30');
+            .everyDayAt("07:30");
 
         // Post metrics information to any websocket subscribers
-        task('metricsSubscription')
+        task("metricsSubscription")
             .before((task) => {
-                task.overviewStruct.event = 'metricsSubscription';
+                task.overviewStruct.event = "metricsSubscription";
             })
             .call(() => {
                 /**
@@ -108,7 +108,7 @@ component {
                      * Post metrics response message to topic/metrics
                      */
                     var metrics = adminService.getMetrics();
-                    application.ws.send('topic/metrics', {data: metrics, success: true});
+                    application.ws.send("topic/metrics", {data: metrics, success: true});
                 }
 
                 /**
@@ -119,12 +119,12 @@ component {
             .onFailure((task, exception) => {
                 callbackOnFailure(task, exception);
             })
-            .every(5, 'seconds');
+            .every(5, "seconds");
 
         // Cleanup persist cookies every hour
-        task('cleanupCookies')
+        task("cleanupCookies")
             .before((task) => {
-                task.overviewStruct.event = 'cleanupCookies';
+                task.overviewStruct.event = "cleanupCookies";
             })
             .call(() => {
                 persistService.cleanupCookies();
@@ -135,9 +135,9 @@ component {
             .everyHour();
 
         // Healthcheck
-        task('healthcheck')
+        task("healthcheck")
             .call(() => {
-                runRoute('/healthCheck');
+                runRoute("/healthCheck");
             })
             .onFailure((task, exception) => {
                 callbackOnFailure(task, exception);
@@ -145,24 +145,24 @@ component {
             .onSuccess((task, results) => {
                 callbackOnSuccess(task);
             })
-            .delay(60, 'minutes')
-            .every(60, 'minutes')
-            .onEnvironment('development');
+            .delay(60, "minutes")
+            .every(60, "minutes")
+            .onEnvironment("development");
     }
 
     function callbackOnFailure(required struct task, struct exception = {}) {
-        task.overviewStruct.detail = 'Task Failure';
+        task.overviewStruct.detail = "Task Failure";
         auditService.audit(argumentCollection = task.overviewStruct);
 
-        task.overviewStruct.message = left(exception?.message ?: 'Unknown Error Message', 250);
-        task.overviewStruct.stack   = exception?.stackTrace ?: 'Unknown Stack Trace';
+        task.overviewStruct.message = left(exception?.message ?: "Unknown Error Message", 250);
+        task.overviewStruct.stack   = exception?.stackTrace ?: "Unknown Stack Trace";
         bugService.logBug(argumentCollection = task.overviewStruct);
 
-        emailService.sendBug(error = exception, requestContext = {task: task.overviewStruct, detail: 'Task Failure'});
+        emailService.sendBug(error = exception, requestContext = {task: task.overviewStruct, detail: "Task Failure"});
     }
 
     function callbackOnSuccess(required struct task) {
-        task.overviewStruct.detail = 'Task Success';
+        task.overviewStruct.detail = "Task Success";
         auditService.audit(argumentCollection = task.overviewStruct);
     }
 
@@ -203,11 +203,11 @@ component {
 	 */
     function beforeAnyTask(required task) {
         task.overviewStruct = {
-            ip     : 'localhost',
-            event  : '',
-            referer: '',
-            detail : '',
-            agent  : 'Scheduled Task User'
+            ip     : "localhost",
+            event  : "",
+            referer: "",
+            detail : "",
+            agent  : "Scheduled Task User"
         };
     }
 

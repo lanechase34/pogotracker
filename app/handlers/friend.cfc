@@ -1,14 +1,14 @@
 component extends="base" {
 
     this.allowedMethods = {
-        decideFriendRequest  : 'POST',
-        getFriendsList       : 'GET',
-        getFriendsToAdd      : 'GET',
-        searchFriendsToAdd   : 'GET',
-        getFriendRequests    : 'GET',
-        sendFriendRequest    : 'POST',
-        getFriendRequestToast: 'GET',
-        searchFriendsList    : 'GET'
+        decideFriendRequest  : "POST",
+        getFriendsList       : "GET",
+        getFriendsToAdd      : "GET",
+        searchFriendsToAdd   : "GET",
+        getFriendRequests    : "GET",
+        sendFriendRequest    : "POST",
+        getFriendRequestToast: "GET",
+        searchFriendsList    : "GET"
     };
 
     property name="async"           inject="asyncManager@coldbox";
@@ -23,8 +23,8 @@ component extends="base" {
      * @rc.accept          t/f accept request
      */
     function decideFriendRequest(event, rc, prc) {
-        if(hasValidationErrors(target = rc, constraints = 'friend.decideFriendRequest')) {
-            jsonValidationFailure(event = event, message = 'Invalid Friend Request');
+        if(hasValidationErrors(target = rc, constraints = "friend.decideFriendRequest")) {
+            jsonValidationFailure(event = event, message = "Invalid Friend Request");
             return;
         }
 
@@ -47,7 +47,7 @@ component extends="base" {
         prc.trainer     = trainerService.getFromId(trainerid = session.trainerid);
         prc.friendsList = friendService.getFriendsList(trainer = prc.trainer);
         event.setView(
-            view     = '/views/friend/friendsList',
+            view     = "/views/friend/friendsList",
             nolayout = true,
             args     = {friendsList: prc.friendsList}
         );
@@ -58,7 +58,7 @@ component extends="base" {
      */
     function getFriendsToAdd(event, rc, prc) {
         event.setView(
-            view     = '/views/friend/modal/addfriend',
+            view     = "/views/friend/modal/addfriend",
             nolayout = true,
             args     = {trainerid: session.trainerid}
         );
@@ -71,14 +71,14 @@ component extends="base" {
      * @rc.page   numeric page number
      */
     function searchFriendsToAdd(event, rc, prc) {
-        if(hasValidationErrors(target = rc, constraints = 'friend.searchFriends')) {
-            jsonValidationFailure(event = event, message = 'Invalid Friend Search');
+        if(hasValidationErrors(target = rc, constraints = "friend.searchFriends")) {
+            jsonValidationFailure(event = event, message = "Invalid Friend Search");
             return;
         }
 
         prc.responseObj.data = friendService.getFriendsToAdd(
             trainer = trainerService.getFromId(session.trainerid),
-            search  = rc?.search ?: '',
+            search  = rc?.search ?: "",
             page    = rc.page
         );
         jsonOk(event = event, data = prc.responseObj.data);
@@ -103,7 +103,7 @@ component extends="base" {
         prc.sentFriendRequests = results[2];
 
         event.setView(
-            view     = '/views/friend/friendRequests',
+            view     = "/views/friend/friendRequests",
             nolayout = true,
             args     = {friendRequests: prc.friendRequests, sentFriendRequests: prc.sentFriendRequests}
         );
@@ -119,10 +119,10 @@ component extends="base" {
         rc.trainerid = rc?.trainerid ?: session.trainerid;
         // Validate and check friend doesn't exist already
         if(
-            hasValidationErrors(target = rc, constraints = 'friend.sendFriendRequest')
+            hasValidationErrors(target = rc, constraints = "friend.sendFriendRequest")
             || friendService.checkFriend(trainerid = rc.trainerid, friendid = rc.friendid)
         ) {
-            jsonValidationFailure(event = event, message = 'Invalid Friend Request');
+            jsonValidationFailure(event = event, message = "Invalid Friend Request");
             return;
         }
 
@@ -137,24 +137,24 @@ component extends="base" {
      */
     function getFriendRequestToast(event, rc, prc) {
         // Return blank on the profile page
-        if(securityService.getReferer().find('/profile')) {
-            event.setView(view = '/views/fragment/blank', nolayout = true);
+        if(securityService.getReferer().find("/profile")) {
+            event.setView(view = "/views/fragment/blank", nolayout = true);
             return;
         }
 
         prc.trainer        = trainerService.getFromId(session.trainerid);
         prc.friendRequests = friendService.getFriendRequests(prc.trainer);
 
-        prc.ago = '';
+        prc.ago = "";
         if(prc.friendRequests.len()) {
-            prc.ago = dateDiff('n', prc.friendRequests[1][3], now());
+            prc.ago = dateDiff("n", prc.friendRequests[1][3], now());
             if(prc.ago > 60) {
-                prc.ago = '> 60'
+                prc.ago = "> 60"
             }
         }
 
         event.setView(
-            view     = '/views/friend/friendRequestToast',
+            view     = "/views/friend/friendRequestToast",
             nolayout = true,
             args     = {friendRequests: prc.friendRequests, ago: prc.ago}
         );
@@ -167,14 +167,14 @@ component extends="base" {
      * @rc.page   numeric page number
      */
     function searchFriendsList(event, rc, prc) {
-        if(hasValidationErrors(target = rc, constraints = 'friend.searchFriends')) {
-            jsonValidationFailure(event = event, message = 'Invalid Friend Search');
+        if(hasValidationErrors(target = rc, constraints = "friend.searchFriends")) {
+            jsonValidationFailure(event = event, message = "Invalid Friend Search");
             return;
         }
 
         prc.responseObj.data = friendService.searchFriendsList(
             trainer = trainerService.getFromId(session.trainerid),
-            search  = rc?.search ?: '',
+            search  = rc?.search ?: "",
             page    = rc.page
         );
         jsonOk(event = event, data = prc.responseObj.data);

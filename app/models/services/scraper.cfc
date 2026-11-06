@@ -10,17 +10,17 @@ component singleton accessors="true" {
 
     public void function init() {
         setRetryCount(2);
-        setUserAgents(getUserAgentsByOs(application.cbController.getSetting('osType')));
+        setUserAgents(getUserAgentsByOs(application.cbController.getSetting("osType")));
     }
 
     private array function getUserAgentsByOS(required string os) {
         switch(arguments.os) {
-            case 'windows':
-                return ['Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:148.0) Gecko/20100101 Firefox/148.0'];
-            case 'linux':
-                return ['Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:147.0) Gecko/20100101 Firefox/147.0'];
+            case "windows":
+                return ["Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:148.0) Gecko/20100101 Firefox/148.0"];
+            case "linux":
+                return ["Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:147.0) Gecko/20100101 Firefox/147.0"];
             default:
-                throw('no valid os set');
+                throw("no valid os set");
         }
     }
 
@@ -28,7 +28,7 @@ component singleton accessors="true" {
      * Returns a random user agent
      */
     private string function getRandUserAgent() {
-        var rand = randRange(1, getUserAgents().len(), 'SHA1PRNG');
+        var rand = randRange(1, getUserAgents().len(), "SHA1PRNG");
         return getUserAgents()[rand];
     }
 
@@ -37,44 +37,44 @@ component singleton accessors="true" {
      */
     private struct function getRealisticHeaders(required string userAgent) {
         var headers = {
-            'Accept'                   : 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-            'Accept-Language'          : 'en-US,en;q=0.9',
-            'DNT'                      : '1',
-            'Connection'               : 'keep-alive',
-            'Upgrade-Insecure-Requests': '1'
+            "Accept"                   : "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+            "Accept-Language"          : "en-US,en;q=0.9",
+            "DNT"                      : "1",
+            "Connection"               : "keep-alive",
+            "Upgrade-Insecure-Requests": "1"
         };
 
         // Determine platform based on user agent
-        var platform = 'Windows';
-        if(findNoCase('Linux', arguments.userAgent)) {
-            platform = 'Linux';
+        var platform = "Windows";
+        if(findNoCase("Linux", arguments.userAgent)) {
+            platform = "Linux";
         }
 
         // Add browser-specific headers
-        if(findNoCase('Chrome', arguments.userAgent) && !findNoCase('Edg', arguments.userAgent)) {
-            headers['sec-ch-ua']          = '"Not_A Brand";v="8", "Chromium";v="120", "Google Chrome";v="120"';
-            headers['sec-ch-ua-mobile']   = '?0';
-            headers['sec-ch-ua-platform'] = '"#platform#"';
-            headers['Sec-Fetch-Dest']     = 'document';
-            headers['Sec-Fetch-Mode']     = 'navigate';
-            headers['Sec-Fetch-Site']     = 'none';
-            headers['Sec-Fetch-User']     = '?1';
+        if(findNoCase("Chrome", arguments.userAgent) && !findNoCase("Edg", arguments.userAgent)) {
+            headers["sec-ch-ua"]          = """Not_A Brand"";v=""8"", ""Chromium"";v=""120"", ""Google Chrome"";v=""120""";
+            headers["sec-ch-ua-mobile"]   = "?0";
+            headers["sec-ch-ua-platform"] = """#platform#""";
+            headers["Sec-Fetch-Dest"]     = "document";
+            headers["Sec-Fetch-Mode"]     = "navigate";
+            headers["Sec-Fetch-Site"]     = "none";
+            headers["Sec-Fetch-User"]     = "?1";
         }
-        else if(findNoCase('Edge', arguments.userAgent) || findNoCase('Edg', arguments.userAgent)) {
-            headers['sec-ch-ua']          = '"Not_A Brand";v="8", "Chromium";v="120", "Microsoft Edge";v="120"';
-            headers['sec-ch-ua-mobile']   = '?0';
-            headers['sec-ch-ua-platform'] = '"#platform#"';
-            headers['Sec-Fetch-Dest']     = 'document';
-            headers['Sec-Fetch-Mode']     = 'navigate';
-            headers['Sec-Fetch-Site']     = 'none';
-            headers['Sec-Fetch-User']     = '?1';
+        else if(findNoCase("Edge", arguments.userAgent) || findNoCase("Edg", arguments.userAgent)) {
+            headers["sec-ch-ua"]          = """Not_A Brand"";v=""8"", ""Chromium"";v=""120"", ""Microsoft Edge"";v=""120""";
+            headers["sec-ch-ua-mobile"]   = "?0";
+            headers["sec-ch-ua-platform"] = """#platform#""";
+            headers["Sec-Fetch-Dest"]     = "document";
+            headers["Sec-Fetch-Mode"]     = "navigate";
+            headers["Sec-Fetch-Site"]     = "none";
+            headers["Sec-Fetch-User"]     = "?1";
         }
-        else if(findNoCase('Firefox', arguments.userAgent)) {
-            headers['Sec-Fetch-Dest'] = 'document';
-            headers['Sec-Fetch-Mode'] = 'navigate';
-            headers['Sec-Fetch-Site'] = 'none';
-            headers['Sec-Fetch-User'] = '?1';
-            headers['TE']             = 'trailers';
+        else if(findNoCase("Firefox", arguments.userAgent)) {
+            headers["Sec-Fetch-Dest"] = "document";
+            headers["Sec-Fetch-Mode"] = "navigate";
+            headers["Sec-Fetch-Site"] = "none";
+            headers["Sec-Fetch-User"] = "?1";
+            headers["TE"]             = "trailers";
         }
 
         return headers;
@@ -89,7 +89,7 @@ component singleton accessors="true" {
         checkAllowedUrl(arguments.url);
 
         var count    = 0;
-        var response = javacast('null', '');
+        var response = javacast("null", "");
         while(count < getRetryCount() && isNull(response)) {
             try {
                 var userAgent = getRandUserAgent();
@@ -99,7 +99,7 @@ component singleton accessors="true" {
                     .connect(arguments.url)
                     .ignoreContentType(true)
                     .followRedirects(true)
-                    .referrer('https://www.google.com/')
+                    .referrer("https://www.google.com/")
                     .userAgent(userAgent);
 
                 headers.each((key, value) => {
@@ -114,11 +114,11 @@ component singleton accessors="true" {
             }
             catch(any e) {
                 auditService.audit(
-                    ip      = 'localhost',
-                    event   = 'scraperService.getData',
-                    referer = '',
-                    detail  = 'Scraper attempt ###count + 1# failed for #arguments.url#: #e.message# - #e.detail#',
-                    agent   = ''
+                    ip      = "localhost",
+                    event   = "scraperService.getData",
+                    referer = "",
+                    detail  = "Scraper attempt ###count + 1# failed for #arguments.url#: #e.message# - #e.detail#",
+                    agent   = ""
                 );
                 count += 1;
                 sleep(randRange(3000, 6000));
@@ -152,23 +152,23 @@ component singleton accessors="true" {
      * @url url to check, throws if not allowed
      */
     private void function checkAllowedUrl(required string url) {
-        var host = '';
+        var host = "";
         try {
             // URL (not URI) is as lenient as jsoup, ex: trailing whitespace
-            var parsed = createObject('java', 'java.net.URL').init(trim(arguments.url));
-            if(listFindNoCase('http,https', parsed.getProtocol() ?: '')) {
-                host = lCase(parsed.getHost() ?: '');
+            var parsed = createObject("java", "java.net.URL").init(trim(arguments.url));
+            if(listFindNoCase("http,https", parsed.getProtocol() ?: "")) {
+                host = lCase(parsed.getHost() ?: "");
             }
         }
         catch(any e) {
         }
 
         var allowed = host.len() && getScraperHosts().some((allowedHost) => {
-            return host == allowedHost || host.endsWith('.#allowedHost#');
+            return host == allowedHost || host.endsWith(".#allowedHost#");
         });
 
         if(!allowed) {
-            throw(type = 'ScraperHostNotAllowed', message = 'Scraping is not allowed for #arguments.url#');
+            throw(type = "ScraperHostNotAllowed", message = "Scraping is not allowed for #arguments.url#");
         }
     }
 

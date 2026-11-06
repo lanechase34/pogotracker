@@ -15,8 +15,8 @@ component extends="base" {
 
     function preHandler(event, rc, prc, action, eventArguments) {
         // These functions only available in develop
-        if(getSetting('environment') == 'production') {
-            relocate(uri = '/');
+        if(getSetting("environment") == "production") {
+            relocate(uri = "/");
         }
     }
 
@@ -26,22 +26,22 @@ component extends="base" {
     // Create test trainer user
     function createTestTrainer(event, rc, prc) {
         prc.name        = rc?.name ?: left(createUUID(), 30);
-        var testTrainer = entityNew('trainer', {'username': prc.name});
+        var testTrainer = entityNew("trainer", {"username": prc.name});
         entitySave(testTrainer);
         ormFlush();
-        renderJson(event = event, response = {'response': 'success #now()#'});
+        renderJson(event = event, response = {"response": "success #now()#"});
     }
 
     // Admin endpoint to populate a trainer's pokedex
     function registerRandomPokemon(event, rc, prc) {
         prc.register = rc?.register ?: 10;
-        prc.region   = rc?.region ?: 'Kanto';
+        prc.region   = rc?.region ?: "Kanto";
         prc.trainer  = trainerService.getFromId(rc?.trainer ?: session.trainerid);
 
         // Get list of pokemon from the region
         prc.regionPokemon = pokemonService.get(
-            {'generation': generationService.getFromRegion(prc.region), 'form': false},
-            'number asc'
+            {"generation": generationService.getFromRegion(prc.region), "form": false},
+            "number asc"
         );
 
         // Randomly register pokemon from this region list
@@ -57,14 +57,14 @@ component extends="base" {
             );
         }
 
-        renderJson(event = event, response = {'response': 'success #now()#'});
+        renderJson(event = event, response = {"response": "success #now()#"});
     }
 
     function createRandomBlogs(event, rc, prc) {
         prc.create  = rc?.create ?: 3;
         prc.trainer = trainerService.getFromId(session.trainerid);
         for(var i = 1; i <= prc.create; i++) {
-            var theText = 'Placeholder text. ';
+            var theText = "Placeholder text. ";
             var body    = theText;
             var rand    = randRange(10, 50);
             for(var j = 1; j <= rand; j++) {
@@ -72,40 +72,40 @@ component extends="base" {
             }
 
             var newBlog = entityNew(
-                'blog',
+                "blog",
                 {
-                    'header' : createUUID().replace('-', '_', 'all'),
-                    'body'   : body,
-                    'trainer': prc.trainer
+                    "header" : createUUID().replace("-", "_", "all"),
+                    "body"   : body,
+                    "trainer": prc.trainer
                 }
             );
             entitySave(newBlog);
             ormFlush();
         }
 
-        renderJson(event = event, response = {'response': 'success #now()#'});
+        renderJson(event = event, response = {"response": "success #now()#"});
     }
 
 
     function createBlog(event, rc, prc) {
         prc.trainer = trainerService.getFromId(session.trainerid);
 
-        var header = 'POGO Tracker Dev Update';
-        var body   = '<p>From the latest github commit:</p><p>Working on layout.</p><p>Add freinds.</p><p>Can I make this blog one of those fancy text entry boxes? That would be cool</p>';
+        var header = "POGO Tracker Dev Update";
+        var body   = "<p>From the latest github commit:</p><p>Working on layout.</p><p>Add freinds.</p><p>Can I make this blog one of those fancy text entry boxes? That would be cool</p>";
 
         blogService.create(header, body, prc.trainer);
-        renderJson(event = event, response = {'response': 'success #now()#'});
+        renderJson(event = event, response = {"response": "success #now()#"});
     }
 
     function ormReload(event, rc, prc) {
         ormReload();
         sessionService.setAlert(
-            'success',
+            "success",
             true,
-            'bi-check-square-fill',
-            'Success!'
+            "bi-check-square-fill",
+            "Success!"
         );
-        relocate('dev.index');
+        relocate("dev.index");
     }
 
     function forceError(event, rc, prc) {
@@ -115,7 +115,7 @@ component extends="base" {
 
     function sendTestEmail(event, rc, prc) {
         emailService.sendTestEmail();
-        renderJson(event = event, response = {'response': 'success #now()#'});
+        renderJson(event = event, response = {"response": "success #now()#"});
     }
 
     function createRandomTeam(event, rc, prc) {
@@ -123,7 +123,7 @@ component extends="base" {
 
         if(rc.teamid.len()) {
             prc.teamid = parseNumber(rc.teamid);
-            prc.team   = entityLoadByPK('team', prc.teamid);
+            prc.team   = entityLoadByPK("team", prc.teamid);
         }
         else {
             var pokemon = pokemonService.getAll();
@@ -131,24 +131,24 @@ component extends="base" {
             // 3 pokemon on a team
             while(team.len() < 3) {
                 var curr = {
-                    pokemon: '',
-                    fast   : '',
-                    charge1: '',
-                    charge2: ''
+                    pokemon: "",
+                    fast   : "",
+                    charge1: "",
+                    charge2: ""
                 };
 
                 // select random pokemon
                 curr.pokemon = pokemon[randRange(1, pokemon.len())];
 
                 // select random fastmove
-                var fastmoves = curr.pokemon.getMoves('fast', 'normal');
+                var fastmoves = curr.pokemon.getMoves("fast", "normal");
 
                 if(!fastMoves.len()) continue;
 
                 curr.fast = fastmoves[randRange(1, fastmoves.len())];
 
                 // select 2 random charge moves
-                var chargemoves = curr.pokemon.getMoves('charge', 'normal');
+                var chargemoves = curr.pokemon.getMoves("charge", "normal");
 
                 if(chargemoves.len() < 2) continue;
                 var charge1rand = randRange(1, chargemoves.len())
@@ -167,7 +167,7 @@ component extends="base" {
             }
 
             prc.team = entityNew(
-                'team',
+                "team",
                 {
                     p1       : team[1].pokemon,
                     p1fast   : team[1].fast,
@@ -189,40 +189,40 @@ component extends="base" {
             ormFlush();
         }
 
-        prc.header = '#prc.team.getName()#';
+        prc.header = "#prc.team.getName()#";
     }
 
     function viewEmail(event, rc, prc) {
         param name="rc.filename" default="";
 
         prc.testEmails = directoryList(
-            path    : '#getSetting('testEmailPath')#',
+            path    : "#getSetting("testEmailPath")#",
             recurse : false,
-            listInfo: 'query',
-            sort    : 'DateLastModified desc'
+            listInfo: "query",
+            sort    : "DateLastModified desc"
         );
 
-        prc.mailContent = '';
+        prc.mailContent = "";
         if(rc.filename.len()) {
-            var safeFilename = reReplace(rc.filename, '[^a-zA-Z0-9._-]', '', 'all');
-            var fullPath     = '#getSetting('testEmailPath')#/#safeFilename#.html';
+            var safeFilename = reReplace(rc.filename, "[^a-zA-Z0-9._-]", "", "all");
+            var fullPath     = "#getSetting("testEmailPath")#/#safeFilename#.html";
             if(fileExists(fullPath)) {
                 prc.mailContent = fileRead(fullPath);
             }
         }
 
 
-        prc.header = 'View Test Emails';
+        prc.header = "View Test Emails";
     }
 
     function deleteEmail(event, rc, prc) {
-        directoryDelete('#getSetting('testEmailPath')#', true);
-        directoryCreate('#getSetting('testEmailPath')#');
+        directoryDelete("#getSetting("testEmailPath")#", true);
+        directoryCreate("#getSetting("testEmailPath")#");
     }
 
     function testEventTask(event, rc, prc) {
         adminService.createEvents();
-        renderJson(event = event, response = {'response': 'success #now()#'});
+        renderJson(event = event, response = {"response": "success #now()#"});
     }
 
     function createUnownJson(event, rc, prc) {
@@ -232,66 +232,66 @@ component extends="base" {
         }
 
         // Special Cases
-        unowns.append('!');
-        unowns.append('?');
+        unowns.append("!");
+        unowns.append("?");
 
         var result = {};
         var base   = {
-            'live'       : true,
-            'Flee'       : 10,
-            'Catch'      : 30,
-            'shadowshiny': false,
-            'giga'       : false,
-            'number'     : 201,
-            'evolutions' : [],
-            'form'       : false,
-            'mega'       : false,
-            'Attack'     : 136,
-            'HP'         : 134,
-            'shadow'     : false,
-            'shiny'      : true,
-            'gender'     : '',
-            'Name'       : '',
-            'tradable'   : true,
-            'Type'       : ['Psychic'],
-            'sprite'     : '',
-            'generation' : 2.5,
-            'moves'      : ['HIDDEN_POWER', 'STRUGGLE'],
-            'Defense'    : 91,
-            'formtype'   : ''
+            "live"       : true,
+            "Flee"       : 10,
+            "Catch"      : 30,
+            "shadowshiny": false,
+            "giga"       : false,
+            "number"     : 201,
+            "evolutions" : [],
+            "form"       : false,
+            "mega"       : false,
+            "Attack"     : 136,
+            "HP"         : 134,
+            "shadow"     : false,
+            "shiny"      : true,
+            "gender"     : "",
+            "Name"       : "",
+            "tradable"   : true,
+            "Type"       : ["Psychic"],
+            "sprite"     : "",
+            "generation" : 2.5,
+            "moves"      : ["HIDDEN_POWER", "STRUGGLE"],
+            "Defense"    : 91,
+            "formtype"   : ""
         };
 
         unowns.each((letter) => {
             var curr      = duplicate(base);
-            curr.name     = 'Unown #letter#';
-            curr.sprite   = letter == '!' ? '201-exclamation' : letter == '?' ? '201-question' : '201-#lCase(letter)#';
-            curr.formtype = letter == '!' ? 'exclamation' : letter == '?' ? 'question' : '#lCase(letter)#';
+            curr.name     = "Unown #letter#";
+            curr.sprite   = letter == "!" ? "201-exclamation" : letter == "?" ? "201-question" : "201-#lCase(letter)#";
+            curr.formtype = letter == "!" ? "exclamation" : letter == "?" ? "question" : "#lCase(letter)#";
             result.insert(curr.name, curr);
         });
 
-        renderJson(event = event, response = {'response': serializeJSON(result)});
+        renderJson(event = event, response = {"response": serializeJSON(result)});
     }
 
     function createCPMultiplierJson(event, rc, prc) {
-        var cpDoc       = scraperService.getData('https://pokemongo.fandom.com/wiki/Combat_Power');
+        var cpDoc       = scraperService.getData("https://pokemongo.fandom.com/wiki/Combat_Power");
         var cpTableData = cpDoc
             .body()
-            .select('##Level_Scalar')
-            .select('tbody')
-            .select('tr');
+            .select("##Level_Scalar")
+            .select("tbody")
+            .select("tr");
         var multiplierJson = {};
 
         cpTableData.each((tr, trindex) => {
             if(trindex == 1) continue; // first row is 'header'
 
             var currLevel = -1;
-            var rowData   = tr.select('td');
+            var rowData   = tr.select("td");
 
             rowData.each((td, tdindex) => {
                 // odd index is the level
                 // even index is the multiplier
                 if(tdindex % 2 == 1) {
-                    currLevel = parseNumber(reReplace(td.text(), '[^0-9.]', ''));
+                    currLevel = parseNumber(reReplace(td.text(), "[^0-9.]", ""));
                 }
                 else {
                     multiplierJson.insert(currLevel, parseNumber(td.text()));
@@ -299,64 +299,64 @@ component extends="base" {
             });
         });
 
-        renderJson(event = event, response = {'response': serializeJSON(multiplierJson)});
+        renderJson(event = event, response = {"response": serializeJSON(multiplierJson)});
     }
 
     function testJsoup(event, rc, prc) {
         prc.userAgent = scraperService
-            .getData('https://httpbin.io/user-agent')
+            .getData("https://httpbin.io/user-agent")
             .body()
             .text();
-        renderJson(event = event, response = {'response': prc.userAgent});
+        renderJson(event = event, response = {"response": prc.userAgent});
     }
 
     function createTypeSymbols(event, rc, prc) {
-        var typeDoc   = scraperService.getData('https://pokemongo.fandom.com/wiki/Types');
+        var typeDoc   = scraperService.getData("https://pokemongo.fandom.com/wiki/Types");
         var typeTable = typeDoc
             .body()
-            .select('##gallery-0')
-            .select('img');
+            .select("##gallery-0")
+            .select("img");
 
         typeTable.each((img, imgindex) => {
-            var imgSrc = img.attr('src');
-            if(!imgSrc.contains('')) continue;
-            var type = lCase(listToArray(listToArray(imgSrc, '_')[2], '.')[1]);
+            var imgSrc = img.attr("src");
+            if(!imgSrc.contains("")) continue;
+            var type = lCase(listToArray(listToArray(imgSrc, "_")[2], ".")[1]);
             cfhttp(
                 url    = imgSrc,
                 result = "local.imgResult",
                 method = "GET"
             );
             var img = imageNew(local.imgResult.filecontent);
-            img.write('/includes/images/type/#type#');
+            img.write("/includes/images/type/#type#");
         });
 
-        renderJson(event = event, response = {'response': 'success #now()#'});
+        renderJson(event = event, response = {"response": "success #now()#"});
     }
 
     function downloadImage(event, rc, prc) {
         param name="rc.imageUrl" default="";
 
-        if(!rc.imageUrl.len() || !rc.imageUrl.startsWith('http')) {
+        if(!rc.imageUrl.len() || !rc.imageUrl.startsWith("http")) {
             sessionService.setAlert(
-                'danger',
+                "danger",
                 true,
-                'bi bi-exclamation-triangle',
-                'Please provide a valid image URL.'
+                "bi bi-exclamation-triangle",
+                "Please provide a valid image URL."
             );
-            relocate(event = 'dev');
+            relocate(event = "dev");
             return;
         }
 
-        var destination = '/includes/#createUUID()##getSetting('imageExtension')#';
+        var destination = "/includes/#createUUID()##getSetting("imageExtension")#";
         scraperService.downloadImage(url = rc.imageUrl, destination = destination);
 
         sessionService.setAlert(
-            'success',
+            "success",
             true,
-            'bi bi-image-fill',
-            'Image saved to #destination#'
+            "bi bi-image-fill",
+            "Image saved to #destination#"
         );
-        relocate(event = 'dev');
+        relocate(event = "dev");
     }
 
     function debugInfo(event, rc, prc) {

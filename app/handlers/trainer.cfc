@@ -1,11 +1,11 @@
 component extends="base" {
 
     this.allowedMethods = {
-        index        : 'GET',
-        viewProfile  : 'GET',
-        editProfile  : 'GET',
-        updateProfile: 'POST',
-        getSettings  : 'GET'
+        index        : "GET",
+        viewProfile  : "GET",
+        editProfile  : "GET",
+        updateProfile: "POST",
+        getSettings  : "GET"
     };
 
     property name="friendService"     inject="services.friend";
@@ -15,9 +15,9 @@ component extends="base" {
     property name="trainerService"    inject="services.trainer";
 
     function preHandler(event, rc, prc, action, eventArguments) {
-        prc.title           = 'Profile | #getSetting('title')#';
-        prc.metaDescription = 'View your profile, friend requests, Pokedex summary, Stats summary, medal overview, and more.';
-        prc.metaRobots      = 'noindex, nofollow';
+        prc.title           = "Profile | #getSetting("title")#";
+        prc.metaDescription = "View your profile, friend requests, Pokedex summary, Stats summary, medal overview, and more.";
+        prc.metaRobots      = "noindex, nofollow";
     }
 
     /**
@@ -30,20 +30,20 @@ component extends="base" {
         prc.myProfile = rc.trainerid == session.trainerid;
 
         // If you are visiting someone else's profile, check that you are friends with them
-        if(!prc.myProfile && hasValidationErrors(target = rc, constraints = 'trainer.viewProfile')) {
-            htmlValidationFailure(event = event, redirectUri = '/profile');
+        if(!prc.myProfile && hasValidationErrors(target = rc, constraints = "trainer.viewProfile")) {
+            htmlValidationFailure(event = event, redirectUri = "/profile");
             return;
         }
 
         // Set up for profile cards
-        prc.startDate = dateFormat(createDate(year(now()), month(now()), 1), 'MM-DD-YYYY');
+        prc.startDate = dateFormat(createDate(year(now()), month(now()), 1), "MM-DD-YYYY");
         prc.endDate   = dateFormat(
             createDate(
                 year(now()),
                 month(now()),
                 daysInMonth(prc.startDate)
             ),
-            'MM-DD-YYYY'
+            "MM-DD-YYYY"
         );
 
         prc.trainer    = trainerService.getFromId(trainerid = rc.trainerid);
@@ -59,14 +59,14 @@ component extends="base" {
         prc.unlockedIcons = prc.trainer.getUnlockedIcons();
 
         event.setView(
-            view     = '/views/trainer/modal/editProfile',
+            view     = "/views/trainer/modal/editProfile",
             nolayout = true,
             args     = {
                 trainer    : prc.trainer,
                 iconMap    : arrayMerge(prc.baseIcons, prc.unlockedIcons),
-                viewMap    : getSetting('viewMap'),
+                viewMap    : getSetting("viewMap"),
                 generations: generationService.getAll(),
-                pageMap    : getSetting('pageMap')
+                pageMap    : getSetting("pageMap")
             }
         );
     }
@@ -88,9 +88,9 @@ component extends="base" {
         param name="rc.defaultRegion" default="";
         param name="rc.defaultPage"   default="";
 
-        prc.validation = validate(target = rc, constraints = 'trainer.updateProfile');
+        prc.validation = validate(target = rc, constraints = "trainer.updateProfile");
         if(prc.validation.hasErrors()) {
-            prc.responseObj.message = 'Invalid profile update. Please verify all fields.';
+            prc.responseObj.message = "Invalid profile update. Please verify all fields.";
         }
         else {
             prc.securityValidation = securityService.validateUpdateProfile(
@@ -105,13 +105,13 @@ component extends="base" {
             );
 
             if(!prc.securityValidation) {
-                prc.responseObj.message = 'Username/email already taken. Please use another.';
+                prc.responseObj.message = "Username/email already taken. Please use another.";
             }
         }
 
         if(!prc.responseObj.message.len()) {
             prc.trainerid = parseNumber(rc.trainerid);
-            prc.verified  = rc.verified.len() ? rc.verified == 'on' ? 'true' : 'false' : '';
+            prc.verified  = rc.verified.len() ? rc.verified == "on" ? "true" : "false" : "";
 
             securityService.update(
                 trainerid     = prc.trainerid,
@@ -130,9 +130,9 @@ component extends="base" {
                 trainerService.updateSettings(
                     prc.trainer,
                     {
-                        'defaultView'  : rc.defaultView,
-                        'defaultRegion': rc.defaultRegion,
-                        'defaultPage'  : rc.defaultPage
+                        "defaultView"  : rc.defaultView,
+                        "defaultRegion": rc.defaultRegion,
+                        "defaultPage"  : rc.defaultPage
                     }
                 );
 

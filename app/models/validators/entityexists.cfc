@@ -6,7 +6,7 @@ component acecssors="true" singleton hint="Validator for checking if an entity (
      * Init validator
      */
     function init() {
-        this.name = 'entityExists';
+        this.name = "entityExists";
     }
 
     /**
@@ -52,10 +52,10 @@ component acecssors="true" singleton hint="Validator for checking if an entity (
         struct rules
     ) {
         var errorStruct = {
-            message       : '',
+            message       : "",
             field         : arguments.field,
             validationType: getName(),
-            rejectedValue : (isSimpleValue(arguments.targetValue) ? arguments.targetValue : ''),
+            rejectedValue : (isSimpleValue(arguments.targetValue) ? arguments.targetValue : ""),
             validationData: arguments.validationData
         };
 
@@ -66,12 +66,12 @@ component acecssors="true" singleton hint="Validator for checking if an entity (
             isSimpleValue(arguments.targetValue) &&
             !arguments.rules.required && (
                 (
-                    arguments.rules.type == 'numeric' &&
+                    arguments.rules.type == "numeric" &&
                     arguments.targetValue == -1
                 ) ||
                 (
-                    arguments.rules.type == 'string' &&
-                    arguments.targetValue == ''
+                    arguments.rules.type == "string" &&
+                    arguments.targetValue == ""
                 )
             )
         ) {
@@ -83,17 +83,17 @@ component acecssors="true" singleton hint="Validator for checking if an entity (
             isNull(arguments.targetValue) ||
             !isSimpleValue(arguments.targetValue) ||
             !arguments.targetValue.len() ||
-            !arguments.validationData.keyExists('entityName') ||
+            !arguments.validationData.keyExists("entityName") ||
             (
-                !arguments.validationData.keyExists('pk') &&
-                !arguments.validationData.keyExists('column')
+                !arguments.validationData.keyExists("pk") &&
+                !arguments.validationData.keyExists("column")
             ) ||
             (
-                arguments.validationData.keyExists('pk') &&
+                arguments.validationData.keyExists("pk") &&
                 !isNumeric(arguments.targetValue)
             )
         ) {
-            errorStruct.message = 'Invalid entity exists call.';
+            errorStruct.message = "Invalid entity exists call.";
             validationResult.addError(
                 validationResult
                     .newError(argumentCollection = errorStruct)
@@ -105,7 +105,7 @@ component acecssors="true" singleton hint="Validator for checking if an entity (
         var check;
 
         // Attempt to load entity based on PK
-        if(arguments.validationData.keyExists('pk') && arguments.validationData.pk) {
+        if(arguments.validationData.keyExists("pk") && arguments.validationData.pk) {
             check = entityLoadByPK(arguments.validationData.entityName, arguments.targetValue);
         }
 
@@ -113,14 +113,14 @@ component acecssors="true" singleton hint="Validator for checking if an entity (
         else {
             check = entityLoad(
                 arguments.validationData.entityName,
-                {'#arguments.validationData.column#': arguments.targetValue},
+                {"#arguments.validationData.column#": arguments.targetValue},
                 true
             );
         }
 
         // Entity does not exists
         if(isNull(check)) {
-            errorStruct.message = 'The #arguments.validationData.entityName# entity (#arguments.targetValue#) does not exist.';
+            errorStruct.message = "The #arguments.validationData.entityName# entity (#arguments.targetValue#) does not exist.";
             validationResult.addError(
                 validationResult
                     .newError(argumentCollection = errorStruct)
@@ -133,11 +133,11 @@ component acecssors="true" singleton hint="Validator for checking if an entity (
 
         // If this entity should belong to the current session's trainer
         if(
-            arguments.validationData.keyExists('belongsToUser')
+            arguments.validationData.keyExists("belongsToUser")
             && arguments.validationData.belongsToUser
             && (check?.getTrainer()?.getId() ?: -1) != session.trainerid
         ) {
-            errorStruct.message = 'Invalid access.';
+            errorStruct.message = "Invalid access.";
             validationResult.addError(
                 validationResult
                     .newError(argumentCollection = errorStruct)

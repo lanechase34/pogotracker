@@ -4,22 +4,22 @@ component singleton accessors="true" {
     property name="generationMap" type="struct";
 
     public void function init() {
-        setGenerationMap(deserializeJSON(fileRead('/includes/assets/generationmap.json')));
+        setGenerationMap(deserializeJSON(fileRead("/includes/assets/generationmap.json")));
         return;
     }
 
     public array function getAll() {
-        var cacheKey       = 'generation.getAll';
+        var cacheKey       = "generation.getAll";
         var allGenerations = cache.get(cacheKey);
         if(isNull(allGenerations)) {
-            allGenerations = entityLoad('generation', {}, 'generation asc');
+            allGenerations = entityLoad("generation", {}, "generation asc");
             cache.set(cacheKey, allGenerations, 720, 720);
         }
         return allGenerations;
     }
 
     private void function create(required struct generationProperties) {
-        var newGeneration = entityNew('generation', arguments.generationProperties);
+        var newGeneration = entityNew("generation", arguments.generationProperties);
         entitySave(newGeneration);
         return;
     }
@@ -28,7 +28,7 @@ component singleton accessors="true" {
     public void function createAll() {
         getGenerationMap().each((key, value) => {
             if(isNull(get(key))) {
-                create({'generation': key, 'region': value});
+                create({"generation": key, "region": value});
             }
         });
 
@@ -39,15 +39,15 @@ component singleton accessors="true" {
     // Get single generation
     public any function get(required numeric generation) {
         return entityLoad(
-            'generation',
-            {'generation': arguments.generation},
+            "generation",
+            {"generation": arguments.generation},
             true
         );
     }
 
     // Get generation record based on region
     public any function getFromRegion(required string region) {
-        return entityLoad('generation', {region: arguments.region}, true);
+        return entityLoad("generation", {region: arguments.region}, true);
     }
 
 }

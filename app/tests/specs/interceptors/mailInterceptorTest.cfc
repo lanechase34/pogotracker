@@ -9,12 +9,12 @@ component extends="coldbox.system.testing.BaseInterceptorTest" interceptor="inte
     }
 
     function run() {
-        describe('interceptors.mail', () => {
+        describe("interceptors.mail", () => {
             beforeEach(() => {
                 setup();
             });
 
-            it('Should configure correctly', () => {
+            it("Should configure correctly", () => {
                 interceptor.configure();
                 expect(interceptor).toBeComponent();
             });

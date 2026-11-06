@@ -1,13 +1,13 @@
 component extends="base" {
 
     function run(qb, mockdata) {
-        var levelMap = deserializeJSON(fileRead('../../includes/assets/levels.json'));
+        var levelMap = deserializeJSON(fileRead("../../includes/assets/levels.json"));
 
-        qb.table('level')
+        qb.table("level")
             .insert(
                 levelMap
                     .keyArray()
-                    .map((key) => ({'level': parseNumber(key), 'requiredxp': parseNumber(levelMap[key])}))
+                    .map((key) => ({"level": parseNumber(key), "requiredxp": parseNumber(levelMap[key])}))
             );
     }
 

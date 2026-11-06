@@ -2,60 +2,60 @@ component extends="tests.resources.baseTest" {
 
     function beforeAll() {
         super.beforeAll();
-        mockTrainer = getInstance('tests.resources.mocktrainer');
+        mockTrainer = getInstance("tests.resources.mocktrainer");
     }
 
     function run() {
-        describe('Socketbox Integration Tests', () => {
+        describe("Socketbox Integration Tests", () => {
             beforeEach(() => {
                 setup();
             });
 
             afterEach(() => {
-                if(session.keyExists('mocktrainerid')) mockTrainer.delete();
+                if(session.keyExists("mocktrainerid")) mockTrainer.delete();
             });
 
-            it('Socket can be created', () => {
+            it("Socket can be created", () => {
                 var ws = getWebSocket();
                 expect(ws).toBeComponent();
             });
 
-            it('Can configure correctly and register metrics topic', () => {
+            it("Can configure correctly and register metrics topic", () => {
                 var ws     = new WebSocket();
                 var config = ws.getConfig();
-                expect(config.exchanges.topic.bindings).toHaveKey('metrics');
+                expect(config.exchanges.topic.bindings).toHaveKey("metrics");
             });
 
-            it('Can authenticate via session successfully', () => {
+            it("Can authenticate via session successfully", () => {
                 var ws = getWebSocket();
 
                 var trainer = mockTrainer.make();
 
                 var authenticateResult = ws.authenticate(
-                    login              = '',
-                    passcode           = '',
-                    host               = 'localhost',
+                    login              = "",
+                    passcode           = "",
+                    host               = "localhost",
                     channel            = {},
                     connectionMetadata = {}
                 );
                 expect(authenticateResult).toBeTrue();
             });
 
-            it('Can fail session authentication', () => {
+            it("Can fail session authentication", () => {
                 var ws = getWebSocket();
 
                 // Attempt with no valid session
                 var authenticateResult = ws.authenticate(
-                    login              = '',
-                    passcode           = '',
-                    host               = 'localhost',
+                    login              = "",
+                    passcode           = "",
+                    host               = "localhost",
                     channel            = {},
                     connectionMetadata = {}
                 );
                 expect(authenticateResult).toBeFalse();
             });
 
-            it('Can authorize ADMIN user to metrics topic', () => {
+            it("Can authorize ADMIN user to metrics topic", () => {
                 var ws = getWebSocket();
 
                 // Admin user
@@ -70,33 +70,33 @@ component extends="tests.resources.baseTest" {
 
                 application.STOMPBroker.STOMPConnections[channel.hashCode()] = {
                     channel           : channel,
-                    login             : '',
+                    login             : "",
                     connectDate       : now(),
                     sessionID         : channel.hashCode(),
                     connectionMetadata: {}
                 }
 
                 var authenticateResult = ws.authenticate(
-                    login              = '',
-                    passcode           = '',
-                    host               = 'localhost',
+                    login              = "",
+                    passcode           = "",
+                    host               = "localhost",
                     channel            = {},
                     connectionMetadata = {}
                 );
                 expect(authenticateResult).toBeTrue();
 
                 var authorizeResult = ws.authorize(
-                    login              = '',
-                    exchange           = 'topic',
-                    destination        = 'metrics',
-                    access             = 'subscribe',
+                    login              = "",
+                    exchange           = "topic",
+                    destination        = "metrics",
+                    access             = "subscribe",
                     channel            = channel,
                     connectionMetadata = application.STOMPBroker.STOMPConnections[channel.hashCode()].connectionMetadata
                 );
                 expect(authorizeResult).toBeTrue();
             });
 
-            it('Can fail authorization with non ADMIN user to metrics topic', () => {
+            it("Can fail authorization with non ADMIN user to metrics topic", () => {
                 var ws = getWebSocket();
 
                 var trainer = mockTrainer.make(securityLevel = 10);
@@ -110,7 +110,7 @@ component extends="tests.resources.baseTest" {
 
                 application.STOMPBroker.STOMPConnections[channel.hashCode()] = {
                     channel           : channel,
-                    login             : '',
+                    login             : "",
                     connectDate       : now(),
                     sessionID         : channel.hashCode(),
                     connectionMetadata: {}
@@ -120,30 +120,30 @@ component extends="tests.resources.baseTest" {
                  * Can authenticate, but the authorization will fail (insufficient permission)
                  */
                 var authenticateResult = ws.authenticate(
-                    login              = '',
-                    passcode           = '',
-                    host               = 'localhost',
+                    login              = "",
+                    passcode           = "",
+                    host               = "localhost",
                     channel            = {},
                     connectionMetadata = {}
                 );
                 expect(authenticateResult).toBeTrue();
 
                 var authorizeResult = ws.authorize(
-                    login              = '',
-                    exchange           = 'topic',
-                    destination        = 'metrics',
-                    access             = 'subscribe',
+                    login              = "",
+                    exchange           = "topic",
+                    destination        = "metrics",
+                    access             = "subscribe",
                     channel            = channel,
                     connectionMetadata = application.STOMPBroker.STOMPConnections[channel.hashCode()].connectionMetadata
                 );
                 expect(authorizeResult).toBeFalse();
             });
 
-            it('Can broadcast a message to metrics', () => {
+            it("Can broadcast a message to metrics", () => {
                 var ws = getWebSocket();
 
                 expect(() => {
-                    ws.send('topic/metrics', {time: now()});
+                    ws.send("topic/metrics", {time: now()});
                 }).notToThrow();
             });
         });
@@ -153,7 +153,7 @@ component extends="tests.resources.baseTest" {
      * Mock session id for websocket channel
      */
     private struct function mockChannel() {
-        return {hashCode: () => 'mockChannelHash123', isOpen: () => true};
+        return {hashCode: () => "mockChannelHash123", isOpen: () => true};
     }
 
     /**
