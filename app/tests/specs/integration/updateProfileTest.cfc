@@ -34,10 +34,27 @@ component extends="tests.resources.baseTest" asyncAll="false" {
         return post(route = "/trainer/updateProfile", params = params);
     }
 
+    /**
+     * Parse the rendered edit profile modal and return the selected setting values
+     */
+    private struct function getSelectedSettings(required any event) {
+        var doc = getInstance("javaloader:org.jsoup.Jsoup").parse(arguments.event.getRenderedContent());
+        return {
+            defaultView  : doc.select("##inputDefaultView option[selected]").attr("value"),
+            defaultRegion: doc.select("##inputDefaultRegion option[selected]").attr("value"),
+            defaultPage  : doc.select("##inputDefaultPage option[selected]").attr("value")
+        };
+    }
+
     function run() {
         describe("Update profile", () => {
+            beforeEach(() => {
+                extraTrainerIds = [];
+            });
+
             afterEach(() => {
                 if(session.keyExists("mocktrainerid")) mockTrainer.delete();
+                extraTrainerIds.each((id) => mockTrainer.delete(id));
             });
 
             it("Lets a regular user save their profile without changing username/email", () => {
@@ -82,6 +99,134 @@ component extends="tests.resources.baseTest" asyncAll="false" {
 
                 var event = postProfile(trainer, {friendcode: otherTrainer.getFriendcode()});
                 expect(event.getPrivateValue("responseObj").success).toBeFalse();
+            });
+
+            describe("Settings", () => {
+                it("Lets a regular user save their own settings", () => {
+                    var trainer = mockTrainer.make(securityLevel = 10, autoLogin = true);
+
+                    var event = postProfile(
+                        trainer,
+                        {
+                            defaultView  : "shiny",
+                            defaultRegion: "Unova",
+                            defaultPage  : "/mypokedex"
+                        }
+                    );
+                    expect(event.getPrivateValue("responseObj").success).toBeTrue();
+
+                    var settings = trainer.getSettings();
+                    expect(settings.defaultView).toBe("shiny");
+                    expect(settings.defaultRegion).toBe("Unova");
+                    expect(settings.defaultPage).toBe("/mypokedex");
+
+                    // Session is refreshed with the new settings
+                    expect(session.settings.defaultRegion).toBe("Unova");
+                });
+
+                it("Lets an admin save another trainer's settings without changing their own", () => {
+                    var target = mockTrainer.make(securityLevel = 10, autoLogin = false);
+                    extraTrainerIds.append(target.getId());
+                    var admin = mockTrainer.make(securityLevel = 50, autoLogin = true);
+
+                    var event = postProfile(
+                        target,
+                        {
+                            defaultView  : "shiny",
+                            defaultRegion: "Unova",
+                            defaultPage  : "/mypokedex"
+                        }
+                    );
+                    expect(event.getPrivateValue("responseObj").success).toBeTrue();
+
+                    var settings = target.getSettings();
+                    expect(settings.defaultView).toBe("shiny");
+                    expect(settings.defaultRegion).toBe("Unova");
+                    expect(settings.defaultPage).toBe("/mypokedex");
+
+                    // Admin's own settings and session are untouched
+                    expect(session.trainerid).toBe(admin.getId());
+                    expect(session.settings.defaultRegion).toBe("Kanto");
+                    expect(admin.getSettings().defaultRegion).toBe("Kanto");
+                });
+
+                it("Rejects a regular user saving another trainer's settings", () => {
+                    var target = mockTrainer.make(securityLevel = 10, autoLogin = false);
+                    extraTrainerIds.append(target.getId());
+                    mockTrainer.make(securityLevel = 10, autoLogin = true);
+
+                    var event = postProfile(target, {defaultRegion: "Unova"});
+                    expect(event.getPrivateValue("responseObj").success).toBeFalse();
+                    expect(target.getSettings()).toBeEmpty();
+                });
+            });
+
+            describe("Edit profile form", () => {
+                it("Defaults to the logged in trainer's settings", () => {
+                    var trainer = mockTrainer.make(securityLevel = 10, autoLogin = true);
+                    postProfile(
+                        trainer,
+                        {
+                            defaultView  : "shiny",
+                            defaultRegion: "Unova",
+                            defaultPage  : "/mypokedex"
+                        }
+                    );
+
+                    setup();
+                    var selected = getSelectedSettings(get(route = "/trainer/editProfile", renderResults = true));
+                    expect(selected.defaultView).toBe("shiny");
+                    expect(selected.defaultRegion).toBe("Unova");
+                    expect(selected.defaultPage).toBe("/mypokedex");
+                });
+
+                it("Admin edit trainer defaults to the edited trainer's settings, not the admin's", () => {
+                    var target = mockTrainer.make(securityLevel = 10, autoLogin = false);
+                    extraTrainerIds.append(target.getId());
+                    target.setSettings({
+                        defaultView  : "shiny",
+                        defaultRegion: "Unova",
+                        defaultPage  : "/mypokedex"
+                    });
+                    mockTrainer.make(securityLevel = 50, autoLogin = true);
+
+                    // Admin has the default settings
+                    expect(session.settings.defaultRegion).toBe("Kanto");
+
+                    setup();
+                    var selected = getSelectedSettings(
+                        get(route = "/admin/editTrainer/trainerid/#target.getId()#", renderResults = true)
+                    );
+                    expect(selected.defaultView).toBe("shiny");
+                    expect(selected.defaultRegion).toBe("Unova");
+                    expect(selected.defaultPage).toBe("/mypokedex");
+                });
+
+                it("Admin edit trainer falls back to default settings when the trainer has none", () => {
+                    var target = mockTrainer.make(securityLevel = 10, autoLogin = false);
+                    extraTrainerIds.append(target.getId());
+                    var admin = mockTrainer.make(securityLevel = 50, autoLogin = true);
+
+                    // Give the admin non-default settings so a fallback to the admin's session would be caught
+                    postProfile(
+                        admin,
+                        {
+                            defaultView  : "shiny",
+                            defaultRegion: "Unova",
+                            defaultPage  : "/mypokedex"
+                        }
+                    );
+                    expect(target.getSettings()).toBeEmpty();
+
+                    var defaults = application.cbController.getSetting("defaultSettings");
+                    setup();
+                    var selected = getSelectedSettings(
+                        get(route = "/admin/editTrainer/trainerid/#target.getId()#", renderResults = true)
+                    );
+                    expect(selected.defaultRegion).toBe(defaults.defaultRegion);
+                    expect(selected.defaultPage).toBe(defaults.defaultPage);
+                    expect(selected.defaultView).toBe(defaults.defaultView);
+                });
             });
         });
     }

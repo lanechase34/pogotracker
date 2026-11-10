@@ -14,7 +14,8 @@ component extends="tests.resources.baseTest" asyncAll="false" {
             "Spring Marathon 2026",
             "Candela's Quest for Victory",
             "Frigibax Community Day",
-            "Deino Community Day Classic"
+            "Deino Community Day Classic",
+            "Pokémon GO Wild Area 2026: Global"
         ];
         eventNames.each((name) => {
             customHelperFunctions.deleteByName(name);
@@ -477,6 +478,26 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                 });
 
                 expect(expectedSpawns.count()).toBe(0);
+            });
+
+            it("Can create multi-day event using first and last day schedule rows", () => {
+                eventLink   = "https://leekduck.com/events/pokemon-go-wild-area-2026-global/";
+                beforeCount = customHelperFunctions.count();
+
+                adminService.createEvent(eventLink);
+
+                // Verify a custom pokedex was created for the event
+                afterCount = customHelperFunctions.count();
+                expect(afterCount).toBe(beforeCount + 1);
+                customid = customHelperFunctions.getMostRecentCreated();
+                custom   = customService.getFromId(customid);
+                expect(custom).toBeComponent();
+
+                // Schedule renders one data-kind=day row per day - begins is day 1 start, ends is day 2 end
+                expect(custom.getName()).toBe("Pokémon GO Wild Area 2026: Global");
+                expect(custom.getLink()).toBe(eventLink);
+                expect(custom.getBegins()).toBe(createDate(2026, 11, 14));
+                expect(custom.getEnds()).toBe(createDate(2026, 11, 15));
             });
 
             afterEach(() => {

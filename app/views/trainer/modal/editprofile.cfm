@@ -76,7 +76,7 @@
                         </label>
                         <select id="inputDefaultView" name="defaultview" class="form-select" required>
                             <cfloop item="currValue" index="currKey" collection="#args.viewMap#">
-                                <option value="#encodeForHTMLAttribute(currKey)#" <cfif currKey EQ session.settings.defaultView>selected</cfif>>
+                                <option value="#encodeForHTMLAttribute(currKey)#" <cfif currKey EQ args.settings.defaultView>selected</cfif>>
                                     #encodeForHTML(currValue)#
                                 </option>
                             </cfloop>
@@ -88,7 +88,7 @@
                         </label>
                         <select id="inputDefaultRegion" name="defaultregion" class="form-select" required>
                             <cfloop index="i" item="curr" array="#args.generations#">
-                                <option value="#encodeForHTMLAttribute(curr.getRegion())#" <cfif curr.getRegion() EQ session.settings.defaultRegion>selected</cfif>>
+                                <option value="#encodeForHTMLAttribute(curr.getRegion())#" <cfif curr.getRegion() EQ args.settings.defaultRegion>selected</cfif>>
                                     #encodeForHTML(curr.getRegion())#
                                 </option>
                             </cfloop>
@@ -100,7 +100,7 @@
                         </label>
                         <select id="inputDefaultPage" name="defaultpage" class="form-select" required data-bs-display="static">
                             <cfloop item="currValue" index="currKey" collection="#args.pageMap#">
-                                <option value="#encodeForHTMLAttribute(currKey)#" <cfif currKey EQ session.settings.defaultPage>selected</cfif>>
+                                <option value="#encodeForHTMLAttribute(currKey)#" <cfif currKey EQ args.settings.defaultPage>selected</cfif>>
                                     #encodeForHTML(currValue)#
                                 </option>
                             </cfloop>

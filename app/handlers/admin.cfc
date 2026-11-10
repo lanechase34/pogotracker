@@ -143,6 +143,10 @@ component extends="base" {
         prc.unlockedIcons  = prc.trainer.getUnlockedIcons();
         prc.securityLevels = securityService.getSecurityLevels();
 
+        // Use the edited trainer's settings, falling back to defaults for any missing keys
+        prc.settings = duplicate(getSetting("defaultSettings"));
+        structAppend(prc.settings, prc.trainer.getSettings(), true);
+
         event.setView(
             view     = "/views/trainer/modal/editProfile",
             nolayout = true,
@@ -151,6 +155,7 @@ component extends="base" {
                 iconMap       : arrayMerge(prc.baseIcons, prc.unlockedIcons),
                 admin         : true,
                 securityLevels: prc.securityLevels,
+                settings      : prc.settings,
                 viewMap       : getSetting("viewMap"),
                 generations   : generationService.getAll(),
                 pageMap       : getSetting("pageMap")

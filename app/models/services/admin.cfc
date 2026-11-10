@@ -1225,17 +1225,18 @@ component singleton accessors="true" {
         if(!spawns.count()) return;
 
         // Get when event starts and ends
-        // Most events render separate start/end rows, but single-day events render one row
-        var startRow  = eventDoc.body().select("div.schedule-row[data-kind=start]");
-        var endRow    = eventDoc.body().select("div.schedule-row[data-kind=end]");
-        var singleRow = eventDoc.body().select("div.schedule-row[data-kind=single]");
+        // Most events render separate start/end rows, single-day events render one row,
+        // and multi-day events render one row per day (data-kind=day) - use the first/last rows
+        var startRow = eventDoc.body().select("div.schedule-row[data-kind=start]");
+        var endRow   = eventDoc.body().select("div.schedule-row[data-kind=end]");
+        var allRows  = eventDoc.body().select("div.schedule-row[data-start]");
 
         var begins = utilService.parseDateString(
-            listFirst(startRow.len() ? startRow.attr("data-start") : singleRow.attr("data-start"), "T")
+            listFirst(startRow.len() ? startRow.attr("data-start") : allRows.first().attr("data-start"), "T")
         );
 
         var ends = utilService.parseDateString(
-            listFirst(endRow.len() ? endRow.attr("data-start") : singleRow.attr("data-end"), "T")
+            listFirst(endRow.len() ? endRow.attr("data-start") : allRows.last().attr("data-end"), "T")
         );
 
         // Create custom pokedex if needed

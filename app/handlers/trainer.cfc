@@ -64,6 +64,7 @@ component extends="base" {
             args     = {
                 trainer    : prc.trainer,
                 iconMap    : arrayMerge(prc.baseIcons, prc.unlockedIcons),
+                settings   : session.settings,
                 viewMap    : getSetting("viewMap"),
                 generations: generationService.getAll(),
                 pageMap    : getSetting("pageMap")
@@ -124,8 +125,7 @@ component extends="base" {
                 verified      = prc.verified
             );
 
-            if(prc.trainerid == session.trainerid) {
-                // Update settings
+            if(prc.trainerid == session.trainerid || session.securityLevel >= 50) {
                 prc.trainer = trainerService.getFromId(prc.trainerid);
                 trainerService.updateSettings(
                     prc.trainer,
@@ -135,8 +135,10 @@ component extends="base" {
                         "defaultPage"  : rc.defaultPage
                     }
                 );
+            }
 
-                // Refresh current session
+            // Refresh current session
+            if(prc.trainerid == session.trainerid) {
                 sessionService.update(prc.trainerid);
             }
 
