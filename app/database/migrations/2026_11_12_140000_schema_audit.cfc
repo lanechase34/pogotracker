@@ -17,9 +17,20 @@ component {
         queryExecute("CREATE INDEX idx_persist_previouscookie ON persist (previouscookie) WHERE previouscookie IS NOT NULL");
         queryExecute("CREATE INDEX idx_persist_trainerid ON persist (trainerid)");
 
-        // trainermedal - the only relationship table without foreign keys, one row per trainer + medal
-        queryExecute("ALTER TABLE trainermedal ADD CONSTRAINT fk_trainermedal_trainerid FOREIGN KEY (trainerid) REFERENCES trainer(id)");
-        queryExecute("ALTER TABLE trainermedal ADD CONSTRAINT fk_trainermedal_medalid FOREIGN KEY (medalid) REFERENCES medal(id)");
+        // trainermedal - the only relationship table without foreign keys (from init), one row per trainer + medal
+        // Databases whose schema came from the orm already have them under hibernate's names
+        addForeignKey(
+            "trainermedal",
+            "trainerid",
+            "trainer",
+            "fk_trainermedal_trainerid"
+        );
+        addForeignKey(
+            "trainermedal",
+            "medalid",
+            "medal",
+            "fk_trainermedal_medalid"
+        );
         queryExecute("CREATE UNIQUE INDEX unq_trainermedal_trainerid_medalid ON trainermedal (trainerid, medalid)");
         queryExecute("CREATE INDEX idx_trainermedal_medalid ON trainermedal (medalid)");
         queryExecute("ALTER TABLE trainermedal ADD CONSTRAINT chk_trainermedal_current CHECK (current >= 0)");
@@ -28,18 +39,26 @@ component {
         // The lower() index replaces both case sensitive username indexes - nothing looks a username up by exact case
         queryExecute("CREATE UNIQUE INDEX unq_trainer_lower_username ON trainer (lower(username))");
         queryExecute("DROP INDEX IF EXISTS idx_trainer_username");
-        queryExecute("ALTER TABLE trainer DROP CONSTRAINT trainer_username_key");
-        queryExecute("ALTER TABLE trainer RENAME CONSTRAINT trainer_email_key TO unq_trainer_email");
-        queryExecute("ALTER TABLE trainer RENAME CONSTRAINT trainer_friendcode_key TO unq_trainer_friendcode");
+        dropUniqueConstraint("trainer", "username");
+        renameUniqueConstraint("trainer", "email", "unq_trainer_email");
+        renameUniqueConstraint(
+            "trainer",
+            "friendcode",
+            "unq_trainer_friendcode"
+        );
         queryExecute("ALTER TABLE trainer ADD CONSTRAINT chk_trainer_username CHECK (username = btrim(username) AND username <> '')");
         queryExecute("ALTER TABLE trainer ADD CONSTRAINT chk_trainer_email CHECK (email = lower(btrim(email)) AND email <> '')");
         queryExecute("ALTER TABLE trainer ADD CONSTRAINT chk_trainer_friendcode CHECK (friendcode ~ '^[0-9]{12}$')");
         queryExecute("ALTER TABLE trainer ADD CONSTRAINT chk_trainer_securitylevel CHECK (securitylevel IN (0, 5, 10, 20, 50, 60))");
 
         // Other auto named unique constraints - renamed to unq_* so violations are recognised
-        queryExecute("ALTER TABLE move RENAME CONSTRAINT move_nameid_key TO unq_move_nameid");
-        queryExecute("ALTER TABLE generation RENAME CONSTRAINT generation_generation_key TO unq_generation_generation");
-        queryExecute("ALTER TABLE level RENAME CONSTRAINT level_level_key TO unq_level_level");
+        renameUniqueConstraint("move", "nameid", "unq_move_nameid");
+        renameUniqueConstraint(
+            "generation",
+            "generation",
+            "unq_generation_generation"
+        );
+        renameUniqueConstraint("level", "level", "unq_level_level");
 
         // custompokedex - one row per custom + pokemon, the leading customid makes the single column index redundant
         queryExecute("CREATE UNIQUE INDEX unq_custompokedex_customid_pokemonid ON custompokedex (customid, pokemonid)");
@@ -167,6 +186,82 @@ component {
 
         queryExecute("DROP INDEX IF EXISTS idx_pokemonmove_moveid");
         queryExecute("DROP INDEX IF EXISTS unq_pokemonmove_pokemonid_moveid");
+    }
+
+    /**
+     * Name of a single column constraint of type (u unique, f foreign key) on table.column, empty if there is none
+     * Looked up rather than assumed - databases whose schema predates the migrations don't use Postgres' default names
+     */
+    private string function getConstraintName(
+        required string type,
+        required string table,
+        required string column
+    ) {
+        var result = queryExecute(
+            "
+                SELECT c.conname
+                FROM pg_constraint c
+                JOIN pg_class t ON t.oid = c.conrelid
+                JOIN pg_attribute a ON a.attrelid = t.oid AND a.attnum = c.conkey[1]
+                WHERE c.contype = :type
+                    AND cardinality(c.conkey) = 1
+                    AND pg_table_is_visible(t.oid)
+                    AND t.relname = :table
+                    AND a.attname = :column
+                LIMIT 1
+            ",
+            {
+                type  : {value: arguments.type, cfsqltype: "char"},
+                table : {value: arguments.table, cfsqltype: "varchar"},
+                column: {value: arguments.column, cfsqltype: "varchar"}
+            }
+        );
+        return result.recordCount ? result.conname : "";
+    }
+
+    private string function getUniqueConstraintName(required string table, required string column) {
+        return getConstraintName("u", arguments.table, arguments.column);
+    }
+
+    /**
+     * Adds a foreign key from table.column to reference(id) unless the column already has one
+     */
+    private void function addForeignKey(
+        required string table,
+        required string column,
+        required string reference,
+        required string name
+    ) {
+        if(!len(getConstraintName("f", arguments.table, arguments.column))) {
+            queryExecute("ALTER TABLE #arguments.table# ADD CONSTRAINT #arguments.name# FOREIGN KEY (#arguments.column#) REFERENCES #arguments.reference#(id)");
+        }
+    }
+
+    /**
+     * Drops the unique constraint on table.column if there is one
+     */
+    private void function dropUniqueConstraint(required string table, required string column) {
+        var name = getUniqueConstraintName(arguments.table, arguments.column);
+        if(len(name)) {
+            queryExecute("ALTER TABLE #arguments.table# DROP CONSTRAINT ""#name#""");
+        }
+    }
+
+    /**
+     * Renames the unique constraint on table.column to newName, adding it if the column has none
+     */
+    private void function renameUniqueConstraint(
+        required string table,
+        required string column,
+        required string newName
+    ) {
+        var name = getUniqueConstraintName(arguments.table, arguments.column);
+        if(!len(name)) {
+            queryExecute("ALTER TABLE #arguments.table# ADD CONSTRAINT #arguments.newName# UNIQUE (#arguments.column#)");
+        }
+        else if(name != arguments.newName) {
+            queryExecute("ALTER TABLE #arguments.table# RENAME CONSTRAINT ""#name#"" TO #arguments.newName#");
+        }
     }
 
     /**

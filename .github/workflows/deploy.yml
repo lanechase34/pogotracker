@@ -100,6 +100,8 @@ jobs:
           username: ${{ secrets.LIGHTSAIL_USERNAME }}
           key: "${{ secrets.LIGHTSAIL_SSH_KEY }}"
           script: |
+            # Fail the step on the first failing command - otherwise only the last command's exit code counts
+            set -e
             sudo sh -c 'echo "$(date)" > /var/www/wwwroot/pogotracker/version.html'
             cd /var/www/wwwroot/pogotracker/
             sudo box recipe scripts/deploy.boxr
