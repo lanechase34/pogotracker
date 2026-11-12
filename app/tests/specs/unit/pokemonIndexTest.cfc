@@ -41,14 +41,14 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                 appCache.clear("pokemon.getIndex");
             });
 
-            it("Includes every non-costume pokemon exactly once", () => {
+            it("Includes every live non-costume pokemon exactly once", () => {
                 var index = pokemonService.getIndex();
                 expect(index).toBeArray().notToBeEmpty();
 
                 var allSes = [];
                 index.each((group) => allSes.append(group.pokemon.map((mon) => mon.ses), true));
 
-                var expected = queryExecute("select count(id) as count from pokemon where costume = false");
+                var expected = queryExecute("select count(id) as count from pokemon where costume = false and live = true");
                 expect(allSes.len()).toBe(expected.count);
 
                 // No duplicates
@@ -57,11 +57,14 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                 expect(unique.count()).toBe(allSes.len());
             });
 
-            it("Lists exactly the non-costume pokemon (no costumes)", () => {
+            it("Lists exactly the live non-costume pokemon (no costumes)", () => {
                 var indexSes = [];
                 pokemonService.getIndex().each((group) => indexSes.append(group.pokemon.map((mon) => mon.ses), true));
 
-                var expectedSes = valueArray(queryExecute("select ses from pokemon where costume = false"), "ses");
+                var expectedSes = valueArray(
+                    queryExecute("select ses from pokemon where costume = false and live = true"),
+                    "ses"
+                );
 
                 indexSes.sort("textnocase");
                 expectedSes.sort("textnocase");
@@ -75,7 +78,7 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                     "
                         select g.region
                         from generation g
-                        where exists (select 1 from pokemon p where p.generation = g.generation and p.costume = false)
+                        where exists (select 1 from pokemon p where p.generation = g.generation and p.costume = false and p.live = true)
                         order by g.generation asc
                     ",
                     {},
@@ -110,7 +113,7 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                     "
                         select ses
                         from pokemon
-                        where costume = false
+                        where costume = false and live = true
                         order by generation asc, number asc, form asc
                     ",
                     {},

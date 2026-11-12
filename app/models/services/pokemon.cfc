@@ -450,7 +450,7 @@ component singleton accessors="true" {
     }
 
     /**
-     * All non-costume pokemon grouped by generation for the Pokedex index page
+     * All live non-costume pokemon grouped by generation for the Pokedex index page
      *
      * @return array of {generation, region, pokemon: [{name, number, ses, sprite, type1, type2}]}
      */
@@ -464,6 +464,8 @@ component singleton accessors="true" {
         index      = [];
         var groups = [:];
         getAll().each((pokemon) => {
+            if(!pokemon.getLive()) return;
+
             var generation = pokemon.getGeneration();
             var key        = toString(generation.getGeneration());
             if(!groups.keyExists(key)) {
@@ -642,7 +644,7 @@ component singleton accessors="true" {
         ormFlush();
 
         clearDetailCache(ses = pokemon.getSes());
-        // Index tiles show shiny availability and costumes respect live
+        // Index tiles show shiny availability and both indexes respect live
         cache.clear("pokemon.getIndex");
         cache.clear("pokemon.getCostumeIndex");
         templateCache.clearEvent("pokemon.indexContent");
