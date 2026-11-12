@@ -3,10 +3,10 @@
 <footer class="container-fluid text-secondary border-top border-secondary py-3">
     <div class="mx-lg-3">
         <nav aria-label="Footer" class="mb-2 small text-center">
-            <a href="/" class="link-secondary me-3">Home</a>
-            <a href="/pokemon" class="link-secondary">Pokémon GO Pokédex</a>
+            <a href="/" class="link-secondary me-2">Home</a>
+            <a href="/pokemon" class="link-secondary">Pokémon GO Database</a>
             <cfif !prc.keyExists("oCurrentUser")>
-                <a href="/register" class="link-secondary ms-3">Create an Account</a>
+                <a href="/register" class="link-secondary ms-2">Create an Account</a>
             </cfif>
         </nav>
         <p class="mb-1 small text-center">

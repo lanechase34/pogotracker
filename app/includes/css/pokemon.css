@@ -603,7 +603,8 @@
     font-weight: 700;
     color: var(--bs-dark);
     min-width: 0;
-    overflow: hidden;
+    /* Clip horizontally only - vertical clipping cuts off descenders (g, p, y) at line-height 1 */
+    overflow: clip visible;
     text-overflow: ellipsis;
 }
 
