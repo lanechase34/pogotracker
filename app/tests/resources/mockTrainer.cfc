@@ -24,7 +24,7 @@ component extends="coldbox.system.testing.BaseTestCase" {
      * @autoLogin     log in through the login form after creating
      * @verified      verified trainers have permissions, unverified have none
      */
-    component function make(
+    public component function make(
         numeric securityLevel = 10,
         boolean autoLogin     = true,
         boolean verified      = true

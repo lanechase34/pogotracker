@@ -16,10 +16,7 @@ component singleton accessors="true" {
      * Default site wide graph - WebSite + WebApplication
      */
     public struct function getSiteGraph() {
-        return [
-            "@context": "https://schema.org",
-            "@graph"  : [getWebSite(), getWebApplication()]
-        ];
+        return ["@context": "https://schema.org", "@graph": [getWebSite(), getWebApplication()]];
     }
 
     /**
