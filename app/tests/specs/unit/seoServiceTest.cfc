@@ -122,7 +122,7 @@ component extends="tests.resources.baseTest" asyncAll="true" {
                     var pageURL = "#domain#/pokemon";
                     var parsed  = roundTrip(
                         seoService.getPokedexIndex(
-                            name        = "Pokémon GO Pokédex",
+                            name        = "Pokémon GO Database",
                             description = "All pokemon",
                             pageURL     = pageURL
                         )

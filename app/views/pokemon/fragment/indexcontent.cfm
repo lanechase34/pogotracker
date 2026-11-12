@@ -4,7 +4,7 @@
 
 <!--- Banner - matches the home page hero --->
 <div class="pokedex-hero mt-3">
-    <h1 class="pokedex-hero-title mb-0">Pokémon GO Pokédex</h1>
+    <h1 class="pokedex-hero-title mb-0">Pokémon GO Database</h1>
     <p class="pokedex-hero-subtitle">
         Every Pokémon in Pokémon GO, grouped by generation. Pick a Pokémon to see its max CP,
         base stats, fast and charged moves, evolutions, shiny availability, and past events.

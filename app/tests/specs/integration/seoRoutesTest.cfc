@@ -57,7 +57,7 @@ component extends="tests.resources.baseTest" asyncAll="false" {
 
             it("Renders a crawlable list of links to detail pages", () => {
                 var html = anonymousGet("/pokemon").getRenderedContent();
-                expect(html).toInclude("<h1 class=""pokedex-hero-title mb-0"">Pokémon GO Pokédex</h1>");
+                expect(html).toInclude("<h1 class=""pokedex-hero-title mb-0"">Pokémon GO Database</h1>");
                 // Detail links are server rendered as plain anchors, so crawlers can follow them without JS
                 expect(html).toInclude("href=""/pokemon/1""");
                 expect(reFind("<a class=""pokedex-entry"" href=""/pokemon/[^""]+""", html)).toBeGT(0);
@@ -66,7 +66,7 @@ component extends="tests.resources.baseTest" asyncAll="false" {
             it("Has its own title, description, and canonical", () => {
                 var event = anonymousGet("/pokemon");
                 var html  = event.getRenderedContent();
-                expect(event.getPrivateValue("title")).toInclude("Pokédex");
+                expect(event.getPrivateValue("title")).toInclude("Database");
                 expect(event.getPrivateValue("title")).toInclude("| #siteName#");
                 expect(event.getPrivateValue("metaDescription")).notToBeEmpty();
                 expect(html).toInclude("<link rel=""canonical"" href=""#domain#/pokemon"">");

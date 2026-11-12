@@ -20,12 +20,12 @@ component extends="base" {
      * Public and server rendered so search engines can crawl every detail page
      */
     function index(event, rc, prc) {
-        prc.title           = "Pokémon GO Pokédex - All Pokémon by Generation | #getSetting("siteName")#";
+        prc.title           = "Pokémon GO Database - All Pokémon by Generation | #getSetting("siteName")#";
         prc.metaDescription = "Browse every Pokémon in Pokémon GO by generation and region. See max CP, base stats, moves, evolutions, and shiny availability for each Pokémon.";
         prc.canonicalURL    = "#getSetting("domain")#/pokemon";
         prc.suppressH1      = true; // view provides its own h1
         prc.structuredData  = seoService.getPokedexIndex(
-            name        = "Pokémon GO Pokédex",
+            name        = "Pokémon GO Database",
             description = prc.metaDescription,
             pageURL     = prc.canonicalURL
         );
