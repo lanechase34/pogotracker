@@ -2,7 +2,8 @@ component extends="tests.resources.baseTest" asyncAll="false" {
 
     function beforeAll() {
         super.beforeAll();
-        mockTrainer = getInstance("tests.resources.mocktrainer");
+        mockTrainer             = getInstance("tests.resources.mocktrainer");
+        originalDefaultSettings = duplicate(application.cbController.getSetting("defaultSettings"));
     }
 
     function afterAll() {
@@ -15,10 +16,6 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                 setup();
                 trainerService = getInstance("services.trainer");
                 trainer        = mockTrainer.make(10, false);
-            });
-
-            it("Can be created", () => {
-                expect(trainerService).toBeComponent();
             });
 
             it("Trainer can getSettings()", () => {
@@ -50,6 +47,13 @@ component extends="tests.resources.baseTest" asyncAll="false" {
             });
 
             describe("Trainer's settings will auto update on login if a new key is present in the default settings", () => {
+                afterEach(() => {
+                    // Restore in place - services inject this same struct, so swapping in a new one wouldn't reach them
+                    var live = application.cbController.getSetting("defaultSettings");
+                    live.clear();
+                    live.append(duplicate(originalDefaultSettings));
+                });
+
                 it("Can update if a simple value is added", () => {
                     mockTrainer.login(trainer);
                     settings = trainer.getSettings();

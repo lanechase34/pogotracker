@@ -7,8 +7,8 @@ component extends="coldbox.system.testing.BaseInterceptorTest" interceptor="inte
         super.setup();
 
         // Mock interceptor dependencies
-        mockSecurityService  = createEmptyMock(className = "models.services.security");
-        mockSessionService   = createEmptyMock(className = "models.services.session");
+        mockUtilService      = createEmptyMock(className = "models.services.util");
+        mockFlash            = createEmptyMock(className = "coldbox.system.web.flash.SessionFlash");
         mockRateLimitService = createEmptyMock(className = "models.services.rateLimit");
     }
 
@@ -30,6 +30,19 @@ component extends="coldbox.system.testing.BaseInterceptorTest" interceptor="inte
     }
 
     /**
+     * Run postLogin on the interceptor with the shared mocks
+     */
+    private function announceLogin() {
+        interceptor.postLogin(
+            event  = mockRequestContext,
+            data   = {},
+            buffer = "",
+            rc     = rc,
+            prc    = prc
+        );
+    }
+
+    /**
      * Configure the limits the interceptor sees
      */
     private function withLimits(required struct limits) {
@@ -42,21 +55,20 @@ component extends="coldbox.system.testing.BaseInterceptorTest" interceptor="inte
                 setup();
 
                 // Reset mocks before each test
-                mockSecurityService.$reset();
-                mockSecurityService.$("getRequestIP", "192.168.1.1");
+                mockUtilService.$reset();
+                mockUtilService.$("getRequestIP", "192.168.1.1");
 
-                mockSessionService.$reset();
-                mockSessionService.$("setAlert");
+                mockFlash.$reset();
+                mockFlash.$("put");
 
                 mockRateLimitService.$reset();
-                mockRateLimitService.$("buildKey", "mock:key");
-                mockRateLimitService.$("hit", true);
+                mockRateLimitService.$("allow", true);
+                mockRateLimitService.$("reset");
 
                 // Inject dependencies
-                interceptor.$property(propertyName = "securityService", mock = mockSecurityService);
-                interceptor.$property(propertyName = "sessionService", mock = mockSessionService);
+                interceptor.$property(propertyName = "utilService", mock = mockUtilService);
+                interceptor.$property(propertyName = "flash", mock = mockFlash);
                 interceptor.$property(propertyName = "rateLimitService", mock = mockRateLimitService);
-                interceptor.$property(propertyName = "useRateLimiter", mock = true);
                 interceptor.$("relocate");
                 withLimits({
                     "login.dologin": {redirect: "/login", rules: [{by: "ip", limit: 5, window: 15}]},
@@ -68,22 +80,20 @@ component extends="coldbox.system.testing.BaseInterceptorTest" interceptor="inte
                 mockRequestContext.$("getCurrentEvent", "login.doLogin");
                 mockRequestContext.$("renderData", mockRequestContext);
                 mockRequestContext.$("noExecution", mockRequestContext);
+                mockRequestContext.$("isNoExecution", false);
 
                 rc  = {};
                 prc = {};
             });
 
-            it("Can be created", () => {
-                expect(interceptor).toBeComponent();
-            });
-
-            it("Should skip rate limiting when useRateLimiter is false", () => {
-                interceptor.$property(propertyName = "useRateLimiter", mock = false);
+            it("Should skip rate limiting when an earlier interceptor already blocked the request", () => {
+                // e.g. guestOnly rendered a json error and called noExecution()
+                mockRequestContext.$("isNoExecution", true);
 
                 announce();
 
                 expect(mockRequestContext.$never("getCurrentEvent")).toBeTrue();
-                expect(mockRateLimitService.$never("hit")).toBeTrue();
+                expect(mockRateLimitService.$never("allow")).toBeTrue();
             });
 
             it("Should skip rate limiting when current event has no rate limit configured", () => {
@@ -91,75 +101,38 @@ component extends="coldbox.system.testing.BaseInterceptorTest" interceptor="inte
 
                 announce();
 
-                expect(mockSecurityService.$never("getRequestIP")).toBeTrue();
-                expect(mockRateLimitService.$never("hit")).toBeTrue();
+                expect(mockUtilService.$never("getRequestIP")).toBeTrue();
+                expect(mockRateLimitService.$never("allow")).toBeTrue();
             });
 
-            it("Should lowercase the event and use the request ip", () => {
-                announce();
-
-                var buildKeyCall = mockRateLimitService.$callLog().buildKey[1];
-                expect(buildKeyCall.currentEvent).toBe("login.dologin");
-                expect(buildKeyCall.ip).toBe("192.168.1.1");
-            });
-
-            it("Should build the key from the rule fields and the rc", () => {
-                withLimits({"login.dologin": {redirect: "/login", rules: [{by: "ip,email", limit: 5, window: 15}]}});
+            it("Should check the lowercased event with the request ip and rc", () => {
                 rc.email = "test@gmail.com";
 
                 announce();
 
-                var buildKeyCall = mockRateLimitService.$callLog().buildKey[1];
-                expect(buildKeyCall.by).toBe(["ip", "email"]);
-                expect(buildKeyCall.context.email).toBe("test@gmail.com");
-            });
-
-            it("Should skip a rule when its key cannot be built", () => {
-                mockRateLimitService.$("buildKey", "");
-
-                announce();
-
-                expect(mockRateLimitService.$never("hit")).toBeTrue();
-                expect(interceptor.$never("relocate")).toBeTrue();
-            });
-
-            it("Should count every rule configured for the event", () => {
-                withLimits({
-                    "login.dologin": {
-                        redirect: "/login",
-                        rules   : [
-                            {by: "ip", limit: 20, window: 15},
-                            {by: "ip,email", limit: 5, window: 15},
-                            {by: "email", limit: 10, window: 30}
-                        ]
-                    }
-                });
-                mockRateLimitService.$("buildKey").$results("key:ip", "key:ip+email", "key:email");
-
-                announce();
-
-                var hitCalls = mockRateLimitService.$callLog().hit;
-                expect(hitCalls.map((call) => call.key)).toBe(["key:ip", "key:ip+email", "key:email"]);
-                expect(hitCalls.map((call) => call.limit)).toBe([20, 5, 10]);
-                expect(hitCalls.map((call) => call.window)).toBe([15, 15, 30]);
+                var allowCall = mockRateLimitService.$callLog().allow[1];
+                expect(allowCall.name).toBe("login.dologin");
+                expect(allowCall.ip).toBe("192.168.1.1");
+                expect(allowCall.context.email).toBe("test@gmail.com");
             });
 
             it("Should allow the request when the limit is not exceeded", () => {
                 announce();
 
-                expect(mockRateLimitService.$once("hit")).toBeTrue();
+                expect(mockRateLimitService.$once("allow")).toBeTrue();
                 expect(interceptor.$never("relocate")).toBeTrue();
                 expect(mockRequestContext.$never("renderData")).toBeTrue();
                 expect(mockRequestContext.$never("noExecution")).toBeTrue();
             });
 
             it("Should relocate form posts with an alert when the limit is exceeded", () => {
-                mockRateLimitService.$("hit", false);
+                mockRateLimitService.$("allow", false);
 
                 announce();
 
-                expect(mockSessionService.$once("setAlert")).toBeTrue();
-                expect(mockSessionService.$callLog().setAlert[1][1]).toBe("danger");
+                expect(mockFlash.$once("put")).toBeTrue();
+                expect(mockFlash.$callLog().put[1].name).toBe("alert");
+                expect(mockFlash.$callLog().put[1].value.type).toBe("danger");
                 expect(interceptor.$once("relocate")).toBeTrue();
                 expect(interceptor.$callLog().relocate[1].uri).toBe("/login");
                 expect(mockRequestContext.$never("renderData")).toBeTrue();
@@ -167,7 +140,7 @@ component extends="coldbox.system.testing.BaseInterceptorTest" interceptor="inte
 
             it("Should return a json 429 for ajax endpoints when the limit is exceeded", () => {
                 mockRequestContext.$("getCurrentEvent", "home.contact");
-                mockRateLimitService.$("hit", false);
+                mockRateLimitService.$("allow", false);
 
                 announce();
 
@@ -180,22 +153,18 @@ component extends="coldbox.system.testing.BaseInterceptorTest" interceptor="inte
                 expect(interceptor.$never("relocate")).toBeTrue();
             });
 
-            it("Should block when any one rule is exceeded and still count every rule", () => {
-                withLimits({
-                    "login.dologin": {
-                        redirect: "/login",
-                        rules   : [
-                            {by: "ip", limit: 20, window: 15},
-                            {by: "ip,email", limit: 5, window: 15}
-                        ]
-                    }
+            describe("postLogin", () => {
+                it("Should reset the lowercased event with the request ip and rc", () => {
+                    rc.email = "test@gmail.com";
+
+                    announceLogin();
+
+                    expect(mockRateLimitService.$once("reset")).toBeTrue();
+                    var resetCall = mockRateLimitService.$callLog().reset[1];
+                    expect(resetCall.name).toBe("login.dologin");
+                    expect(resetCall.ip).toBe("192.168.1.1");
+                    expect(resetCall.context.email).toBe("test@gmail.com");
                 });
-                mockRateLimitService.$("hit").$results(true, false);
-
-                announce();
-
-                expect(mockRateLimitService.$count("hit")).toBe(2);
-                expect(interceptor.$once("relocate")).toBeTrue();
             });
         });
     }

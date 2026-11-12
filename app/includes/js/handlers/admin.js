@@ -1,5 +1,5 @@
 import { createAlert } from 'alert';
-import { copyString, initCopyIcons } from 'copy';
+import { copyString } from 'copy';
 import { escapeHtml } from 'escape';
 import { getWrapper, postWrapper } from 'fetch';
 import { format, validate } from 'json';
@@ -47,8 +47,6 @@ async function getEditTrainer(trainerid) {
                 const packet = Object.fromEntries(formData.entries());
                 await updateProfile(packet, $submitEditProfileForm);
             });
-
-            initCopyIcons();
         },
     });
 }

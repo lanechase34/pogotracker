@@ -2,8 +2,6 @@ component singleton accessors="true" {
 
     property name="cache"             inject="cachebox:appCache";
     property name="generationService" inject="services.generation";
-    property name="maxThreads"        inject="coldbox:setting:maxThreads";
-    property name="pokemonService"    inject="services.pokemon";
     property name="utilService"       inject="services.util";
 
     /**
@@ -71,6 +69,14 @@ component singleton accessors="true" {
         required boolean shadow,
         required boolean shadowshiny
     ) {
+        var values = {
+            "caught"     : arguments.caught,
+            "shiny"      : arguments.shiny,
+            "hundo"      : arguments.hundo,
+            "shadow"     : arguments.shadow,
+            "shadowshiny": arguments.shadowshiny
+        };
+
         var entry = entityLoad(
             "pokedex",
             {"trainer": arguments.trainer, "pokemon": arguments.pokemon},
@@ -79,30 +85,34 @@ component singleton accessors="true" {
 
         // If we haven't registered this pokemon, create a new record
         if(isNull(entry)) {
-            entry = entityNew(
-                "pokedex",
-                {
-                    "trainer"    : arguments.trainer,
-                    "pokemon"    : arguments.pokemon,
-                    "caught"     : arguments.caught,
-                    "shiny"      : arguments.shiny,
-                    "hundo"      : arguments.hundo,
-                    "shadow"     : arguments.shadow,
-                    "shadowshiny": arguments.shadowshiny
-                }
-            );
+            var properties        = duplicate(values);
+            properties["trainer"] = arguments.trainer;
+            properties["pokemon"] = arguments.pokemon;
+            entry                 = entityNew("pokedex", properties);
         }
         // Update the already registered values
         else {
-            entry.setCaught(arguments.caught);
-            entry.setShiny(arguments.shiny);
-            entry.setHundo(arguments.hundo);
-            entry.setShadow(arguments.shadow);
-            entry.setShadowShiny(arguments.shadowshiny);
+            entry.setCaught(values.caught);
+            entry.setShiny(values.shiny);
+            entry.setHundo(values.hundo);
+            entry.setShadow(values.shadow);
+            entry.setShadowShiny(values.shadowshiny);
         }
 
-        entitySave(entry);
-        ormFlush();
+        try {
+            entitySave(entry);
+            ormFlush();
+        }
+        catch(any e) {
+            if(utilService.getUniqueViolation(e) != "unq_pokedex_trainerid_pokemonid") {
+                throw(object = e);
+            }
+
+            // Another request (double submit) inserted this entry between our load and insert - the first write stands
+            // Hibernate can't continue a session after a failed statement, so it is cleared
+            ormClearSession();
+            return;
+        }
 
         clearPokedexCache(trainerid = arguments.trainer.getId(), region = arguments.pokemon.getGeneration().getRegion());
         return;
@@ -110,8 +120,7 @@ component singleton accessors="true" {
 
     /**
      * Registers all pokemon for trainer in a given region
-     * Existing entries are flipped with a single UPDATE, missing entries are inserted through ORM with one flush
-     * (inserts must go through ORM - ids use hibernate's increment generator, not the db sequence)
+     * Existing entries are flipped with a single UPDATE, missing entries are added with a single INSERT ... SELECT
      */
     public void function registerAll(
         required component trainer,
@@ -153,36 +162,21 @@ component singleton accessors="true" {
             params
         );
 
-        // Pokemon with no entry yet
-        var missing = queryExecute(
+        // Pokemon with no entry yet - the other columns take the table defaults, same as the entity defaults
+        // ON CONFLICT: unq_pokedex_trainerid_pokemonid already has the row (e.g. a double submit) - leave it be
+        var insertParams    = duplicate(params);
+        insertParams.caught = {value: !arguments.shiny, cfsqltype: "boolean"};
+        insertParams.shiny  = {value: arguments.shiny, cfsqltype: "boolean"};
+        queryExecute(
             "
-            SELECT pokemon.id
+            INSERT INTO pokedex (trainerid, pokemonid, caught, shiny, created, updated)
+            SELECT :trainerid, pokemon.id, :caught, :shiny, now(), now()
             FROM pokemon
             WHERE #eligibleWhere#
-                AND NOT EXISTS (
-                    SELECT 1 FROM pokedex WHERE pokedex.trainerid = :trainerid AND pokedex.pokemonid = pokemon.id
-                )
+            ON CONFLICT (trainerid, pokemonid) DO NOTHING
             ",
-            params
+            insertParams
         );
-
-        if(missing.recordCount) {
-            var pokemonList = ormExecuteQuery("from pokemon where id in (:ids)", {"ids": missing.columnData("id")});
-            pokemonList.each((pokemon) => {
-                entitySave(
-                    entityNew(
-                        "pokedex",
-                        {
-                            "trainer": trainer,
-                            "pokemon": pokemon,
-                            "caught" : !shiny,
-                            "shiny"  : shiny
-                        }
-                    )
-                );
-            });
-            ormFlush();
-        }
 
         clearPokedexCache(trainerid = arguments.trainer.getId(), region = generation.getRegion());
         return;

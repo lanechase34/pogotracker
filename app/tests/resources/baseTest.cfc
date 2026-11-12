@@ -29,4 +29,17 @@ component extends="coldbox.system.testing.BaseTestCase" appMapping="/app" {
         super.afterAll();
     }
 
+    /**
+     * An AsyncManager whose newFuture runs the closure right away, so fire and forget work is done before the next line
+     * Swap it in with $property(propertyName = "async", ...) and put the original back when the spec is done
+     */
+    public any function syncAsync() {
+        return createEmptyMock("coldbox.system.async.AsyncManager")
+            .$("newFuture")
+            .$callback((value) => {
+                arguments.value();
+                return createEmptyMock("coldbox.system.async.tasks.Future");
+            });
+    }
+
 }

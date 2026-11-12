@@ -1,7 +1,7 @@
 component singleton accessors="true" {
 
-    property name="async"          inject="asyncManager@coldbox";
     property name="trainerService" inject="services.trainer";
+    property name="utilService"    inject="services.util";
 
     /**
      * Get friends list
@@ -36,47 +36,56 @@ component singleton accessors="true" {
         required numeric page,
         numeric pageSize = 10
     ) {
-        var results = async
-            .all(
-                () => ormExecuteQuery(
-                    "
-                    select friend.friend, friend.accepted
-                    from friend as friend
-                    where friend.trainer = :trainer
-                        and friend.accepted = true
-                        and upper(friend.friend.username) like :search
-                    order by friend.accepted desc, friend.friend.username asc
-                    ",
-                    {trainer: trainer, search: "%#uCase(search)#%"},
-                    {offset: (page - 1) * pageSize, maxResults: pageSize}
-                ),
-                () => ormExecuteQuery(
-                    "
-                    select count(friend.friend.id)
-                    from friend as friend
-                    where friend.trainer = :trainer
-                        and friend.accepted = true
-                        and upper(friend.friend.username) like :search
-                    ",
-                    {trainer: trainer, search: "%#uCase(search)#%"}
-                )
-            )
-            .get();
+        var fromWhere = "
+            from friend as friend
+            join friend.friend as trainer
+            where friend.trainer = :trainer
+                and friend.accepted = true
+                and #utilService.searchHQL(["trainer.username"])#
+        ";
+        var params = {trainer: trainer, search: utilService.likeContains(search)};
 
-        var friendsList      = results[1];
-        var friendsListCount = results[2];
+        var trainers = ormExecuteQuery(
+            "
+            select trainer
+            #fromWhere#
+            order by trainer.username asc, trainer.id asc
+            ",
+            params,
+            {offset: (page - 1) * pageSize, maxResults: pageSize + 1}
+        );
 
-        return {
-            results: friendsList.map((friend) => {
-                return {
-                    id  : friend[1].getId(),
-                    text: friend[1].getUsername(),
-                    img : friend[1].getIcon(),
-                    alt : friend[1].getIconAltText()
-                };
-            }),
-            pagination: {more: friendsListCount[1] > page * pageSize}
-        };
+        return toSelectPage(trainers, pageSize);
+    }
+
+    /**
+     * Select2 page from a query that fetched one row past the page - that extra row means there is another page
+     *
+     * @trainers up to pageSize + 1 trainer entities, in display order
+     * @pageSize rows per page
+     */
+    private struct function toSelectPage(required array trainers, required numeric pageSize) {
+        var more = arguments.trainers.len() > arguments.pageSize;
+        if(more) {
+            arguments.trainers.deleteAt(arguments.trainers.len());
+        }
+        return {results: toSelectOptions(arguments.trainers), pagination: {more: more}};
+    }
+
+    /**
+     * Select2 options for a page of trainers
+     *
+     * @trainers trainer entities, in display order
+     */
+    private array function toSelectOptions(required array trainers) {
+        return arguments.trainers.map((trainer) => {
+            return {
+                id  : trainer.getId(),
+                text: trainer.getUsername(),
+                img : trainer.getIcon(),
+                alt : trainer.getIconAltText()
+            };
+        });
     }
 
     /**
@@ -92,18 +101,19 @@ component singleton accessors="true" {
         if(check.len() && check.len() == 1) {
             acceptFriendRequest(check[1].getId(), trainer);
         }
-        // Create the friend request in pending status
+        // Create the friend request in pending status - a request already sent (double submit) is left as is
         else {
-            var newFriendRequest = entityNew(
-                "friend",
+            queryExecute(
+                "
+                INSERT INTO friend (trainerid, friendid, accepted, created, updated)
+                VALUES (:trainerid, :friendid, false, now(), now())
+                ON CONFLICT (trainerid, friendid) DO NOTHING
+                ",
                 {
-                    "trainer" : trainer,
-                    "friend"  : friend,
-                    "accepted": false
+                    trainerid: {value: trainer.getId(), cfsqltype: "integer"},
+                    friendid : {value: friend.getId(), cfsqltype: "integer"}
                 }
             );
-            entitySave(newFriendRequest);
-            ormFlush();
         }
         return;
     }
@@ -128,19 +138,24 @@ component singleton accessors="true" {
      * Makes a two way directional friend request
      */
     public void function acceptFriendRequest(required numeric friendrequestid, required component trainer) {
-        var friendRequest       = entityLoadByPK("friend", arguments.friendrequestid);
-        var twoWayFriendRequest = entityNew(
-            "friend",
-            {
-                "trainer" : arguments.trainer,
-                "friend"  : friendRequest.getTrainer(),
-                "accepted": true
-            }
-        );
+        var friendRequest = entityLoadByPK("friend", arguments.friendrequestid);
         friendRequest.setAccepted(true);
         entitySave(friendRequest);
-        entitySave(twoWayFriendRequest);
         ormFlush();
+
+        // The other direction - one row per pair
+        // If it exists already (both trainers sent a request at once, or a double accept) it is accepted instead of inserted twice
+        queryExecute(
+            "
+            INSERT INTO friend (trainerid, friendid, accepted, created, updated)
+            VALUES (:trainerid, :friendid, true, now(), now())
+            ON CONFLICT (trainerid, friendid) DO UPDATE SET accepted = true
+            ",
+            {
+                trainerid: {value: arguments.trainer.getId(), cfsqltype: "integer"},
+                friendid : {value: friendRequest.getTrainer().getId(), cfsqltype: "integer"}
+            }
+        );
         return;
     }
 
@@ -189,53 +204,29 @@ component singleton accessors="true" {
         required numeric page,
         numeric pageSize = 10
     ) {
-        // grab ones that are pending - need to show to user that these are pending requests
-        // right xor here so we can join f.friendid = t.id
-        var results = async
-            .all(
-                () => ormExecuteQuery(
-                    "
-                    select trainer
-                    from friend as friend
-                    right outer join friend.friend as trainer with friend.trainer = :trainer
-                    where friend is null 
-                        and trainer != :trainer 
-                        and trainer.verified = true
-                        and upper(trainer.username) like :search
-                    order by trainer.username asc
-                    ",
-                    {trainer: trainer, search: "%#uCase(search)#%"},
-                    {offset: (page - 1) * pageSize, maxResults: pageSize}
-                ),
-                () => ormExecuteQuery(
-                    "
-                    select count(trainer.id)
-                    from friend as friend
-                    right outer join friend.friend as trainer with friend.trainer = :trainer
-                    where friend is null 
-                        and trainer != :trainer 
-                        and trainer.verified = true
-                        and upper(trainer.username) like :search
-                    ",
-                    {trainer: trainer, search: "%#uCase(search)#%"}
+        // Verified trainers this trainer has no friend row towards yet (accepted or pending)
+        var fromWhere = "
+            from trainer as trainer
+            where trainer != :trainer
+                and trainer.verified = true
+                and #utilService.searchHQL(["trainer.username"])#
+                and not exists (
+                    select friend.id from friend as friend where friend.trainer = :trainer and friend.friend = trainer
                 )
-            )
-            .get();
+        ";
+        var params = {trainer: trainer, search: utilService.likeContains(search)};
 
-        var canAdd      = results[1];
-        var canAddCount = results[2];
+        var trainers = ormExecuteQuery(
+            "
+            select trainer
+            #fromWhere#
+            order by trainer.username asc, trainer.id asc
+            ",
+            params,
+            {offset: (page - 1) * pageSize, maxResults: pageSize + 1}
+        );
 
-        return {
-            results: canAdd.map((trainer) => {
-                return {
-                    id  : trainer.getId(),
-                    text: trainer.getUsername(),
-                    img : trainer.getIcon(),
-                    alt : trainer.getIconAltText()
-                };
-            }),
-            pagination: {more: canAddCount[1] > page * pageSize}
-        };
+        return toSelectPage(trainers, pageSize);
     }
 
 }

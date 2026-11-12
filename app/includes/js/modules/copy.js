@@ -1,18 +1,5 @@
 const $copied = `<i class="bi bi-check2 me-1"></i>Copied`;
 
-export function initCopyIcons() {
-    const copyIcons = document.querySelectorAll('.copyIcon');
-    Array.from(copyIcons).forEach((copyicon) => {
-        copyicon.addEventListener('click', (evt) => {
-            const text = /** @type {HTMLElement} */ (evt.currentTarget).dataset.copydata;
-
-            navigator.clipboard.writeText(text);
-
-            /** @type {HTMLElement} */ (evt.currentTarget).innerHTML = $copied;
-        });
-    });
-}
-
 /**
  * Used when a button changes text
  * Locks the button to the width of largest of the text (original or what it changes to)

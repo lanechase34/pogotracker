@@ -21,10 +21,6 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                 medalService = getInstance("services.medal");
             });
 
-            it("Can be created", () => {
-                expect(medalService).toBeComponent();
-            });
-
             it("Can getAll medals", () => {
                 medals = medalService.getAll();
                 expect(medals).toBeArray();
@@ -33,7 +29,7 @@ component extends="tests.resources.baseTest" asyncAll="false" {
 
             it("Cam load medal by name", () => {
                 name  = "Ultra League Veteran";
-                medal = medalService.get(name);
+                medal = entityLoad("medal", {"name": name});
                 expect(medal).toBeArray();
                 expect(medal.len()).toBe(1);
                 expect(medal[1].getName()).toBe(name);
@@ -53,7 +49,7 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                 ormFlush();
 
                 // Load medal by name
-                medal = medalService.get(medalProperties.name);
+                medal = entityLoad("medal", {"name": medalProperties.name});
                 expect(medal).toBeArray();
                 expect(medal.len()).toBe(1);
                 expect(medal[1].getName()).toBe(medalProperties.name);
@@ -73,7 +69,7 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                 ormFlush();
 
                 // Load medal by name
-                medal = medalService.get(medalProperties.name);
+                medal = entityLoad("medal", {"name": medalProperties.name});
                 expect(medal).toBeArray();
                 expect(medal.len()).toBe(1);
                 expect(medal[1].getDescription()).toBe("Updated");
@@ -81,7 +77,7 @@ component extends="tests.resources.baseTest" asyncAll="false" {
 
             describe("Trainer medal lifecycle", () => {
                 it("Can get medal by name", () => {
-                    medal = medalService.get("Youngster");
+                    medal = entityLoad("medal", {"name": "Youngster"});
                     expect(medal).toBeArray();
                     expect(medal.len()).toBe(1);
                     medal = medal[1];

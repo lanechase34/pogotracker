@@ -3,7 +3,6 @@ component extends="base" {
     this.allowedMethods = {
         loginForm         : "GET",
         doLogin           : "POST",
-        persistLogin      : "GET",
         registrationForm  : "GET",
         register          : "POST",
         verifyForm        : "GET,POST",
@@ -12,26 +11,24 @@ component extends="base" {
         forgotPassword    : "POST",
         resetPasswordForm : "GET",
         resetPassword     : "POST",
-        verifyRecaptcha   : "POST"
+        verifyRecaptcha   : "POST",
+        logout            : "POST"
     };
 
-    property name="auditService"    inject="services.audit";
-    property name="persistService"  inject="services.persist";
-    property name="trainerService"  inject="services.trainer";
-    property name="securityService" inject="services.security";
-    property name="sessionService"  inject="services.session";
+    property name="accountService"   inject="services.account";
+    property name="auditService"     inject="services.audit";
+    property name="persistService"   inject="services.persist";
+    property name="recaptchaService" inject="services.recaptcha";
+    property name="sessionService"   inject="services.session";
+    property name="trainerService"   inject="services.trainer";
+    property name="userService"      inject="services.user";
 
     this.prehandler_except = "logout";
 
     // Fires before the handler action is invoked
     function preHandler(event, rc, prc, action, eventArguments) {
-        // If the user is already logged in and verified -> relocate home
-        if(session.authenticated && session.verified) {
-            relocate(uri = "/")
-        }
-
         // Validate the incoming user
-        prc.auditInfo = auditService.getAuditObj(trainerid = session?.trainerid ?: -1, event = rc.event);
+        prc.auditInfo = auditService.getAuditObj(trainerid = (prc?.oCurrentUser?.getId() ?: -1), event = rc.event);
         if(hasValidationErrors(target = prc.auditInfo, constraints = "audit")) {
             htmlValidationFailure(event = event, redirectUri = "/unauthorized");
             return;
@@ -53,37 +50,12 @@ component extends="base" {
             relocate(uri = "/login");
         }
 
-        // Ensure these actions are submitted from correct referer
-        if(
-            getSetting("refererChecks").keyExists(prc.currAction) &&
-            !isValidReferer(getSetting("refererChecks")[prc.currAction])
-        ) {
-            sessionService.setAlert(argumentCollection = prc.genericFailure);
-            prc.auditInfo.detail = "Failed Referer Check";
-            auditService.audit(argumentCollection = prc.auditInfo);
-            relocate(uri = "/login");
-        }
-
-        // Ensure the CSRF Token validates for these actions
-        if(
-            getSetting("csrfChecks").keyExists(prc.currAction) && (
-                !rc.keyExists(getSetting("csrfTokenField")) ||
-                !csrfVerifyToken(rc[getSetting("csrfTokenField")])
-            )
-        ) {
-            sessionService.setAlert(argumentCollection = prc.genericFailure);
-            persistService.deleteCookie(); // delete persist cookie if exists
-            prc.auditInfo.detail = "Failed CSRF Validation";
-            auditService.audit(argumentCollection = prc.auditInfo);
-            relocate(uri = "/login");
-        }
-
         // Ensure the user has passed the recaptcha check
         if(
             getSetting("recaptchaChecks").keyExists(prc.currAction) &&
-            !securityService.checkRecaptcha(prc.currAction)
+            !recaptchaService.check(prc.currAction)
         ) {
-            sessionService.setAlert(argumentCollection = prc.genericFailure);
+            flash.put(name = "alert", value = prc.genericFailure);
             prc.auditInfo.detail = "Failed Recaptcha Check";
             auditService.audit(argumentCollection = prc.auditInfo);
             relocate(uri = "/login");
@@ -100,28 +72,6 @@ component extends="base" {
         prc.metaDescription = "Sign in to POGO Tracker to track your Pokémon GO journey — Pokédex, XP, medals, shiny collection, and more.";
     }
 
-    function persistLogin(event, rc, prc) {
-        param name="rc.persistCookie" default="";
-
-        // Atempt to receive valid user with this persist cookie
-        prc.loginStruct = persistService.login(rc.persistCookie);
-        if(!prc.loginStruct.success) {
-            prc.auditInfo.detail = "Failed Persist Login";
-            auditService.audit(argumentCollection = prc.auditInfo);
-            persistService.deleteCookie();
-            relocate(uri = "/login");
-        }
-
-        prc.auditInfo.detail = "Successful Persist Login from #prc?.linkedEvent ?: "/"#";
-        sessionService.create(
-            email     = prc.loginStruct.email,
-            persist   = false,
-            auditInfo = prc.auditInfo
-        );
-
-        relocate(uri = prc?.linkedEvent ?: "/");
-    }
-
     function doLogin(event, rc, prc) {
         param name="rc.email"    default="";
         param name="rc.password" default="";
@@ -132,30 +82,35 @@ component extends="base" {
             prc.auditInfo.detail = "Failed Login Validation";
             auditService.audit(argumentCollection = prc.auditInfo);
 
-            sessionService.setAlert(argumentCollection = prc.genericFailure);
+            flash.put(name = "alert", value = prc.genericFailure);
             relocate(uri = "/login");
         }
 
-        rc.email  = lCase(rc.email);
-        prc.login = securityService.login(rc.email, rc.password);
-        if(!prc.login) {
+        rc.email = lCase(rc.email);
+        try {
+            prc.trainer = auth().authenticate(rc.email, rc.password);
+        }
+        catch(InvalidCredentials e) {
             prc.auditInfo.detail = "Incorrect Login Credentials";
             auditService.audit(argumentCollection = prc.auditInfo);
 
-            sessionService.setAlert(argumentCollection = prc.genericFailure);
+            flash.put(name = "alert", value = prc.genericFailure);
             relocate(uri = "/login");
         }
 
-        prc.persist = rc.persist == "on" ? true : false;
+        if(rc.persist == "on") {
+            persistService.addCookie(prc.trainer);
+        }
 
-        prc.auditInfo.detail = "Successful Login";
-        sessionService.create(
-            email     = rc.email,
-            persist   = prc.persist,
-            auditInfo = prc.auditInfo
-        );
+        prc.auditInfo.trainerid = prc.trainer.getId();
+        prc.auditInfo.detail    = "Successful Login";
+        auditService.audit(argumentCollection = prc.auditInfo);
 
-        relocate(uri = request.linkedEvent);
+        if(!prc.trainer.getVerified()) {
+            relocate(uri = "/verify");
+        }
+
+        relocate(uri = takeLinkedEvent(prc.trainer));
     }
 
     function registrationForm(event, rc, prc) {
@@ -172,61 +127,88 @@ component extends="base" {
         param name="rc.icon"       default="";
 
         prc.validation = validate(target = rc, constraints = "registrationForm");
-        if(prc.validation.hasErrors()) {
-            sessionService.setAlert(
-                "danger",
-                true,
-                "bi-exclamation-diamond-fill",
-                "Invalid registration. Username/email/friendcode already taken, please try again.",
-                0
+        if(prc.validation.hasErrors() || !trainerService.isAllowedIcon(rc.icon)) {
+            flash.put(
+                name  = "alert",
+                value = {
+                    "type"       : "danger",
+                    "dismissible": true,
+                    "icon"       : "bi-exclamation-diamond-fill",
+                    "message"    : "Invalid registration. Username/email/friendcode already taken, please try again.",
+                    "margin"     : 0
+                }
             );
             relocate(event = "register");
         }
 
-        securityService.register(
-            rc.username,
-            rc.password,
-            rc.email,
-            rc.friendcode,
-            rc.icon
+        try {
+            var newTrainer = accountService.register(
+                rc.username,
+                rc.password,
+                rc.email,
+                rc.friendcode,
+                rc.icon
+            );
+        }
+        catch(UniqueViolation e) {
+            flash.put(
+                name  = "alert",
+                value = {
+                    "type"       : "danger",
+                    "dismissible": true,
+                    "icon"       : "bi-exclamation-diamond-fill",
+                    "message"    : "Invalid registration. #e.message# Please try again.",
+                    "margin"     : 0
+                }
+            );
+            relocate(event = "register");
+        }
+
+        flash.put(
+            name  = "alert",
+            value = {
+                "type"       : "success",
+                "dismissible": true,
+                "icon"       : "bi-check-square-fill",
+                "message"    : "Registration complete!"
+            }
         );
 
-        sessionService.setAlert(
-            "success",
-            true,
-            "bi-check-square-fill",
-            "Registration complete!"
-        );
+        auth().login(trainerService.getFromId(newTrainer.getId()));
 
-        prc.auditInfo.detail = "Successful Registration";
-        sessionService.create(
-            email     = rc.email,
-            persist   = false,
-            auditInfo = prc.auditInfo
-        );
+        prc.auditInfo.trainerid = newTrainer.getId();
+        prc.auditInfo.detail    = "Successful Registration";
+        auditService.audit(argumentCollection = prc.auditInfo);
 
-        securityService.sendVerificationCode(session.email, false);
+        accountService.sendVerificationCode(newTrainer.getEmail(), false);
 
         relocate(uri = "/verify");
     }
 
     function verifyForm(event, rc, prc) {
-        if(session.verified) relocate(uri = "/");
-        if(!session.authenticated) relocate(uri = "/login");
+        // User not logged in -> go to login form
+        if(!prc.keyExists("oCurrentUser")) relocate(uri = "/login");
+        // User already verified -> go to home page
+        if(prc.oCurrentUser.getVerified()) relocate(uri = "/");
 
         prc.title           = "Verify Your Account | #getSetting("title")#";
         prc.metaDescription = "Verify your POGO Tracker account with the confirmation code sent to your email address.";
 
         param name="rc.resend" type="boolean" default="false";
 
-        if(isBoolean(rc.resend) && booleanFormat(rc.resend)) {
-            securityService.sendVerificationCode(session.email, rc.resend);
+        // Resending sends an email - only from the posted resend form (csrf checked), never a plain link
+        if(event.getHTTPMethod() == "POST" && isBoolean(rc.resend) && booleanFormat(rc.resend)) {
+            accountService.sendVerificationCode(prc.oCurrentUser.getEmail(), rc.resend);
+            // Flash alerts show on the next request - redirect so the resend result renders
+            relocate(uri = "/verify");
         }
     }
 
     function verify(event, rc, prc) {
-        if(session.verified) relocate(uri = "/");
-        if(!session.authenticated) relocate(uri = "/login");
+        // User not logged in -> go to login form
+        if(!prc.keyExists("oCurrentUser")) relocate(uri = "/login");
+        // User already verified -> go to home page
+        if(prc.oCurrentUser.getVerified()) relocate(uri = "/");
 
         param name="rc.code" default="";
 
@@ -234,39 +216,43 @@ component extends="base" {
         if(prc.validation.hasErrors()) {
             prc.auditInfo.detail = "Failed Verification Code Validation";
             auditService.audit(argumentCollection = prc.auditInfo);
-            sessionService.setAlert(
-                "danger",
-                true,
-                "bi-exclamation-diamond-fill",
-                "Invalid verification code. Please try again.",
-                0
+            flash.put(
+                name  = "alert",
+                value = {
+                    "type"       : "danger",
+                    "dismissible": true,
+                    "icon"       : "bi-exclamation-diamond-fill",
+                    "message"    : "Invalid verification code. Please try again.",
+                    "margin"     : 0
+                }
             );
             relocate(uri = "/verify");
         }
 
         rc.code = trim(rc.code);
-        if(!securityService.checkVerificationCode(session.email, rc.code)) {
-            sessionService.setAlert(
-                "danger",
-                true,
-                "bi-exclamation-diamond-fill",
-                "Invalid verification code. Please try again.",
-                0
+        if(!accountService.checkVerificationCode(prc.oCurrentUser.getEmail(), rc.code)) {
+            flash.put(
+                name  = "alert",
+                value = {
+                    "type"       : "danger",
+                    "dismissible": true,
+                    "icon"       : "bi-exclamation-diamond-fill",
+                    "message"    : "Invalid verification code. Please try again.",
+                    "margin"     : 0
+                }
             );
             relocate(uri = "/verify");
         }
 
-        prc.auditInfo.detail    = "Successfully Verified";
-        prc.auditInfo.trainerid = session.trainerid;
+        prc.auditInfo.detail = "Successfully Verified";
         auditService.audit(argumentCollection = prc.auditInfo);
 
-        sessionService.update(session.trainerid);
         relocate(uri = "/");
     }
 
     function logout(event, rc, prc) {
         param name="rc.idle" default="false";
-        sessionService.destroy(rc.idle);
+        sessionService.destroy(isBoolean(rc.idle) && booleanFormat(rc.idle));
         relocate(uri = "/");
     }
 
@@ -285,18 +271,21 @@ component extends="base" {
         }
         else {
             rc.email = lCase(rc.email);
-            securityService.sendResetCode(rc.email);
+            accountService.sendResetCode(rc.email);
 
             prc.auditInfo.detail = "Forgot password email sent for #rc.email#";
             auditService.audit(argumentCollection = prc.auditInfo);
         }
 
-        sessionService.setAlert(
-            "success",
-            true,
-            "bi-check-square-fill",
-            "Reset password email sent. Please check your email.",
-            0
+        flash.put(
+            name  = "alert",
+            value = {
+                "type"       : "success",
+                "dismissible": true,
+                "icon"       : "bi-check-square-fill",
+                "message"    : "Reset password email sent. Please check your email.",
+                "margin"     : 0
+            }
         );
         relocate(uri = "/login");
     }
@@ -305,7 +294,7 @@ component extends="base" {
         param name="rc.resetCode" default="";
 
         // Check the reset code for a valid user
-        prc.email = securityService.checkResetCode(rc.resetCode);
+        prc.email = accountService.checkResetCode(rc.resetCode);
         if(!prc.email.len()) {
             prc.auditInfo.detail = "Failed Reset Code Check";
             auditService.audit(argumentCollection = prc.auditInfo);
@@ -318,8 +307,9 @@ component extends="base" {
         param name="rc.resetCode" default="";
         param name="rc.password"  default="";
 
+        // Only use up the reset code once the new password is valid - a bad password keeps the link working
         prc.validation = validate(target = rc, constraints = "resetPasswordForm");
-        prc.email      = securityService.checkResetCode(rc.resetCode, true);
+        prc.email      = prc.validation.hasErrors() ? "" : accountService.checkResetCode(rc.resetCode, true);
         if(prc.validation.hasErrors() || !prc.email.len()) {
             prc.auditInfo.detail = "Failed Reset Password Validation";
             auditService.audit(argumentCollection = prc.auditInfo);
@@ -327,8 +317,8 @@ component extends="base" {
             relocate(uri = "/login");
         }
 
-        prc.trainer = securityService.getTrainer(prc.email)[1];
-        securityService.update(
+        prc.trainer = userService.findByEmail(prc.email);
+        accountService.update(
             prc.trainer.getId(),
             prc.trainer.getUsername(),
             rc.password,
@@ -336,12 +326,15 @@ component extends="base" {
             prc.trainer.getIcon()
         );
 
-        sessionService.setAlert(
-            "success",
-            true,
-            "bi-check-square-fill",
-            "Successfully reset password.",
-            0
+        flash.put(
+            name  = "alert",
+            value = {
+                "type"       : "success",
+                "dismissible": true,
+                "icon"       : "bi-check-square-fill",
+                "message"    : "Successfully reset password.",
+                "margin"     : 0
+            }
         );
         relocate(uri = "/login");
     }
@@ -357,7 +350,7 @@ component extends="base" {
             return;
         }
 
-        prc.verifyRecaptcha = securityService.verifyRecaptcha(rc.recaptchaToken);
+        prc.verifyRecaptcha = recaptchaService.verify(rc.recaptchaToken);
 
         prc.responseObj.success = prc.verifyRecaptcha;
         if(!prc.verifyRecaptcha) {
@@ -373,21 +366,18 @@ component extends="base" {
     }
 
     /**
-     * True if the referer is this host and its path starts with the expected path
-     *
-     * @expectedPath path the action must be submitted from, ex: /login
+     * Where to send the trainer after logging in - the page the firewall stopped them
      */
-    private boolean function isValidReferer(required string expectedPath) {
-        try {
-            var uri  = createObject("java", "java.net.URI").init(securityService.getReferer());
-            var host = (uri.getHost() ?: "") & (uri.getPort() > 0 ? ":#uri.getPort()#" : "");
-            var path = uri.getPath() ?: "";
+    private string function takeLinkedEvent(required component trainer) {
+        var target = session?.linkedEvent ?: "";
+        session.delete("linkedEvent");
 
-            return lCase(host) == lCase(cgi.http_host) && lCase(path).startsWith(lCase(arguments.expectedPath));
+        if(!target.len()) {
+            target = arguments.trainer.getSettings()?.defaultPage ?: "/";
         }
-        catch(any e) {
-            return false;
-        }
+
+        // Relative paths only - never a //host redirect
+        return "/#reReplace(target, "^[/\\]+", "")#";
     }
 
 }

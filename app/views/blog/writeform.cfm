@@ -1,5 +1,6 @@
 <cfoutput>
 <form name="writeblogform" data-submit="#encodeForHTML(args.submit)#" id="writeblogform" class="g-3" novalidate action="" method="post" autocomplete="off">
+    <input type="hidden" name="csrf" value="#csrfToken()#">
     <div class="col-sm-12 col-lg-10 col-xl-8">
         <div id="blogAlert"></div>
         <div class="row mt-3">

@@ -1,5 +1,6 @@
 import { $alertDiv, createAlert } from 'alert';
 import { escapeHtml } from 'escape';
+import { addCsrfField, csrfToken } from 'fetch';
 import { $submitBtn } from 'loading';
 
 export const $forms = /** @type {NodeListOf<HTMLFormElement>} */ (document.querySelectorAll('.needs-validation'));
@@ -86,6 +87,7 @@ export async function checkFormValidity(form, event, submit = true) {
         }
 
         // Still valid, submit the form
+        addCsrfField(form);
         form.submit();
     }
 
@@ -144,7 +146,7 @@ async function executeRecaptcha(action) {
 
     const response = await fetch('/verifyrecaptcha', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'x-csrf-token': csrfToken() },
         body: JSON.stringify({ recaptchaToken: token }),
     });
 

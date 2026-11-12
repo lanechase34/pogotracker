@@ -83,6 +83,9 @@ component extends="coldbox.system.EventHandler" {
         if(len(redirectEvent)) {
             relocate(event = redirectEvent);
         }
+        else if(len(redirectUri)) {
+            relocate(uri = redirectUri);
+        }
         else {
             event.setView(view = view, nolayout = true);
         }

@@ -68,7 +68,6 @@ jobs:
             --exclude='includes/package.json'
             --exclude='includes/css/'
             --exclude='includes/node_modules/'
-            --exclude='includes/assets/envpokedexoverrides.json'
             --include='includes/build/js/modules/***'
             --include='includes/js/vendor/***'
             --exclude='includes/js/*'
@@ -78,6 +77,7 @@ jobs:
             --exclude='includes/.prettierrc'
             --exclude='includes/playwright.config.js'
             --exclude='handlers/dev.cfc'
+            --exclude='views/dev/'
             --exclude='includes/sitemap.xml'
             --exclude='coldbox/'
             --include='config/modules/***'
@@ -103,4 +103,6 @@ jobs:
             sudo sh -c 'echo "$(date)" > /var/www/wwwroot/pogotracker/version.html'
             cd /var/www/wwwroot/pogotracker/
             sudo box recipe scripts/deploy.boxr
+            # Drop open_file_cache so nginx can't serve stale files under the new cacheBuster
+            sudo systemctl reload nginx
           timeout: 10m

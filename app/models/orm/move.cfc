@@ -30,14 +30,6 @@ component persistent="true" extends="base" {
         return round(getEnergy() / getTurns(), 2);
     }
 
-    boolean function isFastMove() {
-        return getTurns() != 0;
-    }
-
-    boolean function isChargeMove() {
-        return getTurns() == 0;
-    }
-
     string function getBuff() {
         if(getBuffChance() == 0) return "";
         return "#getBuffChance() * 100#% chance | #getBuffEffect()# #getBuffSelf() == 1 ? "Self" : "Opponent"#";

@@ -32,6 +32,19 @@ async function loginAsTestUser(page) {
     await page.waitForURL('/', { timeout: 10000, waitUntil: 'domcontentloaded' });
 }
 
+// Log out and wait for the logout redirect to land - navigating again while it is in flight races it (flaky in Firefox)
+async function clickLogOut(page) {
+    const landed = page.waitForResponse(
+        (res) =>
+            res.request().isNavigationRequest() &&
+            res.request().method() === 'GET' &&
+            new URL(res.url()).pathname === '/'
+    );
+    await page.locator('#logoutBtn').click();
+    await landed;
+    await page.waitForLoadState('domcontentloaded');
+}
+
 // Reusable helper to ensure the sidebar is open
 async function openSidebarIfMobile(page, testInfo) {
     if (isMobile(testInfo.project.name)) {
@@ -186,14 +199,14 @@ test.describe('Authenticated session', () => {
         test('Clicking log out redirects to a logged out state', async ({ page }, testInfo) => {
             await openSidebarIfMobile(page, testInfo);
             await page.locator('#profileGroup').click();
-            await page.locator('#logoutBtn').click();
+            await clickLogOut(page);
             await expect(page).toHaveURL('/');
         });
 
         test('User is unauthenticated after logging out', async ({ page }, testInfo) => {
             await openSidebarIfMobile(page, testInfo);
             await page.locator('#profileGroup').click();
-            await page.locator('#logoutBtn').click();
+            await clickLogOut(page);
             await page.goto('/', { waitUntil: 'domcontentloaded' });
             const isAuthenticated = await page.locator('#currentEvent').getAttribute('data-userauthenticated');
             expect(isAuthenticated).toBe('false');
@@ -202,7 +215,7 @@ test.describe('Authenticated session', () => {
         test('Log in button is visible again after logging out', async ({ page }, testInfo) => {
             await openSidebarIfMobile(page, testInfo);
             await page.locator('#profileGroup').click();
-            await page.locator('#logoutBtn').click();
+            await clickLogOut(page);
             await page.goto('/', { waitUntil: 'domcontentloaded' });
 
             await openSidebarIfMobile(page, testInfo);
@@ -212,7 +225,7 @@ test.describe('Authenticated session', () => {
         test('Username is no longer visible after logging out', async ({ page }, testInfo) => {
             await openSidebarIfMobile(page, testInfo);
             await page.locator('#profileGroup').click();
-            await page.locator('#logoutBtn').click();
+            await clickLogOut(page);
             await page.goto('/', { waitUntil: 'domcontentloaded' });
             await expect(page.locator('#sidebarUsername')).not.toBeAttached();
         });

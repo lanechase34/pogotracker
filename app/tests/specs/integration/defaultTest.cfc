@@ -29,15 +29,6 @@ component extends="tests.resources.baseTest" asyncAll="true" {
                 });
             });
 
-            describe("Session events", () => {
-                it("Fires on start", () => {
-                    var event = execute("main.onSessionStart");
-                    expect(session.trainerid).toBe(-1);
-                    expect(session.securityLevel).toBe(0);
-                    expect(session.authenticated).toBeFalse();
-                });
-            });
-
             describe("Test addition", () => {
                 it("Can add two numbers", () => {
                     expect(sum(1, 2)).toBe(3);

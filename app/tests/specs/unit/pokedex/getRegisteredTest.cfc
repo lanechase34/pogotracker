@@ -57,10 +57,6 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                 mockTrainer.delete();
             });
 
-            it("Can be created", () => {
-                expect(pokedexService).toBeComponent();
-            });
-
             it("Default call excludes costume, mega, and giga pokemon", () => {
                 registered = pokedexService.getRegistered(
                     trainer = trainer,

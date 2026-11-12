@@ -1,8 +1,3 @@
-/**
- * Builds schema.org structured data (JSON-LD) for pages
- *
- * Handlers set prc.structuredData to one of these structs, layouts/header serializes it with toJsonLd()
- */
 component singleton accessors="true" {
 
     property name="domain"          inject="coldbox:setting:domain";

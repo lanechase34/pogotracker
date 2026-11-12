@@ -3,7 +3,7 @@
     <tr>
         <td>
             <cfif NOT currEvent.commday>
-                <a href="/mycustompokedex/#currEvent.id#" target="_blank" class="link-dark fw-medium link-underline-opacity-0 link-underline-opacity-100-hover">
+                <a href="/mycustompokedex/#currEvent.id#" rel="nofollow" class="link-dark fw-medium link-underline-opacity-0 link-underline-opacity-100-hover">
                     #currEvent.name#
                 </a>
             <cfelse>

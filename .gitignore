@@ -34,7 +34,6 @@ app/includes/uploads/
 
 app/_testemails
 
-app/includes/assets/envpokedexoverrides.json
 app/includes/assets/pokedex.json
 app/includes/assets/moves.json
 app/includes/assets/medals.json

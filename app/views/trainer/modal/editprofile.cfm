@@ -26,8 +26,15 @@
                     </div>
                     <div class="col-md-6">
                         <label for="inputPassword" class="form-label">Password</label>
-                        <input name="password" type="password" class="form-control" id="inputPassword" value="" minlength="12" maxlength="50">
+                        <input name="password" type="password" class="form-control" id="inputPassword" value="" minlength="12" maxlength="50" autocomplete="new-password">
                     </div>
+                    <cfif args.trainer.getId() EQ prc.oCurrentUser.getId()>
+                        <div class="col-12">
+                            <label for="inputCurrentPassword" class="form-label">Current Password</label>
+                            <input name="currentPassword" type="password" class="form-control" id="inputCurrentPassword" value="" maxlength="50" autocomplete="current-password" aria-describedby="currentPasswordHelp">
+                            <div id="currentPasswordHelp" class="form-text">Required to change your email or password.</div>
+                        </div>
+                    </cfif>
                     <div class="col-12">
                         <label for="inputEmail" class="form-label">Email</label>
                         <input name="email" type="email" class="form-control" id="inputEmail" value="#EncodeForHTML(args.trainer.getEmail())#" minlength="1" maxlength="100" required>
@@ -39,7 +46,8 @@
                         <label for="inputIcon" class="form-label">Icon</label>
                         <select id="iconList" class="form-select" name="icon" required>
                             <cfloop index="i" item="currItem" array="#args.iconMap#">
-                                <option value="#encodeForHTML(lcase(currItem))#" <cfif "#lcase(currItem)#" EQ args.trainer.getIcon()>selected</cfif>>
+                                <cfset iconValue = lcase(replace(currItem, " ", "", "all"))>
+                                <option value="#encodeForHTML(iconValue)#" <cfif iconValue EQ args.trainer.getIcon()>selected</cfif>>
                                     #encodeForHTML(currItem)#
                                 </option>
                             </cfloop>
@@ -54,14 +62,19 @@
                             </div>  
                         </div>
                         <div class="col-12">
-                            <label for="inputSecurityLevel" class="form-label">Security Level</label>
-                            <select id="securityLevelList" class="form-select" name="securitylevel" required>
-                                <cfloop item="currItem" index="currKey" collection="#args.securityLevels#">
-                                    <option value="#encodeForHTML(currKey)#" <cfif currKey EQ args.trainer.getSecurityLevel()>selected</cfif>>
-                                        #encodeForHTML(currItem)#
-                                    </option>
-                                </cfloop>
-                            </select>
+                            <label for="securityLevelList" class="form-label">Security Level</label>
+                            <cfif args.securityLevels.keyExists(args.trainer.getSecurityLevel())>
+                                <select id="securityLevelList" class="form-select" name="securitylevel" required>
+                                    <cfloop item="currItem" index="currKey" collection="#args.securityLevels#">
+                                        <option value="#encodeForHTML(currKey)#" <cfif currKey EQ args.trainer.getSecurityLevel()>selected</cfif>>
+                                            #encodeForHTML(currItem)#
+                                        </option>
+                                    </cfloop>
+                                </select>
+                            <cfelse>
+                                <!--- Developer - not assignable, so not editable here --->
+                                <input id="securityLevelList" type="text" class="form-control" value="#encodeForHTMLAttribute(getSetting("securityLevels")[args.trainer.getSecurityLevel()] ?: args.trainer.getSecurityLevel())#" disabled>
+                            </cfif>
                         </div>
                         <div class="col-12">
                             <div class="form-check">

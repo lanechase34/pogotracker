@@ -2,6 +2,7 @@
 <div class="row mb-3">
     <div class="col-12 col-md-3 d-flex align-items-start mt-3">
         <form method="post" class="list-group w-100">
+            <input type="hidden" name="csrf" value="#csrfToken()#">
             <a href="/admin/auditLog" class="list-group-item list-group-item-action d-flex gap-2 py-3">
                 <div class="d-flex gap-2 w-100 justify-content-between">Audit Log</div>
             </a>
@@ -51,6 +52,7 @@
     </div>
     <div class="col-12 col-md-3 d-flex align-items-start mt-3">
         <form method="post" class="list-group w-100">
+            <input type="hidden" name="csrf" value="#csrfToken()#">
             <button type="submit" formaction="/admin/buildLevels" class="list-group-item list-group-item-action d-flex gap-2 py-3">
                 <div class="d-flex gap-2 w-100 justify-content-between">Build Levels</div>
             </button>
@@ -75,6 +77,7 @@
             </div>
             <div class="card-body mx-1">
                 <form action="/admin/saveState" name="applicationStateForm" method="post" id="applicationStateForm" class="needs-validation h-100 w-100 p-0 m-0" novalidate autocomplete="off">
+                    <input type="hidden" name="csrf" value="#csrfToken()#">
                     <div class="row d-flex h-100 w-100">
                         <div class="col-12 mb-1">
                             <label for="fetchCount" class="form-label">Fetch Count</label>

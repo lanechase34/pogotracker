@@ -36,10 +36,6 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                 customid      = -1;
             });
 
-            it("Can be created", () => {
-                expect(customService).toBeComponent();
-            });
-
             it("Can create custom pokedex event with correct information from leekduck", () => {
                 eventLink   = "https://leekduck.com/events/cozy-companions/";
                 beforeCount = customHelperFunctions.count();

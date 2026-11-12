@@ -58,10 +58,6 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                 mockTrainer.delete();
             });
 
-            it("Can be created", () => {
-                expect(pokedexService).toBeComponent();
-            });
-
             it("Prefixes non-form pokemon with + when missing from the caught dex", () => {
                 var missingCaught = pokedexService.getMissingString(trainer, false);
                 var items         = listToArray(missingCaught, ",");

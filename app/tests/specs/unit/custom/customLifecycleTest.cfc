@@ -26,10 +26,6 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                 customService = getInstance("services.custom");
             });
 
-            it("Can be created", () => {
-                expect(customService).toBeComponent();
-            });
-
             it("Can create a custom pokedex by posting data to pokedex.addCustomPokedex", () => {
                 // Mock custom pokedex data
                 data = {

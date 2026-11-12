@@ -2,9 +2,6 @@
     <div class="row">
         <div class="col-12 col-md-3 d-flex align-items-start mt-3">
             <div class="list-group w-100">
-                <a href="/dev/cpCalculator" class="list-group-item list-group-item-action d-flex gap-2 py-3">
-                    <div class="d-flex gap-2 w-100 justify-content-between">CP Calculator</div>
-                </a>
                 <a href="/dev/debugInfo" class="list-group-item list-group-item-action d-flex gap-2 py-3">
                     <div class="d-flex gap-2 w-100 justify-content-between">Debug</div>
                 </a>
@@ -63,6 +60,7 @@
                 </div>
                 <div class="card-body mx-1">
                     <form action="/dev/downloadImage" method="post" class="needs-validation h-100 w-100 p-0 m-0" novalidate autocomplete="off">
+                        <input type="hidden" name="csrf" value="#csrfToken()#">
                         <div class="row d-flex w-100">
                             <div class="col-12 mb-3">
                                 <label for="imageUrl" class="form-label">Image URL</label>

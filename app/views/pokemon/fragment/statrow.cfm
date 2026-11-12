@@ -10,6 +10,8 @@
         aria-label="#args.stat#"
         aria-valuemin="0"
         aria-valuemax="100"
+        aria-valuenow="#args.percent#"
+        aria-valuetext="#args.value#"
     >
         <div class="progress-bar #args.color#" style="width: #args.percent#%"></div>
     </div>

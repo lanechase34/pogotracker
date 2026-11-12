@@ -15,6 +15,7 @@
             </div>
             <div class="modal-body">
                 <form name="customPokedexForm" id="customPokedexForm" class="row needs-validation g-3" novalidate action="" method="post" autocomplete="off">
+                    <input type="hidden" name="csrf" value="#csrfToken()#">
                     <cfif args.edit>
                         <input type="hidden" id="inputCustomid" name="customid" value="#EncodeForHTML(args.custom.getId())#">
                     </cfif>
@@ -38,7 +39,7 @@
                             Please select Pokemon.
                         </div> 
                     </div>
-                    <cfif session.securityLevel GTE 20>
+                    <cfif prc.oCurrentUser.hasPermission("trusted")>
                         <div class="col-12">
                             <div class="form-check">
                                 <input class="form-check-input" type="checkbox" id="inputPublic" name="public" <cfif args.edit AND args.custom.getPublic()>checked</cfif>>

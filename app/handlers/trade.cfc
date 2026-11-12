@@ -1,10 +1,9 @@
-component extends="base" {
+component extends="base" secured="user" {
 
     this.allowedMethods = {tradePlanForm: "GET", tradePlan: "POST"}
 
     property name="async"             inject="asyncManager@coldbox";
     property name="customService"     inject="services.custom";
-    property name="friendService"     inject="services.friend";
     property name="generationService" inject="services.generation";
     property name="tradeService"      inject="services.trade";
     property name="trainerService"    inject="services.trainer";
@@ -54,7 +53,7 @@ component extends="base" {
 
         if(!prc.responseObj.message.len()) {
             prc.shiny   = rc.shiny == "on" ? true : false;
-            prc.trainer = trainerService.getFromId(session.trainerid);
+            prc.trainer = prc.oCurrentUser;
             prc.friend  = trainerService.getFromId(parseNumber(rc.friend));
 
             prc.trainerOnlyArgs = {

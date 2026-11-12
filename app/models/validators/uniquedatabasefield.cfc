@@ -59,14 +59,16 @@ component accessors="true" singleton hint="Validator for checking a field is uni
             return false;
         }
 
-        // Run query to make sure value is unique in column in table
+        // Run query to make sure value is unique in column in table, ignoring case and surrounding whitespace
+        // lower() matches the lower() unique indexes (unq_trainer_lower_username, unq_blog_lower_header) so they are used
+        // The database constraint is the real guarantee - this only gives a friendlier error before the insert
         var check = ormExecuteQuery(
             "
             select #validationData.column#
             from #validationData.table#
-            where upper(#validationData.column#) = :targetValue
+            where lower(#validationData.column#) = :targetValue
             ",
-            {targetValue: uCase(arguments.targetValue)}
+            {targetValue: lCase(trim(arguments.targetValue))}
         );
 
         // Already taken

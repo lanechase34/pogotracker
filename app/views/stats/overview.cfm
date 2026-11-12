@@ -3,7 +3,7 @@
     <form id="statsOverviewForm" name="statsOverviewForm" action="/overview" method="GET" novalidate>
         <input type="hidden" id="startDate" name="startDate" value="#dateFormat(prc.startDate, "mm/dd/yyyy")#">
         <input type="hidden" id="endDate" name="endDate" value="#dateFormat(prc.endDate, "mm/dd/yyyy")#">
-        <cfif session.trainerid NEQ prc.trainerid>
+        <cfif prc.oCurrentUser.getId() NEQ prc.trainerid>
             <input type="hidden" id="trainerid" name="trainerid" value="#encodeForHTML(prc.trainerid)#">
         </cfif>
     </form>

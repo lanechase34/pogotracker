@@ -37,23 +37,12 @@
     left: 0;
 }
 
-.shadowimg {
-    position: relative;
-    top: 0;
-    left: 0;
-}
-
 .shadowIcon {
     position: absolute;
     width: 40px;
     height: 40px;
     top: 58%;
     left: 55%;
-}
-
-.siteIcon {
-    width: 50px;
-    height: 50px;
 }
 
 .tableDiv {
@@ -66,10 +55,6 @@ html {
 }
 
 #profileGroup {
-    cursor: pointer;
-}
-
-.copyIcon {
     cursor: pointer;
 }
 
@@ -132,11 +117,6 @@ html {
     display: block !important;
 }
 
-.row-cols-7 {
-    flex: 0 0 auto;
-    width: 14.2857143%;
-}
-
 .hfs-5 {
     font-size: 1rem;
 }
@@ -190,23 +170,7 @@ pre:has(code) {
     display: block;
 }
 
-@media (min-width: 576px) {
-    .row-cols-sm-7 {
-        flex: 0 0 auto;
-        width: 14.2857143%;
-    }
-}
-@media (min-width: 768px) {
-    .row-cols-md-7 {
-        flex: 0 0 auto;
-        width: 14.2857143%;
-    }
-}
 @media (min-width: 992px) {
-    .row-cols-lg-7 {
-        flex: 0 0 auto;
-        width: 14.2857143%;
-    }
     .hfs-5 {
         font-size: 1.25rem;
     }
@@ -218,10 +182,6 @@ pre:has(code) {
     }
 }
 @media (min-width: 1200px) {
-    .row-cols-xl-7 {
-        flex: 0 0 auto;
-        width: 14.2857143%;
-    }
     .offcanvas {
         visibility: visible !important;
         transform: none !important;
@@ -239,9 +199,6 @@ pre:has(code) {
     .hamburgerButton {
         display: none !important;
     }
-    .navbar-toggler {
-        border-width: 0;
-    }
     #closeSideNavbar {
         display: none;
     }
@@ -256,22 +213,11 @@ pre:has(code) {
         display: none;
     }
 }
-@media (min-width: 1400px) {
-    .row-cols-xxl-7 {
-        flex: 0 0 auto;
-        width: 14.2857143%;
-    }
-}
-
 .auth-hero {
     background: linear-gradient(160deg, #212529 0%, #2c3038 100%);
 }
 
 @media (min-width: 1750px) {
-    .col-xxxl-3 {
-        flex: 0 0 auto;
-        width: 25%;
-    }
     .col-xxxl-4 {
         flex: 0 0 auto;
         width: 33.3333333%;
@@ -279,17 +225,6 @@ pre:has(code) {
     .col-xxxl-8 {
         flex: 0 0 auto;
         width: 66.6666666%;
-    }
-}
-
-#sidebarnav {
-    font-size: 0;
-    display: block;
-}
-
-@media (min-width: 1200px) {
-    #sidebarnav {
-        display: block;
     }
 }
 
@@ -406,14 +341,6 @@ body {
 .long-cell {
     width: 200px;
     word-break: break-all;
-}
-
-.inlineBlock {
-    display: inline-block;
-}
-
-.errorIcon {
-    font-size: 4rem;
 }
 
 /* Flex-align sprite + name inside every result row */

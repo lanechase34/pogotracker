@@ -1,4 +1,31 @@
 /**
+ * The session's CSRF token, rendered into <meta name="csrf-token"> by layouts/header.cfm
+ * Every non-GET request must send it (cbcsrf) - postWrapper adds it as the x-csrf-token header
+ *
+ * @returns {string}
+ */
+export function csrfToken() {
+    return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ?? '';
+}
+
+/**
+ * Make sure a natively submitted POST form carries the CSRF token
+ * Forms in server cached fragments can't render a per-session token themselves
+ *
+ * @param {HTMLFormElement} form
+ */
+export function addCsrfField(form) {
+    if (form.method.toLowerCase() !== 'post' || form.querySelector('input[name="csrf"]')) {
+        return;
+    }
+    const $input = document.createElement('input');
+    $input.type = 'hidden';
+    $input.name = 'csrf';
+    $input.value = csrfToken();
+    form.appendChild($input);
+}
+
+/**
  * An expired session is relocated to /login, which fetch follows transparently
  */
 function isLoginRedirect(response) {
@@ -82,6 +109,7 @@ export async function postWrapper({ url, $loadingBtn, loading, packet, responseT
         method: 'POST',
         headers: {
             Accept: responseType === 'json' ? 'application/json' : 'text/html',
+            'x-csrf-token': csrfToken(),
         },
         body: packet,
     })

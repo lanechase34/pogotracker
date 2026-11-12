@@ -165,30 +165,6 @@
                         </tbody>
                     </table>
                 </div>
-                <div class="row mt-3">
-                    <table class="table table-striped table-bordered">
-                        <thead>
-                            <tr>
-                                <th scope="col">Handler.Action</th>
-                                <th scope="col" class="text-center">Unauthenticated</th>
-                                <th scope="col" class="text-center">User</th>
-                                <th scope="col" class="text-center">Admin</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <cfloop item="actions" index="currHandler" collection="#prc.securityMap#">
-                                <cfloop item="securityLevel" index="currAction" collection="#actions#">
-                                    <tr>
-                                        <td>#currHandler#.#currAction#</td>
-                                        <td class="text-center"><cfif 0 GTE securityLevel><i class="bi bi-check-lg"></i></cfif></td>
-                                        <td class="text-center"><cfif 10 GTE securityLevel><i class="bi bi-check-lg"></i></cfif></td>
-                                        <td class="text-center"><cfif 50 GTE securityLevel><i class="bi bi-check-lg"></i></cfif></td>
-                                    </tr>
-                                </cfloop>
-                            </cfloop>
-                        </tbody>
-                    </table>
-                </div>
             </div>
         </div>
     </div>

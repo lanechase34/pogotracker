@@ -15,10 +15,6 @@ component extends="tests.resources.baseTest" {
                 mailModel = getInstance("services.email");
             });
 
-            it("Can be created", () => {
-                expect(mailModel).toBeComponent();
-            });
-
             it("Can send a test email to the testemails directory", () => {
                 var beforeCount = globalFunctions.countTestEmails();
                 mailModel.sendTestEmail();

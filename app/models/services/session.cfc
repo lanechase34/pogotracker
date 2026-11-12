@@ -1,16 +1,52 @@
 component singleton accessors="true" {
 
-    property name="auditService"    inject="services.audit";
-    property name="cache"           inject="cachebox:appCache";
-    property name="persistService"  inject="services.persist";
-    property name="securityService" inject="services.security";
-    property name="trainerService"  inject="services.trainer";
+    property name="auth"           inject="authenticationService@cbauth";
+    property name="persistService" inject="services.persist";
+    property name="sessionStorage" inject="SessionStorage@cbstorages";
 
-    property name="defaultSettings" inject="coldbox:setting:defaultSettings";
+    variables.SESSION_VERSION_KEY = "sessionVersion";
 
+    /**
+     * Remember the trainer's current sessionversion in this session
+     * Called on every login, and after a trainer changes their own password so this session stays signed in
+     *
+     * @trainer trainer entity
+     */
+    public void function keepVersion(required component trainer) {
+        sessionStorage.set(variables.SESSION_VERSION_KEY, val(arguments.trainer.getSessionVersion()));
+        return;
+    }
+
+    /**
+     * True if this session was started under the trainer's current sessionversion
+     * Sessions from before versions were kept count as version 0
+     *
+     * @trainer trainer entity
+     */
+    public boolean function isCurrentVersion(required component trainer) {
+        return sessionStorage.get(variables.SESSION_VERSION_KEY, 0) == val(arguments.trainer.getSessionVersion());
+    }
+
+    /**
+     * Drop the stored sessionversion
+     */
+    public void function forgetVersion() {
+        sessionStorage.delete(variables.SESSION_VERSION_KEY);
+        return;
+    }
+
+    /**
+     * Log the trainer out and throw away the session
+     *
+     * @idle true when the idle timer logged them out - keeps the remember me cookie
+     */
     public void function destroy(required boolean idle) {
-        if(session.keyExists("trainerid")) {
-            cache.clear("trainer.getFromId|trainerid=#session.trainerid#");
+        try {
+            auth.logout();
+        }
+        catch(TrainerNotFound e) {
+            // logout() announces the trainer being logged out - they've been deleted, so just clear the login
+            auth.quietLogout();
         }
 
         // Invalidate JEE session
@@ -86,129 +122,6 @@ component singleton accessors="true" {
      */
     private string function getCurrentSessionId() {
         return getPageContext().getSession().getId();
-    }
-
-    /**
-     * Creates a new session
-     *
-     * @email     email of trainer
-     * @persist   t/f 
-     * @auditInfo audit info struct
-     */
-    public void function create(
-        required string email,
-        required boolean persist,
-        struct auditInfo = {}
-    ) {
-        var trainer = securityService.getTrainer(arguments.email)[1];
-
-        if(arguments.persist) {
-            persistService.addCookie(trainer);
-        }
-
-        session.authenticated = true;
-        session.verified      = trainer.getVerified();
-        session.trainerid     = trainer.getId();
-        session.username      = trainer.getUsername();
-        session.iconPath      = trainer.getIconPath();
-        session.iconAlt       = trainer.getIconAltText();
-        session.statStruct    = trainer.getCurrentLevel();
-        session.email         = trainer.getEmail();
-        session.securityLevel = trainer.getSecurityLevel();
-
-        // Load user settings
-        session.settings = trainer.getSettings();
-
-        // If it's empty, give them the default settings
-        if(session.settings.isEmpty()) {
-            trainer.setSettings(defaultSettings);
-            session.settings = defaultSettings;
-        }
-
-        // Update the user's settings if any of the keys are missing
-        if(session.settings.count() < defaultSettings.count()) {
-            defaultSettings.each((key, value) => {
-                // Struct value
-                if(isStruct(value)) {
-                    // Add the struct
-                    if(!session.settings.keyExists(key)) {
-                        session.settings[key] = {};
-                    }
-
-                    // Add any missing keys from struct
-                    value.each((propname, propvalue) => {
-                        if(!session.settings[key].keyExists(propname)) {
-                            session.settings[key][propname] = propvalue;
-                        }
-                    });
-                }
-                // Simple value
-                else if(!session.settings.keyExists(key)) {
-                    session.settings[key] = value;
-                }
-            });
-            trainer.setSettings(session.settings);
-        }
-
-        if(!session.keyExists("linkedEvent")) {
-            session.linkedEvent = session.settings.defaultPage;
-        }
-
-        request.linkedEvent = session.linkedEvent;
-
-        session.loginTime = now();
-        trainer.setLastLogin(session.loginTime);
-        entitySave(trainer);
-        ormFlush();
-
-        session.trainer = trainer;
-
-        if(!arguments.auditInfo.isEmpty()) {
-            arguments.auditInfo.trainerid = session.trainerid;
-            auditService.audit(argumentCollection = arguments.auditInfo);
-        }
-
-        rotate();
-        return;
-    }
-
-    public void function update(required numeric trainerid) {
-        // Clear cache first
-        cache.clear("trainer.getFromId|trainerid=#session.trainerid#");
-
-        var trainer = trainerService.getFromId(arguments.trainerid);
-
-        session.verified      = trainer.getVerified();
-        session.username      = trainer.getUsername();
-        session.iconPath      = trainer.getIconPath();
-        session.iconAlt       = trainer.getIconAltText();
-        session.securityLevel = trainer.getSecurityLevel();
-        session.statStruct    = trainer.getCurrentLevel();
-        session.settings      = trainer.getSettings();
-        session.trainer       = trainer;
-        return;
-    }
-
-    public void function setAlert(
-        required string type,
-        required boolean dismissible,
-        required string icon,
-        required string message,
-        numeric margin = 3
-    ) {
-        session.alert = {
-            "type"       : arguments.type,
-            "dismissible": arguments.dismissible,
-            "icon"       : arguments.icon,
-            "message"    : arguments.message,
-            "margin"     : arguments.margin
-        };
-        return;
-    }
-
-    public void function clearAlert() {
-        session.delete("alert");
-        return;
     }
 
 }

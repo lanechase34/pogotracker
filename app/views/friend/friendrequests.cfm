@@ -11,8 +11,8 @@
                         <td class="align-middle" style="width: 56px;">
                             <img
                                 class="profileIcon"
-                                src="#currFriend[1].getIconPath()#"
-                                alt="#currFriend[1].getIconAltText()#"
+                                src="#encodeForHTMLAttribute(currFriend[1].getIconPath())#"
+                                alt="#encodeForHTMLAttribute(currFriend[1].getIconAltText())#"
                             >
                         </td>
                         <td class="align-middle">#EncodeForHTML(currFriend[1].getUsername())#</td>
@@ -31,8 +31,8 @@
                         <td class="align-middle" style="width: 56px;">
                             <img
                                 class="profileIcon"
-                                src="#currFriend[1].getIconPath()#"
-                                alt="#currFriend[1].getIconAltText()#"
+                                src="#encodeForHTMLAttribute(currFriend[1].getIconPath())#"
+                                alt="#encodeForHTMLAttribute(currFriend[1].getIconAltText())#"
                             >
                         </td>
                         <td class="align-middle">#encodeForHTML(currFriend[1].getUsername())#</td>

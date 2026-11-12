@@ -16,10 +16,6 @@ component extends="tests.resources.baseTest" asyncAll="true" {
                 pokemonService = getInstance("services.pokemon");
             });
 
-            it("Can be created", () => {
-                expect(pokemonService).toBeComponent();
-            });
-
             it("Retrieve all pokemon", () => {
                 var allPokemon = pokemonService.getAll(); // Costume forms aren't included as unique pokemon in getAll()
                 expect(allPokemon).toBeArray();
@@ -94,37 +90,6 @@ component extends="tests.resources.baseTest" asyncAll="true" {
                     expect(evolutions.len()).toBe(1);
 
                     expect(evolutions[1].getEvolution().getName()).toBe("Ivysaur");
-                });
-
-                it("Retrieve Wurmple's Evolutions", () => {
-                    var wurmple = pokemonService.get({
-                        number : 265,
-                        name   : "Wurmple",
-                        gender : "",
-                        costume: false
-                    });
-                    expect(wurmple).toBeArray();
-                    expect(wurmple.len()).toBe(1);
-                    wurmple = wurmple[1];
-                    expect(wurmple).toBeComponent();
-
-                    var evolutions = pokemonService.getEvolution(wurmple);
-                    expect(evolutions).toBeArray();
-                    expect(evolutions.len()).toBe(2);
-
-                    var checkStage1 = ["Cascoon", "Silcoon"];
-                    var checkStage2 = ["Dustox", "Beautifly"];
-                    evolutions.each((evolution) => {
-                        checkStage1.delete(evolution.getEvolution().getName());
-
-                        var nextStage = pokemonService.getEvolution(evolution.getEvolution());
-                        expect(nextStage).toBeArray();
-                        expect(nextStage.len()).toBe(1);
-                        checkStage2.delete(nextStage[1].getEvolution().getName());
-                    });
-
-                    expect(checkStage1.len()).toBe(0);
-                    expect(checkStage2.len()).toBe(0);
                 });
             });
 

@@ -5,7 +5,7 @@
     data-action=#lcase(event.getCurrentAction())#
     data-sitekey=#getSetting('reCaptchaSiteKey')#
     data-idletimeout=#getSetting('sessionTimeout')#
-    data-userauthenticated="#session?.authenticated ?: false#"
+    data-userauthenticated="#prc.keyExists("oCurrentUser")#"
     data-environment="#getSetting('environment')#"
     data-port="#getSetting('environment') != 'production' ? '#getSetting('httpPort')#' : ''#"
 ></div>

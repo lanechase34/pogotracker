@@ -45,7 +45,7 @@ test.describe('Login page', () => {
         });
 
         test('Renders the sign up link', async ({ page }) => {
-            const link = page.locator('a[href="/register"]');
+            const link = page.getByRole('link', { name: 'Sign up now' });
             await expect(link).toBeVisible();
             await expect(link).toContainText('Sign up now');
         });
@@ -241,7 +241,7 @@ test.describe('Login page', () => {
         });
 
         test('Sign up link navigates to /register', async ({ page }) => {
-            await page.locator('a[href="/register"]').click();
+            await page.getByRole('link', { name: 'Sign up now' }).click();
             await expect(page).toHaveURL('/register');
         });
 
@@ -250,7 +250,7 @@ test.describe('Login page', () => {
         });
 
         test('Sign up link has correct href', async ({ page }) => {
-            await expect(page.locator('a[href="/register"]')).toHaveAttribute('href', '/register');
+            await expect(page.getByRole('link', { name: 'Sign up now' })).toHaveAttribute('href', '/register');
         });
     });
 

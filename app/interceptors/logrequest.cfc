@@ -3,9 +3,8 @@ component extends="coldbox.system.Interceptor" {
     property name="async"       inject="asyncManager@coldbox";
     property name="concurrency" inject="coldbox:setting:concurrency";
 
-    property name="auditService"    inject="provider:services.audit";
-    property name="securityService" inject="provider:services.security";
-    property name="utilService"     inject="provider:services.util";
+    property name="auditService" inject="provider:services.audit";
+    property name="utilService"  inject="provider:services.util";
 
     // Request Log Settings
     property name="REQUEST_LOG_SETTINGS" inject="coldbox:setting:requestLog";
@@ -37,15 +36,15 @@ component extends="coldbox.system.Interceptor" {
      */
     function preProcess(event, data, buffer, rc, prc) {
         prc.requestAudit = {
-            ip        : securityService.getRequestIP(),
+            ip        : utilService.getRequestIP(),
             urlpath   : left(event.getFullPath(), URLPATH_LENGTH),
             method    : left(event.getHTTPMethod(), METHOD_LENGTH),
-            start     : getTickCount(),
-            agent     : left(securityService.getUserAgent(), AGENT_LENGTH),
-            referer   : left(securityService.getReferer(), REFERER_LENGTH),
+            start     : tick(),
+            agent     : left(utilService.getUserAgent(), AGENT_LENGTH),
+            referer   : left(utilService.getReferer(), REFERER_LENGTH),
             response  : "",
             statuscode: -1,
-            trainerid : session?.trainerid ?: -1
+            trainerid : (prc?.oCurrentUser?.getId() ?: -1)
         };
     }
 
@@ -54,8 +53,14 @@ component extends="coldbox.system.Interceptor" {
      * Fire async function to audit the request
      */
     function postProcess(event, rc, prc) {
+        // preProcess never ran - the request failed before reaching it (onRequestCapture or an earlier preProcess)
+        // and error.onException's relocate is announcing postProcess. Nothing to log, and throwing here would hide the real error
+        if(!prc.keyExists("requestAudit")) {
+            return;
+        }
+
         var skip               = false;
-        prc.requestAudit.delta = getTickCount() - prc.requestAudit.start;
+        prc.requestAudit.delta = tick() - prc.requestAudit.start;
 
         // If this was a json request
         if(utilService.isJsonRequest()) {
@@ -86,9 +91,9 @@ component extends="coldbox.system.Interceptor" {
 
             lock name="slowRequestsLock" timeout="5" type="exclusive" throwOnTimeout=false {
                 // Delete requests older than 24 hours
-                var oneHourAgo           = dateAdd("h", -24, timestamp);
+                var cutoff               = dateAdd("h", -24, timestamp);
                 concurrency.slowRequests = concurrency.slowRequests.filter((req) => {
-                    return req.time > oneHourAgo;
+                    return req.time > cutoff;
                 });
 
                 // Add new request
@@ -97,7 +102,7 @@ component extends="coldbox.system.Interceptor" {
                     method   : prc.requestAudit.method,
                     delta    : prc.requestAudit.delta,
                     trainerid: prc.requestAudit.trainerid,
-                    time     : now()
+                    time     : timestamp
                 });
 
                 // Enforces max array size
@@ -106,6 +111,13 @@ component extends="coldbox.system.Interceptor" {
                 }
             }
         }
+    }
+
+    /**
+     * Current tick count - wrapped so tests can pin the clock
+     */
+    private numeric function tick() {
+        return getTickCount();
     }
 
 }

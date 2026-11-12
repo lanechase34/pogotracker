@@ -31,10 +31,6 @@ component extends="tests.resources.baseTest" asyncAll="true" {
 
     function run() {
         describe("SEO Service", () => {
-            it("Can be created", () => {
-                expect(seoService).toBeComponent();
-            });
-
             describe("toJsonLd", () => {
                 it("Produces valid JSON", () => {
                     var parsed = roundTrip({"name": "Pokémon GO ""quoted"" & <b>tags</b>"});

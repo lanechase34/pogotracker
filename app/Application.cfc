@@ -43,6 +43,7 @@ component extends="coldbox.system.Bootstrap" {
             type = "error",
             file = "application"
         );
+        cfheader(statusCode = 500);
         writeOutput("Oops. Please try again later.");
     }
 

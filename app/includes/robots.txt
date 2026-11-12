@@ -2,6 +2,7 @@ User-agent: *
 Disallow: /admin
 Disallow: /logout
 Disallow: /mypokedex
+Disallow: /mycostumepokedex
 Disallow: /myshadowpokedex
 Disallow: /overview
 Disallow: /custompokedexlist

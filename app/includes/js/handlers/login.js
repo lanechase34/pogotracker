@@ -1,9 +1,33 @@
+import { csrfToken } from 'fetch';
 import { $forms, addValidator } from 'form';
 
 const $logoutBtn = document.getElementById('logoutBtn');
 
+/**
+ * Log out with a POST carrying the csrf token - /logout doesn't accept GET
+ *
+ * @param {boolean} idle true when the idle timer logged them out - keeps the remember me cookie
+ */
+function postLogout(idle = false) {
+    const $form = document.createElement('form');
+    $form.method = 'post';
+    $form.action = '/logout';
+
+    const fields = { csrf: csrfToken(), idle: String(idle) };
+    for (const [name, value] of Object.entries(fields)) {
+        const $input = document.createElement('input');
+        $input.type = 'hidden';
+        $input.name = name;
+        $input.value = value;
+        $form.appendChild($input);
+    }
+
+    document.body.appendChild($form);
+    $form.submit();
+}
+
 function idleLogout() {
-    window.location.href = '/logout/idle/true';
+    postLogout(true);
 }
 
 function refreshPage() {
@@ -14,15 +38,14 @@ export function addLogoutHandler() {
     // Listen for when a tab logs out
     window.addEventListener('storage', (event) => {
         if (event.key === 'logout-event') {
-            window.location.href = '/logout';
+            postLogout();
         }
     });
 
     if ($logoutBtn) {
-        $logoutBtn.addEventListener('click', (e) => {
-            e.preventDefault();
+        // The button submits its own form - just tell the other tabs first
+        $logoutBtn.addEventListener('click', () => {
             localStorage.setItem('logout-event', `logout${Math.random()}`);
-            window.location.href = '/logout';
         });
     }
 }

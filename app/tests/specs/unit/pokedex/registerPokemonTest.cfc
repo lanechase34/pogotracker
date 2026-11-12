@@ -22,10 +22,6 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                 mockTrainer.delete();
             });
 
-            it("Can be created", () => {
-                expect(pokedexService).toBeComponent();
-            });
-
             it("Can register a pokemon (gyarados)", () => {
                 gyaradosCfc = pokemonService.get({
                     number : 130,
@@ -211,10 +207,6 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                     costume = true
                 );
                 expect(pokedexHelperFunctions.countRegistered(registered, true)).toBe(1);
-            });
-
-            afterEach(() => {
-                mockTrainer.delete(); // Delete mock trainer after every request
             });
         });
     }

@@ -15,7 +15,8 @@
         "socketbox":"modules/socketbox/",
         "lucee-password-util":"modules/lucee-password-util/",
         "ImageMagickHelpers":"modules/ImageMagickHelpers/",
-        "BCrypt":"modules/BCrypt/"
+        "BCrypt":"modules/BCrypt/",
+        "cbsecurity":"modules/cbsecurity/"
     },
     "devDependencies":{
         "testbox":"7.2.2+23",
@@ -35,6 +36,7 @@
         "cbjavaloader":"2.6.0+5",
         "cbmailservices":"2.13.0+7",
         "cfmigrations":"5.1.3",
+        "cbsecurity":"3.9.0+16",
         "commandbox-migrations":"6.0.3",
         "qb":"14.2.0",
         "socketbox":"2.1.2",

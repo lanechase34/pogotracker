@@ -43,7 +43,7 @@ component extends="tests.resources.baseTest" {
                         "trainer",
                         {
                             username     : username,
-                            email        : "#username#@gmail.com",
+                            email        : lCase("#username#@gmail.com"),
                             password     : createUUID(),
                             salt         : createUUID(),
                             friendcode   : mockTrainer.makeFriendcode(),

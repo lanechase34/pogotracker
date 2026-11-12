@@ -1,4 +1,4 @@
-component extends="base" {
+component extends="base" secured="user" {
 
     this.allowedMethods = {
         decideFriendRequest  : "POST",
@@ -11,10 +11,9 @@ component extends="base" {
         searchFriendsList    : "GET"
     };
 
-    property name="async"           inject="asyncManager@coldbox";
-    property name="friendService"   inject="services.friend";
-    property name="securityService" inject="services.security";
-    property name="trainerService"  inject="services.trainer";
+    property name="async"         inject="asyncManager@coldbox";
+    property name="friendService" inject="services.friend";
+    property name="utilService"   inject="services.util";
 
     /**
      * Decide a pending friend request
@@ -29,7 +28,7 @@ component extends="base" {
         }
 
         prc.friendrequestid = parseNumber(rc.friendrequestid);
-        prc.trainer         = trainerService.getFromId(trainerid = session.trainerid);
+        prc.trainer         = prc.oCurrentUser;
         prc.accept          = booleanFormat(rc.accept);
         if(prc.accept) {
             friendService.acceptFriendRequest(friendrequestid = prc.friendrequestid, trainer = prc.trainer);
@@ -44,7 +43,7 @@ component extends="base" {
      * Friends list view
      */
     function getFriendsList(event, rc, prc) {
-        prc.trainer     = trainerService.getFromId(trainerid = session.trainerid);
+        prc.trainer     = prc.oCurrentUser;
         prc.friendsList = friendService.getFriendsList(trainer = prc.trainer);
         event.setView(
             view     = "/views/friend/friendsList",
@@ -60,7 +59,7 @@ component extends="base" {
         event.setView(
             view     = "/views/friend/modal/addfriend",
             nolayout = true,
-            args     = {trainerid: session.trainerid}
+            args     = {trainerid: prc.oCurrentUser.getId()}
         );
     }
 
@@ -77,7 +76,7 @@ component extends="base" {
         }
 
         prc.responseObj.data = friendService.getFriendsToAdd(
-            trainer = trainerService.getFromId(session.trainerid),
+            trainer = prc.oCurrentUser,
             search  = rc?.search ?: "",
             page    = rc.page
         );
@@ -90,7 +89,7 @@ component extends="base" {
      * View
      */
     function getFriendRequests(event, rc, prc) {
-        prc.trainer = trainerService.getFromId(trainerid = session.trainerid);
+        prc.trainer = prc.oCurrentUser;
 
         var results = async
             .all(
@@ -116,10 +115,11 @@ component extends="base" {
      * @rc.friendid  another trainer's pk that you want to add
      */
     function sendFriendRequest(event, rc, prc) {
-        rc.trainerid = rc?.trainerid ?: session.trainerid;
+        rc.trainerid = rc?.trainerid ?: prc.oCurrentUser.getId();
         // Validate and check friend doesn't exist already
         if(
             hasValidationErrors(target = rc, constraints = "friend.sendFriendRequest")
+            || val(rc.trainerid) == val(rc.friendid)
             || friendService.checkFriend(trainerid = rc.trainerid, friendid = rc.friendid)
         ) {
             jsonValidationFailure(event = event, message = "Invalid Friend Request");
@@ -137,12 +137,12 @@ component extends="base" {
      */
     function getFriendRequestToast(event, rc, prc) {
         // Return blank on the profile page
-        if(securityService.getReferer().find("/profile")) {
+        if(utilService.getReferer().find("/profile")) {
             event.setView(view = "/views/fragment/blank", nolayout = true);
             return;
         }
 
-        prc.trainer        = trainerService.getFromId(session.trainerid);
+        prc.trainer        = prc.oCurrentUser;
         prc.friendRequests = friendService.getFriendRequests(prc.trainer);
 
         prc.ago = "";
@@ -173,7 +173,7 @@ component extends="base" {
         }
 
         prc.responseObj.data = friendService.searchFriendsList(
-            trainer = trainerService.getFromId(session.trainerid),
+            trainer = prc.oCurrentUser,
             search  = rc?.search ?: "",
             page    = rc.page
         );

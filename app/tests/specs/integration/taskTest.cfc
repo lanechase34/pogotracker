@@ -19,11 +19,6 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                 schedulerService = getInstance("coldbox:schedulerService");
             });
 
-            it("Can be created", () => {
-                expect(schedulerService).toBeComponent();
-                expect(scheduler).toBeComponent();
-            });
-
             it("Can register tasks from config/", () => {
                 adminService = getInstance("services.admin");
                 taskInfo     = adminService.getTaskInfo();

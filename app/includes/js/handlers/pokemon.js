@@ -39,6 +39,47 @@ const trackStickyOffsets = ($toolbar) => {
     }).observe($sentinel);
 };
 
+// Must match the .pokedex-grid minmax() tile width in pokemon.css
+const TILE_MIN_WIDTH = 104;
+
+/**
+ * Sections use content-visibility: auto, so an unrendered one is sized from --pokedex-section-height.
+ * Estimate each from the first section's measured row height and the current column count so the scrollbar
+ * and smooth generation jumps land in the right place. Skipped while filtering (CSS renders everything then)
+ * @param {HTMLElement[]} $sections
+ * @returns {() => void} recompute the estimates
+ */
+const estimateSectionHeights = ($sections) => {
+    const $refCard = /** @type {HTMLElement | null} */ ($sections[0]?.querySelector('.card'));
+    const $refGrid = /** @type {HTMLElement | null} */ ($sections[0]?.querySelector('.pokedex-grid'));
+    if (!$refCard || !$refGrid) return () => {};
+
+    const tileCounts = $sections.map(($s) => $s.querySelector('.pokedex-grid')?.childElementCount ?? 0);
+    let lastWidth = -1;
+
+    /** @param {boolean} force */
+    const update = (force) => {
+        if (document.body.classList.contains('pokedex-filtering')) return;
+        const width = $refGrid.clientWidth;
+        if (!width || (!force && width === lastWidth)) return;
+        lastWidth = width;
+
+        const gap = parseFloat(getComputedStyle($refGrid).rowGap) || 0;
+        const cols = Math.max(1, Math.floor((width + gap) / (TILE_MIN_WIDTH + gap)));
+        const rowPitch = ($refGrid.offsetHeight + gap) / Math.max(1, Math.ceil(tileCounts[0] / cols));
+        const chrome = $refCard.offsetHeight - $refGrid.offsetHeight; // card header + body padding
+
+        $sections.forEach(($s, i) => {
+            const rows = Math.ceil(tileCounts[i] / cols);
+            $s.style.setProperty('--pokedex-section-height', `${Math.round(chrome + rows * rowPitch - gap)}px`);
+        });
+    };
+
+    update(true);
+    new ResizeObserver(() => update(false)).observe($refGrid);
+    return () => update(true);
+};
+
 /**
  * Highlight the generation currently in view and keep its button visible in the (mobile) scroll strip
  * @param {HTMLElement} $jump
@@ -99,8 +140,9 @@ const trackActiveGeneration = ($jump, $sections) => {
  * @param {HTMLElement[]} $sections
  * @param {Map<string, HTMLElement>} $links
  * @param {() => void} refreshActive
+ * @param {() => void} refreshHeights
  */
-const createPokedexFilter = ($input, $sections, $links, refreshActive) => {
+const createPokedexFilter = ($input, $sections, $links, refreshActive, refreshHeights) => {
     const $noResults = document.getElementById('pokedexNoResults');
     const groups = $sections.map(($section) => ({
         $section,
@@ -128,6 +170,9 @@ const createPokedexFilter = ($input, $sections, $links, refreshActive) => {
             $links.get($section.id)?.classList.toggle('is-empty', shown === 0);
         });
         $noResults?.classList.toggle('d-none', total > 0);
+        // Filtered results render in full - estimates are only valid for unfiltered sections
+        document.body.classList.toggle('pokedex-filtering', terms.length > 0);
+        if (!terms.length) refreshHeights();
         setUrlParam('q', $input.value.trim());
         refreshActive();
     };
@@ -184,8 +229,9 @@ export const runtime = {
         const $sections = /** @type {HTMLElement[]} */ ([...document.querySelectorAll('section.pokedex-section')]);
 
         trackStickyOffsets($toolbar);
+        const refreshHeights = estimateSectionHeights($sections);
         const { $links, refresh } = trackActiveGeneration($jump, $sections);
-        createPokedexFilter($filter, $sections, $links, refresh);
+        createPokedexFilter($filter, $sections, $links, refresh, refreshHeights);
 
         const $shiny = /** @type {HTMLButtonElement | null} */ (document.getElementById('pokedexShiny'));
         if ($shiny) createShinyToggle($shiny);
@@ -193,21 +239,7 @@ export const runtime = {
     detail: () => {
         createPokemonSearch('pokemonSearch');
 
-        const $costumesCollapse = document.getElementById('costumesCollapse');
-        if ($costumesCollapse) {
-            $costumesCollapse.addEventListener('shown.bs.collapse', (e) => {
-                const icon = document.querySelector(
-                    `[data-bs-target="#${/** @type {HTMLElement} */ (e.target).id}"] .collapse-chevron`
-                );
-                icon?.classList.replace('bi-chevron-down', 'bi-chevron-up');
-            });
-            $costumesCollapse.addEventListener('hidden.bs.collapse', (e) => {
-                const icon = document.querySelector(
-                    `[data-bs-target="#${/** @type {HTMLElement} */ (e.target).id}"] .collapse-chevron`
-                );
-                icon?.classList.replace('bi-chevron-up', 'bi-chevron-down');
-            });
-        }
+        // Costume collapse chevron rotation is pure CSS (.collapsed .collapse-chevron in global.css)
 
         const $eventRows = document.getElementById('eventRows');
         if ($eventRows) {

@@ -11,9 +11,13 @@ component extends="tests.resources.baseTest" asyncAll="false" {
         getController().setSetting("eventCaching", true);
 
         ses = "1"; // Bulbasaur
+
+        mockTrainer = getInstance("tests.resources.mocktrainer");
+        admin       = mockTrainer.make(securityLevel = 50, autoLogin = false);
     }
 
     function afterAll() {
+        mockTrainer.delete(admin.getId());
         getController().setSetting("eventCaching", originalEventCaching);
         pokemonService.clearDetailCache(ses = ses);
         super.afterAll();
@@ -47,12 +51,12 @@ component extends="tests.resources.baseTest" asyncAll="false" {
         describe("Pokemon detail page viewlet cache", () => {
             beforeEach(() => {
                 setup();
-                session.securityLevel = 0;
+                mockTrainer.actAsGuest();
                 pokemonService.clearDetailCache(ses = ses);
             });
 
             afterEach(() => {
-                session.securityLevel = 0;
+                mockTrainer.actAsGuest();
             });
 
             it("Caches the rendered detail body on first view", () => {
@@ -87,19 +91,19 @@ component extends="tests.resources.baseTest" asyncAll="false" {
             it("Caches a separate admin copy containing the update form", () => {
                 getDetailPage();
 
-                session.securityLevel = 50;
-                var html              = getDetailPage().getRenderedContent();
+                mockTrainer.actAs(admin);
+                var html = getDetailPage().getRenderedContent();
                 expect(html).toInclude("pokemonDetailForm");
                 expect(getViewletKeys("admin")).toHaveLength(1);
 
                 // Public copy was not overwritten by the admin render
-                session.securityLevel = 0;
+                mockTrainer.actAsGuest();
                 expect(getDetailPage().getRenderedContent()).notToInclude("pokemonDetailForm");
             });
 
             it("clearDetailCache removes the cached info and rendered pages", () => {
                 getDetailPage();
-                session.securityLevel = 50;
+                mockTrainer.actAs(admin);
                 getDetailPage();
                 expect(getViewletKeys("public")).toHaveLength(1);
                 expect(getViewletKeys("admin")).toHaveLength(1);

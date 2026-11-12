@@ -48,7 +48,7 @@
                     <i class="bi bi-pencil-square fs-5"></i>Write A Comment
                 </div>
                 <div id="commentAlert"></div>
-                <cfif !(session?.verified ?: false)>
+                <cfif !(prc?.oCurrentUser?.hasPermission("user") ?: false)>
                     <p class="text-muted small mb-0">Please <a href="/login" class="link-offset-2">login here</a> to comment.</p>
                 <cfelse>
                     <textarea

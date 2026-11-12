@@ -26,7 +26,7 @@ component extends="base" {
     /**
      * Contact Form Modal
      */
-    function contactForm(event, rc, prc) {
+    function contactForm(event, rc, prc) secured="user" {
         event.setView(view = "/views/modal/contactform", nolayout = true);
     }
 
@@ -36,14 +36,14 @@ component extends="base" {
      * @rc.subject subject
      * @rc.message message
      */
-    function contact(event, rc, prc) {
+    function contact(event, rc, prc) secured="user" {
         if(hasValidationErrors(target = rc, constraints = "home.contactForm")) {
             jsonValidationFailure(event = event, message = "Unable to submit contact form at this time");
             return;
         }
 
         emailService.sendContact(
-            email   = session.email,
+            email   = prc.oCurrentUser.getEmail(),
             subject = rc.subject,
             message = rc.message
         );

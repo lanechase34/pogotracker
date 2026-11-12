@@ -1,8 +1,11 @@
 component singleton accessors="true" {
 
-    property name="async"           inject="asyncManager@coldbox";
-    property name="cache"           inject="cachebox:appCache";
-    property name="securityService" inject="services.security";
+    property name="async"          inject="asyncManager@coldbox";
+    property name="cache"          inject="cachebox:appCache";
+    property name="pagination"     inject="services.pagination";
+    property name="imageExtension" inject="coldbox:setting:imageExtension";
+    property name="securityLevels" inject="coldbox:setting:securityLevels";
+    property name="utilService"    inject="services.util";
 
     property name="datatableCols" type="array";
     property name="iconMap"       type="array";
@@ -38,17 +41,56 @@ component singleton accessors="true" {
      * @trainerid pk of trainer
      */
     public component function getFromId(required numeric trainerid) {
-        var cacheKey = "trainer.getFromId|trainerid=#arguments.trainerid#";
+        var cacheKey = getCacheKey(arguments.trainerid);
         var trainer  = cache.get(cacheKey);
         if(isNull(trainer)) {
             trainer = entityLoadByPK("trainer", arguments.trainerid);
+            if(isNull(trainer)) {
+                throw(type = "TrainerNotFound", message = "Trainer #arguments.trainerid# does not exist");
+            }
             // Make sure relationships are loaded before being cached
-            trainer.getUnlockedIcons();
             trainer.getIconPath();
             trainer.getIconAltText();
             cache.set(cacheKey, trainer);
         }
         return trainer;
+    }
+
+    /**
+     * Evict the cached trainer so the next getFromId reloads it (and its memoized settings/level)
+     * Call after anything that changes the trainer, their settings, or their stats
+     *
+     * @trainerid pk of trainer
+     */
+    public void function clearCache(required numeric trainerid) {
+        cache.clear(getCacheKey(arguments.trainerid));
+        return;
+    }
+
+    /**
+     * Whether the icon can be picked - the base icons, plus the trainer's unlocked icons
+     * The trainer's current icon always passes, so keeping it never fails
+     *
+     * @icon    icon name (the file name without its extension)
+     * @trainer (optional) trainer the icon is for - omit when registering (base icons only)
+     */
+    public boolean function isAllowedIcon(required string icon, component trainer) {
+        var wanted  = lCase(trim(arguments.icon));
+        var allowed = duplicate(getIconMap());
+
+        if(!isNull(arguments.trainer)) {
+            if(wanted == lCase(arguments.trainer.getIcon())) {
+                return true;
+            }
+            allowed.append(arguments.trainer.getUnlockedIcons(), true);
+        }
+
+        // Icon names can have spaces ("Shiny Mew") - their files don't (shinymew)
+        return allowed.some((name) => lCase(replace(name, " ", "", "all")) == wanted);
+    }
+
+    private string function getCacheKey(required numeric trainerid) {
+        return "trainer.getFromId|trainerid=#arguments.trainerid#";
     }
 
     /**
@@ -61,78 +103,65 @@ component singleton accessors="true" {
         required string orderCol = "",
         required string orderDir = ""
     ) {
-        var orderBy = "";
-        if(arguments.orderCol.len() && arguments.orderDir.len()) {
-            orderBy = "order by #getDatatableCols()[arguments.orderCol + 1]# #arguments.orderDir# nulls last";
+        var fromSQL     = "FROM trainer";
+        var whereSQL    = "";
+        var whereParams = {};
+        if(search.len()) {
+            whereSQL           = "WHERE #pagination.searchSQL(["trainer.username", "trainer.email"])#";
+            whereParams.search = {value: utilService.likeContains(search), cfsqltype: "varchar"};
         }
 
-        var results = async
-            .all(
-                () => ormExecuteQuery(
-                    "
-                    select trainer
-                    from trainer as trainer
-                    where upper(trainer.username) like :search
-                        or upper(trainer.email) like :search
-                    #orderBy#
-                    ",
-                    {search: "%#uCase(search)#%"},
-                    {
-                        offset    : offset,
-                        maxResults: records,
-                        cacheable : true,
-                        cachename : "defaultCache"
-                    }
-                ),
-                () => ormExecuteQuery(
-                    "
-                    select count(trainer.id)
-                    from trainer as trainer
-                    where upper(trainer.username) like :search
-                        or upper(trainer.email) like :search
-                    ",
-                    {search: "%#uCase(search)#%"},
-                    true
-                ),
-                () => getTotalRecords()
-            )
-            .get();
+        var orderBy = pagination.orderBy(
+            columns     = getDatatableCols(),
+            orders      = [{column: orderCol, dir: orderDir}],
+            defaultSort = "trainer.id ASC",
+            tiebreak    = "trainer.id ASC",
+            nullsLast   = true
+        );
 
-        var trainers       = results[1];
-        var filteredCount  = results[2];
-        var totalRecords   = results[3];
-        var securityLevels = securityService.getSecurityLevels();
+        var page = pagination.paginate(
+            records       = records,
+            offset        = offset,
+            fromSQL       = fromSQL,
+            baseWhere     = "",
+            whereSQL      = whereSQL,
+            whereParams   = whereParams,
+            totalCacheKey = "trainer.totalRecords",
+            cacheMinutes  = 5,
+            fetchRows     = (pageParams) => queryExecute(
+                "
+                SELECT trainer.id, COALESCE(trainer.icon, '') AS icon, trainer.username, trainer.email,
+                    trainer.verified, trainer.securitylevel, trainer.lastlogin
+                #fromSQL#
+                #whereSQL#
+                #orderBy#
+                LIMIT :records
+                OFFSET :offset
+                ",
+                pageParams,
+                {returntype: "array"}
+            )
+        );
+
+        var securityLevels = getSecurityLevels();
 
         return {
-            data: trainers.map((trainer) => {
+            data: page.rows.map((row) => {
                 return {
-                    trainerid    : trainer.getId(),
+                    trainerid    : row.id,
                     edit         : "",
-                    icon         : trainer.getIconPath(),
-                    iconAltText  : trainer.getIconAltText(),
-                    username     : trainer.getUsername(),
-                    email        : trainer.getEmail(),
-                    verified     : trainer.getVerified(),
-                    securitylevel: securityLevels[trainer.getSecurityLevel()],
-                    lastlogin    : trainer.getFormattedLastLogin()
+                    icon         : "/includes/images/icons/#row.icon##getImageExtension()#",
+                    iconAltText  : "#ucFirst(row.icon)# profile icon",
+                    username     : row.username,
+                    email        : row.email,
+                    verified     : row.verified,
+                    securitylevel: securityLevels[row.securitylevel],
+                    lastlogin    : isDate(row.lastlogin) ? dateTimeFormat(row.lastlogin, "mmm-dd-yyyy HH:nn:ss") : "---"
                 };
             }),
-            recordsTotal   : totalRecords,
-            recordsFiltered: filteredCount
+            recordsTotal   : page.recordsTotal,
+            recordsFiltered: page.recordsFiltered
         };
-    }
-
-    /**
-     * Return total number of trainers
-     */
-    public numeric function getTotalRecords() {
-        var cacheKey = "trainer.getTotalRecords";
-        var count    = cache.get(cacheKey);
-        if(isNull(count)) {
-            count = ormExecuteQuery("select count(id) from trainer", {}, true);
-            cache.set(cacheKey, count, 5, 5);
-        }
-        return count;
     }
 
     /**
@@ -142,10 +171,31 @@ component singleton accessors="true" {
      * @settings settings struct
      */
     public void function updateSettings(required component trainer, required struct settings) {
-        trainer.setSettings(arguments.settings);
-        entitySave(trainer);
-        ormFlush();
+        // settings is a jsonb column written directly by setSettings - no orm save needed
+        arguments.trainer.setSettings(arguments.settings);
         return;
+    }
+
+    /**
+     * Stamps the trainer's last login
+     *
+     * @trainer trainer entity
+     */
+    public void function updateLastLogin(required component trainer) {
+        var loginTime = now();
+        var trainerid = arguments.trainer.getId();
+
+        arguments.trainer.setLastLogin(loginTime);
+
+        async.newFuture(() => {
+            queryExecute(
+                "update trainer set lastlogin = :lastlogin where id = :trainerid",
+                {
+                    lastlogin: {value: loginTime, cfsqltype: "timestamp"},
+                    trainerid: {value: trainerid, cfsqltype: "integer"}
+                }
+            );
+        });
     }
 
 }

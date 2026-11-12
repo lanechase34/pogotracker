@@ -66,7 +66,7 @@ component extends="base" {
         prc.detailContentCache = {
             suffix: pokemonService.getDetailContentCacheSuffix(
                 ses     = rc.ses,
-                isAdmin = (session?.securityLevel ?: -10) >= 50
+                isAdmin = (prc?.oCurrentUser?.hasPermission("admin") ?: false)
             ),
             timeout: pokemonService.getCacheTime() * 15
         };
@@ -103,7 +103,7 @@ component extends="base" {
      * @rc.shinyShadowSwitch (optional) on/off switch
      * @rc.tradableSwitch    (optional) on/off switch
      */
-    function updateDetail(event, rc, prc) {
+    function updateDetail(event, rc, prc) secured="admin" {
         if(hasValidationErrors(target = rc, constraints = "pokemon.updateDetail")) {
             htmlValidationFailure(event = event, redirectEvent = "home");
             return;

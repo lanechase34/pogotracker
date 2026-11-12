@@ -34,7 +34,7 @@
                 <a href="/pokemon"><i class="bi bi-grid-3x3-gap-fill" aria-hidden="true"></i>Pokédex</a>
             </li>
             <li class="breadcrumb-item active" aria-current="page">
-                <span class="pokemon-breadcrumb-number">###prc.detail.number#</span>#prc.detail.fullname#
+                <span class="pokemon-breadcrumb-number">###prc.detail.number#</span><span>#prc.detail.fullname#</span>
             </li>
         </ol>
     </nav>
@@ -54,6 +54,8 @@
                                     class="pokemonIcon"
                                     src="/includes/images/sprites/#prc.detail.pokemon.getSprite()##getSetting('imageExtension')#"
                                     alt="#prc.detail.fullname# Sprite"
+                                    width="148"
+                                    height="148"
                                 >
                                 <span class="badge bg-dark text-white sprite-label">Normal</span>
                             </div>
@@ -63,6 +65,8 @@
                                     class="pokemonIcon"
                                     src="/includes/images/shinysprites/#prc.detail.pokemon.getSprite()##getSetting('imageExtension')#"
                                     alt="#prc.detail.fullname# Shiny Sprite"
+                                    width="148"
+                                    height="148"
                                 >
                                 <span class="badge bg-dark text-white sprite-label">&##x2728; Shiny</span>
                             </div>
@@ -172,7 +176,7 @@
             <h2 class="card-header card-header-pokemon">
                 <i class="bi bi-arrow-right-circle"></i> Evolutions
             </h2>
-            <div class="card-body">
+            <div class="card-body card-body-table">
                 <cfif prc.detail.baseStage.getEvolution().len()>
                 <div class="tableDiv">
                 <table class="table align-middle text-center mb-0">
@@ -210,24 +214,11 @@
             <h2 class="card-header card-header-pokemon">
                 <i class="bi bi-lightning-charge"></i> Moves
             </h2>
-            <div class="card-body pb-1">
-                <p class="moves-section-label text-muted mb-2">Fast Moves</p>
-                <div class="tableDiv mb-4">
-                <table class="table align-middle mb-0">
-                    <thead class="table-light">
-                        <tr>
-                            <th class="small fw-semibold">Move</th>
-                            <th class="small fw-semibold text-end">DMG / Energy</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <cfloop index="i" item="currMove" array="#prc.detail.pokemon.getMoves("fast", "normal")#">
-                            #view(view="/views/pokemon/fragment/moverow", nolayout=true, args={move: currMove.getMove()})#
-                        </cfloop>
-                    </tbody>
-                </table>
-                </div>
-                <p class="moves-section-label text-muted mb-2">Charge Moves</p>
+            <div class="card-body card-body-table">
+                <cfloop list="fast,charge" item="moveType">
+                <cfset moves = prc.detail.pokemon.getMoves(moveType, "normal")>
+                <p class="moves-section-label text-muted">#moveType == "fast" ? "Fast" : "Charge"# Moves</p>
+                <cfif moves.len()>
                 <div class="tableDiv">
                 <table class="table align-middle mb-0">
                     <thead class="table-light">
@@ -237,12 +228,16 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <cfloop index="i" item="currMove" array="#prc.detail.pokemon.getMoves("charge", "normal")#">
+                        <cfloop index="i" item="currMove" array="#moves#">
                             #view(view="/views/pokemon/fragment/moverow", nolayout=true, args={move: currMove.getMove()})#
                         </cfloop>
                     </tbody>
                 </table>
                 </div>
+                <cfelse>
+                    <p class="text-muted small text-center px-3 py-2 mb-0">No #moveType# moves</p>
+                </cfif>
+                </cfloop>
             </div>
         </div>
     </div>
@@ -255,7 +250,7 @@
             <h2 class="card-header card-header-pokemon">
                 <i class="bi bi-calendar-event"></i> Previous Events
             </h2>
-            <div class="card-body">
+            <div class="card-body card-body-table">
                 <cfif prc.detail.events.len()>
                     <div class="tableDiv">
                         <table class="table table-hover align-middle mb-0">
@@ -315,6 +310,7 @@
                     data-bs-target="##costumesCollapse"
                     aria-expanded="true"
                     aria-controls="costumesCollapse"
+                    aria-label="Toggle costumes"
                 >
                     <i class="bi bi-chevron-up collapse-chevron"></i>
                 </button>
@@ -330,6 +326,9 @@
                                     class="costumeIcon"
                                     src="/includes/images/sprites/#costume.getSprite()##getSetting('imageExtension')#"
                                     alt="#costume.getCostumeType()# Normal Sprite"
+                                    width="110"
+                                    height="110"
+                                    loading="lazy"
                                 >
                                 <span class="badge bg-dark text-white sprite-label">Normal</span>
                             </div>
@@ -339,6 +338,9 @@
                                     class="costumeIcon"
                                     src="/includes/images/shinysprites/#costume.getSprite()##getSetting('imageExtension')#"
                                     alt="#costume.getCostumeType()# Shiny Sprite"
+                                    width="110"
+                                    height="110"
+                                    loading="lazy"
                                 >
                                <span class="badge bg-dark text-white sprite-label">&##x2728; Shiny</span>
                             </div>
@@ -362,51 +364,28 @@
             <h2 class="card-header card-header-pokemon">
                 <i class="bi bi-check2-circle"></i> Availability
             </h2>
+            <cfset availability = [
+                {label: "Normal",       value: prc.detail.pokemon.getLive(),        yes: "Available", no: "Unavailable"},
+                {label: "Shiny",        value: prc.detail.pokemon.getShiny(),       yes: "Available", no: "Unavailable"},
+                {label: "Shadow",       value: prc.detail.pokemon.getShadow(),      yes: "Available", no: "Unavailable"},
+                {label: "Shiny Shadow", value: prc.detail.pokemon.getShadowShiny(), yes: "Available", no: "Unavailable"},
+                {label: "Tradable",     value: prc.detail.pokemon.getTradable(),    yes: "Yes",       no: "No"}
+            ]>
             <ul class="list-group list-group-flush">
+                <cfloop array="#availability#" item="avail">
                 <li class="list-group-item avail-item">
-                    <span class="avail-name">Normal</span>
-                    <cfif prc.detail.pokemon.getLive()>
-                        <span class="badge text-bg-success rounded-pill"><i class="bi bi-check-lg me-1"></i>Available</span>
+                    <span class="avail-name">#avail.label#</span>
+                    <cfif avail.value>
+                        <span class="badge text-bg-success rounded-pill"><i class="bi bi-check-lg me-1" aria-hidden="true"></i>#avail.yes#</span>
                     <cfelse>
-                        <span class="badge text-bg-secondary rounded-pill"><i class="bi bi-dash me-1"></i>Unavailable</span>
+                        <span class="badge text-bg-secondary rounded-pill"><i class="bi bi-dash me-1" aria-hidden="true"></i>#avail.no#</span>
                     </cfif>
                 </li>
-                <li class="list-group-item avail-item">
-                    <span class="avail-name">Shiny</span>
-                    <cfif prc.detail.pokemon.getShiny()>
-                        <span class="badge text-bg-success rounded-pill"><i class="bi bi-check-lg me-1"></i>Available</span>
-                    <cfelse>
-                        <span class="badge text-bg-secondary rounded-pill"><i class="bi bi-dash me-1"></i>Unavailable</span>
-                    </cfif>
-                </li>
-                <li class="list-group-item avail-item">
-                    <span class="avail-name">Shadow</span>
-                    <cfif prc.detail.pokemon.getShadow()>
-                        <span class="badge text-bg-success rounded-pill"><i class="bi bi-check-lg me-1"></i>Available</span>
-                    <cfelse>
-                        <span class="badge text-bg-secondary rounded-pill"><i class="bi bi-dash me-1"></i>Unavailable</span>
-                    </cfif>
-                </li>
-                <li class="list-group-item avail-item">
-                    <span class="avail-name">Shadow Shiny</span>
-                    <cfif prc.detail.pokemon.getShadowShiny()>
-                        <span class="badge text-bg-success rounded-pill"><i class="bi bi-check-lg me-1"></i>Available</span>
-                    <cfelse>
-                        <span class="badge text-bg-secondary rounded-pill"><i class="bi bi-dash me-1"></i>Unavailable</span>
-                    </cfif>
-                </li>
-                <li class="list-group-item avail-item">
-                    <span class="avail-name">Tradable</span>
-                    <cfif prc.detail.pokemon.getTradable()>
-                        <span class="badge text-bg-success rounded-pill"><i class="bi bi-check-lg me-1"></i>Yes</span>
-                    <cfelse>
-                        <span class="badge text-bg-secondary rounded-pill"><i class="bi bi-dash me-1"></i>No</span>
-                    </cfif>
-                </li>
+                </cfloop>
             </ul>
         </div>
     </div>
-    <cfif (session?.securityLevel ?: -10) GTE 50>
+    <cfif (prc?.oCurrentUser?.hasPermission("admin") ?: false)>
     <div class="col-12 col-md-6 mb-4 mb-md-0">
         <div class="card shadow-sm h-100">
             <h2 class="card-header card-header-pokemon">

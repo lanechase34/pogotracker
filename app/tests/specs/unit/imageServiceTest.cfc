@@ -16,10 +16,6 @@ component extends="tests.resources.baseTest" {
                 imageService = getInstance("Helpers@ImageMagick");
             });
 
-            it("Service can be created", () => {
-                expect(imageService).toBeComponent();
-            });
-
             // Skip check in test env
             it(
                 "Can verify image magickis functioning",

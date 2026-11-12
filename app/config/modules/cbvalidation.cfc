@@ -208,8 +208,9 @@ component {
                         var friendRequest = entityLoadByPK("friend", arguments.value);
                         if(isNull(friendRequest)) return false;
 
-                        // check that this is the trainer that decides the friend request
-                        return friendRequest.getFriend().getId() == session.trainerid;
+                        // Only the trainer the request was sent to can decide it
+                        var auth = application.wirebox.getInstance("authenticationService@cbauth");
+                        return auth.isLoggedIn() && friendRequest.getFriend().getId() == auth.getUserId();
                     }
                 },
                 accept: {required: true, type: "boolean"}
@@ -379,10 +380,26 @@ component {
                     entityExists : {entityName: "trainer", pk: true},
                     securityCheck: {}
                 },
-                xp    : {required: true, type: "numeric"},
-                caught: {required: true, type: "numeric"},
-                spun  : {required: true, type: "numeric"},
-                walked: {required: true, type: "numeric"}
+                xp: {
+                    required: true,
+                    type    : "numeric",
+                    min     : 0
+                },
+                caught: {
+                    required: true,
+                    type    : "numeric",
+                    min     : 0
+                },
+                spun: {
+                    required: true,
+                    type    : "numeric",
+                    min     : 0
+                },
+                walked: {
+                    required: true,
+                    type    : "numeric",
+                    min     : 0
+                }
             },
             "stat.trackMedalProgress": {
                 medal: {
@@ -477,8 +494,8 @@ component {
                 password: {
                     type: "string",
                     udf : (value, target) => {
-                        if(isNull(arguments.value)) return true; // users don't have to update password here
-                        return arguments.value.len() <= 50 && arguments.value.len() >= 10; // if they are, check length
+                        if(isNull(arguments.value)) return true; // optional - a blank password keeps the current one
+                        return arguments.value.len() <= 50 && arguments.value.len() >= 10; // if it is set, check length
                     }
                 },
                 friendcode: {
@@ -662,9 +679,9 @@ component {
                 "search[value]"   : {required: false, type: "string"},
                 "order[0][column]": {
                     required: false,
-                    type    : "numeric",
+                    type    : "integer",
                     min     : 0,
-                    max     : 7
+                    max     : 6
                 },
                 "order[0][dir]": {
                     required: false,
@@ -693,9 +710,9 @@ component {
                 "search[value]"   : {required: false, type: "string"},
                 "order[0][column]": {
                     required: false,
-                    type    : "numeric",
-                    min     : 0,
-                    max     : 7
+                    type    : "integer",
+                    min     : 1,
+                    max     : 6
                 },
                 "order[0][dir]": {
                     required: false,
@@ -724,9 +741,9 @@ component {
                 "search[value]"   : {required: false, type: "string"},
                 "order[0][column]": {
                     required: false,
-                    type    : "numeric",
+                    type    : "integer",
                     min     : 0,
-                    max     : 9
+                    max     : 8
                 },
                 "order[0][dir]": {
                     required: false,
@@ -755,9 +772,9 @@ component {
                 "search[value]"   : {required: false, type: "string"},
                 "order[0][column]": {
                     required: false,
-                    type    : "numeric",
+                    type    : "integer",
                     min     : 0,
-                    max     : 6
+                    max     : 5
                 },
                 "order[0][dir]": {
                     required: false,
@@ -776,7 +793,7 @@ component {
                     required: true,
                     type    : "string",
                     size    : "1..45",
-                    regex   : "[0-9a-f.:]+"
+                    regex   : "^[0-9a-fA-F.:]+$"
                 },
                 event: {
                     required: true,
@@ -792,7 +809,7 @@ component {
                     required: true,
                     type    : "string",
                     size    : "1..45",
-                    regex   : "[0-9a-f.:]+"
+                    regex   : "^[0-9a-fA-F.:]+$"
                 },
                 event: {
                     required: true,

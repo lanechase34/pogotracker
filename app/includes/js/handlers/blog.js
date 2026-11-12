@@ -185,7 +185,7 @@ async function submitBlog($blogDivEditor, $blogSubmitBtn, submitUrl) {
                 );
                 throw new Error(data.message);
             } else {
-                window.location.href = `/home`;
+                window.location.href = '/';
             }
         },
     });

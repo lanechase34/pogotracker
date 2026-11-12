@@ -4,13 +4,12 @@ component extends="coldbox.system.Interceptor" {
     property name="environment" inject="coldbox:setting:environment";
     property name="uploadPath"  inject="coldbox:setting:uploadPath";
 
-    property name="adminService" inject="provider:services.admin";
     property name="emailService" inject="provider:services.email";
     property name="imageService" inject="provider:Helpers@ImageMagick";
 
     /**
      * Runs after Coldbox configuration loads - similar to onApplicationStart
-     * Will verify dependencies on prod
+     * Creates the upload folders, checks the database, and on production checks imagemagick and the email server
      */
     function afterAspectsLoad(event, data, buffer, rc, prc) {
         if(!directoryExists(uploadPath)) {
@@ -53,7 +52,7 @@ component extends="coldbox.system.Interceptor" {
     }
 
     /**
-     * Track number of active requests
+     * Count requests for the admin metrics - "activeRequests" is the count since the metrics task last reset it (every 5 seconds)
      */
     function preProcess(event, data, buffer, rc, prc) {
         lock name="concurrencyLock" timeout="5" type="exclusive" throwOnTimeout=false {

@@ -7,14 +7,13 @@ component extends="coldbox.system.testing.BaseInterceptorTest" interceptor="inte
         super.setup();
 
         // Mock inteceptor dependencies
-        mockAsync           = createEmptyMock("coldbox.system.async.AsyncManager");
-        mockAuditService    = createEmptyMock(className = "models.services.audit");
-        mockSecurityService = createEmptyMock(className = "models.services.security");
-        mockUtilService     = createEmptyMock(className = "models.services.util");
-        mockConcurrency     = {slowRequests: []};
+        mockAsync        = createEmptyMock("coldbox.system.async.AsyncManager");
+        mockAuditService = createEmptyMock(className = "models.services.audit");
+        mockUtilService  = createEmptyMock(className = "models.services.util");
+        mockConcurrency  = {slowRequests: []};
 
-        // Mock audit settings
-        mockAuditSettings = {
+        // Mock audit settings - copied fresh into mockAuditSettings before each spec so overrides don't leak
+        defaultAuditSettings = {
             urlpathLength       : 500,
             methodLength        : 10,
             agentLength         : 250,
@@ -25,7 +24,6 @@ component extends="coldbox.system.testing.BaseInterceptorTest" interceptor="inte
     }
 
     function afterAll() {
-        session.delete("trainerid");
         super.afterAll();
     }
 
@@ -37,10 +35,11 @@ component extends="coldbox.system.testing.BaseInterceptorTest" interceptor="inte
                 // Reset mocks before each test
                 mockAsync.$reset();
                 mockAuditService.$reset();
-                mockSecurityService.$reset();
+                mockUtilService.$reset();
 
-                // Reset concurrency struct
+                // Reset concurrency struct and settings
                 mockConcurrency.slowRequests = [];
+                mockAuditSettings            = duplicate(defaultAuditSettings);
 
                 // Inject dependencies
                 interceptor.$property(propertyName = "async", mock = mockAsync);
@@ -49,7 +48,6 @@ component extends="coldbox.system.testing.BaseInterceptorTest" interceptor="inte
                 interceptor.$property(propertyName = "LOG_REQUESTS", mock = true);
 
                 interceptor.$property(propertyName = "auditService", mock = mockAuditService);
-                interceptor.$property(propertyName = "securityService", mock = mockSecurityService);
                 interceptor.$property(propertyName = "utilService", mock = mockUtilService);
 
                 // Mock event and data objects
@@ -61,9 +59,9 @@ component extends="coldbox.system.testing.BaseInterceptorTest" interceptor="inte
                 prc        = {};
 
                 // Setup default mock responses
-                mockSecurityService.$("getRequestIP", "192.168.1.100");
-                mockSecurityService.$("getUserAgent", "Mozilla/5.0 Test Browser");
-                mockSecurityService.$("getReferer", "https://pogotracker.app");
+                mockUtilService.$("getRequestIP", "192.168.1.100");
+                mockUtilService.$("getUserAgent", "Mozilla/5.0 Test Browser");
+                mockUtilService.$("getReferer", "https://pogotracker.app");
                 mockUtilService.$("isJsonRequest", true);
                 mockRequestContext.$("getFullPath", "/api/v1/users");
                 mockRequestContext.$("getHTTPMethod", "GET");
@@ -76,47 +74,7 @@ component extends="coldbox.system.testing.BaseInterceptorTest" interceptor="inte
                 mockAuditService.$("logRequest");
             });
 
-            afterEach(() => {
-                session.delete("trainerid");
-            });
-
             describe("configure()", () => {
-                it("Should set URLPATH_LENGTH from REQUEST_LOG_SETTINGS", () => {
-                    interceptor.configure();
-
-                    expect(interceptor.$getProperty("URLPATH_LENGTH")).toBe(500);
-                });
-
-                it("Should set METHOD_LENGTH from REQUEST_LOG_SETTINGS", () => {
-                    interceptor.configure();
-
-                    expect(interceptor.$getProperty("METHOD_LENGTH")).toBe(10);
-                });
-
-                it("Should set AGENT_LENGTH from REQUEST_LOG_SETTINGS", () => {
-                    interceptor.configure();
-
-                    expect(interceptor.$getProperty("AGENT_LENGTH")).toBe(250);
-                });
-
-                it("Should set REFERER_LENGTH from REQUEST_LOG_SETTINGS", () => {
-                    interceptor.configure();
-
-                    expect(interceptor.$getProperty("REFERER_LENGTH")).toBe(250);
-                });
-
-                it("Should set SLOW_REQUEST_THRESHOLD from REQUEST_LOG_SETTINGS", () => {
-                    interceptor.configure();
-
-                    expect(interceptor.$getProperty("SLOW_REQUEST_THRESHOLD")).toBe(1000);
-                });
-
-                it("Should set MAX_SLOW_REQUESTS from REQUEST_LOG_SETTINGS", () => {
-                    interceptor.configure();
-
-                    expect(interceptor.$getProperty("MAX_SLOW_REQUESTS")).toBe(25);
-                });
-
                 it("Should configure all settings in one call", () => {
                     var customSettings = {
                         urlpathLength       : 100,
@@ -166,7 +124,7 @@ component extends="coldbox.system.testing.BaseInterceptorTest" interceptor="inte
                     expect(prc.requestAudit).toHaveKey("trainerid");
                 });
 
-                it("Should set IP from securityService", () => {
+                it("Should set IP from utilService", () => {
                     interceptor.preProcess(
                         event  = mockRequestContext,
                         data   = mockData,
@@ -175,8 +133,8 @@ component extends="coldbox.system.testing.BaseInterceptorTest" interceptor="inte
                         prc    = prc
                     );
 
-                    // Calls securityService.getRequestIP()
-                    expect(mockSecurityService.$once("getRequestIP")).toBeTrue();
+                    // Calls utilService.getRequestIP()
+                    expect(mockUtilService.$once("getRequestIP")).toBeTrue();
                     expect(prc.requestAudit.ip).toBe("192.168.1.100");
                 });
 
@@ -257,7 +215,7 @@ component extends="coldbox.system.testing.BaseInterceptorTest" interceptor="inte
                     expect(prc.requestAudit.start).toBeLTE(afterTick);
                 });
 
-                it("Should set agent from securityService.getUserAgent()", () => {
+                it("Should set agent from utilService.getUserAgent()", () => {
                     interceptor.preProcess(
                         event  = mockRequestContext,
                         data   = mockData,
@@ -266,13 +224,13 @@ component extends="coldbox.system.testing.BaseInterceptorTest" interceptor="inte
                         prc    = prc
                     );
 
-                    // Calls securityService.getUserAgent()
-                    expect(mockSecurityService.$once("getUserAgent")).toBeTrue();
+                    // Calls utilService.getUserAgent()
+                    expect(mockUtilService.$once("getUserAgent")).toBeTrue();
                     expect(prc.requestAudit.agent).toBe("Mozilla/5.0 Test Browser");
                 });
 
                 it("Should use 'Unknown' when cgi.http_user_agent does not exist", () => {
-                    mockSecurityService.$("getUserAgent", "Unknown");
+                    mockUtilService.$("getUserAgent", "Unknown");
 
                     interceptor.preProcess(
                         event  = mockRequestContext,
@@ -282,12 +240,12 @@ component extends="coldbox.system.testing.BaseInterceptorTest" interceptor="inte
                         prc    = prc
                     );
 
-                    expect(mockSecurityService.$once("getUserAgent")).toBeTrue();
+                    expect(mockUtilService.$once("getUserAgent")).toBeTrue();
                     expect(prc.requestAudit.agent).toBe("Unknown");
                 });
 
                 it("Should truncate agent to AGENT_LENGTH", () => {
-                    mockSecurityService.$("getUserAgent", repeatString("b", 300))
+                    mockUtilService.$("getUserAgent", repeatString("b", 300))
 
                     interceptor.preProcess(
                         event  = mockRequestContext,
@@ -297,11 +255,11 @@ component extends="coldbox.system.testing.BaseInterceptorTest" interceptor="inte
                         prc    = prc
                     );
 
-                    expect(mockSecurityService.$once("getUserAgent")).toBeTrue();
+                    expect(mockUtilService.$once("getUserAgent")).toBeTrue();
                     expect(len(prc.requestAudit.agent)).toBe(250);
                 });
 
-                it("Should set referer from securityService.getReferer()", () => {
+                it("Should set referer from utilService.getReferer()", () => {
                     interceptor.preProcess(
                         event  = mockRequestContext,
                         data   = mockData,
@@ -310,13 +268,13 @@ component extends="coldbox.system.testing.BaseInterceptorTest" interceptor="inte
                         prc    = prc
                     );
 
-                    // Calls securityService.getReferer()
-                    expect(mockSecurityService.$once("getReferer")).toBeTrue();
+                    // Calls utilService.getReferer()
+                    expect(mockUtilService.$once("getReferer")).toBeTrue();
                     expect(prc.requestAudit.referer).toBe("https://pogotracker.app");
                 });
 
                 it("Should use empty string when cgi.http_referer does not exist", () => {
-                    mockSecurityService.$("getUserAgent", "");
+                    mockUtilService.$("getUserAgent", "");
 
                     interceptor.preProcess(
                         event  = mockRequestContext,
@@ -326,12 +284,12 @@ component extends="coldbox.system.testing.BaseInterceptorTest" interceptor="inte
                         prc    = prc
                     );
 
-                    expect(mockSecurityService.$once("getReferer")).toBeTrue();
+                    expect(mockUtilService.$once("getReferer")).toBeTrue();
                     expect(prc.requestAudit.agent).toBe("");
                 });
 
                 it("Should truncate agent to REFERER_LENGTH", () => {
-                    mockSecurityService.$("getReferer", repeatString("b", 300))
+                    mockUtilService.$("getReferer", repeatString("b", 300))
 
                     interceptor.preProcess(
                         event  = mockRequestContext,
@@ -341,7 +299,7 @@ component extends="coldbox.system.testing.BaseInterceptorTest" interceptor="inte
                         prc    = prc
                     );
 
-                    expect(mockSecurityService.$once("getReferer")).toBeTrue();
+                    expect(mockUtilService.$once("getReferer")).toBeTrue();
                     expect(len(prc.requestAudit.referer)).toBe(250);
                 });
 
@@ -393,6 +351,16 @@ component extends="coldbox.system.testing.BaseInterceptorTest" interceptor="inte
                         message   : "",
                         statusCode: 210
                     };
+                });
+
+                it("Should do nothing when preProcess never ran (the request failed before it)", () => {
+                    prc.delete("requestAudit");
+                    interceptor.$property(propertyName = "LOG_REQUESTS", mock = true);
+
+                    interceptor.postProcess(event = mockRequestContext, rc = rc, prc = prc);
+
+                    expect(prc).notToHaveKey("requestAudit");
+                    expect(mockAsync.$never("newFuture")).toBeTrue();
                 });
 
                 it("Should calculate delta from start time", () => {
@@ -510,10 +478,13 @@ component extends="coldbox.system.testing.BaseInterceptorTest" interceptor="inte
                 });
 
                 it("Should not add to slowRequests when delta equals threshold", () => {
-                    prc.requestAudit.start = getTickCount() - 1000; // Exactly 1000ms
+                    // Pin the clock - a real tick between start and postProcess would push the delta past 1000
+                    prc.requestAudit.start = 0;
+                    interceptor.$("tick", 1000);
 
                     interceptor.postProcess(event = mockRequestContext, rc = rc, prc = prc);
 
+                    expect(prc.requestAudit.delta).toBe(1000);
                     expect(arrayLen(mockConcurrency.slowRequests)).toBe(0);
                 });
 
@@ -642,9 +613,7 @@ component extends="coldbox.system.testing.BaseInterceptorTest" interceptor="inte
                 });
 
                 it("Should remove multiple old entries when over MAX_SLOW_REQUESTS", () => {
-                    // Fill with 27 requests (2 over limit)
-                    mockAuditSettings.maxSlowRequests = 25;
-                    interceptor.configure();
+                    // Fill with 27 requests (2 over the default limit of 25)
                     for(var i = 1; i <= 27; i++) {
                         arrayAppend(
                             mockConcurrency.slowRequests,
@@ -712,8 +681,8 @@ component extends="coldbox.system.testing.BaseInterceptorTest" interceptor="inte
                     interceptor.configure();
                     interceptor.$property(propertyName = "LOG_REQUESTS", mock = true);
 
-                    session.trainerid = 456;
-                    mockResponse      = createStub();
+                    prc.oCurrentUser = createStub().$("getId", 456);
+                    mockResponse     = createStub();
                     mockResponse.$("getStatusCode", 200);
                     mockResponse.$("getMessagesString", "Operation completed");
                     prc.response = mockResponse;
@@ -744,8 +713,8 @@ component extends="coldbox.system.testing.BaseInterceptorTest" interceptor="inte
                     interceptor.configure();
                     interceptor.$property(propertyName = "LOG_REQUESTS", mock = true);
 
-                    session.trainerid = 789;
-                    mockResponse      = createStub();
+                    prc.oCurrentUser = createStub().$("getId", 789);
+                    mockResponse     = createStub();
                     mockResponse.$("getStatusCode", 200);
                     mockResponse.$("getMessagesString", "Quick response");
                     prc.response = mockResponse;
@@ -776,7 +745,7 @@ component extends="coldbox.system.testing.BaseInterceptorTest" interceptor="inte
                     interceptor.configure();
                     interceptor.$property(propertyName = "LOG_REQUESTS", mock = false);
 
-                    session.trainerid = 999;
+                    prc.oCurrentUser = createStub().$("getId", 999);
 
                     // Act - preProcess
                     interceptor.preProcess(

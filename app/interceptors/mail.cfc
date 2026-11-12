@@ -3,9 +3,6 @@ component extends="coldbox.system.Interceptor" {
     property name="async"      inject="asyncManager@coldbox";
     property name="bugService" inject="provider:services.bug";
 
-    function configure() {
-    }
-
     /**
      * Interceptor point before mail is sent
      */
@@ -23,7 +20,7 @@ component extends="coldbox.system.Interceptor" {
     function postMailSend(event, data, buffer, rc, prc) {
         if(data.result.error) {
             // Log bug
-            prc.bugDetail = {
+            var bugDetail = {
                 ip       : "-1",
                 event    : "cbMailQueue",
                 message  : "Failed to send email",
@@ -32,7 +29,7 @@ component extends="coldbox.system.Interceptor" {
             };
 
             async.newFuture(() => {
-                bugService.logBug(argumentCollection = prc.bugDetail);
+                bugService.logBug(argumentCollection = bugDetail);
             });
         }
     }

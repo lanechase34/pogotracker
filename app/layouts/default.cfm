@@ -136,7 +136,7 @@
                         <button id="trackStats" role="button" class="btn btn-primary" <cfif dateDiff("d", prc.trainerStatStruct.dateTracked, now()) LT 1>disabled</cfif>>
                             <i class="bi bi-graph-up me-2"></i>Track Stats
                         </button>
-                    <cfelseif prc.currEvent EQ "blog.read" AND (session?.securityLevel ?: -10) GTE 50>
+                    <cfelseif prc.currEvent EQ "blog.read" AND (prc?.oCurrentUser?.hasPermission("admin") ?: false)>
                         <a href="/editblog/#encodeForHTML(prc.blog.getId())#" id="editBlog" role="button" class="btn btn-primary">
                             <i class="bi bi-pencil-fill me-2"></i>Edit
                         </a>
@@ -221,37 +221,37 @@
                     </a>
                 </li>
                 <li class="nav-item d-flex">
-                    <a class="nav-link fs-6 w-100 iconHover text-start d-flex align-items-center <cfif prc.currHandler EQ "pokemon">active</cfif>" href="/pokemon">
-                        <i class="bi bi-grid-3x3-gap-fill me-2 navIcon"></i>All Pokémon
+                    <a class="nav-link fs-6 w-100 iconHover text-start d-flex align-items-center <cfif prc.currEvent EQ "pokemon.index">active</cfif>" href="/pokemon">
+                        <i class="bi bi-grid-3x3-gap-fill me-2 navIcon"></i>Database
                     </a>
                 </li>
                 <li class="nav-item d-flex">
-                    <a class="nav-link fs-6 w-100 iconHover text-start d-flex align-items-center <cfif prc.currEvent EQ "pokedex.mypokedex">active</cfif>" href="/mypokedex" <cfif !(session?.authenticated ?: false)>rel="nofollow"</cfif>>
+                    <a class="nav-link fs-6 w-100 iconHover text-start d-flex align-items-center <cfif prc.currEvent EQ "pokedex.mypokedex">active</cfif>" href="/mypokedex" <cfif !prc.keyExists("oCurrentUser")>rel="nofollow"</cfif>>
                         <i class="bi bi-ui-checks-grid me-2 navIcon"></i>Pokedex
                     </a>
                 </li>
                 <li class="nav-item d-flex">
-                    <a class="nav-link fs-6 w-100 iconHover text-start d-flex align-items-center <cfif prc.currEvent EQ "pokedex.mycostumepokedex">active</cfif>" href="/mycostumepokedex" <cfif !(session?.authenticated ?: false)>rel="nofollow"</cfif>>
+                    <a class="nav-link fs-6 w-100 iconHover text-start d-flex align-items-center <cfif prc.currEvent EQ "pokedex.mycostumepokedex">active</cfif>" href="/mycostumepokedex" <cfif !prc.keyExists("oCurrentUser")>rel="nofollow"</cfif>>
                         <i class="bi bi-star me-2 navIcon"></i>Costume Pokedex
                     </a>
                 </li>
                 <li class="nav-item d-flex">
-                    <a class="nav-link fs-6 w-100 iconHover text-start d-flex align-items-center <cfif prc.currEvent EQ "pokedex.myshadowpokedex">active</cfif>" href="/myshadowpokedex" <cfif !(session?.authenticated ?: false)>rel="nofollow"</cfif>>
+                    <a class="nav-link fs-6 w-100 iconHover text-start d-flex align-items-center <cfif prc.currEvent EQ "pokedex.myshadowpokedex">active</cfif>" href="/myshadowpokedex" <cfif !prc.keyExists("oCurrentUser")>rel="nofollow"</cfif>>
                         <i class="bi bi-fire me-2 navIcon"></i>Shadow Pokedex
                     </a>
                 </li>
                 <li class="nav-item d-flex">
-                    <a class="nav-link fs-6 w-100 iconHover text-start d-flex align-items-center <cfif prc.currEvent EQ "pokedex.custompokedexlist" OR prc.currEvent EQ "pokedex.mycustompokedex">active</cfif>" href="/custompokedexlist" <cfif !(session?.authenticated ?: false)>rel="nofollow"</cfif>>
+                    <a class="nav-link fs-6 w-100 iconHover text-start d-flex align-items-center <cfif prc.currEvent EQ "pokedex.custompokedexlist" OR prc.currEvent EQ "pokedex.mycustompokedex">active</cfif>" href="/custompokedexlist" <cfif !prc.keyExists("oCurrentUser")>rel="nofollow"</cfif>>
                         <i class="bi bi-pencil-fill me-2 navIcon"></i>Custom Pokedex
                     </a>
                 </li>
                 <li class="nav-item d-flex">
-                    <a class="nav-link fs-6 w-100 iconHover text-start d-flex align-items-center <cfif prc.currHandler EQ "trade">active</cfif>" href="/buildtradeplan" <cfif !(session?.authenticated ?: false)>rel="nofollow"</cfif>>
+                    <a class="nav-link fs-6 w-100 iconHover text-start d-flex align-items-center <cfif prc.currHandler EQ "trade">active</cfif>" href="/buildtradeplan" <cfif !prc.keyExists("oCurrentUser")>rel="nofollow"</cfif>>
                         <i class="bi bi-arrow-left-right me-2 navIcon"></i>Trade Plan
                     </a>
                 </li>
                 <li class="nav-item d-flex">
-                    <a class="nav-link fs-6 w-100 iconHover text-start d-flex align-items-center <cfif prc.currHandler EQ "stats">active</cfif>" href="/overview" <cfif !(session?.authenticated ?: false)>rel="nofollow"</cfif>>
+                    <a class="nav-link fs-6 w-100 iconHover text-start d-flex align-items-center <cfif prc.currHandler EQ "stats">active</cfif>" href="/overview" <cfif !prc.keyExists("oCurrentUser")>rel="nofollow"</cfif>>
                         <i class="bi bi-graph-up me-2 navIcon"></i>Stats
                     </a>
                 </li>
@@ -260,30 +260,35 @@
                         <i class="bi bi-trophy me-2 navIcon"></i>PVP
                     </a>
                 </li> --->
-                <cfif (session?.securityLevel ?: -10) GTE 50>
+                <cfif (prc?.oCurrentUser?.hasPermission("admin") ?: false)>
                     <li class="nav-item d-flex">
                         <a class="nav-link fs-6 w-100 iconHover text-start d-flex align-items-center <cfif prc.currHandler EQ "admin">active</cfif>" href="/admin">
                             <i class="bi bi-tools me-2 navIcon"></i>Admin
                         </a>
                     </li>
                 </cfif>
-                <cfif (session?.securityLevel ?: -10) GTE 60 AND getSetting('environment') NEQ "production">
+                <cfif (prc?.oCurrentUser?.hasPermission("developer") ?: false) AND getSetting('environment') NEQ "production">
                     <li class="nav-item d-flex">
                         <a class="nav-link fs-6 w-100 iconHover text-start d-flex align-items-center <cfif prc.currHandler EQ "dev">active</cfif>" href="/dev">
                             <i class="bi bi-code-slash me-2 navIcon"></i>Dev
                         </a>
                     </li>
                 </cfif>
-                <cfif session?.authenticated ?: false>
+                <cfif prc.keyExists("oCurrentUser")>
                     <li class="nav-item mt-auto dropup" data-bs-theme="dark">
                         <div id="profileGroup" class="d-flex align-items-center iconHover" data-bs-toggle="dropdown" aria-expanded="false">
-                            <img class="profileIcon me-2" id="sidebarIcon" src="#session.iconPath#" alt="#session.iconAlt#">
-                            <span id="sidebarUsername">#session.username#</span>
+                            <img class="profileIcon me-2" id="sidebarIcon" src="#encodeForHTMLAttribute(prc.oCurrentUser.getIconPath())#" alt="#encodeForHTMLAttribute(prc.oCurrentUser.getIconAltText())#">
+                            <span id="sidebarUsername">#encodeForHTML(prc.oCurrentUser.getUsername())#</span>
                             <i class="bi bi-three-dots ms-auto navIcon"></i>
                         </div>
                         <ul class="dropdown-menu dropdown-menu-dark mb-2">
                             <li><a class="dropdown-item" href="/profile"><i class="bi bi-person me-1"></i>Profile</a></li>
-                            <li><a class="dropdown-item" id="logoutBtn" role="button" href="/logout"><i class="bi bi-door-open me-1"></i>Log Out</a></li>
+                            <li>
+                                <form action="/logout" method="post" class="m-0">
+                                    <input type="hidden" name="csrf" value="#csrfToken()#">
+                                    <button type="submit" class="dropdown-item" id="logoutBtn"><i class="bi bi-door-open me-1"></i>Log Out</button>
+                                </form>
+                            </li>
                         </ul>
                     </li>
                 <cfelse>
@@ -311,6 +316,13 @@
 <script type="text/javascript" defer src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js" integrity="sha384-d3UHjPdzJkZuk5H3qKYMLRyWLAQBJbby2yr2Q58hXXtAGF8RSNO9jpLDlKKPv5v3" crossorigin="anonymous"></script>
 
 <script type="module" src="#getSetting('jsPath')#/global#getSetting('minifiedJS')#.js#getSetting('cacheBuster')#"></script>
+
+<!--- Chromium prerenders the Pokemon database (large page) once a link to it is hovered/pressed, so the click opens instantly - other browsers ignore this --->
+<cfif prc.currEvent NEQ "pokemon.index">
+<script type="speculationrules">
+{"prerender": [{"where": {"href_matches": "/pokemon"}, "eagerness": "moderate"}]}
+</script>
+</cfif>
 </body>
 </html>
 </cfoutput>

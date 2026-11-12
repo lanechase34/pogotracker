@@ -1,7 +1,30 @@
 component singleton accessors="true" {
 
+    property name="environment" inject="coldbox:setting:environment";
     property name="jsonDiffLog" inject="logbox:logger:jsonDiff";
     property name="rootPath"    inject="coldbox:setting:rootPath";
+
+    // User facing message per unique index/constraint
+    variables.UNIQUE_MESSAGES = {
+        "unq_trainer_lower_username"          : "That username is already taken.",
+        "unq_trainer_email"                   : "That email is already in use.",
+        "unq_trainer_friendcode"              : "That friend code is already in use.",
+        "unq_blog_lower_header"               : "A blog with that header already exists.",
+        "unq_friend_trainerid_friendid"       : "That friend request already exists.",
+        "unq_pokedex_trainerid_pokemonid"     : "That pokemon is already registered.",
+        "unq_custompokedex_customid_pokemonid": "That pokemon is already in this custom pokedex.",
+        "unq_trainermedal_trainerid_medalid"  : "That medal is already tracked.",
+        "unq_persist_cookie"                  : "Please try logging in again.",
+        "unq_pokemon_ses"                     : "A pokemon with that url (ses) already exists.",
+        "unq_pokemon_identity"                : "A pokemon with that number, name, gender and costume already exists.",
+        "unq_pokemonmove_pokemonid_moveid"    : "That pokemon already has that move.",
+        "unq_evolution_pokemonid_evolutionid" : "That evolution already exists.",
+        "unq_medal_name"                      : "A medal with that name already exists.",
+        "unq_move_nameid"                     : "A move with that id already exists.",
+        "unq_overrides_name"                  : "An override with that name already exists.",
+        "unq_generation_generation"           : "That generation already exists.",
+        "unq_level_level"                     : "That level already exists."
+    };
 
     /**
      * Capitalize the first letter of each word in a sentence string
@@ -38,26 +61,6 @@ component singleton accessors="true" {
                 .result,
             arguments.delimiter
         );
-    }
-
-    /**
-     * Attempt to format the incoming string to date object
-     * Falls back to now() if fails
-     *
-     * @toFormat string that may contain a valid date
-     */
-    public date function formatStringToDate(required string toFormat) {
-        try {
-            // Remove trailing comma
-            if(toFormat[toFormat.len()] == ",") {
-                toFormat = toFormat.left(toFormat.len() - 1);
-            }
-
-            return dateTimeFormat(toFormat);
-        }
-        catch(any e) {
-            return now();
-        }
     }
 
     /**
@@ -292,6 +295,143 @@ component singleton accessors="true" {
      */
     private string function jsonValueText(any value) {
         return isSimpleValue(arguments.value) ? """#arguments.value#""" : serializeJSON(orderJson(arguments.value));
+    }
+
+
+    /**
+     * Get the IP of incoming request
+     * Checks for Cloudflare injected header first
+     */
+    public string function getRequestIP() {
+        var ipAddress = "";
+        if(getEnvironment() == "production") {
+            ipAddress = getHeaderValue("CF-Connecting-IP"); // cloudflare injected header
+        }
+
+        if(!ipAddress.len()) {
+            ipAddress = getHeaderValue("X-Forwarded-For").listFirst().trim();
+        }
+
+        if(!ipAddress.len()) {
+            ipAddress = cgi.remote_addr;
+        }
+
+        return ipAddress;
+    }
+
+    /**
+     * Return the request's user agent
+     */
+    public string function getUserAgent() {
+        return cgi?.http_user_agent ?: "Unknown";
+    }
+
+    /**
+     * Return the request's http referer
+     */
+    public string function getReferer() {
+        return cgi?.http_referer ?: "";
+    }
+
+    /**
+     * True if the browser is navigating to a page (not a fetch/xhr)
+     * Requests without the header (old browsers, test runner) count as navigation
+     */
+    public boolean function isNavigationRequest() {
+        var fetchMode = lCase(getHeaderValue("Sec-Fetch-Mode"));
+        return !fetchMode.len() || fetchMode == "navigate";
+    }
+
+    /**
+     * Get an HTTP header value
+     * Complex values (repeated headers) are collapsed to a comma separated list
+     */
+    public string function getHeaderValue(required string headername) {
+        var headers = getHTTPRequestData(false).headers;
+        if(!headers.keyExists(arguments.headername)) {
+            return "";
+        }
+
+        var value = headers[arguments.headername];
+
+        if(isSimpleValue(value)) {
+            return value.trim();
+        }
+
+        return value
+            .reduce((acc, key, item) => {
+                return acc.listAppend(item);
+            }, "")
+            .trim();
+    }
+
+    /**
+     * Search term wrapped for a "contains" match - lowercased for searchHQL (ILIKE ignores the case anyway)
+     * LIKE wildcards the user typed are matched literally - backslash is postgres' default LIKE escape
+     *
+     * @search raw search term
+     */
+    public string function likeContains(required string search) {
+        var escaped = arguments.search
+            .lCase()
+            .replace("\", "\\", "all")
+            .replace("%", "\%", "all")
+            .replace("_", "\_", "all");
+        return "%#escaped#%";
+    }
+
+    /**
+     * HQL condition matching :search (from likeContains) anywhere in any of the columns, ignoring case
+     * HQL has no ILIKE, so each column is lowercased to match the lowercased term
+     *
+     * @columns HQL paths to search, e.g. ["bug.event", "trainer.username"]
+     */
+    public string function searchHQL(required array columns) {
+        return "(" & arguments.columns.map((column) => "lower(#column#) like :search").toList(" or ") & ")";
+    }
+
+    /**
+     * Name of the unique index/constraint a database error violated, empty if it wasn't a unique violation
+     * Every unique index/constraint is named unq_* - the quoted name is in the driver message in any server locale
+     * ORM flushes wrap the driver error, so the stack trace (which carries the "Caused by" chain) is searched too
+     *
+     * @e caught exception
+     */
+    public string function getUniqueViolation(required any e) {
+        var text = [
+            arguments.e?.message ?: "",
+            arguments.e?.detail ?: "",
+            arguments.e?.extendedInfo ?: "",
+            arguments.e?.stackTrace ?: ""
+        ].toList(chr(10));
+
+        var match = reFind("""(unq_[a-z0-9_]+)""", text, 1, true);
+        if(!match.pos[1]) {
+            return "";
+        }
+        return mid(text, match.pos[2], match.len[2]);
+    }
+
+    /**
+     * Call from a catch around a write - a unique violation is rethrown as UniqueViolation with a message fit to show
+     * the user (constraint name in extendedInfo), anything else is rethrown untouched
+     * The orm session is cleared on a violation - hibernate can't flush a session after a failed statement, and the
+     * failed entity would otherwise be retried (and fail again) by the next ormFlush in the request
+     *
+     * @e caught exception
+     */
+    public void function rethrowUniqueViolation(required any e) {
+        var constraint = getUniqueViolation(arguments.e);
+        if(!constraint.len()) {
+            throw(object = arguments.e);
+        }
+
+        ormClearSession();
+        throw(
+            type         = "UniqueViolation",
+            message      = variables.UNIQUE_MESSAGES[constraint] ?: "That value is already in use.",
+            extendedInfo = constraint
+        );
     }
 
 }

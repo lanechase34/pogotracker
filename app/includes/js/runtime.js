@@ -5,6 +5,20 @@ const APP = (window.__APP__ ??= {});
 APP.runtimeExecuted ??= false;
 
 /**
+ * Handlers without a script (dev, error, friend, main) have no importmap entry - importing them would reject
+ */
+function hasHandlerModule() {
+    const importMap = document.querySelector('script[type="importmap"]');
+    if (!importMap) return false;
+
+    try {
+        return Object.hasOwn(JSON.parse(importMap.textContent).imports ?? {}, currentHandler);
+    } catch {
+        return false;
+    }
+}
+
+/**
  * Each module(handler) has a runtime struct contain an 'all' function that runs for
  * all actions under handler, specific action functions as well.
  */
@@ -14,6 +28,8 @@ export function runtime() {
      */
     if (APP.runtimeExecuted) return;
     APP.runtimeExecuted = true;
+
+    if (!hasHandlerModule()) return;
 
     import(currentHandler).then((module) => {
         module.runtime?.all?.();

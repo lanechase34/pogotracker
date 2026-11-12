@@ -1,6 +1,84 @@
 component singleton {
 
-    property name="cacheStorage" inject="cachebox:rateLimitStorage";
+    property name="cacheStorage"   inject="cachebox:rateLimitStorage";
+    property name="rateLimits"     inject="coldbox:setting:rateLimits";
+    property name="useRateLimiter" inject="coldbox:setting:useRateLimiter";
+
+    /**
+     * Count a hit against every rule of a rateLimits entry
+     * Every rule is counted, even after one is over, so each window keeps an accurate total
+     *
+     * @name    rateLimits entry - a handler.action, or a non event key like persist.login
+     * @ip      the user's ip
+     * @context values for rules scoped by fields other than ip (the rc)
+     *
+     * @return false when any rule is over its limit
+     */
+    public boolean function allow(
+        required string name,
+        required string ip,
+        struct context = {}
+    ) {
+        if(!useRateLimiter || !rateLimits.keyExists(name)) {
+            return true;
+        }
+
+        var allowed = true;
+        for(var rule in rateLimits[name].rules) {
+            var key = buildKey(
+                currentEvent = name,
+                by           = listToArray(rule.by),
+                ip           = ip,
+                context      = context
+            );
+
+            if(
+                key.len() && !hit(
+                    key    = key,
+                    limit  = rule.limit,
+                    window = rule.window
+                )
+            ) {
+                allowed = false;
+            }
+        }
+
+        return allowed;
+    }
+
+    /**
+     * Clear the counters of a rateLimits entry's rules marked resetOnSuccess
+     *
+     * @name    rateLimits entry
+     * @ip      the user's ip
+     * @context values for rules scoped by fields other than ip (the rc)
+     */
+    public void function reset(
+        required string name,
+        required string ip,
+        struct context = {}
+    ) {
+        if(!useRateLimiter || !rateLimits.keyExists(name)) {
+            return;
+        }
+
+        for(var rule in rateLimits[name].rules) {
+            if(!(rule.resetOnSuccess ?: false)) {
+                continue;
+            }
+
+            var key = buildKey(
+                currentEvent = name,
+                by           = listToArray(rule.by),
+                ip           = ip,
+                context      = context
+            );
+
+            if(key.len()) {
+                clear(key = key);
+            }
+        }
+    }
 
     /**
      * Record a hit against a fixed-window counter

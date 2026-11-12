@@ -16,7 +16,7 @@
 
         <div class="d-flex justify-content-center gap-2 flex-wrap">
 
-            <cfif session?.authenticated ?: false>
+            <cfif prc.keyExists("oCurrentUser")>
                 <a href="/" class="btn btn-dark">
                     <i class="bi bi-house-fill me-1"></i>Home
                 </a>
@@ -35,8 +35,9 @@
             <div class="alert alert-dark mt-4 text-start small">
                 <strong>Debug:</strong><br>
                 Event: #prc?.currEvent ?: "unknown"#<br>
-                User Authenticated: #(session?.authenticated ?: false)#<br>
-                Security Level: #(session?.securityLevel ?: "N/A")#
+                User Authenticated: #prc.keyExists("oCurrentUser")#<br>
+                Security Level: #prc.keyExists("oCurrentUser") ? prc.oCurrentUser.getSecurityLevel() : "N/A"#<br>
+                Blocked By: #encodeForHTML(prc?.cbSecurity_validatorResults?.type ?: "-")#
             </div>
         </cfif>
     </div>

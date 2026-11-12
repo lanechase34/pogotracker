@@ -68,9 +68,6 @@ component {
         route("/pokemon/:ses").to("pokemon.detail");
         // Must come after /pokemon/:ses - routes match by prefix, so /pokemon would also catch /pokemon/{ses}
         route("/pokemon").to("pokemon.index");
-        // :action is required - an optional :action? also registers "pokemon/", which ColdBox merges into the
-        // route above and wipes its event (no verbs to merge), sending /pokemon to the default event (404)
-        route("/pokemon/:action").toHandler("pokemon");
 
         // Admin
         route("/admin/:action?").toHandler("admin");
@@ -85,7 +82,7 @@ component {
         route("/").to("home.home");
 
         // Anything else - not found
-        route("{wildcard}").to("main.notFound");
+        route("{wildcard}").to("error.notFound");
     }
 
 }

@@ -58,10 +58,6 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                 tradeService = getInstance("services.trade");
             });
 
-            it("Can be created", () => {
-                expect(tradeService).toBeComponent();
-            });
-
             describe("Creating trade plan", () => {
                 it("Is empty to start", () => {
                     trainerOnly = tradeService.findExclusive(

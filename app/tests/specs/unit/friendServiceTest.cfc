@@ -26,10 +26,6 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                 friendService = getInstance("services.friend");
             });
 
-            it("Can be created", () => {
-                expect(friendService).toBeComponent();
-            });
-
             describe("friendService.getFriendsToAdd", () => {
                 it("Can paginate through friends list to find friend to add", () => {
                     found     = false;

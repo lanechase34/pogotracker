@@ -1,6 +1,7 @@
-component acecssors="true" singleton hint="Validator for checking if an entity (db record) exists" {
+component accessors="true" singleton hint="Validator for checking if an entity (db record) exists" {
 
     property name="name";
+    property name="auth" inject="authenticationService@cbauth";
 
     /**
      * Init validator
@@ -131,11 +132,11 @@ component acecssors="true" singleton hint="Validator for checking if an entity (
 
         check = isArray(check) ? check[1] : check;
 
-        // If this entity should belong to the current session's trainer
+        // If this entity should belong to the logged in trainer
         if(
             arguments.validationData.keyExists("belongsToUser")
             && arguments.validationData.belongsToUser
-            && (check?.getTrainer()?.getId() ?: -1) != session.trainerid
+            && (!auth.isLoggedIn() || (check?.getTrainer()?.getId() ?: -1) != auth.getUserId())
         ) {
             errorStruct.message = "Invalid access.";
             validationResult.addError(

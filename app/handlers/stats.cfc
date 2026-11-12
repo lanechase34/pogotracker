@@ -16,7 +16,6 @@ component extends="base" {
     property name="pokedexService" inject="services.pokedex";
     property name="friendService"  inject="services.friend";
     property name="medalService"   inject="services.medal";
-    property name="sessionService" inject="services.session";
     property name="statsService"   inject="services.stats";
     property name="trainerService" inject="services.trainer";
 
@@ -36,11 +35,11 @@ component extends="base" {
      * @rc.endDate   (optional) defaults to this week's saturday
      * @rc.summary   (optional) t/f quick summary view 
      */
-    function overview(event, rc, prc) {
+    function overview(event, rc, prc) secured="user" {
         var currDate  = dateFormat(now(), "short");
         var dayOfWeek = dayOfWeek(currDate);
 
-        rc.trainerid = rc?.trainerid ?: session.trainerid;
+        rc.trainerid = rc?.trainerid ?: prc.oCurrentUser.getId();
         rc.startDate = rc?.startDate ?: dateAdd("d", -(dayOfWeek - 1), currDate);
         rc.endDate   = rc?.endDate ?: dateAdd("d", (7 - dayOfWeek), currDate);
         rc.summary   = rc?.summary ?: false;
@@ -51,12 +50,12 @@ component extends="base" {
         }
 
         prc.trainerid = parseNumber(rc.trainerid);
-        prc.myProfile = prc.trainerid == session.trainerid;
+        prc.myProfile = prc.trainerid == prc.oCurrentUser.getId();
 
         // Validate viewing a friend's stat overview
         if(
             !prc.myProfile && !friendService.checkFriend(
-                trainerid = session.trainerid,
+                trainerid = prc.oCurrentUser.getId(),
                 friendid  = prc.trainerid,
                 accepted  = true
             )
@@ -70,12 +69,11 @@ component extends="base" {
         prc.trainer   = trainerService.getFromId(trainerid = prc.trainerid);
         prc.stats     = statsService.get(
             trainer   = prc.trainer,
-            datePart  = "d",
             startDate = prc.startDate,
             endDate   = prc.endDate
         );
 
-        prc.trainerStatStruct = prc.myProfile ? session.statStruct : prc.trainer.getCurrentLevel();
+        prc.trainerStatStruct = prc.trainer.getCurrentLevel();
 
         if(rc.summary) {
             event.setView(view = "/views/stats/summary", nolayout = true);
@@ -118,8 +116,8 @@ component extends="base" {
     /**
      * Track daily stats form
      */
-    function trackForm(event, rc, prc) {
-        prc.trainer    = trainerService.getFromId(session.trainerid);
+    function trackForm(event, rc, prc) secured="user" {
+        prc.trainer    = prc.oCurrentUser;
         prc.latestStat = prc.trainer.getLatestStat();
         event.setView(
             view     = "/views/stats/modal/track",
@@ -141,8 +139,8 @@ component extends="base" {
      * @rc.spun      spun
      * @rc.walked    walked
      */
-    function track(event, rc, prc) {
-        rc.trainerid = rc?.trainerid ?: session.trainerid;
+    function track(event, rc, prc) secured="user" {
+        rc.trainerid = rc?.trainerid ?: prc.oCurrentUser.getId();
         if(hasValidationErrors(target = rc, constraints = "stats.track")) {
             jsonValidationFailure(event = event, message = "Unable To Track Stats");
             return;
@@ -170,7 +168,6 @@ component extends="base" {
             walked  = prc.walked
         );
 
-        sessionService.update(prc.trainerid);
 
         jsonOk(event = event);
     }
@@ -181,15 +178,15 @@ component extends="base" {
      *
      * @rc.trainerid (optional) defaults to current session
      */
-    function getPokedexStats(event, rc, prc) {
-        rc.trainerid = rc?.trainerid ?: session.trainerid;
+    function getPokedexStats(event, rc, prc) secured="user" {
+        rc.trainerid = rc?.trainerid ?: prc.oCurrentUser.getId();
 
         // Validate viewing a friend's pokedex stats
         prc.trainerid = parseNumber(rc.trainerid);
-        prc.myProfile = prc.trainerid == session.trainerid;
+        prc.myProfile = prc.trainerid == prc.oCurrentUser.getId();
         if(
             !prc.myProfile && !friendService.checkFriend(
-                trainerid = session.trainerid,
+                trainerid = prc.oCurrentUser.getId(),
                 friendid  = prc.trainerid,
                 accepted  = true
             )
@@ -229,14 +226,14 @@ component extends="base" {
      *
      * @rc.trainerid (optional) defaults to current session
      */
-    function getMedalSummary(event, rc, prc) {
-        rc.trainerid = rc?.trainerid ?: session.trainerid;
+    function getMedalSummary(event, rc, prc) secured="user" {
+        rc.trainerid = rc?.trainerid ?: prc.oCurrentUser.getId();
 
         // Validate viewing a friend's pokedex stats
         prc.trainerid = parseNumber(rc.trainerid);
         if(
-            prc.trainerid != session.trainerid && !friendService.checkFriend(
-                trainerid = session.trainerid,
+            prc.trainerid != prc.oCurrentUser.getId() && !friendService.checkFriend(
+                trainerid = prc.oCurrentUser.getId(),
                 friendid  = prc.trainerid,
                 accepted  = true
             )
@@ -261,12 +258,18 @@ component extends="base" {
      *
      * @rc.trainerid (optional) defaults to current session
      */
-    function getMedalProgress(event, rc, prc) {
-        rc.trainerid = rc?.trainerid ?: session.trainerid;
+    function getMedalProgress(event, rc, prc) secured="user" {
+        rc.trainerid = rc?.trainerid ?: prc.oCurrentUser.getId();
 
         // Validate viewing a friend's pokedex stats
         prc.trainerid = parseNumber(rc.trainerid);
-        if(prc.trainerid != session.trainerid && !friendService.checkFriend(session.trainerid, prc.trainerid, true)) {
+        if(
+            prc.trainerid != prc.oCurrentUser.getId() && !friendService.checkFriend(
+                prc.oCurrentUser.getId(),
+                prc.trainerid,
+                true
+            )
+        ) {
             htmlValidationFailure(event = event);
             return;
         }
@@ -288,13 +291,13 @@ component extends="base" {
      * @rc.medal   medal pk
      * @rc.current value to track
      */
-    function trackMedalProgress(event, rc, prc) {
+    function trackMedalProgress(event, rc, prc) secured="user" {
         if(hasValidationErrors(target = rc, constraints = "stat.trackMedalProgress")) {
             jsonValidationFailure(event = event, message = "Unable to track medal progress");
             return;
         }
 
-        prc.trainer = trainerService.getFromId(trainerid = session.trainerid);
+        prc.trainer = prc.oCurrentUser;
         prc.medal   = medalService.getFromId(id = rc.medal);
 
         medalService.trackProgress(
@@ -312,14 +315,14 @@ component extends="base" {
      *
      * @rc.trainerid (optional) defaults to current session
      */
-    function topDeltas(event, rc, prc) {
-        rc.trainerid = rc?.trainerid ?: session.trainerid;
+    function topDeltas(event, rc, prc) secured="user" {
+        rc.trainerid = rc?.trainerid ?: prc.oCurrentUser.getId();
 
         // Validate viewing a friend's deltas
         prc.trainerid = parseNumber(rc.trainerid);
         if(
-            prc.trainerid != session.trainerid && !friendService.checkFriend(
-                trainerid = session.trainerid,
+            prc.trainerid != prc.oCurrentUser.getId() && !friendService.checkFriend(
+                trainerid = prc.oCurrentUser.getId(),
                 friendid  = prc.trainerid,
                 accepted  = true
             )

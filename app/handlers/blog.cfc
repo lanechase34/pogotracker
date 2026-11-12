@@ -13,10 +13,9 @@ component extends="base" {
         getEvents : "GET"
     };
 
-    property name="blogService"    inject="services.blog";
-    property name="imageService"   inject="Helpers@ImageMagick";
-    property name="seoService"     inject="services.seo";
-    property name="trainerService" inject="services.trainer";
+    property name="blogService"  inject="services.blog";
+    property name="imageService" inject="Helpers@ImageMagick";
+    property name="seoService"   inject="services.seo";
 
     this.prehandler_only = "read,writeForm,editForm";
 
@@ -61,7 +60,8 @@ component extends="base" {
      * @rc.blogheader the blog's header (spaces replaced with - for URLs)
      */
     function read(event, rc, prc) {
-        rc.blogheader = trim((rc?.blogheader ?: "")).replace("-", " ", "all");
+        var requestedSlug = trim((rc?.blogheader ?: ""));
+        rc.blogheader     = requestedSlug.replace("-", " ", "all");
         if(hasValidationErrors(target = rc, constraints = "blog.read")) {
             htmlValidationFailure(event = event, redirectEvent = "home");
             return;
@@ -79,6 +79,14 @@ component extends="base" {
             return;
         }
 
+        // One url per post - any other casing permanently redirects to the slug built from the stored header
+        var slug = blogService.getSlug(prc.blog.getHeader());
+        if(compare(requestedSlug, slug) != 0) {
+            relocate(uri = "/readblog/#slug#", statusCode = 301);
+            return;
+        }
+        prc.canonicalURL = "#getSetting("domain")#/readblog/#slug#";
+
         prc.header          = "";
         prc.title           = "#prc.blog.getHeader()# | #getSetting("siteName")#";
         prc.metaDescription = !isNull(prc.blog.getMeta()) && prc.blog.getMeta().len() ? prc.blog.getMeta() : prc.title;
@@ -94,7 +102,7 @@ component extends="base" {
      * @rc.comment trainer's comment
      * @rc.blogid  blog pk
      */
-    function addComment(event, rc, prc) {
+    function addComment(event, rc, prc) secured="user" {
         if(hasValidationErrors(target = rc, constraints = "blog.addComment")) {
             jsonValidationFailure(event = event, message = "Invalid Comment");
             return;
@@ -102,7 +110,7 @@ component extends="base" {
 
         try {
             blogService.addComment(
-                trainerid = session.trainerid,
+                trainerid = prc.oCurrentUser.getId(),
                 blogid    = parseNumber(rc.blogid),
                 comment   = rc.comment
             );
@@ -121,7 +129,7 @@ component extends="base" {
     /**
      * Write a new blog form
      */
-    function writeForm(event, rc, prc) {
+    function writeForm(event, rc, prc) secured="admin" {
         prc.header = "New Blog";
         event.setView(view = "/views/blog/writeform", args = {editing: false, submit: "/blog/write"});
     }
@@ -136,7 +144,7 @@ component extends="base" {
      * @rc.blogbodyjson body json
      * @rc.blogbody     body html
      */
-    function write(event, rc, prc) {
+    function write(event, rc, prc) secured="admin" {
         if(hasValidationErrors(target = rc, constraints = "blog.write")) {
             jsonValidationFailure(event = event);
             return;
@@ -154,15 +162,21 @@ component extends="base" {
         }
 
         prc.blogbody = safeDeserializeJSON(rc.blogbody);
-        blogService.create(
-            trainer  = trainerService.getFromId(trainerid = session.trainerid),
-            header   = rc.blogheader,
-            meta     = rc.blogmeta,
-            image    = prc.image,
-            alt      = rc.blogimagealt,
-            bodyjson = rc.blogbodyjson,
-            body     = prc.blogbody
-        );
+        try {
+            blogService.create(
+                trainer  = prc.oCurrentUser,
+                header   = rc.blogheader,
+                meta     = rc.blogmeta,
+                image    = prc.image,
+                alt      = rc.blogimagealt,
+                bodyjson = rc.blogbodyjson,
+                body     = prc.blogbody
+            );
+        }
+        catch(UniqueViolation e) {
+            jsonValidationFailure(event = event, message = e.message);
+            return;
+        }
         jsonOk(event = event);
     }
 
@@ -171,7 +185,7 @@ component extends="base" {
      *
      * @rc.image image field
      */
-    function addImage(event, rc, prc) {
+    function addImage(event, rc, prc) secured="admin" {
         prc.responseObj.file = {};
 
         /**
@@ -208,7 +222,7 @@ component extends="base" {
      *
      * @rc.blogid blog pk
      */
-    function editForm(event, rc, prc) {
+    function editForm(event, rc, prc) secured="admin" {
         if(hasValidationErrors(target = rc, constraints = "blog.editForm")) {
             htmlValidationFailure(event = event, redirectEvent = "blog.writeForm");
             return;
@@ -240,7 +254,7 @@ component extends="base" {
      * @rc.blogbodyjson body json
      * @rc.blogbody     body html
      */
-    function edit(event, rc, prc) {
+    function edit(event, rc, prc) secured="admin" {
         if(hasValidationErrors(target = rc, constraints = "blog.edit")) {
             jsonValidationFailure(event = event);
             return;
@@ -261,16 +275,22 @@ component extends="base" {
         }
 
         prc.blogbody = safeDeserializeJSON(rc.blogbody);
-        blogService.edit(
-            trainer  = trainerService.getFromId(trainerid = session.trainerid),
-            blogid   = parseNumber(rc.blogid),
-            header   = rc.blogheader,
-            meta     = rc.blogmeta,
-            image    = prc.image,
-            alt      = rc.blogimagealt,
-            bodyjson = rc.blogbodyjson,
-            body     = prc.blogbody
-        );
+        try {
+            blogService.edit(
+                trainer  = prc.oCurrentUser,
+                blogid   = parseNumber(rc.blogid),
+                header   = rc.blogheader,
+                meta     = rc.blogmeta,
+                image    = prc.image,
+                alt      = rc.blogimagealt,
+                bodyjson = rc.blogbodyjson,
+                body     = prc.blogbody
+            );
+        }
+        catch(UniqueViolation e) {
+            jsonValidationFailure(event = event, message = e.message);
+            return;
+        }
         jsonOk(event = event);
     }
 

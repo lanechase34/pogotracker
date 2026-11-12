@@ -5,10 +5,10 @@ component singleton accessors="true" {
     property name="auditService"  inject="services.audit";
     property name="cache"         inject="cachebox:appCache";
     property name="moveService"   inject="services.move";
+    property name="pagination"    inject="services.pagination";
     property name="templateCache" inject="cachebox:template";
+    property name="utilService"   inject="services.util";
 
-    property name="maxThreads"     inject="coldbox:setting:maxThreads";
-    property name="rootPath"       inject="coldbox:setting:rootPath";
     property name="imageExtension" inject="coldbox:setting:imageExtension";
 
     property name="catchModifiersMap" type="struct";
@@ -26,19 +26,13 @@ component singleton accessors="true" {
         setLevels(levels);
         setTypes(deserializeJSON(fileRead("/includes/assets/types.json")).types);
 
+        // Sortable admin datatable columns, by column index
         setDatatableCols([
             "pokemon.generation",
             "pokemon.number",
             "pokemon.gender",
             "pokemon.name",
-            "pokemon.costumetype",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            ""
+            "pokemon.costumetype"
         ]);
 
         setCacheTime(1400); // 23 hours, 20 mins
@@ -46,8 +40,22 @@ component singleton accessors="true" {
 
     private component function create(required struct pokemonProperties) {
         var newPokemon = entityNew("pokemon", arguments.pokemonProperties);
-        entitySave(newPokemon);
-        ormFlush();
+        try {
+            entitySave(newPokemon);
+            ormFlush();
+        }
+        catch(any e) {
+            // unq_pokemon_ses / unq_pokemon_identity - name the pokemon so the import's bug log says which one
+            var constraint = utilService.getUniqueViolation(e);
+            if(!constraint.len()) {
+                throw(object = e);
+            }
+            throw(
+                type         = "UniqueViolation",
+                message      = "Pokemon #arguments.pokemonProperties.number# #arguments.pokemonProperties.name# (ses #arguments.pokemonProperties.ses#) conflicts with an existing pokemon on #constraint#",
+                extendedInfo = constraint
+            );
+        }
         auditService.audit(
             ip      = "localhost",
             event   = "pokemonService.create",
@@ -713,100 +721,151 @@ component singleton accessors="true" {
         string orderDir2          = "",
         boolean costume           = false
     ) {
-        var params = {search: "%#uCase(search)#%", costume: costume};
+        var fromSQL    = "FROM pokemon JOIN generation ON generation.generation = pokemon.generation";
+        var baseWhere  = "WHERE pokemon.costume = :costume";
+        var baseParams = {costume: {value: costume, cfsqltype: "boolean"}};
 
-        // Default order by
-        var orderBy = "";
-        if(orderCol1.len() && orderDir1.len()) {
-            orderBy = "order by #getDatatableCols()[orderCol1 + 1]# #orderDir1#";
-        }
-        if(orderCol2.len() && orderDir2.len()) {
-            orderBy &= ", #getDatatableCols()[orderCol2 + 1]# #orderDir2#";
-        }
-        if(!orderBy.len()) {
-            orderBy = "order by generation asc, number asc";
-        }
-        else {
-            orderBy &= ", pokemon.form asc";
+        var whereSQL    = baseWhere;
+        var whereParams = duplicate(baseParams);
+        if(search.len()) {
+            var matches = [
+                "generation.region ILIKE :search",
+                "pokemon.gender ILIKE :search",
+                "pokemon.name ILIKE :search",
+                "pokemon.costumetype ILIKE :search"
+            ];
+            whereParams.search = {value: utilService.likeContains(search), cfsqltype: "varchar"};
+
+            if(isNumeric(search)) {
+                matches.append("pokemon.number = :number");
+                whereParams.number = {value: search, cfsqltype: "numeric"};
+            }
+
+            whereSQL &= " AND (#matches.toList(" OR ")#)";
         }
 
-        var numericSearch = "";
-        if(isNumeric(search)) {
-            numericSearch = "or pokemon.number = :numericSearch";
-            params.insert("numericSearch", search);
+        var orderBy = pagination.orderBy(
+            columns = getDatatableCols(),
+            orders  = [
+                {column: orderCol1, dir: orderDir1},
+                {column: orderCol2, dir: orderDir2}
+            ],
+            defaultSort = "pokemon.generation ASC, pokemon.number ASC",
+            tiebreak    = "pokemon.form ASC, pokemon.id ASC"
+        );
+
+        var page = pagination.paginate(
+            records     = records,
+            offset      = offset,
+            fromSQL     = fromSQL,
+            baseWhere   = baseWhere,
+            whereSQL    = whereSQL,
+            baseParams  = baseParams,
+            whereParams = whereParams,
+            fetchRows   = (pageParams) => queryExecute(
+                "
+                SELECT pokemon.id, pokemon.number, pokemon.gender, pokemon.name, pokemon.costume, COALESCE(pokemon.costumetype, '') AS costumetype,
+                    pokemon.sprite, pokemon.shiny, pokemon.shadow, pokemon.shadowshiny, pokemon.ses, generation.region
+                #fromSQL#
+                #whereSQL#
+                #orderBy#
+                LIMIT :records
+                OFFSET :offset
+                ",
+                pageParams,
+                {returntype: "array"}
+            )
+        );
+
+        var details = getTableDetails(page.rows.map((row) => row.id));
+
+        return {
+            data: page.rows.map((row) => {
+                return {
+                    pokemonid    : row.id,
+                    generation   : row.region,
+                    number       : row.number,
+                    gender       : row.gender,
+                    name         : row.name,
+                    costumetype  : row.costumetype,
+                    sprite       : "/includes/images/sprites/#row.sprite##getImageExtension()#",
+                    shiny        : row.shiny ? "/includes/images/shinysprites/#row.sprite##getImageExtension()#" : "",
+                    shadow       : row.shadow,
+                    shadowshiny  : row.shadowshiny,
+                    fastmoves    : (details.fastMoves[row.id] ?: []).sort("text", "asc").toList("<br>"),
+                    chargemoves  : (details.chargeMoves[row.id] ?: []).sort("text", "asc").toList("<br>"),
+                    evolutiontext: (details.evolutions[row.id] ?: []).toList(", "),
+                    shadowicon   : "/includes/images/shadow-pokemon#getImageExtension()#",
+                    ses          : row.costume ? listFirst(row.ses, "-") : row.ses
+                };
+            }),
+            recordsFiltered: page.recordsFiltered,
+            recordsTotal   : page.recordsTotal
+        };
+    }
+
+    /**
+     * Move and evolution text for a page of the admin table, two queries for the whole page instead of lazy loads per pokemon
+     * Same text as pokemon.getMovesText("fast"/"charge", "all") and pokemon.getEvolutionText()
+     *
+     * @pokemonIds ids on the page
+     *
+     * @return {fastMoves, chargeMoves, evolutions} - each pokemon id -> array of text
+     */
+    private struct function getTableDetails(required array pokemonIds) {
+        var details = {
+            fastMoves  : {},
+            chargeMoves: {},
+            evolutions : {}
+        };
+        if(!pokemonIds.len()) {
+            return details;
         }
 
+        var ids = {
+            value    : pokemonIds.toList(),
+            cfsqltype: "integer",
+            list     : true
+        };
         var results = async
             .all(
-                () => ormExecuteQuery(
+                () => queryExecute(
                     "
-                    select pokemon
-                    from pokemon as pokemon
-                    where costume = :costume
-                    and (
-                        upper(pokemon.generation.region) like :search
-                        or upper(pokemon.gender) like :search
-                        or upper(pokemon.name) like :search
-                        or upper(pokemon.costumetype) like :search
-                        #numericSearch#
-                    )
-                    #orderBy#
+                    SELECT pokemonmove.pokemonid, move.name, pokemonmove.shadow, pokemonmove.legacy,
+                        CASE WHEN move.turns > 0 THEN 'fastMoves' ELSE 'chargeMoves' END AS kind
+                    FROM pokemonmove
+                    JOIN move ON move.id = pokemonmove.moveid
+                    WHERE pokemonmove.pokemonid IN (:ids)
+                        AND move.turns IS NOT NULL
                     ",
-                    params,
-                    {offset: offset, maxResults: records}
-                ).map((currPokemon) => {
-                    var currSes = currPokemon.getSes();
-                    if(currPokemon.getCostume()) {
-                        currSes = listToArray(currSes, "-")[1];
-                    }
-
-                    return {
-                        pokemonid    : currPokemon.getId(),
-                        generation   : currPokemon.getGeneration().getRegion(),
-                        number       : currPokemon.getNumber(),
-                        gender       : currPokemon.getGender(),
-                        name         : currPokemon.getName(),
-                        costumetype  : currPokemon.getCostumetype() ?: "",
-                        sprite       : "/includes/images/sprites/#currPokemon.getSprite()##getImageExtension()#",
-                        shiny        : currPokemon.getShiny() ? "/includes/images/shinysprites/#currPokemon.getSprite()##getImageExtension()#" : "",
-                        shadow       : currPokemon.getShadow(),
-                        shadowshiny  : currPokemon.getShadowShiny(),
-                        fastmoves    : currPokemon.getMovesText("fast", "all"),
-                        chargemoves  : currPokemon.getMovesText("charge", "all"),
-                        evolutiontext: currPokemon.getEvolutionText(),
-                        shadowicon   : "/includes/images/shadow-pokemon#getImageExtension()#",
-                        ses          : currSes
-                    };
-                }),
-                () => ormExecuteQuery(
-                    "
-                    select count(pokemon.id)
-                    from pokemon as pokemon
-                    where costume = :costume
-                    and (
-                        upper(pokemon.generation.region) like :search
-                        or upper(pokemon.gender) like :search
-                        or upper(pokemon.name) like :search
-                        or upper(pokemon.costumetype) like :search
-                        #numericSearch#
-                    )
-                    ",
-                    params,
-                    true
+                    {ids: ids},
+                    {returntype: "array"}
                 ),
-                () => ormExecuteQuery(
-                    "select count(pokemon.id) from pokemon as pokemon where costume = :costume",
-                    {costume: costume},
-                    true
+                () => queryExecute(
+                    "
+                    SELECT evolution.pokemonid, evolved.name, evolved.costume, COALESCE(evolved.costumetype, '') AS costumetype
+                    FROM evolution
+                    JOIN pokemon AS evolved ON evolved.id = evolution.evolutionid
+                    WHERE evolution.pokemonid IN (:ids)
+                    ORDER BY evolution.id
+                    ",
+                    {ids: ids},
+                    {returntype: "array"}
                 )
             )
             .get();
 
-        return {
-            data           : results[1],
-            recordsFiltered: results[2],
-            recordsTotal   : results[3]
-        };
+        results[1].each((move) => {
+            var text                           = "#move.name##move.shadow ? "$" : ""##move.legacy ? "*" : ""#";
+            details[move.kind][move.pokemonid] = (details[move.kind][move.pokemonid] ?: []).append(text);
+        });
+
+        results[2].each((evolution) => {
+            var text                                = evolution.costume ? "#evolution.costumetype# #evolution.name#" : evolution.name;
+            details.evolutions[evolution.pokemonid] = (details.evolutions[evolution.pokemonid] ?: []).append(text);
+        });
+
+        return details;
     }
 
 }

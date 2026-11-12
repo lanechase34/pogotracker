@@ -1,54 +1,48 @@
-component extends="base" {
+component extends="base" secured="admin" {
 
     this.allowedMethods = {
-        index                 : "GET",
-        buildPokemonData      : "POST",
-        listPokemon           : "GET",
-        getPokemon            : "GET",
-        listTrainers          : "GET",
-        getTrainers           : "GET",
-        editTrainer           : "GET",
-        createRegistrationLink: "GET",
-        buildLevels           : "POST",
-        auditLog              : "GET",
-        getAudits             : "GET",
-        bugLog                : "GET",
-        getBugs               : "GET",
-        serverInfo            : "GET",
-        buildMedalData        : "POST",
-        showMedalData         : "GET",
-        buildMoveData         : "POST",
-        showMoveData          : "GET",
-        saveState             : "POST",
-        taskManager           : "GET",
-        runTask               : "POST",
-        readOverrides         : "GET",
-        saveOverrides         : "POST",
-        readEventOverrides    : "GET",
-        saveEventOverrides    : "POST",
-        readNameOverrides     : "GET",
-        saveNameOverrides     : "POST",
-        logViewer             : "GET",
-        requestLog            : "GET",
-        getRequests           : "GET",
-        updateSiteMap         : "POST",
-        buildCostumeData      : "POST",
-        getCacheData          : "GET"
+        index             : "GET",
+        buildPokemonData  : "POST",
+        listPokemon       : "GET",
+        getPokemon        : "GET",
+        listTrainers      : "GET",
+        getTrainers       : "GET",
+        editTrainer       : "GET",
+        buildLevels       : "POST",
+        auditLog          : "GET",
+        getAudits         : "GET",
+        bugLog            : "GET",
+        getBugs           : "GET",
+        serverInfo        : "GET",
+        buildMedalData    : "POST",
+        showMedalData     : "GET",
+        buildMoveData     : "POST",
+        showMoveData      : "GET",
+        saveState         : "POST",
+        taskManager       : "GET",
+        runTask           : "POST",
+        readOverrides     : "GET",
+        saveOverrides     : "POST",
+        readEventOverrides: "GET",
+        saveEventOverrides: "POST",
+        readNameOverrides : "GET",
+        saveNameOverrides : "POST",
+        logViewer         : "GET",
+        requestLog        : "GET",
+        getRequests       : "GET",
+        updateSiteMap     : "POST",
+        buildCostumeData  : "POST",
+        getCacheData      : "GET"
     };
 
+    property name="accountService"    inject="services.account";
     property name="auditService"      inject="services.audit";
     property name="adminService"      inject="services.admin";
-    property name="blogService"       inject="services.blog";
     property name="bugService"        inject="services.bug";
-    property name="cache"             inject="cachebox:appCache";
-    property name="friendService"     inject="services.friend";
     property name="medalService"      inject="services.medal";
     property name="moveService"       inject="services.move";
     property name="pokemonService"    inject="services.pokemon";
-    property name="pokedexService"    inject="services.pokedex";
     property name="generationService" inject="services.generation";
-    property name="securityService"   inject="services.security";
-    property name="sessionService"    inject="services.session";
     property name="trainerService"    inject="services.trainer";
 
     function preHandler(event, rc, prc, action, eventArguments) {
@@ -137,11 +131,20 @@ component extends="base" {
             relocate(uri = "/");
         }
 
-        prc.trainerid      = parseNumber(rc.trainerid);
-        prc.trainer        = trainerService.getFromId(prc.trainerid);
+        prc.trainerid = parseNumber(rc.trainerid);
+        prc.trainer   = trainerService.getFromId(prc.trainerid);
+
+        // Accounts that outrank you can't be edited (trainer.updateProfile enforces it too)
+        if(
+            prc.trainer.getId() != prc.oCurrentUser.getId()
+            && val(prc.trainer.getSecurityLevel()) > val(prc.oCurrentUser.getSecurityLevel())
+        ) {
+            relocate(uri = "/unauthorized");
+        }
+
         prc.baseIcons      = trainerService.getIconMap();
         prc.unlockedIcons  = prc.trainer.getUnlockedIcons();
-        prc.securityLevels = securityService.getSecurityLevels();
+        prc.securityLevels = accountService.getAssignableLevels();
 
         // Use the edited trainer's settings, falling back to defaults for any missing keys
         prc.settings = duplicate(getSetting("defaultSettings"));
@@ -165,11 +168,14 @@ component extends="base" {
 
     function buildLevels(event, rc, prc) {
         adminService.buildLevels();
-        sessionService.setAlert(
-            "success",
-            true,
-            "bi-check-square-fill",
-            "Success!"
+        flash.put(
+            name  = "alert",
+            value = {
+                "type"       : "success",
+                "dismissible": true,
+                "icon"       : "bi-check-square-fill",
+                "message"    : "Success!"
+            }
         );
         relocate("admin.index");
     }
@@ -270,10 +276,9 @@ component extends="base" {
     }
 
     function serverInfo(event, rc, prc) {
-        prc.timezone    = getTimezone();
-        prc.timestamp   = now();
-        prc.securityMap = securityService.getSecurityMap();
-        prc.baseURL     = getSetting("environment") != "production" ? "localhost" : "";
+        prc.timezone  = getTimezone();
+        prc.timestamp = now();
+        prc.baseURL   = getSetting("environment") != "production" ? "localhost" : "";
     }
 
     function getCacheData(event, rc, prc) {
@@ -325,11 +330,14 @@ component extends="base" {
             adminService.addPokemon(deserializeJSON(rc.pokemonJson));
         }
 
-        sessionService.setAlert(
-            "success",
-            true,
-            "bi bi-file-earmark-check",
-            "Successfully Saved."
+        flash.put(
+            name  = "alert",
+            value = {
+                "type"       : "success",
+                "dismissible": true,
+                "icon"       : "bi bi-file-earmark-check",
+                "message"    : "Successfully Saved."
+            }
         );
         relocate(event = "admin");
     }
@@ -396,19 +404,25 @@ component extends="base" {
 
             adminService.saveOverride(name = "envpokedexoverrides", override = raw);
 
-            sessionService.setAlert(
-                "success",
-                true,
-                "bi bi-copy",
-                "Successfully saved!"
+            flash.put(
+                name  = "alert",
+                value = {
+                    "type"       : "success",
+                    "dismissible": true,
+                    "icon"       : "bi bi-copy",
+                    "message"    : "Successfully saved!"
+                }
             );
         }
         catch(any e) {
-            sessionService.setAlert(
-                "danger",
-                true,
-                "bi-exclamation-diamond-fill",
-                "Error saving. Please try again. #e.message#"
+            flash.put(
+                name  = "alert",
+                value = {
+                    "type"       : "danger",
+                    "dismissible": true,
+                    "icon"       : "bi-exclamation-diamond-fill",
+                    "message"    : "Error saving. Please try again. #e.message#"
+                }
             );
         }
         relocate(event = "admin.readOverrides");
@@ -431,19 +445,25 @@ component extends="base" {
 
             adminService.saveOverride(name = "enveventoverrides", override = raw);
 
-            sessionService.setAlert(
-                "success",
-                true,
-                "bi bi-copy",
-                "Successfully saved!"
+            flash.put(
+                name  = "alert",
+                value = {
+                    "type"       : "success",
+                    "dismissible": true,
+                    "icon"       : "bi bi-copy",
+                    "message"    : "Successfully saved!"
+                }
             );
         }
         catch(any e) {
-            sessionService.setAlert(
-                "danger",
-                true,
-                "bi-exclamation-diamond-fill",
-                "Error saving. Please try again. #e.message#"
+            flash.put(
+                name  = "alert",
+                value = {
+                    "type"       : "danger",
+                    "dismissible": true,
+                    "icon"       : "bi-exclamation-diamond-fill",
+                    "message"    : "Error saving. Please try again. #e.message#"
+                }
             );
         }
 
@@ -467,19 +487,25 @@ component extends="base" {
 
             adminService.saveOverride(name = "leekducknamemap", override = raw);
 
-            sessionService.setAlert(
-                "success",
-                true,
-                "bi bi-copy",
-                "Successfully saved!"
+            flash.put(
+                name  = "alert",
+                value = {
+                    "type"       : "success",
+                    "dismissible": true,
+                    "icon"       : "bi bi-copy",
+                    "message"    : "Successfully saved!"
+                }
             );
         }
         catch(any e) {
-            sessionService.setAlert(
-                "danger",
-                true,
-                "bi-exclamation-diamond-fill",
-                "Error saving. Please try again. #e.message#"
+            flash.put(
+                name  = "alert",
+                value = {
+                    "type"       : "danger",
+                    "dismissible": true,
+                    "icon"       : "bi-exclamation-diamond-fill",
+                    "message"    : "Error saving. Please try again. #e.message#"
+                }
             );
         }
         relocate(event = "admin.readNameOverrides");
@@ -488,11 +514,14 @@ component extends="base" {
     function updateSiteMap(event, rc, prc) {
         adminService.updateSiteMap();
 
-        sessionService.setAlert(
-            "success",
-            true,
-            "bi bi-file-earmark-check",
-            "Successfully Updated."
+        flash.put(
+            name  = "alert",
+            value = {
+                "type"       : "success",
+                "dismissible": true,
+                "icon"       : "bi bi-file-earmark-check",
+                "message"    : "Successfully Updated."
+            }
         );
         relocate(event = "admin");
     }

@@ -16,10 +16,6 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                 setup();
             });
 
-            it("Can be created", () => {
-                expect(mockTrainer).toBeComponent();
-            });
-
             describe("Mock trainer life cycle", () => {
                 it("Can create a mock trainer", () => {
                     trainer = mockTrainer.make(autoLogin = false);
@@ -30,16 +26,16 @@ component extends="tests.resources.baseTest" asyncAll="false" {
 
                 it("Can log in a mock trainer", () => {
                     mockTrainer.login(trainer);
-                    expect(session).toHaveKey("email");
+                    expect(getInstance("authenticationService@cbauth").getUserId()).toBe(trainer.getId());
                 });
 
                 it("Can delete a mock trainer", () => {
-                    var email = session.email;
+                    var email = trainer.getEmail();
                     mockTrainer.delete();
-                    expect(session).notToHaveKey("email");
+                    expect(getInstance("authenticationService@cbauth").isLoggedIn()).toBeFalse();
 
                     // Make sure record deleted
-                    expect(getInstance("services.security").getTrainer(email).len()).toBe(0);
+                    expect(getInstance("services.user").findByEmail(email)).toBeNull();
                 });
             });
         });

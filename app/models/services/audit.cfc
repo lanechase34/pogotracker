@@ -1,9 +1,8 @@
 component singleton accessors="true" {
 
-    property name="async"           inject="asyncManager@coldbox";
-    property name="cache"           inject="cachebox:appCache";
-    property name="trainerService"  inject="services.trainer";
-    property name="securityService" inject="services.security";
+    property name="pagination"     inject="services.pagination";
+    property name="trainerService" inject="services.trainer";
+    property name="utilService"    inject="services.util";
 
     property name="datatableCols"        type="array";
     property name="requestDatatableCols" type="array";
@@ -74,83 +73,67 @@ component singleton accessors="true" {
         required string orderCol = "",
         required string orderDir = ""
     ) {
-        var orderBy = "";
-        if(orderCol.len() && orderDir.len()) {
-            orderBy = "order by #getDatatableCols()[orderCol + 1]# #orderDir#";
+        var fromSQL     = "FROM audit LEFT JOIN trainer ON trainer.id = audit.trainerid";
+        var whereSQL    = "";
+        var whereParams = {};
+        if(search.len()) {
+            whereSQL = "WHERE #pagination.searchSQL([
+                "audit.event",
+                "audit.referer",
+                "audit.detail",
+                "audit.agent",
+                "trainer.username"
+            ])#";
+            whereParams.search = {value: utilService.likeContains(search), cfsqltype: "varchar"};
         }
 
-        var results = async
-            .all(
-                () => ormExecuteQuery(
-                    "
-                    select audit
-                    from audit as audit
-                    left outer join audit.trainer as trainer
-                    where upper(audit.event) like :search
-                        or upper(audit.referer) like :search
-                        or upper(audit.detail) like :search
-                        or upper(audit.agent) like :search
-                        or upper(trainer.username) like :search
-                    #orderBy#
-                    ",
-                    {search: "%#uCase(search)#%"},
-                    {
-                        offset    : offset,
-                        maxResults: records,
-                        cacheable : true,
-                        cachename : "defaultCache"
-                    }
-                ),
-                () => ormExecuteQuery(
-                    "
-                    select count(audit.id)
-                    from audit as audit
-                    left outer join audit.trainer as trainer
-                    where upper(audit.event) like :search
-                        or upper(audit.referer) like :search
-                        or upper(audit.detail) like :search
-                        or upper(audit.agent) like :search
-                        or upper(trainer.username) like :search
-                    ",
-                    {search: "%#uCase(search)#%"}
-                ),
-                () => getTotalRecords()
+        var orderBy = pagination.orderBy(
+            columns     = getDatatableCols(),
+            orders      = [{column: orderCol, dir: orderDir}],
+            defaultSort = "audit.id ASC",
+            tiebreak    = "audit.id ASC"
+        );
+
+        var page = pagination.paginate(
+            records       = records,
+            offset        = offset,
+            fromSQL       = fromSQL,
+            baseWhere     = "",
+            whereSQL      = whereSQL,
+            whereParams   = whereParams,
+            totalCacheKey = "audit.totalRecords",
+            cacheMinutes  = 5,
+            fetchRows     = (pageParams) => queryExecute(
+                "
+                SELECT audit.created, COALESCE(audit.ip, '') AS ip, COALESCE(audit.event, '') AS event,
+                    COALESCE(audit.referer, '') AS referer, COALESCE(audit.detail, '') AS detail,
+                    COALESCE(audit.agent, '') AS agent, COALESCE(trainer.username, '') AS username
+                #fromSQL#
+                #whereSQL#
+                #orderBy#
+                LIMIT :records
+                OFFSET :offset
+                ",
+                pageParams,
+                {returntype: "array"}
             )
-            .get();
-
-
-        var audits        = results[1];
-        var filteredCount = results[2];
-        var totalRecords  = results[3];
+        );
 
         return {
-            data: audits.map((audit) => {
+            data: page.rows.map((row) => {
                 return [
-                    audit.getTimestamp(),
-                    audit.getIP(),
-                    audit.getEvent(),
-                    audit.getReferer(),
-                    audit.getDetail(),
-                    audit.getAgent(),
-                    audit.getUsername()
+                    dateTimeFormat(row.created, "short"),
+                    row.ip,
+                    row.event,
+                    row.referer,
+                    row.detail,
+                    row.agent,
+                    row.username
                 ];
             }),
-            recordsTotal   : totalRecords,
-            recordsFiltered: filteredCount
+            recordsTotal   : page.recordsTotal,
+            recordsFiltered: page.recordsFiltered
         };
-    }
-
-    /**
-     * Get total count of records in audit table
-     */
-    private numeric function getTotalRecords() {
-        var cacheKey = "audit.getTotalRecords";
-        var count    = cache.get(cacheKey);
-        if(isNull(count)) {
-            count = ormExecuteQuery("select count(id) from audit")[1];
-            cache.set(cacheKey, count, 5, 5);
-        }
-        return count;
     }
 
     /**
@@ -200,90 +183,73 @@ component singleton accessors="true" {
         required string orderCol = "",
         required string orderDir = ""
     ) {
-        var orderBy = "";
-        if(orderCol.len() && orderDir.len()) {
-            orderBy = "order by #getRequestDatatableCols()[orderCol + 1]# #orderDir#";
+        var fromSQL     = "FROM request_log AS requestlog LEFT JOIN trainer ON trainer.id = requestlog.trainerid";
+        var whereSQL    = "";
+        var whereParams = {};
+        if(search.len()) {
+            whereSQL = "WHERE #pagination.searchSQL([
+                "requestlog.ip",
+                "requestlog.urlpath",
+                "requestlog.method",
+                "requestlog.agent",
+                "requestlog.response",
+                "requestlog.referer",
+                "CAST(requestlog.statuscode AS varchar)",
+                "trainer.username"
+            ])#";
+            whereParams.search = {value: utilService.likeContains(search), cfsqltype: "varchar"};
         }
 
-        var results = async
-            .all(
-                () => ormExecuteQuery(
-                    "
-                    select requestlog
-                    from requestlog as requestlog
-                    left outer join requestlog.trainer as trainer
-                    where upper(requestlog.ip) like :search
-                        or upper(requestlog.urlpath) like :search
-                        or upper(requestlog.method) like :search
-                        or upper(requestlog.agent) like :search
-                        or upper(requestlog.response) like :search
-                        or upper(requestlog.referer) like :search
-                        or upper(cast(requestlog.statuscode as string)) like :search
-                        or upper(trainer.username) like :search
-                    #orderBy#
-                    ",
-                    {search: "%#uCase(search)#%"},
-                    {
-                        offset    : offset,
-                        maxResults: records,
-                        cacheable : true,
-                        cachename : "defaultCache"
-                    }
-                ),
-                () => ormExecuteQuery(
-                    "
-                    select count(requestlog.id)
-                    from requestlog as requestlog
-                    left outer join requestlog.trainer as trainer
-                    where upper(requestlog.ip) like :search
-                        or upper(requestlog.urlpath) like :search
-                        or upper(requestlog.method) like :search
-                        or upper(requestlog.agent) like :search
-                        or upper(requestlog.response) like :search
-                        or upper(requestlog.referer) like :search
-                        or cast(requestlog.statuscode as string) like :search
-                        or upper(trainer.username) like :search
-                    ",
-                    {search: "%#uCase(search)#%"}
-                ),
-                () => getTotalRequestRecords()
-            )
-            .get();
+        var orderBy = pagination.orderBy(
+            columns     = getRequestDatatableCols(),
+            orders      = [{column: orderCol, dir: orderDir}],
+            defaultSort = "requestlog.id ASC",
+            tiebreak    = "requestlog.id ASC"
+        );
 
-        var requests      = results[1];
-        var filteredCount = results[2];
-        var totalRecords  = results[3];
+        var page = pagination.paginate(
+            records       = records,
+            offset        = offset,
+            fromSQL       = fromSQL,
+            baseWhere     = "",
+            whereSQL      = whereSQL,
+            whereParams   = whereParams,
+            totalCacheKey = "audit.totalRequestRecords",
+            cacheMinutes  = 5,
+            fetchRows     = (pageParams) => queryExecute(
+                "
+                SELECT requestlog.created, COALESCE(requestlog.ip, '') AS ip, COALESCE(requestlog.urlpath, '') AS urlpath,
+                    COALESCE(requestlog.method, '') AS method, COALESCE(requestlog.agent, '') AS agent,
+                    COALESCE(requestlog.response, '') AS response, requestlog.statuscode,
+                    COALESCE(requestlog.referer, '') AS referer, COALESCE(trainer.username, '') AS username
+                #fromSQL#
+                #whereSQL#
+                #orderBy#
+                LIMIT :records
+                OFFSET :offset
+                ",
+                pageParams,
+                {returntype: "array"}
+            )
+        );
 
         return {
-            data: requests.map((requestObj) => {
+            data: page.rows.map((row) => {
                 return [
-                    requestObj.getTimestamp(),
-                    requestObj.getIP(),
-                    "#left(requestObj.getUrlPath(), 150)##requestObj.getUrlPath().len() > 150 ? "..." : ""#",
-                    requestObj.getMethod(),
-                    requestObj.getAgent(),
-                    "#left(requestObj.getResponse(), 150)##requestObj.getResponse().len() > 150 ? "..." : ""#",
-                    requestObj.getStatusCode(),
-                    requestObj.getReferer(),
-                    requestObj.getUsername()
+                    dateTimeFormat(row.created, "short"),
+                    row.ip,
+                    "#left(row.urlpath, 150)##row.urlpath.len() > 150 ? "..." : ""#",
+                    row.method,
+                    row.agent,
+                    "#left(row.response, 150)##row.response.len() > 150 ? "..." : ""#",
+                    row.statuscode,
+                    row.referer,
+                    row.username
                 ];
             }),
-            recordsTotal   : totalRecords,
-            recordsFiltered: filteredCount
+            recordsTotal   : page.recordsTotal,
+            recordsFiltered: page.recordsFiltered
         };
-    }
-
-    /**
-     * Get total count of records in request_log table
-     */
-    private numeric function getTotalRequestRecords() {
-        var cacheKey = "audit.getTotalRequestRecords";
-        var count    = cache.get(cacheKey);
-        if(isNull(count)) {
-            count = ormExecuteQuery("select count(id) from requestlog")[1];
-            cache.set(cacheKey, count, 5, 5);
-        }
-        return count;
     }
 
     /**
@@ -295,11 +261,11 @@ component singleton accessors="true" {
         string event = ""
     ) {
         return {
-            ip       : securityService.getRequestIP(),
+            ip       : utilService.getRequestIP(),
             event    : left(event, 250),
-            referer  : left(arguments?.referer ?: securityService.getReferer(), 250),
+            referer  : left(arguments?.referer ?: utilService.getReferer(), 250),
             detail   : "",
-            agent    : left(securityService.getUserAgent(), 250),
+            agent    : left(utilService.getUserAgent(), 250),
             trainerid: trainerid
         }
     }

@@ -4,6 +4,7 @@
 <meta name="description" content="#encodeForHTMLAttribute(prc.metaDescription.len() ? prc.metaDescription : getSetting('metaDescription'))#">
 <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
 <meta name="theme-color" content="rgb(33, 37, 41)">
+<meta name="csrf-token" content="#csrfToken()#"><!--- sent as x-csrf-token by includes/js/modules/fetch.js --->
 <link rel="canonical" href="#encodeForHTMLAttribute(prc.canonicalURL)#">
 <meta name="robots" content="#prc.keyExists('metaRobots') ? prc.metaRobots : 'index, follow'#">
 

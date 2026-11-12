@@ -18,10 +18,6 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                 trainer        = mockTrainer.make();
             });
 
-            it("Can be created", () => {
-                expect(pokedexService).toBeComponent();
-            });
-
             it("Can register all pokemon in Kanto Region", () => {
                 pokedexService.registerAll(
                     trainer = trainer,

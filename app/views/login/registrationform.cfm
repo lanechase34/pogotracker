@@ -58,7 +58,7 @@
                             Please select an icon.
                         </div>
                     </div>
-                    <input type="hidden" name="#getSetting('csrfTokenField')#" value="#csrfGenerateToken(forceNew=true)#">
+                    <input type="hidden" name="csrf" value="#csrfToken()#">
                     <div class="col-12">
                         <div class="d-grid">
                             <button class="btn btn-dark" id="submitForm" type="submit">Create Account</button>

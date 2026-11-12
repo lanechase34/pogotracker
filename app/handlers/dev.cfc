@@ -1,16 +1,12 @@
-component extends="base" {
+component extends="base" secured="developer" {
 
     property name="adminService"      inject="services.admin";
     property name="blogService"       inject="services.blog";
     property name="emailService"      inject="services.email";
-    property name="friendService"     inject="services.friend";
-    property name="moveService"       inject="services.move";
     property name="pokemonService"    inject="services.pokemon";
     property name="pokedexService"    inject="services.pokedex";
     property name="generationService" inject="services.generation";
     property name="scraperService"    inject="services.scraper";
-    property name="securityService"   inject="services.security";
-    property name="sessionService"    inject="services.session";
     property name="trainerService"    inject="services.trainer";
 
     function preHandler(event, rc, prc, action, eventArguments) {
@@ -36,7 +32,7 @@ component extends="base" {
     function registerRandomPokemon(event, rc, prc) {
         prc.register = rc?.register ?: 10;
         prc.region   = rc?.region ?: "Kanto";
-        prc.trainer  = trainerService.getFromId(rc?.trainer ?: session.trainerid);
+        prc.trainer  = trainerService.getFromId(rc?.trainer ?: prc.oCurrentUser.getId());
 
         // Get list of pokemon from the region
         prc.regionPokemon = pokemonService.get(
@@ -62,7 +58,7 @@ component extends="base" {
 
     function createRandomBlogs(event, rc, prc) {
         prc.create  = rc?.create ?: 3;
-        prc.trainer = trainerService.getFromId(session.trainerid);
+        prc.trainer = prc.oCurrentUser;
         for(var i = 1; i <= prc.create; i++) {
             var theText = "Placeholder text. ";
             var body    = theText;
@@ -88,7 +84,7 @@ component extends="base" {
 
 
     function createBlog(event, rc, prc) {
-        prc.trainer = trainerService.getFromId(session.trainerid);
+        prc.trainer = prc.oCurrentUser;
 
         var header = "POGO Tracker Dev Update";
         var body   = "<p>From the latest github commit:</p><p>Working on layout.</p><p>Add freinds.</p><p>Can I make this blog one of those fancy text entry boxes? That would be cool</p>";
@@ -99,11 +95,14 @@ component extends="base" {
 
     function ormReload(event, rc, prc) {
         ormReload();
-        sessionService.setAlert(
-            "success",
-            true,
-            "bi-check-square-fill",
-            "Success!"
+        flash.put(
+            name  = "alert",
+            value = {
+                "type"       : "success",
+                "dismissible": true,
+                "icon"       : "bi-check-square-fill",
+                "message"    : "Success!"
+            }
         );
         relocate("dev.index");
     }
@@ -181,7 +180,7 @@ component extends="base" {
                     p3fast   : team[3].fast,
                     p3charge1: team[3].charge1,
                     p3charge2: team[3].charge2,
-                    trainer  : trainerService.getFromId(session.trainerid),
+                    trainer  : prc.oCurrentUser,
                     name     : left(createUUID(), 50)
                 }
             );
@@ -213,11 +212,6 @@ component extends="base" {
 
 
         prc.header = "View Test Emails";
-    }
-
-    function deleteEmail(event, rc, prc) {
-        directoryDelete("#getSetting("testEmailPath")#", true);
-        directoryCreate("#getSetting("testEmailPath")#");
     }
 
     function testEventTask(event, rc, prc) {
@@ -310,38 +304,18 @@ component extends="base" {
         renderJson(event = event, response = {"response": prc.userAgent});
     }
 
-    function createTypeSymbols(event, rc, prc) {
-        var typeDoc   = scraperService.getData("https://pokemongo.fandom.com/wiki/Types");
-        var typeTable = typeDoc
-            .body()
-            .select("##gallery-0")
-            .select("img");
-
-        typeTable.each((img, imgindex) => {
-            var imgSrc = img.attr("src");
-            if(!imgSrc.contains("")) continue;
-            var type = lCase(listToArray(listToArray(imgSrc, "_")[2], ".")[1]);
-            cfhttp(
-                url    = imgSrc,
-                result = "local.imgResult",
-                method = "GET"
-            );
-            var img = imageNew(local.imgResult.filecontent);
-            img.write("/includes/images/type/#type#");
-        });
-
-        renderJson(event = event, response = {"response": "success #now()#"});
-    }
-
     function downloadImage(event, rc, prc) {
         param name="rc.imageUrl" default="";
 
         if(!rc.imageUrl.len() || !rc.imageUrl.startsWith("http")) {
-            sessionService.setAlert(
-                "danger",
-                true,
-                "bi bi-exclamation-triangle",
-                "Please provide a valid image URL."
+            flash.put(
+                name  = "alert",
+                value = {
+                    "type"       : "danger",
+                    "dismissible": true,
+                    "icon"       : "bi bi-exclamation-triangle",
+                    "message"    : "Please provide a valid image URL."
+                }
             );
             relocate(event = "dev");
             return;
@@ -350,11 +324,14 @@ component extends="base" {
         var destination = "/includes/#createUUID()##getSetting("imageExtension")#";
         scraperService.downloadImage(url = rc.imageUrl, destination = destination);
 
-        sessionService.setAlert(
-            "success",
-            true,
-            "bi bi-image-fill",
-            "Image saved to #destination#"
+        flash.put(
+            name  = "alert",
+            value = {
+                "type"       : "success",
+                "dismissible": true,
+                "icon"       : "bi bi-image-fill",
+                "message"    : "Image saved to #destination#"
+            }
         );
         relocate(event = "dev");
     }

@@ -61,20 +61,24 @@ component singleton accessors="true" {
         return !isNull(entityLoad("move", {"nameid": arguments.name}, true));
     }
 
+    /**
+     * Add the moves the pokemon doesn't have yet
+     * One query for the moves it already has (unq_pokemonmove_pokemonid_moveid), a move listed twice is only added once
+     */
     public void function updatePokemonMoves(required component pokemon, required array moves) {
-        var abstractedMoves = {};
-        // Find which records to add
+        var existing = {};
+        ormExecuteQuery(
+            "select pokemonmove.move.id from pokemonmove as pokemonmove where pokemonmove.pokemon = :pokemon",
+            {pokemon: arguments.pokemon}
+        ).each((moveid) => {
+            existing[moveid] = true;
+        });
+
         arguments.moves.each((move) => {
-            if(
-                isNull(
-                    entityLoad(
-                        "pokemonmove",
-                        {"pokemon": pokemon, "move": move.move},
-                        true
-                    )
-                )
-            ) {
+            var moveid = move.move.getId();
+            if(!existing.keyExists(moveid)) {
                 createPokemonMove(pokemon, move.move, move.shadow, move.legacy);
+                existing[moveid] = true;
             }
         });
 

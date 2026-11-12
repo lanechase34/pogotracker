@@ -20,6 +20,7 @@
             <div class="card shadow-sm">
                 <div class="card-body p-2">
                     <form id="overridesForm" method="post" action="#event.buildLink(prc.submitAction)#" autocomplete="off">
+                        <input type="hidden" name="csrf" value="#csrfToken()#">
                         <textarea
                             id="jsonEditor"
                             name="json"

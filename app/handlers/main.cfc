@@ -5,12 +5,9 @@ component extends="base" {
     property name="blogService"       inject="services.blog";
     property name="cache"             inject="cachebox:appCache";
     property name="generationService" inject="services.generation";
-    property name="persistService"    inject="services.persist";
     property name="pokemonService"    inject="services.pokemon";
-    property name="trainerService"    inject="services.trainer";
-    property name="securityService"   inject="services.security";
-    property name="sessionService"    inject="services.session";
     property name="statsService"      inject="services.stats";
+    property name="utilService"       inject="services.util";
 
     this.prehandler_only = "warmup";
 
@@ -20,7 +17,7 @@ component extends="base" {
      */
     function preHandler(event, rc, prc, action, eventArguments) {
         prc.auditInfo = auditService.getAuditObj(
-            trainerid = session?.trainerid ?: -1,
+            trainerid = (prc?.oCurrentUser?.getId() ?: -1),
             referer   = rc?.referer ?: "",
             event     = rc?.event ?: "NA"
         );
@@ -36,7 +33,7 @@ component extends="base" {
         var trustedIPs = ["0:0:0:0:0:0:0:1", "127.0.0.1"];
         if(
             !getSetting("warmedUp")
-            && trustedIPs.contains(securityService.getRequestIP())
+            && trustedIPs.contains(utilService.getRequestIP())
             && findNoCase("Java", cgi.http_user_agent) > 0
         ) {
             setting requestTimeout=300;
@@ -87,6 +84,17 @@ component extends="base" {
                 )
                 .get();
 
+            // Prime the cached Pokedex index body (views/pokemon/index) - same event/args so the cache key matches
+            var indexContentCacheTimeout = pokemonService.getCacheTime() * 15;
+            runEvent(
+                event                  = "pokemon.indexContent",
+                private                = true,
+                prePostExempt          = true,
+                cache                  = true,
+                cacheTimeout           = indexContentCacheTimeout,
+                cacheLastAccessTimeout = indexContentCacheTimeout
+            );
+
             setSetting("warmedUp", true);
             prc.auditInfo.event  = "main.warmup";
             prc.auditInfo.detail = "Successfully warmed up server in #getTickCount() - start#ms.";
@@ -103,13 +111,10 @@ component extends="base" {
         jsonOk(event = event, data = "Ok!");
     }
 
+    /**
+     * Request variables used
+     */
     function onRequestStart(event, rc, prc) {
-        // Handle session creation
-        if(!session.keyExists("trainerid")) {
-            onSessionStart();
-        }
-
-        // Request variables
         prc.currHandler = lCase(event.getCurrentHandler());
         prc.currAction  = lCase(event.getCurrentAction());
         prc.currEvent   = lCase(event.getCurrentEvent());
@@ -123,84 +128,6 @@ component extends="base" {
 
         prc.title           = "";
         prc.metaDescription = "";
-
-        // CSRF - reject state changing requests the browser says came from another site
-        if(event.getHTTPMethod() == "POST" && securityService.isCrossSiteRequest()) {
-            prc.unauthorizedEvent = event.getCurrentEvent();
-            prc.referer           = securityService.getReferer();
-            event.overrideEvent("error.unauthorized");
-            return;
-        }
-
-        // If this user has the persist cookie and not authenticated
-        if(
-            (prc.currHandler != "login" || prc.currEvent == "login.loginform")
-            && !session.authenticated
-            && persistService.checkCookie()
-        ) {
-            // Override event with the persistLogin page
-            rc.persistCookie                 = persistService.getCookie();
-            rc[getSetting("csrfTokenField")] = csrfGenerateToken(forceNew = true);
-            // Strip leading slashes so this can never become a protocol relative (//host) redirect
-            prc.linkedEvent                  = "/#reReplace(prc.currRoute, "^[/\\]+", "")#";
-            event.overrideEvent("login.persistLogin");
-            return;
-        }
-
-        // If the user is authenticated but not verified, allow access to verification page(s) only
-        if(
-            session.authenticated &&
-            !session.verified && (
-                prc.currEvent != "login.verify" &&
-                prc.currEvent != "login.verifyform" &&
-                prc.currEvent != "login.logout"
-            )
-        ) {
-            relocate(uri = "/verify");
-        }
-
-        // Check whether this user is allowed to view this handler->action
-        if(
-            !securityService.checkUserSecurity(
-                session.securityLevel,
-                prc.currHandler,
-                prc.currAction
-            )
-        ) {
-            // If the user is not authenticated, lead them to the login page
-            if(!session.authenticated) {
-                // Clicked on of the links available on sidebar
-                if(
-                    "mypokedex,myshadowpokedex,mycostumepokedex,custompokedexlist,buildtradeplan,overview".contains(
-                        prc.currRoute
-                    )
-                ) {
-                    session.linkedEvent = "/#prc.currRoute#";
-                }
-
-                relocate(uri = "/login");
-            }
-            // Immediately stop the current event and process the unauthorized page
-            else {
-                prc.unauthorizedEvent = event.getCurrentEvent();
-                prc.referer           = securityService.getReferer();
-                event.overrideEvent("error.unauthorized");
-                return;
-            }
-        }
-    }
-
-    function onSessionStart() {
-        session.trainerid     = -1;
-        session.securityLevel = 0;
-        session.authenticated = false;
-        session.verified      = false;
-        session.recaptcha     = {
-            token    : "",
-            valid    : false,
-            timestamp: now(),
-            action   : ""
-        };
     }
 
 }

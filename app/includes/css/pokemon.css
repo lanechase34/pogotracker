@@ -1,7 +1,16 @@
 /*  Hero card  */
+/* Top accent strip is clipped by the card's rounded corners instead of a border bending around them */
 .pokemon-hero {
+    overflow: hidden;
     background: linear-gradient(160deg, #f8f9fa 0%, #e9ecef 100%);
-    border-bottom: 3px solid var(--bs-dark);
+}
+
+.pokemon-hero::before {
+    content: '';
+    position: absolute;
+    inset: 0 0 auto;
+    height: 4px;
+    background: var(--bs-dark);
 }
 
 .pokemon-hero-number {
@@ -136,6 +145,31 @@
     font-size: 0.875rem;
     font-weight: 700;
     color: var(--bs-dark);
+}
+
+/*  Flush tables  */
+/* Tables run edge to edge in the card; outer cells line up with the card header's 1.1rem inset */
+.card-body-table {
+    padding: 0;
+}
+
+.card-body-table .table > :not(caption) > * > :first-child {
+    padding-left: 1.1rem;
+}
+
+.card-body-table .table > :not(caption) > * > :last-child {
+    padding-right: 1.1rem;
+}
+
+/* No double line against the card's bottom edge */
+.card-body-table > .tableDiv:last-child tbody > tr:last-child > *,
+.card-body-table > .tableDiv:last-child tbody > tr:last-child {
+    border-bottom: 0;
+}
+
+.card-body-table .moves-section-label {
+    margin: 0;
+    padding: 0.9rem 1.1rem 0.5rem;
 }
 
 /*  Move rows  */
@@ -418,8 +452,18 @@
 }
 
 /* scroll-margin keeps section headers clear of the sticky navbar + toolbar when jumping */
+/* Off screen generations skip layout + paint until scrolled near. pokemon.js sets --pokedex-section-height to an estimate
+   so the scrollbar and jump links are right before a section first renders, after that its real height is remembered */
 .pokedex-section {
     scroll-margin-top: calc(var(--main-nav-height, 3.5rem) + var(--pokedex-toolbar-height, 3.5rem) + 0.75rem);
+    content-visibility: auto;
+    contain-intrinsic-block-size: auto var(--pokedex-section-height, 1500px);
+}
+
+/* Filtered sections are small - render normally, and the non-auto size drops the remembered (filtered) heights */
+.pokedex-filtering .pokedex-section {
+    content-visibility: visible;
+    contain-intrinsic-block-size: none;
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -537,11 +581,25 @@
     color: var(--bs-dark);
 }
 
+/* Line-height 1 on items + icons so glyphs and text share the same center line */
+.pokemon-breadcrumb .breadcrumb-item,
+.pokemon-breadcrumb a {
+    line-height: 1;
+}
+
 .pokemon-breadcrumb .bi {
+    display: inline-flex;
     font-size: 0.95rem;
+    line-height: 1;
+}
+
+/* Bootstrap icons nudge glyphs down with vertical-align: -0.125em - undo it inside the flex row */
+.pokemon-breadcrumb .bi::before {
+    vertical-align: 0;
 }
 
 .pokemon-breadcrumb .breadcrumb-item.active {
+    gap: 0.3rem;
     font-weight: 700;
     color: var(--bs-dark);
     min-width: 0;
@@ -550,13 +608,8 @@
 }
 
 .pokemon-breadcrumb-number {
-    margin-right: 0.35rem;
-    padding: 0.05rem 0.45rem;
-    font-size: 0.72rem;
-    font-weight: 700;
-    color: #fff;
-    background: var(--bs-dark);
-    border-radius: 1rem;
+    color: #6c757d;
+    font-weight: 600;
 }
 
 .pokemon-topbar {

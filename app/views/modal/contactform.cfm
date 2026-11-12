@@ -15,11 +15,11 @@
             </div>
             <div class="modal-body">
                 <form name="contactForm" id="contactForm" class="needs-validation row g-3" novalidate autocomplete="off">
-                    <input type="hidden" id="trainerid" name="trainerid" value="#EncodeForHTML(session.trainerid)#">
+                    <input type="hidden" id="trainerid" name="trainerid" value="#EncodeForHTML(prc.oCurrentUser.getId())#">
 
                     <div class="col-12">
                         <label for="inputEmail" class="form-label">Email</label>
-                        <input name="email" type="text" class="form-control" id="inpuEmail" value="#EncodeForHTML(session.email)#" disabled required>
+                        <input name="email" type="text" class="form-control" id="inpuEmail" value="#EncodeForHTML(prc.oCurrentUser.getEmail())#" disabled required>
                     </div>
 
                     <div class="col-12">

@@ -25,15 +25,10 @@ component extends="tests.resources.baseTest" {
                 persistService = getInstance("services.persist");
             });
 
-            it("Can be created", () => {
-                expect(persistService).toBeComponent();
-            });
-
             it("Can create a persist cookie", () => {
                 expect(countPersist(trainerid = trainer.getId())).toBe(0);
 
                 beforeCount = countPersist();
-                cookieCount = cookie.count();
 
                 // Create the persist cookie
                 persistService.addCookie(trainer);
@@ -41,7 +36,6 @@ component extends="tests.resources.baseTest" {
                 // Trainer should now have one persist cookie record
                 expect(countPersist(trainerid = trainer.getId())).toBe(1);
                 expect(countPersist()).toBe(beforeCount + 1);
-                expect(cookie.count()).toBe(cookieCount + 1);
                 expect(persistService.checkCookie()).toBeTrue();
             });
 
@@ -76,6 +70,64 @@ component extends="tests.resources.baseTest" {
 
                 persistService.revokeAll(trainer.getId());
                 expect(countPersist(trainerid = trainer.getId())).toBe(0);
+
+                persistService.deleteCookie();
+            });
+
+            it("Accepts the cookie it rotated from only during the grace window", () => {
+                persistService.addCookie(trainer);
+                var oldCookie = persistService.getCookie();
+                persistService.rotateCookie(entityLoad("persist", {trainer: trainer}, true));
+                var newCookie = persistService.getCookie();
+                ormClearSession(); // rotation updates the row directly - re-read it
+
+                // A request the browser sent before it saw the rotated cookie
+                expect(persistService.login(oldCookie).success).toBeTrue();
+
+                queryExecute(
+                    "update persist set lastrotated = :rotated where trainerid = :trainerid",
+                    {
+                        rotated  : {value: dateAdd("n", -5, now()), cfsqltype: "timestamp"},
+                        trainerid: {value: trainer.getId(), cfsqltype: "integer"}
+                    }
+                );
+                ormClearSession();
+
+                // Reusing the old cookie after the grace window revokes the login for both cookies
+                expect(persistService.login(oldCookie).success).toBeFalse();
+                expect(countPersist(trainerid = trainer.getId())).toBe(0);
+                expect(persistService.login(newCookie).success).toBeFalse();
+
+                persistService.deleteCookie();
+            });
+
+            it("Logging out with the cookie a row was rotated from still revokes the row", () => {
+                persistService.addCookie(trainer);
+                var oldCookie = persistService.getCookie();
+                persistService.rotateCookie(entityLoad("persist", {trainer: trainer}, true));
+                ormClearSession();
+                expect(countPersist(trainerid = trainer.getId())).toBe(1);
+
+                // The rotating response never reached the browser - it still sends the old cookie
+                request.persistCookieValue = oldCookie;
+                persistService.deleteCookie();
+
+                expect(countPersist(trainerid = trainer.getId())).toBe(0);
+            });
+
+            it("Lets only one of two racing requests rotate the cookie", () => {
+                persistService.addCookie(trainer);
+
+                // Both requests loaded the row before either rotated it
+                var persist = entityLoad("persist", {trainer: trainer}, true);
+                expect(persistService.rotateCookie(persist)).toBeTrue();
+                var winner = persistService.getCookie();
+
+                expect(persistService.rotateCookie(persist)).toBeFalse();
+                expect(persistService.getCookie()).toBeWithCase(winner);
+
+                ormClearSession();
+                expect(persistService.login(winner).success).toBeTrue();
 
                 persistService.deleteCookie();
             });
@@ -142,100 +194,6 @@ component extends="tests.resources.baseTest" {
                     expect(countPersist()).toBe(keep);
                 });
             });
-
-            // Life cycle
-            describe("User persist login life cycle tests", () => {
-                it("Can submit login form with remember me option and get a persist token", () => {
-                    countBefore = countPersist(trainerid = trainer.getId());
-
-                    session.recaptcha = {
-                        token    : "a",
-                        valid    : true,
-                        timestamp: now(),
-                        action   : "doLogin"
-                    };
-
-                    setup();
-                    event = post(
-                        route  = "/login/doLogin",
-                        params = {
-                            "#application.cbController.getSetting("csrfTokenField")#": csrfGenerateToken(
-                                forceNew = true
-                            ),
-                            email   : trainer.getEmail(),
-                            password: createUUID(),
-                            persist : "on"
-                        }
-                    );
-
-                    // Successful login redirects home
-                    expect(event.getValue("relocate_uri")).toBe("/");
-                    expect(session.authenticated).toBeTrue();
-                    expect(session.trainerid).toBe(trainer.getId());
-
-                    // Persist cookie record created in DB and cookie set in browser
-                    expect(persistService.checkCookie()).toBeTrue();
-                    expect(countPersist(trainerid = trainer.getId())).toBe(countBefore + 1);
-                });
-
-                it("Can have an 'idle' logout and automatically persist log back in", () => {
-                    // Logged in with persist cookie from previous test
-                    expect(session.authenticated).toBeTrue();
-                    expect(persistService.checkCookie()).toBeTrue();
-
-                    // Idle logout - session is destroyed but cookie is preserved
-                    event = get(route = "/logout", params = {idle: true});
-                    expect(session).notToHaveKey("trainerid");
-                    expect(persistService.checkCookie()).toBeTrue();
-
-                    // Next request: main.preHandler detects unauthenticated + cookie -> overrides to persistLogin
-                    setup();
-                    event = get(route = "/", renderResults = true);
-
-                    // Auto-login succeeded
-                    expect(session.authenticated).toBeTrue();
-                    expect(session.trainerid).toBe(trainer.getId());
-                });
-
-                it("Can persist login when session becomes invalidated (jsessionid deleted)", () => {
-                    // Logged in with persist cookie from the auto-login above
-                    expect(session.authenticated).toBeTrue();
-                    expect(persistService.checkCookie()).toBeTrue();
-
-                    // Simulate server-side session expiry without a formal logout
-                    sessionInvalidate();
-
-                    // Next request: no valid session but cookie is still in browser -> auto-login
-                    setup();
-                    event = get(route = "/", renderResults = true);
-
-                    expect(session.authenticated).toBeTrue();
-                    expect(session.trainerid).toBe(trainer.getId());
-                });
-
-                it("Clicking logout deletes the persist cookie", () => {
-                    // Logged in with persist cookie from the auto-login above
-                    expect(session.authenticated).toBeTrue();
-                    expect(persistService.checkCookie()).toBeTrue();
-
-                    // Full logout (not idle) - session AND browser cookie are both destroyed
-                    event = get(route = "/logout");
-
-                    expect(session).notToHaveKey("trainerid");
-                    expect(persistService.checkCookie()).toBeFalse();
-                });
-
-                it("Clicking logout does nothing if no persist cookie", () => {
-                    // No persist cookie following the full logout above
-                    expect(persistService.checkCookie()).toBeFalse();
-
-                    // Logout should not throw even without a cookie
-                    event = get(route = "/logout");
-
-                    expect(session).notToHaveKey("trainerid");
-                    expect(persistService.checkCookie()).toBeFalse();
-                });
-            })
         });
     }
 

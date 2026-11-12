@@ -1,23 +1,22 @@
 component extends="modules.socketbox.models.WebSocketSTOMP" hint="WebSocket Endpoint for SocketBox" {
 
     /**
-	 * Socket destination -> Allowed security level
+	 * Socket destination -> required permission
 	 */
-    this.validSockets = {"metrics": 50};
+    this.validSockets = {"metrics": "admin"};
 
     // Initialize dependencies and store in app scope
     function initDeps() {
-        application.wsLog = application.wirebox.getInstance("logbox:logger:WebSocket");
+        application.wsLog     = application.wirebox.getInstance("logbox:logger:WebSocket");
+        application.wsAuth    = application.wirebox.getInstance("authenticationService@cbauth");
+        application.wsSession = application.wirebox.getInstance("services.session");
     }
 
     function configure() {
         return {
-            debugMode  : false,
-            heartBeatMS: 10000,
-            exchanges  : {
-                // Topic exchange routes messages based on a pattern match to their incoming destination
-                topic: {bindings: {metrics: "metrics"}}
-            },
+            debugMode    : false,
+            heartBeatMS  : 10000,
+            exchanges    : {topic: {bindings: {metrics: "metrics"}}},
             subscriptions: {}
         };
     };
@@ -36,10 +35,7 @@ component extends="modules.socketbox.models.WebSocketSTOMP" hint="WebSocket Endp
          * Verify this session is authenticated
          */
         try {
-            var authenticated = session?.authenticated ?: false;
-            var trainerid     = session?.trainerid ?: -1;
-
-            return authenticated && trainerid > 0;
+            return application.wsAuth.isLoggedIn();
         }
         catch(any e) {
             application.wsLog.error("WebSocket authentication failed unexpectedly: #e.message#", e.stackTrace);
@@ -67,7 +63,7 @@ component extends="modules.socketbox.models.WebSocketSTOMP" hint="WebSocket Endp
         }
 
         /**
-		 * We want the sessionID for this connection, so we'll get the details about this channel's connectio
+		 * We want the sessionID for this connection, so we'll get the details about this channel's connection
 		 */
         var connectionDetails = getConnectionDetails(channel);
         var sessionID         = connectionDetails["sessionID"] ?: "";
@@ -78,8 +74,33 @@ component extends="modules.socketbox.models.WebSocketSTOMP" hint="WebSocket Endp
         }
 
         try {
-            var securityLevel = session?.securityLevel ?: 0;
-            return securityLevel >= this.validSockets[destination];
+            /**
+             * Check the permissions associated with this trainer
+             */
+            if(!application.wsAuth.isLoggedIn()) {
+                application.wsLog.warn("WebSocket authorization failed - not logged in for destination: #arguments.destination#");
+                return false;
+            }
+
+            var trainer = application.wsAuth.getUser();
+
+            // A session signed out by a password change can't subscribe either
+            if(!application.wsSession.isCurrentVersion(trainer)) {
+                application.wsLog.warn("WebSocket authorization failed - stale session version for trainer: ""#trainer.getId()#""");
+                return false;
+            }
+
+            var permission = this.validSockets[destination];
+            var hasAccess  = trainer.hasPermission(permission);
+
+            if(!hasAccess) {
+                application.wsLog.warn(
+                    "WebSocket authorization failed - insufficient permission for destination ""#arguments.destination#"". " &
+                    "Required: ""#permission#"", trainer: ""#trainer.getId()#"""
+                );
+            }
+
+            return hasAccess;
         }
         catch(any e) {
             application.wsLog.error(

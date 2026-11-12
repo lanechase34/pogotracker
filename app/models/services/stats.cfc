@@ -57,13 +57,11 @@ component singleton accessors="true" {
      * Return struct of trainer's stats between start/end dates in format for line chart
      *
      * @trainer   trainer
-     * @datePart  'd', 'm' (day or month grouping)
      * @startDate start
      * @endDate   end
      */
     public struct function get(
         required component trainer,
-        required string datePart,
         required date startDate,
         required date endDate
     ) {
@@ -328,8 +326,6 @@ component singleton accessors="true" {
             walked: []
         };
         var statKeys = topDeltas.keyArray();
-
-        var futurews
 
         // For each stat, sort the full result set by that delta desc and take top 3
         var futures = async

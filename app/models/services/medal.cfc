@@ -40,22 +40,8 @@ component singleton accessors="true" {
         return allMedals;
     }
 
-    public array function get(required string name) {
-        return entityLoad("medal", {"name": arguments.name});
-    }
-
     public component function getFromId(required numeric id) {
         return entityLoadByPK("medal", arguments.id);
-    }
-
-    /**
-     * Load specific relation record for trainer to medal
-     *
-     * @trainer trainer cfc
-     * @medal   medal cfc
-     */
-    public array function getTrainerMedal(required component trainer, required component medal) {
-        return entityLoad("trainermedal", {"trainer": arguments.trainer, "medal": arguments.medal});
     }
 
     /**
@@ -96,19 +82,19 @@ component singleton accessors="true" {
         required component medal,
         required numeric current
     ) {
-        var trainerMedal = getTrainerMedal(arguments.trainer, arguments.medal);
-
-        // If trainer medal doesnt exist
-        if(!trainerMedal.len()) {
-            trainerMedal = entityNew("trainermedal", {"trainer": arguments.trainer, "medal": arguments.medal});
-        }
-        else {
-            trainerMedal = trainerMedal[1];
-        }
-
-        trainerMedal.setCurrent(arguments.current);
-        entitySave(trainerMedal);
-        ormFlush();
+        // One row per trainer + medal (unq_trainermedal_trainerid_medalid) - concurrent saves update the same row
+        queryExecute(
+            "
+            INSERT INTO trainermedal (trainerid, medalid, current, created, updated)
+            VALUES (:trainerid, :medalid, :current, now(), now())
+            ON CONFLICT (trainerid, medalid) DO UPDATE SET current = excluded.current
+            ",
+            {
+                trainerid: {value: arguments.trainer.getId(), cfsqltype: "integer"},
+                medalid  : {value: arguments.medal.getId(), cfsqltype: "integer"},
+                current  : {value: int(arguments.current), cfsqltype: "integer"}
+            }
+        );
 
         // Clear the cache
         cache.clear("#arguments.trainer.getId()#|medal.getProgress");

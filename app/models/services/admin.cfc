@@ -12,7 +12,7 @@ component singleton accessors="true" {
     property name="pokemonService"    inject="services.pokemon";
     property name="schedulerService"  inject="coldbox:schedulerService";
     property name="scraperService"    inject="services.scraper";
-    property name="securityService"   inject="services.security";
+    property name="userService"       inject="services.user";
     property name="utilService"       inject="services.util";
 
     property name="defaultCache"  inject="cachebox:default";
@@ -822,7 +822,13 @@ component singleton accessors="true" {
             );
         });
 
-        ormFlush();
+        // Updated pokemon are written here - a changed ses that collides fails
+        try {
+            ormFlush();
+        }
+        catch(any e) {
+            utilService.rethrowUniqueViolation(e);
+        }
 
         // Flush pokemon cache and rendered detail pages
         cache.clearByKeySnippet("pokemon.");
@@ -830,7 +836,7 @@ component singleton accessors="true" {
         templateCache.clearEvent("pokemon.indexContent");
 
         // Cache the pokemon data
-        var allPokemon = pokemonService.getAll();
+        pokemonService.getAll();
         pokemonService.getMaxStats();
         pokemonService.getSearchArray();
         return;
@@ -1270,7 +1276,7 @@ component singleton accessors="true" {
 
         if(isNull(custom)) {
             var customid = customService.create(
-                trainer = securityService.getTrainer(getSystemTrainer())[1],
+                trainer = userService.findByEmail(getSystemTrainer()),
                 name    = eventTitle,
                 public  = true,
                 begins  = begins,
@@ -1902,96 +1908,113 @@ component singleton accessors="true" {
     }
 
     /**
-     * Rebuilds the /includes/sitemap.xml with the last info including:
-     * all blogs, accessible pages by un-authorized user, and pokemon detail pages
+     * Rebuilds /includes/sitemap.xml with every public, indexable page: home, the Pokedex index, pokemon detail pages, and blogs
+     *
+     * lastmod is the real last change from the db so search engines can trust it:
+     * - detail page: newest update across the pokemon, its moves, its evolutions, and its live costumes
+     * - Pokedex index: newest of all detail pages
+     * - blog: updated, falling back to created
+     * - home: omitted - its content is client rendered, so there is no meaningful date
      */
     public void function updateSiteMap() {
-        var filePath     = "#getRootPath()#/includes/sitemap.xml";
-        var nowFormatted = dateFormat(now(), "yyyy-mm-dd");
-        var domain       = getDomainProd();
+        var filePath = "#getRootPath()#/includes/sitemap.xml";
+        var domain   = getDomainProd();
+        var entries  = [];
+        var w3cDate  = (value) => isDate(value) ? dateFormat(value, "yyyy-mm-dd") : "";
 
-        // Helper: returns changefreq and priority based on URL type
-        var getUrlMeta = function(loc) {
-            if(loc.findNoCase("/pokemon/") GT 0) {
-                return {changefreq: "monthly", priority: "0.8"};
-            }
-            else if(loc.findNoCase("/readblog/") GT 0) {
-                return {changefreq: "monthly", priority: "0.7"};
-            }
-            else if(loc == "#domain#/pokemon") {
-                return {changefreq: "weekly", priority: "0.9"};
-            }
-            else if(loc == "#domain#/") {
-                return {changefreq: "weekly", priority: "1.0"};
-            }
-            else if(loc == "#domain#/login" || loc == "#domain#/register") {
-                return {changefreq: "yearly", priority: "0.4"};
-            }
-            else {
-                return {changefreq: "monthly", priority: "0.5"};
-            }
-        };
-
-        // Build URL -> lastmod map (only public, indexable pages)
-        // Note: auth-required pages are excluded - they are blocked in robots.txt
-        var locModMap        = {};
-        var pokemonNameMap   = {}; // ses -> name for image:title
-        var pokemonSpriteMap = {}; // ses -> sprite filename for image:loc
-
-        locModMap["#domain#/"]         = nowFormatted;
-        locModMap["#domain#/login"]    = nowFormatted;
-        locModMap["#domain#/register"] = nowFormatted;
-        locModMap["#domain#/pokemon"]  = nowFormatted;
-
-        // Pokemon pages - fetch sprite and name for image sitemap entries
+        // Pokemon detail pages - greatest() skips nulls, so a pokemon without moves/evolutions/costumes uses its own date
+        var pokemonEntries = [];
+        var newestPokemon  = "";
         queryExecute("
-            select ses, name, sprite
-            from pokemon
-            where costume = false
-            order by generation asc, number asc, form asc, name asc
+            select p.ses, p.name, p.sprite,
+                greatest(p.updated, m.updated, e.updated, c.updated) as lastmod
+            from pokemon p
+            left join (
+                select pokemonid, max(updated) as updated
+                from pokemonmove
+                group by pokemonid
+            ) m on m.pokemonid = p.id
+            left join (
+                select id, max(updated) as updated
+                from (
+                    select pokemonid as id, updated from evolution
+                    union all
+                    select evolutionid as id, updated from evolution
+                ) evo
+                group by id
+            ) e on e.id = p.id
+            left join (
+                select name, number, gender, max(updated) as updated
+                from pokemon
+                where costume = true and live = true
+                group by name, number, gender
+            ) c on c.name = p.name and c.number = p.number and c.gender = p.gender
+            where p.costume = false
+            order by p.generation asc, p.number asc, p.form asc, p.name asc
         ").each((row) => {
-            locModMap["#domain#/pokemon/#row.ses#"] = nowFormatted;
-            pokemonNameMap[row.ses]                 = row.name;
-            pokemonSpriteMap[row.ses]               = row.sprite;
+            if(isDate(row.lastmod) && (!isDate(newestPokemon) || dateCompare(row.lastmod, newestPokemon) > 0)) {
+                newestPokemon = row.lastmod;
+            }
+            pokemonEntries.append({
+                loc       : "#domain#/pokemon/#row.ses#",
+                lastmod   : w3cDate(row.lastmod),
+                changefreq: "monthly",
+                priority  : "0.8",
+                image     : {
+                    loc  : "#domain#/includes/images/sprites/#encodeForURL(row.sprite)##getImageExtension()#",
+                    title: row.name
+                }
+            });
         });
+
+        entries.append({
+            loc       : "#domain#/",
+            lastmod   : "",
+            changefreq: "weekly",
+            priority  : "1.0"
+        });
+
+        entries.append({
+            loc       : "#domain#/pokemon",
+            lastmod   : w3cDate(newestPokemon),
+            changefreq: "weekly",
+            priority  : "0.9"
+        });
+
+        entries.append(pokemonEntries, true);
 
         // Blog pages
         queryExecute("
-            select created, header
+            select header, coalesce(updated, created) as lastmod
             from blog
+            order by created desc
         ").each((row) => {
-            locModMap["#domain#/readblog/#row.header.replace(" ", "-", "all")#"] = dateFormat(row.created, "yyyy-mm-dd");
+            entries.append({
+                loc       : "#domain#/readblog/#blogService.getSlug(row.header)#",
+                lastmod   : w3cDate(row.lastmod),
+                changefreq: "monthly",
+                priority  : "0.7"
+            });
         });
 
-        // Force welcome blog to always reflect current date
-        locModMap["#domain#/readblog/Welcome-to-POGO-Tracker!"] = nowFormatted;
-
         // Build sitemap as a string so we can use the image namespace without
-        // fighting CFML's XML API namespace handling
         var lines = [];
         lines.append("<?xml version=""1.0"" encoding=""UTF-8""?>");
         lines.append("<urlset xmlns=""http://www.sitemaps.org/schemas/sitemap/0.9""");
         lines.append("        xmlns:image=""http://www.google.com/schemas/sitemap-image/1.1"">");
 
-        locModMap.each((loc, lastmod) => {
-            var meta = getUrlMeta(loc);
+        entries.each((entry) => {
             lines.append("  <url>");
-            lines.append("    <loc>#encodeForXML(loc)#</loc>");
-            lines.append("    <lastmod>#lastmod#</lastmod>");
-            lines.append("    <changefreq>#meta.changefreq#</changefreq>");
-            lines.append("    <priority>#meta.priority#</priority>");
-
-            // Add image entry for pokemon pages
-            if(loc.findNoCase("/pokemon/") GT 0) {
-                var ses       = listLast(loc, "/");
-                var imgSprite = pokemonSpriteMap.keyExists(ses) ? pokemonSpriteMap[ses] : ses;
-                var imgTitle  = pokemonNameMap.keyExists(ses) ? encodeForXML(pokemonNameMap[ses]) : encodeForXML(ses);
+            lines.append("    <loc>#encodeForXML(entry.loc)#</loc>");
+            if(entry.lastmod.len()) lines.append("    <lastmod>#entry.lastmod#</lastmod>");
+            lines.append("    <changefreq>#entry.changefreq#</changefreq>");
+            lines.append("    <priority>#entry.priority#</priority>");
+            if(entry.keyExists("image")) {
                 lines.append("    <image:image>");
-                lines.append("      <image:loc>#encodeForXML(domain)#/includes/images/sprites/#encodeForURL(imgSprite)#.webp</image:loc>");
-                lines.append("      <image:title>#imgTitle#</image:title>");
+                lines.append("      <image:loc>#encodeForXML(entry.image.loc)#</image:loc>");
+                lines.append("      <image:title>#encodeForXML(entry.image.title)#</image:title>");
                 lines.append("    </image:image>");
             }
-
             lines.append("  </url>");
         });
 
@@ -2304,21 +2327,18 @@ component singleton accessors="true" {
      * @override The override struct
      */
     public void function saveOverride(required string name, required struct override) {
-        // 1. Check if override exists
-        var overrideCfc = entityLoad("overrides", {name: name}, true);
-
-        if(isNull(overrideCfc)) {
-            // 2. Create if not
-            overrideCfc = entityNew("overrides");
-            overrideCfc.setName(name);
-            entitySave(overrideCfc);
-            ormFlush();
-        }
-
-        // 3. Save override
-        overrideCfc.setOverride(override);
-        entitySave(overrideCfc);
-        ormFlush();
+        // Create or replace in one statement - one row per name
+        queryExecute(
+            "
+            INSERT INTO overrides (name, override, created, updated)
+            VALUES (:name, cast(:override as jsonb), now(), now())
+            ON CONFLICT (name) DO UPDATE SET override = excluded.override
+            ",
+            {
+                name    : {value: arguments.name, cfsqltype: "varchar"},
+                override: {value: serializeJSON(arguments.override), cfsqltype: "other"}
+            }
+        );
         return;
     }
 

@@ -1,6 +1,11 @@
-component accessors="true" singleton hint="Validator for checking if a user has appropriate security level" {
+component
+    accessors="true"
+    singleton
+    hint="Validator for checking the target trainer is the logged in trainer, or the logged in trainer is an admin"
+{
 
     property name="name";
+    property name="cbSecurity" inject="CBSecurity@cbsecurity";
 
     /**
      * Init validator
@@ -55,13 +60,14 @@ component accessors="true" singleton hint="Validator for checking if a user has 
             return false;
         }
 
-        // You are viewing your own session data
-        if(arguments.targetValue == session.trainerid) {
-            return true;
-        }
-
-        // You are admin or higher rights
-        if(session.securityLevel >= 50) {
+        // Your own data, or you are an admin
+        if(
+            cbSecurity.isLoggedIn()
+            && (
+                arguments.targetValue == cbSecurity.getUser().getId()
+                || cbSecurity.has("admin")
+            )
+        ) {
             return true;
         }
 

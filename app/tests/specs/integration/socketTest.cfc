@@ -15,11 +15,6 @@ component extends="tests.resources.baseTest" {
                 if(session.keyExists("mocktrainerid")) mockTrainer.delete();
             });
 
-            it("Socket can be created", () => {
-                var ws = getWebSocket();
-                expect(ws).toBeComponent();
-            });
-
             it("Can configure correctly and register metrics topic", () => {
                 var ws     = new WebSocket();
                 var config = ws.getConfig();
@@ -137,6 +132,72 @@ component extends="tests.resources.baseTest" {
                     connectionMetadata = application.STOMPBroker.STOMPConnections[channel.hashCode()].connectionMetadata
                 );
                 expect(authorizeResult).toBeFalse();
+            });
+
+            it("Cannot authorize a guest to metrics topic", () => {
+                var ws = getWebSocket();
+                getInstance("authenticationService@cbauth").logout();
+
+                var channel                                                  = mockChannel();
+                application.STOMPBroker.STOMPConnections[channel.hashCode()] = {
+                    channel           : channel,
+                    login             : "",
+                    connectDate       : now(),
+                    sessionID         : channel.hashCode(),
+                    connectionMetadata: {}
+                }
+
+                var authorizeResult = ws.authorize(
+                    login              = "",
+                    exchange           = "topic",
+                    destination        = "metrics",
+                    access             = "subscribe",
+                    channel            = channel,
+                    connectionMetadata = {}
+                );
+                expect(authorizeResult).toBeFalse();
+            });
+
+            it("Cannot authorize an unverified admin to metrics topic", () => {
+                var ws = getWebSocket();
+
+                // Unverified trainers have no permissions, whatever their level
+                mockTrainer.make(securityLevel = 50, verified = false);
+
+                var channel                                                  = mockChannel();
+                application.STOMPBroker.STOMPConnections[channel.hashCode()] = {
+                    channel           : channel,
+                    login             : "",
+                    connectDate       : now(),
+                    sessionID         : channel.hashCode(),
+                    connectionMetadata: {}
+                }
+
+                var authorizeResult = ws.authorize(
+                    login              = "",
+                    exchange           = "topic",
+                    destination        = "metrics",
+                    access             = "subscribe",
+                    channel            = channel,
+                    connectionMetadata = {}
+                );
+                expect(authorizeResult).toBeFalse();
+            });
+
+            it("Rejects an unknown destination", () => {
+                var ws = getWebSocket();
+                mockTrainer.make(securityLevel = 50);
+
+                expect(
+                    ws.authorize(
+                        login              = "",
+                        exchange           = "topic",
+                        destination        = "not-a-topic",
+                        access             = "subscribe",
+                        channel            = mockChannel(),
+                        connectionMetadata = {}
+                    )
+                ).toBeFalse();
             });
 
             it("Can broadcast a message to metrics", () => {

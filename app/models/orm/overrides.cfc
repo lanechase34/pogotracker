@@ -18,20 +18,4 @@ component persistent="true" extends="base" {
         return deserializeJSON(override);
     }
 
-    void function setOverride(required struct override) {
-        queryExecute(
-            "
-            update overrides
-            set override = cast(:override as jsonb)
-            where id = :overrideId
-            ",
-            {
-                override  : {value: serializeJSON(arguments.override), cfsqltype: "other"},
-                overrideId: {value: getId(), cfsqltype: "integer"}
-            }
-        );
-
-        setUpdated(now());
-    }
-
 }

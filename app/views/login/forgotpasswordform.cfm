@@ -27,7 +27,7 @@
                             </div>
                         </div>
                     </div>
-                    <input type="hidden" name="#getSetting('csrfTokenField')#" value="#csrfGenerateToken(forceNew=true)#">
+                    <input type="hidden" name="csrf" value="#csrfToken()#">
                     <div class="d-grid mb-3">
                         <button class="btn btn-dark" id="submitForm" type="submit">Send Reset Link</button>
                     </div>

@@ -2,8 +2,8 @@
 <div class="d-flex align-items-center gap-2 mb-2">
     <img
         class="profileIcon flex-shrink-0"
-        src="#args.trainer.getIconPath()#"
-        alt="#args.trainer.getIconAltText()#"
+        src="#encodeForHTMLAttribute(args.trainer.getIconPath())#"
+        alt="#encodeForHTMLAttribute(args.trainer.getIconAltText())#"
         loading="lazy"
     >
     <div>

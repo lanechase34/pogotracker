@@ -2,9 +2,12 @@ component extends="tests.resources.baseTest" asyncAll="false" {
 
     function beforeAll() {
         super.beforeAll();
+        mockTrainer = getInstance("tests.resources.mocktrainer");
+        developer   = mockTrainer.make(securityLevel = 60, autoLogin = false);
     }
 
     function afterAll() {
+        mockTrainer.delete(developer.getId());
         super.afterAll();
     }
 
@@ -13,10 +16,6 @@ component extends="tests.resources.baseTest" asyncAll="false" {
             beforeEach(() => {
                 setup();
                 jsoup = getInstance("javaloader:org.jsoup.Jsoup");
-            });
-
-            it("Can load jsoup", () => {
-                expect(jsoup).notToBeNull();
             });
 
             it("Can load /healthcheck with jsoup", () => {
@@ -38,7 +37,7 @@ component extends="tests.resources.baseTest" asyncAll="false" {
             });
 
             it("Can get a user agent", () => {
-                session.securityLevel = 60;
+                mockTrainer.actAs(developer);
 
                 var event    = execute(event = "dev.testJsoup", renderResults = true);
                 var response = event.getPrivateValue("cbox_renderdata");
@@ -49,7 +48,7 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                 var data = deserializeJSON(response.data.response);
                 expect(data["user-agent"]).toInclude("Mozilla/5.0");
 
-                session.securityLevel = 0;
+                mockTrainer.actAsGuest();
             });
         });
     }

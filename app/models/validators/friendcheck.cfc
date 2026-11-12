@@ -1,6 +1,7 @@
 component acecssors="true" singleton hint="Validator for checking if two trainers are friends" {
 
     property name="name";
+    property name="auth"          inject="authenticationService@cbauth";
     property name="friendService" inject="services.friend";
 
     /**
@@ -34,7 +35,8 @@ component acecssors="true" singleton hint="Validator for checking if two trainer
         required any target,
         required string field,
         any targetValue,
-        any validationData
+        any validationData,
+        struct rules = {}
     ) {
         var errorStruct = {
             message       : "",
@@ -45,17 +47,23 @@ component acecssors="true" singleton hint="Validator for checking if two trainer
         };
 
         // If the field is not required
-        // And no valid value was passed in - skip the check
+        // And no value was passed in (blank or -1) - skip the check
         if(
+            !(arguments.rules?.required ?: false) &&
             !isNull(arguments.targetValue) &&
             isSimpleValue(arguments.targetValue) &&
-            !isNumeric(arguments.targetValue)
+            (arguments.targetValue == "" || arguments.targetValue == -1)
         ) {
             return true;
         }
 
-        var check = friendService.checkFriend(
-            trainerid = session.trainerid,
+        // Anything else must be a trainer id - a non numeric value fails instead of slipping through
+        var check = !isNull(arguments.targetValue)
+        && isSimpleValue(arguments.targetValue)
+        && isNumeric(arguments.targetValue)
+        && auth.isLoggedIn()
+        && friendService.checkFriend(
+            trainerid = auth.getUserId(),
             friendid  = arguments.targetValue,
             accepted  = arguments.validationData.accepted
         );

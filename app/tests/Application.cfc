@@ -33,7 +33,6 @@ component {
     public boolean function onRequestStart(targetPage) {
         setting requestTimeout="9999";
 
-        ormReload();
         ormClearSession();
 
         request.coldBoxVirtualApp = new coldbox.system.testing.VirtualApp(appMapping = "/root");

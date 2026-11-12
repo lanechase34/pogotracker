@@ -15,8 +15,7 @@ component extends="tests.resources.baseTest" asyncAll="false" {
      */
     private any function anonymousGet(required string route) {
         setup();
-        session.securityLevel = 0;
-        session.authenticated = false;
+        getInstance("authenticationService@cbauth").logout();
         return get(route = route);
     }
 
@@ -194,6 +193,28 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                 expect(posting.mainEntityOfPage).toBe("#domain#/readblog/#slug#");
                 expect(posting).toHaveKey("datePublished");
                 expect(posting).toHaveKey("author");
+            });
+
+            it("Canonical keeps the stored header's casing", () => {
+                var header = getTestBlogHeader();
+                if(!header.len()) return;
+
+                var slug = header.replace(" ", "-", "all");
+                var html = anonymousGet("/readblog/#slug#").getRenderedContent();
+                expect(html).toInclude("<link rel=""canonical"" href=""#encodeForHTMLAttribute("#domain#/readblog/#slug#")#"">");
+            });
+
+            it("Permanently redirects any other casing to the stored header's slug", () => {
+                var header = getTestBlogHeader();
+                var slug   = header.replace(" ", "-", "all");
+                // Needs a header with letters whose case can change
+                if(!header.len() || compare(lCase(slug), slug) == 0) return;
+
+                // Warm the cache with the correct url first - the cache key is case insensitive
+                anonymousGet("/readblog/#slug#");
+                var event = anonymousGet("/readblog/#lCase(slug)#");
+                expect(event.getValue("relocate_URI")).toBe("/readblog/#slug#");
+                expect(event.getValue("relocate_statusCode")).toBe(301);
             });
         });
     }

@@ -7,6 +7,7 @@ component singleton accessors="true" {
     property name="scraperService" inject="services.scraper";
     property name="uploadPath"     inject="coldbox:setting:uploadPath";
     property name="maxThreads"     inject="coldbox:setting:maxThreads";
+    property name="utilService"    inject="services.util";
 
     // Scraped news/events cache keys
     variables.NEWS_LIST_KEY      = "external.news.list";
@@ -60,13 +61,28 @@ component singleton accessors="true" {
         var cacheKey = "blog.getFromHeader|header=#lCase(arguments.header)#";
         var blog     = cache.get(cacheKey);
         if(isNull(blog)) {
-            blog = entityLoad("blog", {header: arguments.header}, true);
+            // Headers are unique ignoring case
+            blog = ormExecuteQuery(
+                "from blog where lower(header) = :header",
+                {header: lCase(trim(arguments.header))},
+                true
+            );
             if(isNull(blog)) return; // Invalid blog return null here
 
             blog.getComment();
             cache.set(cacheKey, blog, 720, 720);
         }
         return blog;
+    }
+
+    /**
+     * URL slug for a blog's /readblog/ page - the header with spaces replaced by -
+     * Case is preserved, so this is the only casing blog.read serves without a redirect
+     *
+     * @header the blog's stored header
+     */
+    public string function getSlug(required string header) {
+        return arguments.header.replace(" ", "-", "all");
     }
 
     public void function create(
@@ -81,7 +97,7 @@ component singleton accessors="true" {
         var newBlog = entityNew(
             "blog",
             {
-                "header"  : arguments.header,
+                "header"  : trim(arguments.header),
                 "meta"    : arguments.meta,
                 "image"   : arguments.image,
                 "alttext" : arguments.alt,
@@ -90,8 +106,13 @@ component singleton accessors="true" {
                 "trainer" : arguments.trainer
             }
         );
-        entitySave(newBlog);
-        ormFlush();
+        try {
+            entitySave(newBlog);
+            ormFlush();
+        }
+        catch(any e) {
+            utilService.rethrowUniqueViolation(e);
+        }
 
         // Clear the blog cache whenever a new entry is saved
         cache.clearByKeySnippet("blog.");
@@ -108,11 +129,10 @@ component singleton accessors="true" {
         required string bodyjson,
         required string body
     ) {
-        var blog           = getFromId(arguments.blogid, false);
-        var previousHeader = lCase(blog.getHeader());
+        var blog = getFromId(arguments.blogid, false);
 
         blog.setTrainer(arguments.trainer);
-        blog.setHeader(arguments.header);
+        blog.setHeader(trim(arguments.header));
         blog.setMeta(arguments.meta);
         blog.setBodyJson(arguments.bodyjson);
         blog.setBody(arguments.body);
@@ -121,8 +141,14 @@ component singleton accessors="true" {
         if(arguments.image.len()) {
             blog.setImage(arguments.image);
         }
-        entitySave(blog);
-        ormFlush();
+
+        try {
+            entitySave(blog);
+            ormFlush();
+        }
+        catch(any e) {
+            utilService.rethrowUniqueViolation(e);
+        }
 
         // Clear the blog cache whenever a new entry is saved
         cache.clearByKeySnippet("blog.");

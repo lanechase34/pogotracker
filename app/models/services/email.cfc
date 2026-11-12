@@ -1,22 +1,22 @@
 component singleton accessors="true" {
 
+    property name="mailService" inject="MailService@cbmailservices";
+
     property name="contactEmail" inject="coldbox:setting:contactEmail";
-    property name="mailService"  inject="MailService@cbmailservices";
+    property name="mailServer" inject="coldbox:setting:mailServer" getter="false" setter="false";
 
     /**
      * Verify successful connection to the mail server - same functionality as admin page
      */
     public boolean function verifyConnection() {
-        var env = new coldbox.system.core.delegates.Env();
-
         try {
             admin action = "verifyMailServer"
             type         = "server"
-            password     = "#env.getEnv("CFCONFIG_ADMINPASSWORD")#"
-            hostname     = "#env.getEnv("EMAIL_SERVER")#"
-            port         = "#env.getEnv("EMAIL_PORT")#"
-            mailusername = "#env.getEnv("EMAIL_USERNAME")#"
-            mailpassword = "#env.getEnv("EMAIL_PASSWORD")#";
+            password     = "#variables.mailServer.adminPassword#"
+            hostname     = "#variables.mailServer.hostname#"
+            port         = "#variables.mailServer.port#"
+            mailusername = "#variables.mailServer.username#"
+            mailpassword = "#variables.mailServer.password#";
 
             return true;
         }
@@ -73,22 +73,40 @@ component singleton accessors="true" {
     }
 
     /**
-     * Shallow copy of a scope with credentials/tokens replaced so they never leave the server
+     * Copy of a scope with credentials/tokens replaced so they never leave the server
+     * Walks nested structs and arrays (json bodies land in the rc nested) - objects are left out, only their type is kept
+     *
+     * @data  struct, array or simple value to redact
+     * @depth how deep we are - stops runaway recursion on self referencing data
      */
-    private struct function redactSensitive(required struct data) {
-        var sensitive = "password|passwd|csrf|token|secret|resetcode|persistcookie|verificationcode|sessionid|jsessionid|cfid|cftoken|recaptcha";
-        var csrfField = application.cbController.getSetting("csrfTokenField");
+    private any function redactSensitive(required any data, numeric depth = 0) {
+        var sensitive = "password|passwd|csrf|token|secret|resetcode|persistcookie|verificationcode|sessionid|jsessionid|cfid|cftoken|recaptcha|^code$";
 
-        var result = {};
-        for(var key in arguments.data) {
-            if(key == csrfField || reFindNoCase(sensitive, key)) {
-                result[key] = "[REDACTED]";
-            }
-            else {
-                result[key] = arguments.data[key] ?: "";
-            }
+        if(arguments.depth > 10) {
+            return "[TRUNCATED]";
         }
-        return result;
+
+        if(isArray(arguments.data)) {
+            var depth = arguments.depth;
+            return arguments.data.map((item) => redactSensitive(item ?: "", depth + 1));
+        }
+
+        if(isStruct(arguments.data) && !isObject(arguments.data)) {
+            var result = {};
+            for(var key in arguments.data) {
+                result[key] = reFindNoCase(sensitive, key) ? "[REDACTED]" : redactSensitive(
+                    arguments.data[key] ?: "",
+                    arguments.depth + 1
+                );
+            }
+            return result;
+        }
+
+        if(isObject(arguments.data)) {
+            return "[#getMetadata(arguments.data).name ?: "object"#]";
+        }
+
+        return arguments.data;
     }
 
     /**

@@ -24,10 +24,6 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                 statsService = getInstance("services.stats");
             });
 
-            it("Can be created", () => {
-                expect(statsService).toBeComponent();
-            });
-
             it("Has no stats tracked for today", () => {
                 expect(statsService.getFromDay(trainer = trainer, suppliedDate = now())).toBeNull();
             });
@@ -35,7 +31,6 @@ component extends="tests.resources.baseTest" asyncAll="false" {
             it("Has no stats returned for range", () => {
                 getStats = statsService.get(
                     trainer   = trainer,
-                    datePart  = "d",
                     startDate = startDate,
                     endDate   = endDate
                 );
@@ -52,7 +47,7 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                 event = post(
                     route  = "/stats/track",
                     params = {
-                        trainerid: session.trainerid,
+                        trainerid: trainer.getId(),
                         xp       : 1,
                         caught   : 2,
                         spun     : 3,
@@ -92,7 +87,7 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                         "stat",
                         {
                             "created": currDate,
-                            "trainer": session.trainer,
+                            "trainer": trainer,
                             "xp"     : i + 1,
                             "caught" : i + 2,
                             "spun"   : i + 3,
@@ -106,7 +101,6 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                 // Load data for the curr week
                 getStats = statsService.get(
                     trainer   = trainer,
-                    datePart  = "d",
                     startDate = startDate,
                     endDate   = endDate
                 );
@@ -133,7 +127,7 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                     expect(leaderboard.len()).toBeGTE(1);
                     found = false;
                     leaderboard.each((row) => {
-                        if(row.username == session.username) {
+                        if(row.username == trainer.getUsername()) {
                             found = true;
                             break;
                         }

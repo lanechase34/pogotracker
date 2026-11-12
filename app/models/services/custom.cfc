@@ -1,8 +1,7 @@
 component singleton accessors="true" {
 
-    property name="async"          inject="asyncManager@coldbox";
-    property name="cache"          inject="cachebox:appCache";
-    property name="pokemonService" inject="services.pokemon";
+    property name="cache"       inject="cachebox:appCache";
+    property name="utilService" inject="services.util";
 
     /**
      * Create the custom pokedex entity
@@ -76,19 +75,25 @@ component singleton accessors="true" {
         var customid = {value: arguments.custom.getId(), cfsqltype: "integer"};
         var wanted   = arguments.pokemon.map((pokemonid) => val(pokemonid));
 
-        // Pokemon already in this custom pokedex
-        var existing = {};
-        queryExecute("SELECT pokemonid FROM custompokedex WHERE customid = :customid", {customid: customid}).each((row) => {
-            existing[row.pokemonid] = true;
-        });
-
-        // Add the new records - inserts go through ORM since ids use hibernate's increment generator
-        var toAdd = wanted.filter((pokemonid) => !existing.keyExists(pokemonid));
-        if(toAdd.len()) {
-            ormExecuteQuery("from pokemon where id in (:ids)", {"ids": toAdd}).each((currPokemon) => {
-                entitySave(entityNew("custompokedex", {"custom": custom, "pokemon": currPokemon}));
-            });
-            ormFlush();
+        // Add the wanted pokemon not already in this custom pokedex - joining pokemon drops ids that don't exist
+        if(wanted.len()) {
+            queryExecute(
+                "
+                INSERT INTO custompokedex (customid, pokemonid, created, updated)
+                SELECT :customid, pokemon.id, now(), now()
+                FROM pokemon
+                WHERE pokemon.id IN (:ids)
+                ON CONFLICT (customid, pokemonid) DO NOTHING
+                ",
+                {
+                    customid: customid,
+                    ids     : {
+                        value    : wanted.toList(),
+                        cfsqltype: "integer",
+                        list     : true
+                    }
+                }
+            );
         }
 
         // Delete the records that were removed
@@ -175,20 +180,6 @@ component singleton accessors="true" {
     }
 
     /**
-     * Get a custom pokedex by id created by the trainer
-     *
-     * @id      customid
-     * @trainer trainer
-     */
-    public any function getCreated(required numeric id, required component trainer) {
-        return entityLoad(
-            "custom",
-            {"id": arguments.id, "trainer": arguments.trainer},
-            true
-        );
-    }
-
-    /**
      * Delete the supplied custom pokedex
      * Deletes the custom entity and sub customPokedex entities
      *
@@ -225,46 +216,43 @@ component singleton accessors="true" {
         required numeric page,
         numeric pageSize = 10
     ) {
-        var results = async
-            .all(
-                () => ormExecuteQuery(
-                    "
-                    from custom as custom
-                    where custom.commday = false
-                    and upper(custom.name) like :search
-                    and (
-                        custom.trainer = :trainer
-                        or custom.public = true
-                    )
-                    order by custom.id desc, custom.name asc
-                    ",
-                    {trainer: trainer, search: "%#uCase(search)#%"},
-                    {offset: (page - 1) * pageSize, maxResults: pageSize}
-                ),
-                () => ormExecuteQuery(
-                    "
-                    select count(custom.id)
-                    from custom as custom
-                    where custom.commday = false
-                    and upper(custom.name) like :search
-                    and (
-                        custom.trainer = :trainer
-                        or custom.public = true
-                    )
-                    ",
-                    {trainer: trainer, search: "%#uCase(search)#%"}
-                )
-            )
-            .get();
+        var fromWhere = "
+            FROM custom
+            WHERE custom.commday = false
+                AND custom.name ILIKE :search
+                AND (custom.trainerid = :trainerid OR custom.public = true)
+        ";
+        var params = {
+            trainerid: {value: arguments.trainer.getId(), cfsqltype: "integer"},
+            search   : {value: utilService.likeContains(arguments.search), cfsqltype: "varchar"}
+        };
 
-        var customList      = results[1];
-        var customListCount = results[2];
+        // One row past the page - if it comes back there is another page
+        params.limit  = {value: arguments.pageSize + 1, cfsqltype: "integer"};
+        params.offset = {value: (arguments.page - 1) * arguments.pageSize, cfsqltype: "integer"};
+
+        var customs = queryExecute(
+            "
+            SELECT custom.id, custom.name
+            #fromWhere#
+            ORDER BY custom.id DESC, custom.name ASC
+            LIMIT :limit
+            OFFSET :offset
+            ",
+            params,
+            {returntype: "array"}
+        );
+
+        var more = customs.len() > arguments.pageSize;
+        if(more) {
+            customs.deleteAt(customs.len());
+        }
 
         return {
-            results: customList.map((custom) => {
-                return {id: custom.getId(), text: custom.getName()};
+            results: customs.map((custom) => {
+                return {id: custom.id, text: custom.name};
             }),
-            pagination: {more: customListCount[1] > page * pageSize}
+            pagination: {more: more}
         };
     }
 

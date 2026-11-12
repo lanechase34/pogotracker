@@ -33,7 +33,7 @@
                     </div>
                 </div>
             </div>
-            <input type="hidden" name="#getSetting('csrfTokenField')#" value="#csrfGenerateToken(forceNew=true)#">
+            <input type="hidden" name="csrf" value="#csrfToken()#">
             <input type="hidden" name="resetCode" value="#rc.resetCode#"/>
             <div class="mb-3 row">
                 <div class="col-12 text-end">

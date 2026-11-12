@@ -74,40 +74,68 @@
     No Pokémon match that filter.
 </p>
 
-<cfloop array="#prc.pokedexIndex#" item="group">
-    <section class="pokedex-section mb-4" id="gen-#encodeForHTMLAttribute(group.generation)#" aria-labelledby="gen-#encodeForHTMLAttribute(group.generation)#-title">
+<!--- Generations then costumes share one section/tile loop - costumes link to their base pokemon's detail page costume card --->
+<cfset sections = prc.pokedexIndex.map((group) => {
+    return {
+        id       : "gen-#group.generation#",
+        title    : "#group.region# Pokémon",
+        label    : "Generation #group.generation#",
+        hrefHash : "",
+        pokemon  : group.pokemon
+    };
+})>
+<cfif prc.costumeIndex.len()>
+    <cfset sections.append({
+        id       : "costumes",
+        title    : "Costume Pokémon",
+        label    : "Event costumes",
+        hrefHash : "##costumes",
+        pokemon  : prc.costumeIndex
+    })>
+</cfif>
+
+<cfloop array="#sections#" item="section">
+    <section class="pokedex-section mb-4" id="#encodeForHTMLAttribute(section.id)#" aria-labelledby="#encodeForHTMLAttribute(section.id)#-title">
         <div class="card shadow-sm">
-            <h2 class="card-header card-header-pokemon" id="gen-#encodeForHTMLAttribute(group.generation)#-title">
-                #encodeForHTML(group.region)# Pokémon
-                <span class="pokedex-gen-label">Generation #encodeForHTML(group.generation)# &middot; <span class="pokedex-gen-count">#group.pokemon.len()#</span></span>
+            <h2 class="card-header card-header-pokemon" id="#encodeForHTMLAttribute(section.id)#-title">
+                #encodeForHTML(section.title)#
+                <span class="pokedex-gen-label">#encodeForHTML(section.label)# &middot; <span class="pokedex-gen-count">#section.pokemon.len()#</span></span>
             </h2>
             <div class="card-body">
                 <ul class="pokedex-grid list-unstyled mb-0">
-                    <cfloop array="#group.pokemon#" item="mon">
-                        #view(view = "/views/pokemon/fragment/indextile", args = {mon: mon, href: "/pokemon/#mon.ses#"})#
+                    <cfloop array="#section.pokemon#" item="mon">
+                        <cfset costumeType = mon?.costumeType ?: "">
+                        <cfset searchText = lCase("#costumeType# #mon.name# #mon.number# #mon.type1# #mon.type2##costumeType.len() ? " costume" : ""##mon.shiny ? " shiny" : ""#")>
+                        <li data-search="#encodeForHTMLAttribute(searchText)#"<cfif mon.shiny> data-shiny</cfif>>
+                            <a class="pokedex-entry" href="#encodeForHTMLAttribute("/pokemon/#mon.ses##section.hrefHash#")#">
+                                <img
+                                    class="pokedex-entry-sprite"
+                                    src="#encodeForHTMLAttribute(mon.sprite)#"
+                                    data-normal-src="#encodeForHTMLAttribute(mon.sprite)#"
+                                    <cfif mon.shiny>data-shiny-src="#encodeForHTMLAttribute(mon.shinySprite)#"</cfif>
+                                    alt="#encodeForHTMLAttribute(trim("#costumeType# #mon.name#"))#"
+                                    width="96"
+                                    height="96"
+                                    loading="lazy"
+                                    decoding="async"
+                                >
+                                <span class="pokedex-entry-number">###mon.number#</span>
+                                <cfif costumeType.len()>
+                                    <!--- Same as the costume pokedex: base name secondary, costume type is the primary label --->
+                                    <span class="pokedex-entry-base-name">#encodeForHTML(mon.name)#</span>
+                                    <span class="pokedex-entry-name text-capitalize">#encodeForHTML(costumeType)#</span>
+                                <cfelse>
+                                    <span class="pokedex-entry-name">#encodeForHTML(mon.name)#</span>
+                                </cfif>
+                                <span class="visually-hidden">
+                                    #encodeForHTML(mon.type1)#<cfif mon.type2.len()> / #encodeForHTML(mon.type2)#</cfif> type<cfif mon.shiny>, shiny available</cfif>
+                                </span>
+                            </a>
+                        </li>
                     </cfloop>
                 </ul>
             </div>
         </div>
     </section>
 </cfloop>
-
-<!--- Costumes link to their base pokemon's detail page costume card --->
-<cfif prc.costumeIndex.len()>
-    <section class="pokedex-section mb-4" id="costumes" aria-labelledby="costumes-title">
-        <div class="card shadow-sm">
-            <h2 class="card-header card-header-pokemon" id="costumes-title">
-                Costume Pokémon
-                <span class="pokedex-gen-label">Event costumes &middot; <span class="pokedex-gen-count">#prc.costumeIndex.len()#</span></span>
-            </h2>
-            <div class="card-body">
-                <ul class="pokedex-grid list-unstyled mb-0">
-                    <cfloop array="#prc.costumeIndex#" item="mon">
-                        #view(view = "/views/pokemon/fragment/indextile", args = {mon: mon, href: "/pokemon/#mon.ses###costumes"})#
-                    </cfloop>
-                </ul>
-            </div>
-        </div>
-    </section>
-</cfif>
 </cfoutput>

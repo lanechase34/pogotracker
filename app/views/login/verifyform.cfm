@@ -17,6 +17,7 @@
                     action="/verify"
                     method="post"
                 >
+                    <input type="hidden" name="csrf" value="#csrfToken()#">
                     <input type="hidden" name="resend" value="true">
                 </form>
                 #view("/views/fragment/alert")#
@@ -37,10 +38,14 @@
                             Please enter the verification code sent to your email.
                         </div>
                     </div>
-                    <input type="hidden" name="#getSetting('csrfTokenField')#" value="#csrfGenerateToken(forceNew=true)#">
+                    <input type="hidden" name="csrf" value="#csrfToken()#">
                     <div class="d-grid mb-3">
                         <button class="btn btn-dark" id="submitForm" type="submit">Verify Account</button>
                     </div>
+                </form>
+                <form action="/logout" method="post" class="text-muted small text-center mb-0">
+                    <input type="hidden" name="csrf" value="#csrfToken()#">
+                    Wrong account or email? <button type="submit" class="btn btn-link btn-sm p-0 align-baseline">Log out</button>.
                 </form>
             </div>
         </article>
