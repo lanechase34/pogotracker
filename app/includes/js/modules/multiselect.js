@@ -275,14 +275,21 @@ class MultiSelect {
                     headerElement.classList.toggle('multi-select-header-active');
                 };
         }
-        document.addEventListener('click', (event) => {
+        /** @param {MouseEvent} event */
+        const onDocumentClick = (event) => {
+            // Modal was rebuilt and this instance's DOM is gone - drop the listener so it (and the detached DOM) can be collected
+            if (!this.element.isConnected) {
+                document.removeEventListener('click', onDocumentClick);
+                return;
+            }
             if (
                 !(/** @type {HTMLElement} */ (event.target).closest(`.${this.name}`)) &&
                 !(/** @type {HTMLElement} */ (event.target).closest(`label[for="${this.selectElement.id}"]`))
             ) {
                 headerElement.classList.remove('multi-select-header-active');
             }
-        });
+        };
+        document.addEventListener('click', onDocumentClick);
     }
 
     _updateSelected() {

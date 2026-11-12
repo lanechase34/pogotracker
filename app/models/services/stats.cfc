@@ -198,7 +198,7 @@ component singleton accessors="true" {
      * @stat stat to rank (xp/caught/spun/walked)
      */
     public array function getLeaderboard(required date date, string stat = "xp") {
-        var cacheKey    = "stats.getLeaderboard|date=#month(arguments.date)#|stat=#arguments.stat#";
+        var cacheKey    = "stats.getLeaderboard|date=#year(arguments.date)#-#month(arguments.date)#|stat=#arguments.stat#";
         var leaderboard = cache.get(cacheKey);
 
         if(isNull(leaderboard)) {
@@ -215,13 +215,14 @@ component singleton accessors="true" {
 
             var trainerDeltas = ormExecuteQuery(
                 "
-                select trainer, max(stat.#lCase(arguments.stat)#) - min(stat.#lCase(arguments.stat)#) as delta
+                select trainer.username, max(stat.#lCase(arguments.stat)#) - min(stat.#lCase(arguments.stat)#) as delta
                 from trainer as trainer
                 left outer join trainer.stat as stat with stat.created >= :low and stat.created <= :high
                 where trainer.verified = true
                 and trainer.username is not null
-                group by trainer
+                group by trainer.id, trainer.username
                 having count(stat) > 1
+                order by max(stat.#lCase(arguments.stat)#) - min(stat.#lCase(arguments.stat)#) desc
                 ",
                 {"low": low, "high": high},
                 {maxResults: 10}
@@ -229,7 +230,7 @@ component singleton accessors="true" {
 
             leaderboard = [];
             trainerDeltas.each((trainer, index) => {
-                leaderboard.append({username: trainer[1].getUsername(), delta: !isNull(trainer[2]) ? (trainer[2] / daysElapsed) : "--"});
+                leaderboard.append({username: trainer[1], delta: !isNull(trainer[2]) ? (trainer[2] / daysElapsed) : "--"});
             });
 
             leaderboard.sort((a, b) => {

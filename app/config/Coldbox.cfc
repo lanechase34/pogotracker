@@ -217,6 +217,7 @@ component {
             sessionTimeout      : getSystemSetting("SESSIONTIMEOUT"),
             shadowData          : false, // get shadow data from wikipedia
             signups             : true, // whether signups are enabled
+            siteName            : "POGO Tracker", // short brand name used as the page title suffix and in structured data
             sitemap             : "sitemap.xml",
             systemTrainer       : "lanechase34@outlook.com",
             testEmailPath       : "#replace(expandPath("/"), "\", "/", "all")#/_testemails",
@@ -376,7 +377,10 @@ component {
 		 *
 		 * }
 		 */
-        moduleSettings = {};
+        moduleSettings = {
+            // Keep the module's log with the app's logs, outside the web root
+            ImageMagickHelpers: {logDirectory: "#logPath#/../logs", expandLogDirectory: false}
+        };
 
         /**
 		 * --------------------------------------------------------------------------
@@ -443,7 +447,7 @@ component {
         settings.minifiedJS  = "";
 
         // Lower bcrypt workfactor for faster performance
-        moduleSettings = {bcrypt: {workFactor: 4}};
+        moduleSettings.bcrypt = {workFactor: 4};
 
         logBox.root.levelmax = "DEBUG";
     }
@@ -462,7 +466,7 @@ component {
         settings.logRequests   = false;
         settings.domain        = "http://localhost:#getSystemSetting("HTTP_PORT")#";
 
-        moduleSettings = {bcrypt: {workFactor: 4}};
+        moduleSettings.bcrypt = {workFactor: 4};
     }
 
 }

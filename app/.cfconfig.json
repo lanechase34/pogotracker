@@ -35,7 +35,7 @@
       "connectionLimit": "30",
       "connectionTimeout": "30",
       "liveTimeout": "30",
-      "validate": "true",
+      "validate": "false",
       "custom": "",
       "database": "${DB_NAME}",
       "dbdriver": "postgresql",

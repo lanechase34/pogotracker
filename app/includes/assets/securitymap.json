@@ -47,6 +47,7 @@
         "searchCustomPokedexList": 10
     },
     "pokemon": {
+        "index": 0,
         "detail": 0,
         "updateDetail": 50,
         "search": 0,

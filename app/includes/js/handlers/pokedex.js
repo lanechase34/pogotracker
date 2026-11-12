@@ -280,8 +280,7 @@ async function switchCustomPokedex() {
 
             pokedexStruct.view =
                 /** @type {HTMLElement} */ (document.querySelector('#pokedexGrid'))?.dataset?.view ?? 'none';
-            const $pokemonCells = document.querySelectorAll('#pokedexGrid>.pokemonCell');
-            createRegisterEvent($pokemonCells);
+            createRegisterEvent($customPokedexTable);
 
             const currRegistered = document.getElementById('registeredCount').dataset;
 
@@ -305,9 +304,10 @@ function setCellCaught(cell, view, caught) {
 
 /**
  * Calls /register endpoint to mark a pokemon caught/not caught
+ *
+ * @param {HTMLElement} cell the .pokemonCell being registered
  */
-async function register(evt) {
-    const cell = evt.currentTarget;
+async function register(cell) {
     const dataset = cell.dataset;
     const body = {
         pokemonid: dataset.id,
@@ -354,41 +354,78 @@ async function register(evt) {
     return body[currView];
 }
 
-function createRegisterEvent(pokemonCells) {
-    pokemonCells.forEach((cell) => {
-        ['mousedown'].forEach((event) => {
-            cell.addEventListener(event, async (evt) => {
-                evt.preventDefault();
-                if (pokedexStruct.lock === 'false') {
-                    pokedexStruct.mousedown = true;
-                    pokedexStruct.catching = await register(evt);
-                }
-            });
-        });
+/**
+ * Attach the register handlers once to the table container (event delegation).
+ * The grid's innerHTML is swapped on region/shiny changes, but the container persists,
+ * so this replaces 4 listeners per cell with 4 listeners total.
+ *
+ * @param {HTMLElement | null} container
+ */
+function createRegisterEvent(container) {
+    if (!container || container.dataset.registerBound === 'true') return;
+    container.dataset.registerBound = 'true';
 
-        cell.addEventListener('mouseenter', (evt) => {
-            evt.preventDefault();
-            if (
-                pokedexStruct.lock === 'false' &&
-                pokedexStruct.mousedown &&
-                pokedexStruct.catching === !evt.currentTarget.classList.contains('caught')
-            ) {
-                evt.currentTarget.classList.add('registering');
-                register(evt);
-            }
-        });
+    /** @returns {HTMLElement | null} */
+    const cellFrom = (/** @type {Event} */ evt) => {
+        const target = /** @type {Element} */ (evt.target);
+        const cell = target instanceof Element ? target.closest('.pokemonCell') : null;
+        return cell && container.contains(cell) ? /** @type {HTMLElement} */ (cell) : null;
+    };
 
-        cell.addEventListener('mouseleave', (evt) => {
-            evt.currentTarget.classList.remove('registering');
-        });
-
-        cell.addEventListener('keydown', async (evt) => {
-            if ((evt.key === ' ' || evt.key === 'Enter') && pokedexStruct.lock === 'false') {
-                evt.preventDefault();
-                await register(evt);
-            }
-        });
+    container.addEventListener('mousedown', async (evt) => {
+        const cell = cellFrom(evt);
+        if (!cell) return;
+        evt.preventDefault();
+        if (pokedexStruct.lock === 'false') {
+            pokedexStruct.mousedown = true;
+            pokedexStruct.catching = await register(cell);
+        }
     });
+
+    // mouseover/mouseout bubble - ignore moves between a cell's own children to mimic mouseenter/mouseleave
+    container.addEventListener('mouseover', (evt) => {
+        const cell = cellFrom(evt);
+        if (!cell || cell.contains(/** @type {Node | null} */ (evt.relatedTarget))) return;
+        if (
+            pokedexStruct.lock === 'false' &&
+            pokedexStruct.mousedown &&
+            pokedexStruct.catching === !cell.classList.contains('caught')
+        ) {
+            cell.classList.add('registering');
+            register(cell);
+        }
+    });
+
+    container.addEventListener('mouseout', (evt) => {
+        const cell = cellFrom(evt);
+        if (!cell || cell.contains(/** @type {Node | null} */ (evt.relatedTarget))) return;
+        cell.classList.remove('registering');
+    });
+
+    container.addEventListener('keydown', async (evt) => {
+        const cell = cellFrom(evt);
+        if (!cell) return;
+        if ((evt.key === ' ' || evt.key === 'Enter') && pokedexStruct.lock === 'false') {
+            evt.preventDefault();
+            await register(cell);
+        }
+    });
+}
+
+/**
+ * Wire up a freshly rendered pokedex grid: current view, register handlers and the registered tally
+ *
+ * @param {HTMLElement} $tableDiv container holding #pokedexGrid
+ */
+function initPokedexGrid($tableDiv) {
+    pokedexStruct.view = /** @type {HTMLElement} */ ($tableDiv.querySelector('#pokedexGrid'))?.dataset?.view ?? 'none';
+    createRegisterEvent($tableDiv);
+
+    const currRegistered = document.getElementById('registeredCount').dataset;
+    pokedexStruct.registered = currRegistered.registered;
+    pokedexStruct.total = currRegistered.total;
+
+    updateRegistered();
 }
 
 /**
@@ -404,8 +441,9 @@ function createRegisterEvent(pokemonCells) {
  * @param {HTMLElement} [options.$tableDiv] - where to put loaded data
  * @param {boolean} [options.shadow] - if this is shadow view
  * @param {boolean} [options.costume] - if this is costume view
+ * @param {boolean} [options.prerendered] - grid was rendered with the page, attach to it instead of fetching
  */
-async function switchPokedex({ region, $tableDiv, shadow = false, costume = false } = {}) {
+async function switchPokedex({ region, $tableDiv, shadow = false, costume = false, prerendered = false } = {}) {
     // Register all btn disabled for mega, giga
     Array.from($registerAllBtn).forEach((btn) => {
         btn.disabled = region === 'mega' || region === 'giga';
@@ -438,6 +476,12 @@ async function switchPokedex({ region, $tableDiv, shadow = false, costume = fals
     const navButton = document.querySelector(`.${region}link`);
     if (navButton) navButton.classList.add('active');
 
+    // First load - the server already rendered this grid into the page
+    if (prerendered && $tableDiv.querySelector('#pokedexGrid')) {
+        initPokedexGrid($tableDiv);
+        return;
+    }
+
     // Build the url dynamically based on the params
     let url = `/pokedex/getPokedex`;
     if (region.length) {
@@ -460,17 +504,7 @@ async function switchPokedex({ region, $tableDiv, shadow = false, costume = fals
         loading: $loading,
         dataHandler: (data) => {
             $tableDiv.innerHTML = data;
-
-            pokedexStruct.view =
-                /** @type {HTMLElement} */ (document.querySelector('#pokedexGrid'))?.dataset?.view ?? 'none';
-            const $pokemonCells = document.querySelectorAll('#pokedexGrid>.pokemonCell');
-            createRegisterEvent($pokemonCells);
-
-            const currRegistered = document.getElementById('registeredCount').dataset;
-            pokedexStruct.registered = currRegistered.registered;
-            pokedexStruct.total = currRegistered.total;
-
-            updateRegistered();
+            initPokedexGrid($tableDiv);
         },
     });
 }
@@ -603,6 +637,7 @@ export const runtime = {
         switchPokedex({
             region: pokedexStruct.region,
             $tableDiv: $pokedexTable,
+            prerendered: true,
         });
 
         Array.from(/** @type {NodeListOf<HTMLButtonElement>} */ (document.querySelectorAll('.pokedex-link'))).forEach(
@@ -678,6 +713,7 @@ export const runtime = {
             region: 'costumeRegion',
             $tableDiv: $costumePokedexTable,
             costume: true,
+            prerendered: true,
         });
     },
     myshadowpokedex: () => {
@@ -687,6 +723,7 @@ export const runtime = {
             region: 'shadowRegion',
             $tableDiv: $shadowPokedexTable,
             shadow: true,
+            prerendered: true,
         });
     },
 };

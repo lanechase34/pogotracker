@@ -1,4 +1,4 @@
-component extends="tests.resources.baseTest" asyncAll="true" {
+component extends="tests.resources.baseTest" asyncAll="false" {
 
     function beforeAll() {
         super.beforeAll();

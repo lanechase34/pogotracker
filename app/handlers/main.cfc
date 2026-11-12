@@ -116,6 +116,10 @@ component extends="base" {
         prc.currRoute   = reReplace(event.getCurrentRoutedURL(), "/$", "");
 
         prc.canonicalURL = "#getSetting("domain")##prc.currRoute.len() ? "/#prc.currRoute#" : "/"#";
+        // The home page has a single canonical url regardless of how it was reached
+        if(prc.currEvent == "home.home") {
+            prc.canonicalURL = "#getSetting("domain")#/";
+        }
 
         prc.title           = "";
         prc.metaDescription = "";

@@ -77,6 +77,8 @@ component extends="coldbox.system.testing.BaseTestCase" {
         catch(any e) {
         }
 
+        ormClearSession();
+
         // Always clear session though
         sessionService.destroy(false);
         expect(session.keyExists("trainerid")).toBeFalse();

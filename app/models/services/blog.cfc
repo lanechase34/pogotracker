@@ -6,6 +6,12 @@ component singleton accessors="true" {
     property name="trainerService" inject="services.trainer";
     property name="scraperService" inject="services.scraper";
     property name="uploadPath"     inject="coldbox:setting:uploadPath";
+    property name="maxThreads"     inject="coldbox:setting:maxThreads";
+
+    // Scraped news/events cache keys
+    variables.NEWS_LIST_KEY      = "external.news.list";
+    variables.EVENT_LIST_KEY     = "external.events.list";
+    variables.EVENT_LOCATION_KEY = "external.events.locationSpecific";
 
     /**
      * Gets blog list sorted by created desc
@@ -179,13 +185,20 @@ component singleton accessors="true" {
 
     /**
      * Gets a struct of latest blog posts on the pokemon go website
+     * The full scraped list is cached once and pages are sliced from it, so infinite scroll never re-scrapes
      *
      * @count  number of posts to return
      * @offset number of posts to skip
      */
     public array function getNews(numeric count = application.cbController.getSetting("fetchCount"), numeric offset = 0) {
-        var cacheKey = "blog.getNews|count=#arguments.count#|offset=#arguments.offset#";
-        var news     = cache.get(cacheKey);
+        return slicePage(getNewsList(), arguments.offset, arguments.count);
+    }
+
+    /**
+     * Scrape and cache every news card on the pokemongo.com news page
+     */
+    private array function getNewsList() {
+        var news = cache.get(variables.NEWS_LIST_KEY);
 
         if(isNull(news)) {
             news        = [];
@@ -199,10 +212,7 @@ component singleton accessors="true" {
                 .select("div[class*='_newsCards_']")
                 .select("a[class*='_newsCard_']");
 
-            blogPosts.each((post, index) => {
-                if(index <= offset) continue;
-                if(index > offset + count) break;
-
+            blogPosts.each((post) => {
                 news.append({
                     link: "#baseUrl##post.attr("href")#",
                     img : post
@@ -227,7 +237,7 @@ component singleton accessors="true" {
                 });
             });
 
-            cache.set(cacheKey, news, 10, 10);
+            cache.set(variables.NEWS_LIST_KEY, news, 10, 10);
         }
 
         return news;
@@ -235,6 +245,7 @@ component singleton accessors="true" {
 
     /**
      * Build array of upcoming events from leekduck
+     * The event list is scraped once and cached
      *
      * @count  number of events to add
      * @offset number of upcoming events to skip
@@ -243,12 +254,33 @@ component singleton accessors="true" {
         numeric count  = application.cbController.getSetting("fetchCount"),
         numeric offset = 0
     ) {
-        var cacheKey = "blog.getEvents|count=#arguments.count#|offset=#arguments.offset#";
-        var events   = cache.get(cacheKey);
+        // Copy so the cached list entries are never mutated
+        var events = slicePage(
+            getEventList(),
+            arguments.offset,
+            arguments.count
+        ).map((event) => duplicate(event));
+
+        events.each(
+            (event) => {
+                event.locationSpecific = isLocationSpecific(event.link);
+            },
+            true,
+            maxThreads
+        );
+
+        return events;
+    }
+
+    /**
+     * Scrape and cache the leekduck upcoming events list
+     * Events that started more than 4 hours ago are excluded
+     */
+    private array function getEventList() {
+        var events = cache.get(variables.EVENT_LIST_KEY);
 
         if(isNull(events)) {
             events        = [];
-            var skipped   = 0;
             var baseUrl   = "https://leekduck.com";
             var eventsUrl = "https://leekduck.com/events/";
 
@@ -258,19 +290,8 @@ component singleton accessors="true" {
                 .select("div.upcoming-events")
                 .select("span.event-header-item-wrapper");
             eventPosts.each((post, index) => {
-                if(events.len() == count) break;
-
                 var postTimestamp = parseDateTime(date = post.attr("data-event-date-sort"), timezone = "UTC");
                 if(dateDiff("h", postTimestamp, now()) >= 4) continue;
-
-                // Skip past already loaded events before scraping the event page
-                if(skipped < offset) {
-                    skipped++;
-                    continue;
-                }
-
-                var link     = "#baseUrl##post.select("a").attr("href")#";
-                var eventDoc = scraperService.getData(link);
 
                 events.append({
                     type: post
@@ -295,20 +316,54 @@ component singleton accessors="true" {
                         .select("div.event-text")
                         .select("p")
                         .text() : "#dayOfWeekShortAsString(dayOfWeek(postTimestamp))#, #monthShortAsString(month(postTimestamp))# #day(postTimestamp)#, at #timeFormat(postTimestamp, "h:mm tt")# EST",
-                    link            : link,
-                    datatimestamp   : postTimestamp,
-                    locationSpecific: !eventDoc
-                        .body()
-                        .select("div.page-tags")
-                        .select("div.tag.location-specific")
-                        .isEmpty()
+                    link         : "#baseUrl##post.select("a").attr("href")#",
+                    datatimestamp: postTimestamp
                 });
             });
 
-            cache.set(cacheKey, events, 10, 10);
+            cache.set(variables.EVENT_LIST_KEY, events, 10, 10);
         }
 
         return events;
+    }
+
+    /**
+     * Whether a leekduck event page is tagged location specific
+     * An event's tags don't change, so this is cached per link for 12 hours
+     *
+     * @link full leekduck event url
+     */
+    private boolean function isLocationSpecific(required string link) {
+        var cacheKey         = "#variables.EVENT_LOCATION_KEY#|link=#arguments.link#";
+        var locationSpecific = cache.get(cacheKey);
+
+        if(isNull(locationSpecific)) {
+            locationSpecific = !scraperService
+                .getData(arguments.link)
+                .body()
+                .select("div.page-tags")
+                .select("div.tag.location-specific")
+                .isEmpty();
+
+            cache.set(cacheKey, locationSpecific, 720, 720);
+        }
+
+        return locationSpecific;
+    }
+
+    /**
+     * One page of a cached list - items offset+1 through offset+count
+     */
+    private array function slicePage(
+        required array items,
+        required numeric offset,
+        required numeric count
+    ) {
+        if(arguments.offset >= arguments.items.len() || arguments.count <= 0) return [];
+        return arguments.items.slice(
+            arguments.offset + 1,
+            min(arguments.count, arguments.items.len() - arguments.offset)
+        );
     }
 
     /**
@@ -316,29 +371,44 @@ component singleton accessors="true" {
      *
      * @return The complete image UUID with extension
      *
-     * @throws ImageMagick.UploadValidationException on conversion failures
+     * @throws ImageMagick.UploadValidationException on conversion or resize failures
      */
     public string function imageUpload() {
-        // Convert to webp
         var image = imageService.validateUpload(
-            formField = "blogimage",
-            outputs   = [{uploadDir: getUploadPath(), type: "webp"}]
+            formField  = "blogimage",
+            outputs    = [{uploadDir: getUploadPath(), type: "webp"}],
+            autoOrient = true,
+            quality    = 95
         );
 
         // Add .webp extension to the filename
         image &= ".webp";
+        var intermediatePath = "#getUploadPath()#/#image#";
 
-        // Resize
-        imageService.resize(
-            path    = "#getUploadPath()#/#image#",
-            outputs = [
-                {resizeDir: "#getUploadPath()#/cards", height: 250},
-                {resizeDir: "#getUploadPath()#/full", height: 350}
-            ]
-        );
+        try {
+            // Resize
+            imageService.resize(
+                path    = intermediatePath,
+                outputs = [
+                    {resizeDir: "#getUploadPath()#/cards", height: 250},
+                    {resizeDir: "#getUploadPath()#/full", height: 350}
+                ]
+            );
+        }
+        catch(ImageMagick.ResizeException e) {
+            throw(
+                type    = "ImageMagick.UploadValidationException",
+                message = "Image could not be processed.",
+                detail  = "#e.message# | #e.detail#"
+            );
+        }
+        finally {
+            // Delete the intermediate converted image
+            if(fileExists(intermediatePath)) {
+                fileDelete(intermediatePath);
+            }
+        }
 
-        // Delete the original converted
-        fileDelete("#getUploadPath()#/#image#");
         return image;
     }
 

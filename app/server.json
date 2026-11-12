@@ -14,7 +14,7 @@
         "LUCEE_APPLICATION_MODE":"curr2root",
         "LUCEE_APPLICATION_PATH_CACHE_TIMEOUT":300,
         "LUCEE_QUEUE_ENABLE":true,
-        "LUCEE_QUEUE_MAX":10,
+        "LUCEE_QUEUE_MAX":25,
         "LUCEE_QUEUE_TIMEOUT":30000
     },
     "jvm":{
@@ -52,7 +52,7 @@
             "path(/robots.txt) -> rewrite('/includes/robots.txt')",
             "path(/sitemap.xml) -> rewrite('/includes/sitemap.xml')",
             "path(/favicon.ico) -> rewrite('/includes/images/favicon.ico')",
-            "regex-nocase('.*(box\\.json|Dockerfile|cfconfig\\.json|server\\.json)') or path-suffix-nocase(.env) or path-suffix-nocase(.md) or path-prefix-nocase(/includes/assets/) or path-suffix-nocase(.cfc) or path-prefix-nocase(/.well-known/) or path-prefix-nocase('/app') or path-prefix-nocase(/views/) or path-prefix-nocase(/layouts/) or path-prefix-nocase(/database/) or path-prefix-nocase(/scripts/) -> set-error(404)",
+            "regex-nocase('.*(box\\.json|Dockerfile|cfconfig\\.json|server\\.json)') or path-suffix-nocase(.env) or path-suffix-nocase(.md) or path-prefix-nocase(/includes/assets/) or path-suffix-nocase(.cfc) or path-prefix-nocase(/.well-known/) or path-prefix-nocase('/app') or path-prefix-nocase(/views/) or path-prefix-nocase(/layouts/) or path-prefix-nocase(/database/) or path-prefix-nocase(/scripts/) or path-prefix-nocase(/logs/) -> set-error(404)",
             "samesite-cookie(mode=Lax)"
         ],
         "maxRequests":"50",

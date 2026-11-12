@@ -43,7 +43,6 @@ component singleton accessors="true" {
         if(isNull(trainer)) {
             trainer = entityLoadByPK("trainer", arguments.trainerid);
             // Make sure relationships are loaded before being cached
-            trainer.getCurrentLevel();
             trainer.getUnlockedIcons();
             trainer.getIconPath();
             trainer.getIconAltText();

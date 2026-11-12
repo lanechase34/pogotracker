@@ -98,8 +98,14 @@ component extends="base" {
             return;
         }
 
-        prc.generations = generationService.getAll();
-        prc.trainerid   = session.trainerid;
+        prc.generations      = generationService.getAll();
+        prc.trainerid        = session.trainerid;
+        // First grid is rendered with the page, JS only fetches on region/shiny switches
+        prc.pokedexTableArgs = buildPokedexTableArgs(
+            trainer = trainerService.getFromId(trainerid = prc.trainerid),
+            region  = rc.region,
+            shiny   = rc.shiny
+        );
     }
 
     /**
@@ -128,62 +134,83 @@ component extends="base" {
             return;
         }
 
-        // Handle mega/giga classification
-        prc.mega = false;
-        prc.giga = false;
-        if(rc.region == "Mega") {
-            prc.mega  = true;
-            rc.region = "";
-            rc.shiny  = false;
-        }
-        else if(rc.region == "Giga") {
-            prc.giga  = true;
-            rc.region = "";
-            rc.shiny  = false;
-        }
-
-        // Shadow pokedex is not split up by region
-        if(rc.shadow) {
-            rc.region = "";
-        }
-
-        // Costume pokedex is not split up by region
-        if(rc.costume) {
-            rc.region = "";
-        }
-
-        prc.trainerid   = parseNumber(rc.trainerid);
-        prc.pokedexView =
-        rc.costume && rc.shiny ? "costumeshiny"
-         : rc.costume ? "costume"
-         : rc.shadow && rc.shiny ? "shadowshiny"
-         : rc.shadow ? "shadow"
-         : rc.shiny ? "shiny"
-         : rc.hundo ? "hundo"
-         : "caught";
-
-        prc.trainer = trainerService.getFromId(trainerid = prc.trainerid);
-        prc.pokedex = pokedexService.getRegistered(
-            trainer = prc.trainer,
-            region  = rc.region,
-            form    = rc.form,
-            mega    = prc.mega,
-            shadow  = rc.shadow,
-            giga    = prc.giga,
-            costume = rc.costume
-        );
+        prc.trainerid = parseNumber(rc.trainerid);
+        prc.trainer   = trainerService.getFromId(trainerid = prc.trainerid);
 
         event.setView(
             view     = "/views/pokedex/pokedextable",
             nolayout = true,
-            args     = {
-                pokedex    : prc.pokedex,
-                pokedexView: prc.pokedexView,
-                shiny      : rc.shiny,
-                hundo      : rc.hundo,
-                shadow     : rc.shadow
-            }
+            args     = buildPokedexTableArgs(
+                trainer = prc.trainer,
+                region  = rc.region,
+                form    = rc.form,
+                shiny   = rc.shiny,
+                hundo   = rc.hundo,
+                shadow  = rc.shadow,
+                costume = rc.costume
+            )
         );
+    }
+
+    /**
+     * Build the args for /views/pokedex/pokedextable
+     * Shared by getPokedex (region/view switches) and the pokedex pages, which render the first grid server side
+     */
+    private struct function buildPokedexTableArgs(
+        required component trainer,
+        string region   = "",
+        boolean form    = false,
+        boolean shiny   = false,
+        boolean hundo   = false,
+        boolean shadow  = false,
+        boolean costume = false
+    ) {
+        var currRegion = arguments.region;
+        var currShiny  = arguments.shiny;
+
+        // Handle mega/giga classification
+        var mega = false;
+        var giga = false;
+        if(currRegion == "Mega") {
+            mega       = true;
+            currRegion = "";
+            currShiny  = false;
+        }
+        else if(currRegion == "Giga") {
+            giga       = true;
+            currRegion = "";
+            currShiny  = false;
+        }
+
+        // Shadow and costume pokedex are not split up by region
+        if(arguments.shadow || arguments.costume) {
+            currRegion = "";
+        }
+
+        var pokedexView =
+        arguments.costume && currShiny ? "costumeshiny"
+         : arguments.costume ? "costume"
+         : arguments.shadow && currShiny ? "shadowshiny"
+         : arguments.shadow ? "shadow"
+         : currShiny ? "shiny"
+         : arguments.hundo ? "hundo"
+         : "caught";
+
+        return {
+            pokedex: pokedexService.getRegistered(
+                trainer = arguments.trainer,
+                region  = currRegion,
+                form    = arguments.form,
+                mega    = mega,
+                shadow  = arguments.shadow,
+                giga    = giga,
+                costume = arguments.costume
+            ),
+            pokedexView: pokedexView,
+            shiny      : currShiny,
+            hundo      : arguments.hundo,
+            shadow     : arguments.shadow
+        };
     }
 
     /**
@@ -431,7 +458,12 @@ component extends="base" {
             return;
         }
 
-        prc.trainerid       = session.trainerid;
+        prc.trainerid        = session.trainerid;
+        prc.pokedexTableArgs = buildPokedexTableArgs(
+            trainer = trainerService.getFromId(trainerid = prc.trainerid),
+            shiny   = rc.shiny,
+            shadow  = true
+        );
         prc.title           = "Shadow Pokedex | #getSetting("title")#";
         prc.metaDescription = "Track your Shadow Pokemon and Shiny Shadow Pokemon collection in the Pokedex.";
     }
@@ -449,7 +481,12 @@ component extends="base" {
             return;
         }
 
-        prc.trainerid       = session.trainerid;
+        prc.trainerid        = session.trainerid;
+        prc.pokedexTableArgs = buildPokedexTableArgs(
+            trainer = trainerService.getFromId(trainerid = prc.trainerid),
+            shiny   = rc.shiny,
+            costume = true
+        );
         prc.title           = "Costume Pokedex | #getSetting("title")#";
         prc.metaDescription = "Track your Costume Pokemon and Shiny Costume Pokemon collection in the Pokedex.";
     }

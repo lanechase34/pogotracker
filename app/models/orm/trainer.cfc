@@ -44,11 +44,19 @@ component persistent="true" extends="base" {
         return getLastLogin().getTime();
     }
 
+    /**
+     * Most recent stat row
+     */
     any function getLatestStat() {
-        if(isNull(getStat()) || !getStat().len()) {
+        var latest = ormExecuteQuery(
+            "from stat where trainer.id = :trainerid order by created desc",
+            {"trainerid": getId()},
+            {maxResults: 1}
+        );
+        if(!latest.len()) {
             return;
         }
-        return getStat()[1];
+        return latest[1];
     }
 
     struct function getCurrentLevel() {

@@ -67,7 +67,7 @@ component singleton accessors="true" {
         var cacheKey      = "#arguments.trainer.getId()#|medal.getProgress";
         var medalProgress = cache.get(cacheKey);
 
-        if(isNull(medalStats)) {
+        if(isNull(medalProgress)) {
             medalProgress = ormExecuteQuery(
                 "
                 select medal as medal, trainermedal as trainermedal

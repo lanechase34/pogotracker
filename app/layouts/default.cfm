@@ -140,7 +140,7 @@
                         <a href="/editblog/#encodeForHTML(prc.blog.getId())#" id="editBlog" role="button" class="btn btn-primary">
                             <i class="bi bi-pencil-fill me-2"></i>Edit
                         </a>
-                    <cfelseif "home.home,pokemon.detail".contains(prc.currEvent)>
+                    <cfelseif listFindNoCase("home.home,pokemon.index,pokemon.detail", prc.currEvent)>
                         <div class="col-11 col-xl-8">
                             <select id="pokemonSearch" class="form-control" name="pokemonid" autocomplete="off">
                                 <option></option>
@@ -218,6 +218,11 @@
                 <li class="nav-item d-flex">
                     <a class="nav-link fs-6 w-100 iconHover text-start d-flex align-items-center <cfif prc.currHandler EQ "home">active</cfif>" href="/">
                         <i class="bi bi-house-fill me-2 navIcon"></i>Home
+                    </a>
+                </li>
+                <li class="nav-item d-flex">
+                    <a class="nav-link fs-6 w-100 iconHover text-start d-flex align-items-center <cfif prc.currHandler EQ "pokemon">active</cfif>" href="/pokemon">
+                        <i class="bi bi-grid-3x3-gap-fill me-2 navIcon"></i>All Pokémon
                     </a>
                 </li>
                 <li class="nav-item d-flex">

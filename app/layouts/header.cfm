@@ -28,31 +28,8 @@
 <meta name="twitter:image" content="#prc.keyExists('ogImage') ? encodeForHTMLAttribute(prc.ogImage) : 'https://pogotracker.app/includes/images/og-default.png'#">
 
 <!--- Structured Data --->
-<cfif prc.keyExists('structuredData')>
-    <script type="application/ld+json">#prc.structuredData#</script>
-<cfelse>
-    <script type="application/ld+json">
-    {
-        "@context": "https://schema.org",
-        "@graph": [
-            {
-                "@type": "WebSite",
-                "name": "POGO Tracker",
-                "alternateName": ["PogoTracker", "pogotracker.app"],
-                "url": "https://pogotracker.app/"
-            },
-            {
-                "@type": "WebApplication",
-                "name": "POGO Tracker",
-                "url": "https://pogotracker.app/",
-                "description": "#encodeForJavaScript(getSetting('metaDescription'))#",
-                "applicationCategory": "GameApplication",
-                "operatingSystem": "Web"
-            }
-        ]
-    }
-    </script>
-</cfif>
+<!--- Handlers may override prc.structuredData (struct), otherwise the site wide graph is used --->
+<script type="application/ld+json">#getInstance("services.seo").toJsonLd(prc.structuredData ?: getInstance("services.seo").getSiteGraph())#</script>
 
 <!--- Favicon --->
 <link rel="icon" type="image/png" sizes="192x192" href="/includes/images/favicon-192.png?v=#getSetting('favIcoVersion')#">

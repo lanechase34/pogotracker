@@ -2,6 +2,13 @@
 <div class="mt-auto pt-3">
 <footer class="container-fluid text-secondary border-top border-secondary py-3">
     <div class="mx-lg-3">
+        <nav aria-label="Footer" class="mb-2 small text-center">
+            <a href="/" class="link-secondary me-3">Home</a>
+            <a href="/pokemon" class="link-secondary">Pokémon GO Pokédex</a>
+            <cfif !(session?.authenticated ?: false)>
+                <a href="/register" class="link-secondary ms-3">Create an Account</a>
+            </cfif>
+        </nav>
         <p class="mb-1 small text-center">
             &copy; #year(now())# POGO Tracker. All rights reserved.
         </p>

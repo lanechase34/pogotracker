@@ -1,6 +1,48 @@
 <cfoutput>
+<!--- Previous / next pokemon in Pokedex order, shown above and below the page --->
+<cfsavecontent variable="adjacentNav">
+<cfloop list="previous,next" item="direction">
+    <cfset adj = prc.detail.adjacent[direction]>
+    <cfif adj.isEmpty()>
+        <span class="pokemon-adjacent-placeholder" aria-hidden="true"></span>
+    <cfelse>
+        <a
+            class="pokemon-adjacent pokemon-adjacent-#direction#"
+            href="/pokemon/#encodeForHTMLAttribute(adj.ses)#"
+            rel="#direction == "previous" ? "prev" : "next"#"
+        >
+            <cfif direction == "previous"><i class="bi bi-chevron-left" aria-hidden="true"></i></cfif>
+            <img src="#encodeForHTMLAttribute(adj.sprite)#" alt="" width="40" height="40" loading="lazy" decoding="async">
+            <span class="pokemon-adjacent-text">
+                <span class="pokemon-adjacent-label">#direction == "previous" ? "Previous" : "Next"# &middot; ###adj.number#</span>
+                <span class="pokemon-adjacent-name">#encodeForHTML(adj.name)#</span>
+            </span>
+            <cfif direction == "next"><i class="bi bi-chevron-right" aria-hidden="true"></i></cfif>
+        </a>
+    </cfif>
+</cfloop>
+</cfsavecontent>
+
+<!--- Breadcrumb - mirrors the BreadcrumbList structured data --->
+<div class="pokemon-topbar mt-3">
+    <nav aria-label="Breadcrumb">
+        <ol class="breadcrumb pokemon-breadcrumb mb-0">
+            <li class="breadcrumb-item">
+                <a href="/"><i class="bi bi-house-door-fill" aria-hidden="true"></i>Home</a>
+            </li>
+            <li class="breadcrumb-item">
+                <a href="/pokemon"><i class="bi bi-grid-3x3-gap-fill" aria-hidden="true"></i>Pokédex</a>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page">
+                <span class="pokemon-breadcrumb-number">###prc.detail.number#</span>#prc.detail.fullname#
+            </li>
+        </ol>
+    </nav>
+    <nav class="pokemon-adjacent-nav" aria-label="Previous and next Pokémon">#adjacentNav#</nav>
+</div>
+
 <!--- Hero --->
-<div class="row mt-3">
+<div class="row mt-2">
     <div class="col-12 mb-4">
         <div class="card shadow-sm pokemon-hero">
             <div class="card-body py-4 px-4">
@@ -263,7 +305,7 @@
 <cfif prc.detail.costumes.len()>
 <div class="row mb-4">
     <div class="col-12">
-        <div class="card shadow-sm">
+        <div class="card shadow-sm pokemon-costumes" id="costumes">
             <h2 class="card-header card-header-pokemon">
                 <i class="bi bi-star"></i> Costumes <span class="badge text-bg-dark">#prc.detail.costumes.len()#</span>
                 <button
@@ -416,4 +458,6 @@
     </div>
     </cfif>
 </div>
+<!--- Bottom previous / next --->
+<nav class="pokemon-adjacent-nav pokemon-adjacent-nav-bottom mb-4" aria-label="Previous and next Pokémon (bottom)">#adjacentNav#</nav>
 </cfoutput>

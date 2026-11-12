@@ -3,7 +3,7 @@
     <!--- Blog List --->
     <section class="col-12 col-md-8 col-xl-6 mt-3 homeCard">
         <div class="home-hero">
-            <p class="home-hero-title mb-0">Track Your Pokémon GO Journey</p>
+            <h1 class="home-hero-title mb-0">Track Your Pokémon GO Journey</h1>
             <p class="home-hero-subtitle">Stats, events, and community — all in one place.</p>
         </div>
         <div class="home-section-label">

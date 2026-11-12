@@ -1,6 +1,7 @@
 component extends="base" {
 
     this.allowedMethods = {
+        index            : "GET",
         detail           : "GET",
         updateDetail     : "POST",
         search           : "GET",
@@ -8,9 +9,36 @@ component extends="base" {
     };
 
     property name="pokemonService" inject="services.pokemon";
+    property name="seoService"     inject="services.seo";
 
     function preHandler(event, rc, prc, action, eventArguments) {
         prc.metaDescription = "View a detailed breakdown of all a Pokemon's Information";
+    }
+
+    /**
+     * Every pokemon grouped by generation, linking to their detail pages
+     * Public and server rendered so search engines can crawl every detail page
+     */
+    function index(event, rc, prc) {
+        prc.title           = "Pokémon GO Pokédex - All Pokémon by Generation | #getSetting("siteName")#";
+        prc.metaDescription = "Browse every Pokémon in Pokémon GO by generation and region. See max CP, base stats, moves, evolutions, and shiny availability for each Pokémon.";
+        prc.canonicalURL    = "#getSetting("domain")#/pokemon";
+        prc.suppressH1      = true; // view provides its own h1
+        prc.structuredData  = seoService.getPokedexIndex(
+            name        = "Pokémon GO Pokédex",
+            description = prc.metaDescription,
+            pageURL     = prc.canonicalURL
+        );
+        prc.indexContentCacheTimeout = pokemonService.getCacheTime() * 15;
+    }
+
+    /**
+     * Viewlet rendering the body of the Pokedex index, cached in the template cache by views/pokemon/index
+     */
+    private function indexContent(event, rc, prc) {
+        prc.pokedexIndex = pokemonService.getIndex();
+        prc.costumeIndex = pokemonService.getCostumeIndex();
+        return view(view = "/views/pokemon/fragment/indexcontent", nolayout = true);
     }
 
     /**
@@ -44,8 +72,15 @@ component extends="base" {
         };
 
         prc.metaDescription = prc.detailInfo.metaDescription;
-        prc.title           = "#prc.detailInfo.title# | #getSetting("title")#";
+        prc.title           = "#prc.detailInfo.title# | #getSetting("siteName")#";
         prc.suppressH1      = true; // pokemon's name is h1
+        // Sprites are 96px - too small for social share cards, so og:image keeps the site default
+        prc.structuredData  = seoService.getPokemonDetail(
+            name        = prc.detailInfo.fullname,
+            description = prc.metaDescription,
+            pageURL     = prc.canonicalURL,
+            image       = prc.detailInfo.ogImage
+        );
     }
 
     /**

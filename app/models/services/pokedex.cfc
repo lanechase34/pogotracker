@@ -104,58 +104,101 @@ component singleton accessors="true" {
         entitySave(entry);
         ormFlush();
 
-        // Clear trainer's pokedex cache on update
-        cache.clearByKeySnippet("#arguments.trainer.getId()#|pokedex.getRegistered|region=|"); // shadow dex
-        cache.clearByKeySnippet(
-            "#arguments.trainer.getId()#|pokedex.getRegistered|region=#arguments.pokemon.getGeneration().getRegion()#"
-        ); // normal dex
-        cache.clearByKeySnippet("#arguments.trainer.getId()#|pokedex.getCustomRegistered"); // custom dex
-        // Clear trainer's pokedex stats cache
-        cache.clear("#arguments.trainer.getId()#|stats.getPokedexStats");
-        // Strings
-        cache.clear("#arguments.trainer.getId()#|pokedex.getMissingString");
+        clearPokedexCache(trainerid = arguments.trainer.getId(), region = arguments.pokemon.getGeneration().getRegion());
         return;
     }
 
     /**
      * Registers all pokemon for trainer in a given region
+     * Existing entries are flipped with a single UPDATE, missing entries are inserted through ORM with one flush
+     * (inserts must go through ORM - ids use hibernate's increment generator, not the db sequence)
      */
     public void function registerAll(
         required component trainer,
         required string region,
         required boolean shiny
     ) {
-        var registered = getRegistered(trainer = arguments.trainer, region = arguments.region);
+        var generation = generationService.getFromRegion(arguments.region);
+        if(isNull(generation)) return;
 
-        // Loop over the pokemon trainer has registered. If not caught/shiny caught, add the entry
-        registered.each(
-            (entry) => {
-                var pokemon = pokemonService.getFromId(pokemonid = entry[1].getId());
+        // Column is never user supplied, only one of two literals
+        var flag   = arguments.shiny ? "shiny" : "caught";
+        var params = {
+            trainerid : {value: arguments.trainer.getId(), cfsqltype: "integer"},
+            // pokemon.generation references generation.generation (e.g. 3, 2.5), not generation.id
+            generation: {
+                value    : generation.getGeneration(),
+                cfsqltype: "decimal",
+                scale    : 1
+            }
+        };
+        // Same set of pokemon as getRegistered(region) - only live shinies when registering shiny
+        var eligibleWhere = "
+            pokemon.generation = :generation
+            AND pokemon.costume = false
+            AND pokemon.mega = false
+            AND pokemon.giga = false
+            #arguments.shiny ? "AND pokemon.shiny = true" : ""#
+        ";
 
-                // Check to make sure the shiny is live first
-                if(shiny && !pokemon.getShiny()) continue;
-
-                if(
-                    isNull(entry[2]) ||
-                    (!shiny && !entry[2].getCaught()) ||
-                    (shiny && !entry[2].getShiny())
-                ) {
-                    register(
-                        trainer     = trainer,
-                        pokemon     = pokemon,
-                        caught      = shiny ? (entry[2]?.getCaught() ?: false) : true,
-                        shiny       = !shiny ? (entry[2]?.getShiny() ?: false) : true,
-                        hundo       = entry[2]?.getHundo() ?: false,
-                        shadow      = entry[2]?.getShadow() ?: false,
-                        shadowshiny = entry[2]?.getShadowShiny() ?: false
-                    );
-                }
-            },
-            true,
-            maxThreads
+        // Existing entries that are not yet caught/shiny
+        queryExecute(
+            "
+            UPDATE pokedex
+            SET #flag# = true, updated = now()
+            WHERE trainerid = :trainerid
+                AND #flag# = false
+                AND pokemonid IN (SELECT pokemon.id FROM pokemon WHERE #eligibleWhere#)
+            ",
+            params
         );
 
+        // Pokemon with no entry yet
+        var missing = queryExecute(
+            "
+            SELECT pokemon.id
+            FROM pokemon
+            WHERE #eligibleWhere#
+                AND NOT EXISTS (
+                    SELECT 1 FROM pokedex WHERE pokedex.trainerid = :trainerid AND pokedex.pokemonid = pokemon.id
+                )
+            ",
+            params
+        );
+
+        if(missing.recordCount) {
+            var pokemonList = ormExecuteQuery("from pokemon where id in (:ids)", {"ids": missing.columnData("id")});
+            pokemonList.each((pokemon) => {
+                entitySave(
+                    entityNew(
+                        "pokedex",
+                        {
+                            "trainer": trainer,
+                            "pokemon": pokemon,
+                            "caught" : !shiny,
+                            "shiny"  : shiny
+                        }
+                    )
+                );
+            });
+            ormFlush();
+        }
+
+        clearPokedexCache(trainerid = arguments.trainer.getId(), region = generation.getRegion());
         return;
+    }
+
+    /**
+     * Clear every cached view of a trainer's pokedex after a registration
+     */
+    private void function clearPokedexCache(required numeric trainerid, required string region) {
+        cache.clearByKeySnippet("#arguments.trainerid#|pokedex.getRegistered|region=|"); // shadow dex
+        cache.clearByKeySnippet("#arguments.trainerid#|pokedex.getRegistered|region=#arguments.region#"); // normal dex
+        cache.clearByKeySnippet("#arguments.trainerid#|pokedex.getCustomRegistered"); // custom dex
+        // Clear trainer's pokedex stats cache
+        cache.clear("#arguments.trainerid#|stats.getPokedexStats");
+        // Strings
+        cache.clear("#arguments.trainerid#|pokedex.getMissingString");
     }
 
     /**

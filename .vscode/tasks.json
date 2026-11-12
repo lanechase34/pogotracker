@@ -76,7 +76,7 @@
         {
             "label": "Github Actions Test",
             "type": "shell",
-            "command": "act -W '.github/workflows/test.yml' -P ubuntu-24.04=ghcr.io/catthehacker/ubuntu:act-24.04 --secret-file .secrets --rm --pull=false",
+            "command": "act -W '.github/workflows/test.yml' -j tests --artifact-server-path ./.act-artifacts -P ubuntu-24.04=ghcr.io/catthehacker/ubuntu:act-24.04 --secret-file .secrets --rm --pull=false",
             "group": {
                 "kind": "test"
             },

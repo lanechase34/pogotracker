@@ -38,7 +38,7 @@
         "commandbox-migrations":"6.0.3",
         "qb":"14.2.0",
         "socketbox":"2.1.2",
-        "ImageMagickHelpers":"1.0.1",
+        "ImageMagickHelpers":"1.2.1",
         "BCrypt":"3.2.0+1"
     },
     "scripts":{

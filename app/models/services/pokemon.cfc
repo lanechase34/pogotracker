@@ -385,6 +385,7 @@ component singleton accessors="true" {
         detail.pokemon   = pokemon;
         detail.baseStage = baseStage;
         detail.costumes  = getCostumes(pokemon);
+        detail.adjacent  = getAdjacent(ses = ses);
         return detail;
     }
 
@@ -415,6 +416,148 @@ component singleton accessors="true" {
     }
 
     /**
+     * Unique meta description for a pokemon's detail page using its real numbers
+     * ie. Pikachu (#25) in Pokémon GO: max CP 1,048 at level 50, base stats 112 ATK / 96 DEF / 111 HP. Shiny available. ...
+     *
+     * @pokemon  pokemon orm entity
+     * @fullname pokemon's full name
+     * @maxCP    hundo CP at level 50
+     */
+    private string function buildDetailMetaDescription(
+        required component pokemon,
+        required string fullname,
+        required numeric maxCP
+    ) {
+        var availability = [];
+        if(pokemon.getShiny()) availability.append("shiny");
+        if(pokemon.getShadow()) availability.append("shadow");
+
+        var description = "#ucFirst(fullname)# (###pokemon.getNumber()#) in Pokémon GO: max CP #numberFormat(maxCP, ",")# at level 50, "
+        & "base stats #pokemon.getAttack()# ATK / #pokemon.getDefense()# DEF / #pokemon.getHP()# HP.";
+        if(availability.len()) {
+            description &= " #ucFirst(availability.toList(" and "))# available.";
+        }
+        description &= " Moves, evolutions, and past events.";
+        return description;
+    }
+
+    /**
+     * All non-costume pokemon grouped by generation for the Pokedex index page
+     *
+     * @return array of {generation, region, pokemon: [{name, number, ses, sprite, type1, type2}]}
+     */
+    public array function getIndex() {
+        var cacheKey = "pokemon.getIndex";
+        var index    = cache.get(cacheKey);
+        if(!isNull(index)) {
+            return index;
+        }
+
+        index      = [];
+        var groups = [:];
+        getAll().each((pokemon) => {
+            var generation = pokemon.getGeneration();
+            var key        = toString(generation.getGeneration());
+            if(!groups.keyExists(key)) {
+                groups[key] = {
+                    generation: reReplace(key, "\.0+$", ""),
+                    region    : generation.getRegion(),
+                    pokemon   : []
+                };
+                index.append(groups[key]);
+            }
+            groups[key].pokemon.append(buildIndexEntry(pokemon));
+        });
+
+        cache.set(
+            cacheKey,
+            index,
+            getCacheTime() * 15,
+            getCacheTime() * 15
+        );
+        return index;
+    }
+
+    /**
+     * Every live costume pokemon for the Pokedex index page, linking to its base pokemon's detail page
+     *
+     * @return array of {name, number, ses, costumeType, sprite, shinySprite, shiny, type1, type2}
+     */
+    public array function getCostumeIndex() {
+        var cacheKey = "pokemon.getCostumeIndex";
+        var index    = cache.get(cacheKey);
+        if(!isNull(index)) {
+            return index;
+        }
+
+        // Costumes have no detail page of their own - link to the matching base form
+        var baseSes = [:];
+        getAll().each((pokemon) => {
+            var key = "#pokemon.getName()#|#pokemon.getNumber()#|#pokemon.getGender()#";
+            if(!baseSes.keyExists(key)) baseSes[key] = pokemon.getSes();
+        });
+
+        index = [];
+        get({"costume": true, "live": true}, "number asc, costumetype asc").each((costume) => {
+            var key = "#costume.getName()#|#costume.getNumber()#|#costume.getGender()#";
+            if(!baseSes.keyExists(key)) return;
+
+            var entry         = buildIndexEntry(costume);
+            entry.ses         = baseSes[key];
+            entry.costumeType = costume.getCostumeType() ?: "";
+            index.append(entry);
+        });
+
+        cache.set(
+            cacheKey,
+            index,
+            getCacheTime() * 15,
+            getCacheTime() * 15
+        );
+        return index;
+    }
+
+    /**
+     * Previous and next pokemon in Pokedex index order (generation, number, form) for detail page navigation
+     *
+     * @ses pokemon SES key
+     *
+     * @return {previous: {name, number, ses, sprite} | {}, next: {...} | {}}
+     */
+    public struct function getAdjacent(required string ses) {
+        var flat = [];
+        getIndex().each((group) => flat.append(group.pokemon, true));
+
+        var position = flat.find((mon) => mon.ses == ses);
+        var pick     = (i) => {
+            if(position == 0 || i < 1 || i > flat.len()) return {};
+            return {
+                name  : flat[i].name,
+                number: flat[i].number,
+                ses   : flat[i].ses,
+                sprite: flat[i].sprite
+            };
+        };
+        return {previous: pick(position - 1), next: pick(position + 1)};
+    }
+
+    /**
+     * Plain data tile for the Pokedex index grid
+     */
+    private struct function buildIndexEntry(required component pokemon) {
+        return {
+            name       : pokemon.getFullname(),
+            number     : pokemon.getNumber(),
+            ses        : pokemon.getSes(),
+            sprite     : "/includes/images/sprites/#pokemon.getSprite()##getImageExtension()#",
+            shinySprite: "/includes/images/shinysprites/#pokemon.getSprite()##getImageExtension()#",
+            shiny      : pokemon.getShiny() ? true : false,
+            type1      : pokemon.getType1(),
+            type2      : pokemon.getType2() ?: ""
+        };
+    }
+
+    /**
      * Compute and cache the plain data detail of a pokemon
      */
     private struct function cacheDetailInfo(required component pokemon) {
@@ -439,10 +582,16 @@ component singleton accessors="true" {
         };
         info.events   = getPreviousEvents(pokemon);
         info.fullname = pokemon.getFullname();
-        info.title    = "#pokemon.getNumber()# - #info.fullname#";
+        info.number   = pokemon.getNumber();
+        // Name first - that's what people search for
+        info.title    = "#info.fullname# - Pokémon GO Max CP, Moves & Stats";
 
-        info.metaDescription = "#ucFirst(info.fullname)#'s (###pokemon.getNumber()#) evolutions, CP range, stats, moveset, and events in Pokemon GO.";
-        info.ogImage         = pokemon.getOgImage();
+        info.metaDescription = buildDetailMetaDescription(
+            pokemon  = pokemon,
+            fullname = info.fullname,
+            maxCP    = info.cp.lvl50[2]
+        );
+        info.ogImage = pokemon.getOgImage();
 
         cache.set(
             getDetailCacheKey(pokemon.getSes()),
@@ -485,6 +634,10 @@ component singleton accessors="true" {
         ormFlush();
 
         clearDetailCache(ses = pokemon.getSes());
+        // Index tiles show shiny availability and costumes respect live
+        cache.clear("pokemon.getIndex");
+        cache.clear("pokemon.getCostumeIndex");
+        templateCache.clearEvent("pokemon.indexContent");
         return;
     }
 

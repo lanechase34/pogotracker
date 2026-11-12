@@ -4,6 +4,9 @@
     cursor: pointer;
     transition: background-color 0.2s ease;
     user-select: none;
+    /* Skip layout/paint for offscreen cells - large regions render hundreds of these */
+    content-visibility: auto;
+    contain-intrinsic-size: auto 170px;
 }
 
 body.pokedex-locked .pokemonCell {

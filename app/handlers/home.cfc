@@ -9,14 +9,18 @@ component extends="base" {
 
     property name="emailService" inject="services.email";
 
+    /**
+     * /home - permanently redirect to / so search engines only see one home page url
+     */
     function index(event, rc, prc) {
-        relocate(uri = "/");
+        relocate(uri = "/", statusCode = 301);
     }
 
     /**
      * Home Page
      */
     function home(event, rc, prc) {
+        prc.suppressH1 = true; // hero title is the h1
     }
 
     /**

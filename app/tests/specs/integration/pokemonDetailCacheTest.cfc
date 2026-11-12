@@ -31,6 +31,18 @@ component extends="tests.resources.baseTest" asyncAll="false" {
         return get(route = "/pokemon/#ses#");
     }
 
+    /**
+     * Just the <main> element - the viewlet renders there. Stats like "128 HP" also appear in the
+     * <head> meta description, so body assertions must not search the whole page
+     */
+    private string function getMainContent(required string html) {
+        var start = arguments.html.findNoCase("<main");
+        var end   = arguments.html.findNoCase("</main>", start);
+        expect(start).toBeGT(0, "page has no <main> element");
+        expect(end).toBeGT(0, "page has no closing </main>");
+        return arguments.html.mid(start, end - start);
+    }
+
     function run() {
         describe("Pokemon detail page viewlet cache", () => {
             beforeEach(() => {
@@ -48,7 +60,7 @@ component extends="tests.resources.baseTest" asyncAll="false" {
 
                 var event = getDetailPage();
                 expect(event.getStatusCode()).toBe(200);
-                expect(event.getRenderedContent()).toInclude("128 HP");
+                expect(getMainContent(event.getRenderedContent())).toInclude("128 HP");
                 expect(getViewletKeys("public")).toHaveLength(1);
             });
 
@@ -61,8 +73,8 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                 templateCache.set(keys[1], "<p>cached-detail-sentinel</p>");
 
                 var html = getDetailPage().getRenderedContent();
-                expect(html).toInclude("cached-detail-sentinel");
-                expect(html).notToInclude("128 HP");
+                expect(getMainContent(html)).toInclude("cached-detail-sentinel");
+                expect(getMainContent(html)).notToInclude("128 HP");
                 // Layout still renders around the cached body
                 expect(html).toInclude("Bulbasaur");
             });
@@ -151,7 +163,7 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                 var event = getDetailPage();
                 expect(event.getStatusCode()).toBe(200);
                 expect(event.getRenderedContent()).toInclude(expectedMove);
-                expect(event.getRenderedContent()).toInclude("128 HP");
+                expect(getMainContent(event.getRenderedContent())).toInclude("128 HP");
             });
         });
     }

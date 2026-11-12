@@ -133,6 +133,29 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                     expect(found).toBeTrue();
                 });
             })
+
+            describe("Progress cache", () => {
+                beforeEach(() => {
+                    cache    = getInstance("cachebox:appCache");
+                    cacheKey = "#trainer.getId()#|medal.getProgress";
+                    cache.clear(cacheKey);
+                });
+
+                afterEach(() => {
+                    cache.clear(cacheKey);
+                });
+
+                it("Caches progress on first load", () => {
+                    expect(medalService.getProgress(trainer)).toBeArray();
+                    expect(cache.get(cacheKey)).notToBeNull();
+                });
+
+                it("Returns the cached value instead of querying again", () => {
+                    // A sentinel in the cache can only come back if the query is skipped
+                    cache.set(cacheKey, ["cached"], 10, 10);
+                    expect(medalService.getProgress(trainer)).toBe(["cached"]);
+                });
+            });
         });
     }
 

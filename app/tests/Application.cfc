@@ -33,12 +33,11 @@ component {
     public boolean function onRequestStart(targetPage) {
         setting requestTimeout="9999";
 
+        ormReload();
+        ormClearSession();
+
         request.coldBoxVirtualApp = new coldbox.system.testing.VirtualApp(appMapping = "/root");
         request.coldBoxVirtualApp.startup(true);
-
-        if(url.keyExists("fwreinit")) {
-            ormReload();
-        }
 
         return true;
     }

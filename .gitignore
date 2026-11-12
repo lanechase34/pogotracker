@@ -15,6 +15,7 @@ build/.db/**
 # logs + tests
 logs/**
 tests/results/**
+.act-artifacts/
 
 # npm
 **/node_modules/*

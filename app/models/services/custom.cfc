@@ -73,41 +73,42 @@ component singleton accessors="true" {
      * @pokemon array of pokemon ids
      */
     public void function createCustomPokedex(required component custom, required array pokemon) {
-        var abstractedPokemon = {}; // Keeps track of pokemon that should exist in this custom pokedex
+        var customid = {value: arguments.custom.getId(), cfsqltype: "integer"};
+        var wanted   = arguments.pokemon.map((pokemonid) => val(pokemonid));
 
-        // Find which records to add
-        arguments.pokemon.each((pokemonid) => {
-            abstractedPokemon["#pokemonid#"] = true;
-            var currPokemon                  = pokemonService.getFromId(pokemonid);
-
-            // If the custom pokedex entry doesn't exist, create
-            if(
-                isNull(
-                    entityLoad(
-                        "custompokedex",
-                        {"custom": custom, "pokemon": currPokemon},
-                        true
-                    )
-                )
-            ) {
-                var customPokedex = entityNew("custompokedex", {"custom": custom, "pokemon": currPokemon});
-                entitySave(customPokedex);
-            }
+        // Pokemon already in this custom pokedex
+        var existing = {};
+        queryExecute("SELECT pokemonid FROM custompokedex WHERE customid = :customid", {customid: customid}).each((row) => {
+            existing[row.pokemonid] = true;
         });
 
-        // Find which records to delete
-        if(!isNull(arguments.custom.getCustomPokedex())) {
-            arguments.custom
-                .getCustomPokedex()
-                .each((pokedex) => {
-                    var currPokemon = pokedex.getPokemon();
-                    if(!abstractedPokemon.keyExists(currPokemon.getId())) {
-                        entityDelete(pokedex);
-                    }
-                });
+        // Add the new records - inserts go through ORM since ids use hibernate's increment generator
+        var toAdd = wanted.filter((pokemonid) => !existing.keyExists(pokemonid));
+        if(toAdd.len()) {
+            ormExecuteQuery("from pokemon where id in (:ids)", {"ids": toAdd}).each((currPokemon) => {
+                entitySave(entityNew("custompokedex", {"custom": custom, "pokemon": currPokemon}));
+            });
+            ormFlush();
         }
 
-        ormFlush();
+        // Delete the records that were removed
+        if(wanted.len()) {
+            queryExecute(
+                "DELETE FROM custompokedex WHERE customid = :customid AND pokemonid NOT IN (:ids)",
+                {
+                    customid: customid,
+                    ids     : {
+                        value    : wanted.toList(),
+                        cfsqltype: "integer",
+                        list     : true
+                    }
+                }
+            );
+        }
+        else {
+            queryExecute("DELETE FROM custompokedex WHERE customid = :customid", {customid: customid});
+        }
+
         entityReload(custom);
         return;
     }

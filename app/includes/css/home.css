@@ -46,6 +46,33 @@
     margin-bottom: 0;
 }
 
+.home-hero-intro {
+    position: relative;
+    font-size: 0.875rem;
+    opacity: 0.85;
+    margin: 0.75rem 0 0.6rem;
+    max-width: 40rem;
+}
+
+.home-hero-links {
+    position: relative;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 1.25rem;
+    font-size: 0.875rem;
+}
+
+.home-hero-links a {
+    color: #fff;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.home-hero-links a:hover,
+.home-hero-links a:focus-visible {
+    text-decoration: underline;
+}
+
 .home-hero-actions {
     display: flex;
     gap: 0.5rem;

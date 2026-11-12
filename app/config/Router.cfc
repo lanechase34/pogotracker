@@ -29,7 +29,7 @@ component {
 
         // Home
         route("/home/:action").toHandler("home");
-        route("/home").to("home.home");
+        route("/home").to("home.index"); // 301 -> / so the home page has one url
         route("/contact").to("home.contactForm");
 
         // Blog
@@ -66,7 +66,11 @@ component {
         route("/pokemon/search").to("pokemon.search");
         route("/pokemon/getPreviousEvents").to("pokemon.getPreviousEvents");
         route("/pokemon/:ses").to("pokemon.detail");
-        route("/pokemon/:action?").toHandler("pokemon");
+        // Must come after /pokemon/:ses - routes match by prefix, so /pokemon would also catch /pokemon/{ses}
+        route("/pokemon").to("pokemon.index");
+        // :action is required - an optional :action? also registers "pokemon/", which ColdBox merges into the
+        // route above and wipes its event (no verbs to merge), sending /pokemon to the default event (404)
+        route("/pokemon/:action").toHandler("pokemon");
 
         // Admin
         route("/admin/:action?").toHandler("admin");

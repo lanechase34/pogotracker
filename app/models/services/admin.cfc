@@ -827,6 +827,7 @@ component singleton accessors="true" {
         // Flush pokemon cache and rendered detail pages
         cache.clearByKeySnippet("pokemon.");
         templateCache.clearEvent("pokemon.detailContent");
+        templateCache.clearEvent("pokemon.indexContent");
 
         // Cache the pokemon data
         var allPokemon = pokemonService.getAll();
@@ -1917,6 +1918,9 @@ component singleton accessors="true" {
             else if(loc.findNoCase("/readblog/") GT 0) {
                 return {changefreq: "monthly", priority: "0.7"};
             }
+            else if(loc == "#domain#/pokemon") {
+                return {changefreq: "weekly", priority: "0.9"};
+            }
             else if(loc == "#domain#/") {
                 return {changefreq: "weekly", priority: "1.0"};
             }
@@ -1937,6 +1941,7 @@ component singleton accessors="true" {
         locModMap["#domain#/"]         = nowFormatted;
         locModMap["#domain#/login"]    = nowFormatted;
         locModMap["#domain#/register"] = nowFormatted;
+        locModMap["#domain#/pokemon"]  = nowFormatted;
 
         // Pokemon pages - fetch sprite and name for image sitemap entries
         queryExecute("

@@ -15,6 +15,7 @@ component extends="base" {
 
     property name="blogService"    inject="services.blog";
     property name="imageService"   inject="Helpers@ImageMagick";
+    property name="seoService"     inject="services.seo";
     property name="trainerService" inject="services.trainer";
 
     this.prehandler_only = "read,writeForm,editForm";
@@ -79,11 +80,12 @@ component extends="base" {
         }
 
         prc.header          = "";
-        prc.title           = "#prc.blog.getHeader()# | #getSetting("title")#";
+        prc.title           = "#prc.blog.getHeader()# | #getSetting("siteName")#";
         prc.metaDescription = !isNull(prc.blog.getMeta()) && prc.blog.getMeta().len() ? prc.blog.getMeta() : prc.title;
         prc.metaRobots      = "index, follow";
         prc.ogImage         = prc.blog.getOgImage();
         prc.suppressH1      = true; // article provides its own h1 inside the card
+        prc.structuredData  = seoService.getBlogPosting(blog = prc.blog, pageURL = prc.canonicalURL);
     }
 
     /**
@@ -178,8 +180,9 @@ component extends="base" {
         try {
             // Convert to webp
             prc.image = imageService.validateUpload(
-                formField = "image",
-                outputs   = [{uploadDir: "#getSetting("uploadPath")#/extra/", type: "webp"}]
+                formField  = "image",
+                outputs    = [{uploadDir: "#getSetting("uploadPath")#/extra/", type: "webp"}],
+                autoOrient = true
             );
 
             // Add .webp extension to the filename
