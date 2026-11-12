@@ -1,7 +1,7 @@
 import { createAlert } from 'alert';
 import { isMobileDisplay } from 'display';
 import { escapeHtml } from 'escape';
-import { getWrapper, postWrapper } from 'fetch';
+import { csrfToken, getWrapper, postWrapper } from 'fetch';
 import { resizeHomeCards } from 'home';
 import { $loading, $submitBtn } from 'loading';
 
@@ -250,6 +250,8 @@ export const runtime = {
                             endpoints: {
                                 byFile: '/blog/addImage',
                             },
+                            // ImageTool uploads with its own request, not postWrapper - cbcsrf needs the token on it
+                            additionalRequestHeaders: { 'x-csrf-token': csrfToken() },
                             types: 'images/webp',
                         },
                     },
