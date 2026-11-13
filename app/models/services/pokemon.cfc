@@ -114,7 +114,7 @@ component singleton accessors="true" {
         var cacheKey   = "pokemon.getAll";
         var allPokemon = cache.get(cacheKey);
         if(isNull(allPokemon)) {
-            allPokemon = get({"costume": false}, "generation asc, number asc, form asc");
+            allPokemon = get({"costume": false}, "generation asc, number asc, form asc, name asc");
 
             // Make sure relationships are loaded before being cached
             allPokemon.each((pokemon) => {
