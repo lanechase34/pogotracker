@@ -165,40 +165,6 @@
         </div>
     </nav>
 
-    <!--- Main content --->
-    <main class="container-fluid flex-grow-1 d-flex flex-column">
-        <div class="row flex-grow-1">
-            <div id="mainSection" class="col-12 d-flex flex-column">
-                <div class="mx-sm-1 mx-lg-3 flex-grow-1 d-flex flex-column">
-                    <cfif prc.keyExists('header') AND prc.header.len()>
-                        <h1 class="text-center hfs-5 m-0 p-0 fw-bold" id="bodyHeader">
-                            #prc?.header ?: ''#
-                        </h1>
-                        <hr class="smallDisplayOnly">
-                    <cfelseif !prc.keyExists('suppressH1')>
-                        <h1 class="visually-hidden">#prc.title.len() ? prc.title : getSetting('title')#</h1>
-                    </cfif>
-                    #view("/views/fragment/alert")#
-                    #view()#
-                </div>
-            </div>
-        </div>
-    </main>
-    
-    <cfif prc.currHandler NEQ 'admin' AND prc.currHandler NEQ 'dev'>
-        #view(view='/layouts/footer')#
-    </cfif>
-
-    #view(view="/views/modal/loading")#
-
-    <div id="confirmModalDiv"></div>
-
-    <!--- Dont manipulate the entire dom body! this overrides everything in js --->
-    <div id="loadedModal"></div>
-    
-    <!--- toasts live here --->
-    <div id="toastsDiv"></div>
-    
     <!--- Offcanvas side bar --->
     <nav class="navbar navbar-dark offcanvas-nav-wrapper" aria-label="Sidebar">
     <div 
@@ -302,6 +268,40 @@
         </div>
     </div>
     </nav> 
+
+    <!--- Main content --->
+    <main class="container-fluid flex-grow-1 d-flex flex-column">
+        <div class="row flex-grow-1">
+            <div id="mainSection" class="col-12 d-flex flex-column">
+                <div class="mx-sm-1 mx-lg-3 flex-grow-1 d-flex flex-column">
+                    <cfif prc.keyExists('header') AND prc.header.len()>
+                        <h1 class="text-center hfs-5 m-0 p-0 fw-bold" id="bodyHeader">
+                            #prc?.header ?: ''#
+                        </h1>
+                        <hr class="smallDisplayOnly">
+                    <cfelseif !prc.keyExists('suppressH1')>
+                        <h1 class="visually-hidden">#prc.title.len() ? prc.title : getSetting('title')#</h1>
+                    </cfif>
+                    #view("/views/fragment/alert")#
+                    #view()#
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <cfif prc.currHandler NEQ 'admin' AND prc.currHandler NEQ 'dev'>
+        #view(view='/layouts/footer')#
+    </cfif>
+
+    #view(view="/views/modal/loading")#
+
+    <div id="confirmModalDiv"></div>
+
+    <!--- Dont manipulate the entire dom body! this overrides everything in js --->
+    <div id="loadedModal"></div>
+    
+    <!--- toasts live here --->
+    <div id="toastsDiv"></div>
 </div>
 #view(view="/views/fragment/data")#
 
