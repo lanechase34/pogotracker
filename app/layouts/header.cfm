@@ -2,7 +2,15 @@
 <meta charset="UTF-8">
 <title>#encodeForHTML(prc.title.len() ? prc.title : getSetting("title"))#</title>
 <meta name="description" content="#encodeForHTMLAttribute(prc.metaDescription.len() ? prc.metaDescription : getSetting('metaDescription'))#">
-<meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<cfif (prc?.vendorLibs?.masonry ?: false) OR (prc?.vendorLibs?.jquery ?: false)>
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+</cfif>
+<cfif prc?.vendorLibs?.datatables ?: false>
+    <link rel="preconnect" href="https://cdn.datatables.net" crossorigin>
+</cfif>
 <meta name="theme-color" content="rgb(33, 37, 41)">
 <meta name="csrf-token" content="#csrfToken()#"><!--- sent as x-csrf-token by includes/js/modules/fetch.js --->
 <link rel="canonical" href="#encodeForHTMLAttribute(prc.canonicalURL)#">
@@ -30,7 +38,8 @@
 
 <!--- Structured Data --->
 <!--- Handlers may override prc.structuredData (struct), otherwise the site wide graph is used --->
-<script type="application/ld+json">#getInstance("services.seo").toJsonLd(prc.structuredData ?: getInstance("services.seo").getSiteGraph())#</script>
+<cfset headerSeoService = getInstance("services.seo")/>
+<script type="application/ld+json">#headerSeoService.toJsonLd(prc.structuredData ?: headerSeoService.getSiteGraph())#</script>
 
 <!--- Favicon --->
 <link rel="icon" type="image/png" sizes="192x192" href="/includes/images/favicon-192.png?v=#getSetting('favIcoVersion')#">
@@ -46,5 +55,12 @@
 <!--- Global styles --->
 <link rel="stylesheet" type="text/css" href="#getSetting('cssPath')#/global#getSetting('minifiedCSS')#.css#getSetting('cacheBuster')#"/>
 
-#view(view="/views/fragment/importmap", args={jsPath: getSetting('jsPath'), minifiedJS: getSetting('minifiedJS'), cacheBuster: getSetting('cacheBuster')})#
+#view(view="/views/fragment/importmap")#
+
+<!--- Fetch the whole module tree up front instead of one import level at a time --->
+<cfif len(args.moduleEntry ?: "")>
+    <cfloop array="#getInstance('services.assets').getModulePreloads(entry = args.moduleEntry, handler = prc.currHandler ?: '')#" item="moduleURL">
+        <link rel="modulepreload" href="#moduleURL#">
+    </cfloop>
+</cfif>
 </cfoutput>

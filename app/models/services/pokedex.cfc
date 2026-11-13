@@ -1,6 +1,6 @@
 component singleton accessors="true" {
 
-    property name="cache"             inject="cachebox:appCache";
+    property name="trainerCache"      inject="cachebox:trainerCache";
     property name="generationService" inject="services.generation";
     property name="utilService"       inject="services.util";
 
@@ -18,7 +18,7 @@ component singleton accessors="true" {
         boolean costume = false
     ) {
         var cacheKey   = "#arguments.trainer.getId()#|pokedex.getRegistered|region=#arguments.region#|form=#arguments.form#|mega=#arguments.mega#|shadow=#arguments.shadow#|giga=#arguments.giga#|costume=#arguments.costume#";
-        var registered = cache.get(cacheKey);
+        var registered = trainerCache.get(cacheKey);
         if(isNull(registered)) {
             var whereClause = "WHERE pokemon.costume = :costume AND pokemon.mega = :mega AND pokemon.giga = :giga";
             var params      = {
@@ -51,7 +51,7 @@ component singleton accessors="true" {
                 params
             );
 
-            cache.set(cacheKey, registered, 10, 10);
+            trainerCache.set(cacheKey, registered, 10, 10);
         }
 
         return registered;
@@ -186,13 +186,26 @@ component singleton accessors="true" {
      * Clear every cached view of a trainer's pokedex after a registration
      */
     private void function clearPokedexCache(required numeric trainerid, required string region) {
-        cache.clearByKeySnippet("#arguments.trainerid#|pokedex.getRegistered|region=|"); // shadow dex
-        cache.clearByKeySnippet("#arguments.trainerid#|pokedex.getRegistered|region=#arguments.region#"); // normal dex
-        cache.clearByKeySnippet("#arguments.trainerid#|pokedex.getCustomRegistered"); // custom dex
+        // Anchored on "<trainerid>|"
+        var trainerKey = "^#arguments.trainerid#\|";
+
+        // shadow dex
+        trainerCache.clearByKeySnippet(trainerKey & "pokedex\.getRegistered\|region=\|", true);
+
+        // normal dex
+        trainerCache.clearByKeySnippet(
+            trainerKey & "pokedex\.getRegistered\|region=#utilService.escapeRegex(arguments.region)#\|",
+            true
+        );
+
+        // custom dex
+        trainerCache.clearByKeySnippet(trainerKey & "pokedex\.getCustomRegistered\|", true);
+
         // Clear trainer's pokedex stats cache
-        cache.clear("#arguments.trainerid#|stats.getPokedexStats");
+        trainerCache.clear("#arguments.trainerid#|stats.getPokedexStats");
+
         // Strings
-        cache.clear("#arguments.trainerid#|pokedex.getMissingString");
+        trainerCache.clear("#arguments.trainerid#|pokedex.getMissingString");
     }
 
     /**
@@ -200,7 +213,7 @@ component singleton accessors="true" {
      */
     public array function getCustomRegistered(required component trainer, required component custom) {
         var cacheKey         = "#arguments.trainer.getId()#|pokedex.getCustomRegistered|custom=#arguments.custom.getId()#";
-        var customRegistered = cache.get(cacheKey);
+        var customRegistered = trainerCache.get(cacheKey);
         if(isNull(customRegistered)) {
             customRegistered = ormExecuteQuery(
                 "
@@ -213,7 +226,7 @@ component singleton accessors="true" {
                 {"trainer": arguments.trainer, "custom": arguments.custom}
             );
 
-            cache.set(cacheKey, customRegistered, 10, 10);
+            trainerCache.set(cacheKey, customRegistered, 10, 10);
         }
 
         return customRegistered;
@@ -229,7 +242,7 @@ component singleton accessors="true" {
      */
     public string function getMissingString(required component trainer, required boolean shiny) {
         var cacheKey       = "#arguments.trainer.getId()#|pokedex.getMissingString";
-        var missingStrings = cache.get(cacheKey);
+        var missingStrings = trainerCache.get(cacheKey);
 
         if(isNull(missingStrings)) {
             var q = queryExecute(
@@ -271,7 +284,7 @@ component singleton accessors="true" {
                 shiny : "shiny&#utilService.removeDuplicates(q.missingShiny)#"
             };
 
-            cache.set(cacheKey, missingStrings, 10, 10);
+            trainerCache.set(cacheKey, missingStrings, 10, 10);
         }
 
         return arguments.shiny ? missingStrings.shiny : missingStrings.caught;

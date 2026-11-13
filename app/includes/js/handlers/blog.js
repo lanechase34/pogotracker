@@ -9,15 +9,16 @@ export const $blogListDiv = document.getElementById('blogList');
 const $submitBlogCommentBtn = document.getElementById('submitBlogComment');
 const $blogComment = document.getElementById('blogComment');
 const $blogData = document.getElementById('blogData');
-const $blogList = document.getElementById('blogList');
 const $blogBodyDiv = document.getElementById('blogDiv');
-export const blogFetchStruct = {
+const blogFetchStruct = {
     loadingBlogs: false,
     currOffset: 0,
-    count: 4,
+    count: 6,
     max: 8,
-    scrollHandler: () => {},
-    resizeHandler: () => {},
+    // False once a batch comes back short - there are no more blogs to load
+    hasMore: true,
+    /** @type {IntersectionObserver | null} */
+    observer: null,
 };
 
 function showLoadMoreButton($div, { showImage, exclude, sidebar }) {
@@ -62,12 +63,15 @@ function showLoadMoreButton($div, { showImage, exclude, sidebar }) {
     $div.after($btn);
 }
 
-export async function getBlogs({ $div, count, offset, showImage, exclude, sidebar }) {
+/**
+ * Fetch one batch of blog cards and append it - offset 0 replaces whatever is in the list
+ */
+async function fetchBlogBatch({ $div, count, offset, showImage, exclude, sidebar }) {
     return await getWrapper({
         url: `/blog/get/count/${count}/offset/${offset}/showimage/${showImage}/exclude/${exclude}/sidebar/${sidebar}`,
         $loadingDiv: offset === 0 ? $div : null,
         loading: $loading,
-        dataHandler: async (data) => {
+        dataHandler: (data) => {
             if (offset === 0) {
                 $div.innerHTML = '';
                 document.getElementById('blogLoadMoreBtn')?.remove();
@@ -82,56 +86,65 @@ export async function getBlogs({ $div, count, offset, showImage, exclude, sideba
             }
 
             blogFetchStruct.currOffset = offset + count;
-
-            const isDesktop = !isMobileDisplay();
-            const currentMax = isDesktop ? blogFetchStruct.max : 4;
-
-            const fetchMoreBlogs = async () => {
-                if (blogFetchStruct.loadingBlogs || blogFetchStruct.currOffset >= currentMax) return;
-                blogFetchStruct.loadingBlogs = true;
-                await getBlogs({
-                    $div,
-                    count: blogFetchStruct.count,
-                    offset: blogFetchStruct.currOffset,
-                    showImage,
-                    exclude,
-                    sidebar,
-                });
-                blogFetchStruct.loadingBlogs = false;
-            };
-
-            const checkAndLoad = async () => {
-                if (blogFetchStruct.currOffset >= currentMax) {
-                    window.removeEventListener('scroll', blogFetchStruct.scrollHandler);
-                    window.removeEventListener('resize', blogFetchStruct.resizeHandler);
-                    if (!sidebar) {
-                        showLoadMoreButton($div, { showImage, exclude, sidebar });
-                    }
-                    return;
-                }
-
-                const nearBottom = window.innerHeight + window.scrollY >= $blogList.scrollHeight - 500;
-                const contentFillsWindow = $div.offsetHeight >= window.innerHeight;
-
-                if (!contentFillsWindow || nearBottom) {
-                    await fetchMoreBlogs();
-                }
-            };
-
-            // Remove old listeners before adding new ones
-            window.removeEventListener('scroll', blogFetchStruct.scrollHandler);
-            window.removeEventListener('resize', blogFetchStruct.resizeHandler);
-
-            blogFetchStruct.scrollHandler = checkAndLoad;
-            blogFetchStruct.resizeHandler = checkAndLoad;
-
-            window.addEventListener('scroll', blogFetchStruct.scrollHandler);
-            window.addEventListener('resize', blogFetchStruct.resizeHandler);
-
-            // Check immediately in case the window is already large enough
-            await checkAndLoad();
+            blogFetchStruct.hasMore = newDiv.querySelectorAll('.blogCard').length === count;
         },
     });
+}
+
+/**
+ * Fill the blog list up to the page max,
+ * then hand off to the Load More button, which fetches blogFetchStruct.count more per click
+ * offset is how many cards were requested for the server rendered list - 0 fetches everything up to the max
+ * in one request, otherwise the rest is fetched in one request once the end of the list nears the viewport.
+ */
+export async function getBlogs({ $div, offset, showImage, exclude, sidebar }) {
+    const currentMax = isMobileDisplay() ? blogFetchStruct.count : blogFetchStruct.max;
+    blogFetchStruct.observer?.disconnect();
+
+    const finish = () => {
+        if (!sidebar && blogFetchStruct.hasMore) {
+            showLoadMoreButton($div, { showImage, exclude, sidebar });
+        }
+    };
+
+    if (offset === 0) {
+        await fetchBlogBatch({ $div, count: currentMax, offset: 0, showImage, exclude, sidebar });
+    } else {
+        blogFetchStruct.currOffset = offset;
+        // Server rendered fewer cards than it asked for - that was every blog
+        blogFetchStruct.hasMore = $div.querySelectorAll('.blogCard').length === offset;
+    }
+
+    if (!blogFetchStruct.hasMore || blogFetchStruct.currOffset >= currentMax) {
+        finish();
+        return;
+    }
+
+    const $sentinel = document.createElement('div');
+    $div.after($sentinel);
+
+    const observer = new IntersectionObserver(
+        async (entries) => {
+            if (!entries.some((entry) => entry.isIntersecting) || blogFetchStruct.loadingBlogs) return;
+            observer.disconnect();
+            $sentinel.remove();
+
+            blogFetchStruct.loadingBlogs = true;
+            await fetchBlogBatch({
+                $div,
+                count: currentMax - blogFetchStruct.currOffset,
+                offset: blogFetchStruct.currOffset,
+                showImage,
+                exclude,
+                sidebar,
+            });
+            blogFetchStruct.loadingBlogs = false;
+            finish();
+        },
+        { rootMargin: '0px 0px 500px 0px' }
+    );
+    blogFetchStruct.observer = observer;
+    observer.observe($sentinel);
 }
 
 function rawParser(block) {
@@ -283,7 +296,6 @@ export const runtime = {
         if ($blogListDiv) {
             getBlogs({
                 $div: $blogListDiv,
-                count: blogFetchStruct.count,
                 offset: 0,
                 showImage: true,
                 exclude: $blogListDiv.dataset.blogid,

@@ -28,6 +28,11 @@ component extends="base" secured="admin" {
         readNameOverrides : "GET",
         saveNameOverrides : "POST",
         logViewer         : "GET",
+        getLogChunk       : "GET",
+        searchLog         : "GET",
+        listLogs          : "GET",
+        downloadLog       : "GET",
+        downloadLogs      : "GET",
         requestLog        : "GET",
         getRequests       : "GET",
         updateSiteMap     : "POST",
@@ -370,23 +375,141 @@ component extends="base" secured="admin" {
         renderJson(event = event, response = prc.responseObj);
     }
 
+    /**
+     * Log list and viewer shell - lines are fetched by the page from getLogChunk as it scrolls
+     *
+     * @rc.filename optional log to open on load
+     */
     function logViewer(event, rc, prc) {
         param name="rc.filename" default="";
-        param name="rc.start"    default="1";
-        param name="rc.end"      default="1000";
 
-        prc.logs       = adminService.getLogs();
-        prc.logContent = "";
-        if(rc.filename.len()) {
-            // Validate this is a known log file
-            if(!prc.logs.recordCount || !listFindNoCase(valueList(prc.logs.name), rc.filename)) {
-                htmlValidationFailure(event = event);
-                return;
+        prc.logs = adminService.getLogs();
+
+        // Unknown names just open the viewer with nothing selected
+        prc.selected = {};
+        for(var row in prc.logs) {
+            if(row.name == rc.filename) {
+                prc.selected = row;
+                break;
             }
-            prc.logContent = adminService.readLog(rc.filename, rc.start, rc.end);
         }
 
         prc.header = "Log Viewer";
+    }
+
+    /**
+     * One chunk of log lines, read by byte offset
+     *
+     * @rc.filename  log file name from the log list
+     * @rc.offset    forward: byte to start at; backward: byte to end at (-1 = end of file)
+     * @rc.direction forward or backward
+     */
+    function getLogChunk(event, rc, prc) {
+        param name="rc.filename"  default="";
+        param name="rc.offset"    default="0";
+        param name="rc.direction" default="forward";
+
+        if(hasValidationErrors(target = rc, constraints = "admin.getLogChunk")) {
+            jsonValidationFailure(event = event);
+            return;
+        }
+
+        var path = adminService.resolveLogPath(rc.filename);
+        if(!path.len()) {
+            jsonNotFound(event = event, message = "Log not found");
+            return;
+        }
+
+        jsonOk(
+            event = event,
+            data  = adminService.readLogChunk(
+                path      = path,
+                offset    = rc.offset,
+                direction = rc.direction
+            )
+        );
+    }
+
+    /**
+     * Next or previous match in a log
+     *
+     * @rc.filename  log file name from the log list
+     * @rc.query     text to find, case-insensitive
+     * @rc.offset    forward: first byte a match may start at; backward: matches start before this byte (-1 = end of file)
+     * @rc.direction forward or backward
+     */
+    function searchLog(event, rc, prc) {
+        param name="rc.filename"  default="";
+        param name="rc.query"     default="";
+        param name="rc.offset"    default="0";
+        param name="rc.direction" default="forward";
+
+        if(hasValidationErrors(target = rc, constraints = "admin.searchLog")) {
+            jsonValidationFailure(event = event);
+            return;
+        }
+
+        var path = adminService.resolveLogPath(rc.filename);
+        if(!path.len()) {
+            jsonNotFound(event = event, message = "Log not found");
+            return;
+        }
+
+        cfsetting(requestTimeout = 120);
+        jsonOk(
+            event = event,
+            data  = adminService.searchLog(
+                path      = path,
+                query     = rc.query,
+                offset    = rc.offset,
+                direction = rc.direction
+            )
+        );
+    }
+
+    /**
+     * Current log list for the viewer sidebar - sizes and new files change while the page is open
+     */
+    function listLogs(event, rc, prc) {
+        jsonOk(event = event, data = adminService.getLogList());
+    }
+
+    /**
+     * Download one log file
+     *
+     * @rc.filename log file name from the log list
+     */
+    function downloadLog(event, rc, prc) {
+        param name="rc.filename" default="";
+
+        var path = adminService.resolveLogPath(rc.filename);
+        if(!path.len()) {
+            htmlNotFound(event = event);
+            return;
+        }
+
+        event.sendFile(
+            file       = adminService.snapshotLog(path),
+            name       = rc.filename,
+            mimeType   = "text/plain",
+            deleteFile = true
+        );
+        event.noRender();
+    }
+
+    /**
+     * Download every log as one zip
+     */
+    function downloadLogs(event, rc, prc) {
+        cfsetting(requestTimeout = 300);
+
+        event.sendFile(
+            file       = adminService.zipLogs(),
+            name       = "logs-#dateTimeFormat(now(), "yyyy-mm-dd-HHnn")#.zip",
+            mimeType   = "application/zip",
+            deleteFile = true
+        );
+        event.noRender();
     }
 
     function readOverrides(event, rc, prc) {

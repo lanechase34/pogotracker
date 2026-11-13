@@ -501,22 +501,21 @@ component singleton accessors="true" {
         }
 
         // Costumes have no detail page of their own - link to the matching base form
-        var baseSes = [:];
-        getAll().each((pokemon) => {
-            var key = "#pokemon.getName()#|#pokemon.getNumber()#|#pokemon.getGender()#";
-            if(!baseSes.keyExists(key)) baseSes[key] = pokemon.getSes();
-        });
+        var baseKey = (pokemon) => "#pokemon.getName()#|#pokemon.getNumber()#|#pokemon.getGender()#";
+        var baseSes = getAll().reduce((result, pokemon) => {
+            var key = baseKey(pokemon);
+            if(!result.keyExists(key)) result[key] = pokemon.getSes();
+            return result;
+        }, {});
 
-        index = [];
-        get({"costume": true, "live": true}, "number asc, costumetype asc").each((costume) => {
-            var key = "#costume.getName()#|#costume.getNumber()#|#costume.getGender()#";
-            if(!baseSes.keyExists(key)) return;
-
-            var entry         = buildIndexEntry(costume);
-            entry.ses         = baseSes[key];
-            entry.costumeType = costume.getCostumeType() ?: "";
-            index.append(entry);
-        });
+        index = get({"costume": true, "live": true}, "number asc, costumetype asc")
+            .filter((costume) => baseSes.keyExists(baseKey(costume)))
+            .map((costume) => {
+                var entry         = buildIndexEntry(costume);
+                entry.ses         = baseSes[baseKey(costume)];
+                entry.costumeType = costume.getCostumeType() ?: "";
+                return entry;
+            });
 
         cache.set(
             cacheKey,
@@ -535,8 +534,7 @@ component singleton accessors="true" {
      * @return {previous: {name, number, ses, sprite} | {}, next: {...} | {}}
      */
     public struct function getAdjacent(required string ses) {
-        var flat = [];
-        getIndex().each((group) => flat.append(group.pokemon, true));
+        var flat = getIndex().reduce((result, group) => result.append(group.pokemon, true), []);
 
         var position = flat.find((mon) => mon.ses == ses);
         var pick     = (i) => {
@@ -574,13 +572,13 @@ component singleton accessors="true" {
         var info = {};
 
         // CP Info | Research(lvl15), egg/raid(lvl20), weather boosted raid(lvl25), max cp(lvl50)
-        info.cp = {};
-        getLevels().each((level) => {
-            info.cp["lvl#level#"] = [
+        info.cp = getLevels().reduce((result, level) => {
+            result["lvl#level#"] = [
                 calculateCP(pokemon, level, 10),
                 calculateCP(pokemon, level, 15)
             ];
-        });
+            return result;
+        }, {});
 
         var maxStats         = getMaxStats();
         info.catchRate       = {lvl20: calculateCatchRate(pokemon, 20)};

@@ -359,8 +359,8 @@
     align-items: center;
     gap: 0.75rem;
     padding: 0.5rem 0.75rem;
-    background: rgba(255, 255, 255, 0.92);
-    backdrop-filter: blur(6px);
+    /* Solid - a backdrop-filter blur here re-rendered the image grid behind it every scroll frame */
+    background: #fff;
     border: 1px solid #e9ecef;
     border-radius: 0.5rem;
     box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
@@ -694,6 +694,38 @@
     overflow: hidden;
     text-overflow: ellipsis;
     max-width: 10rem;
+}
+
+/* Small screens: split the row evenly and wrap names instead of truncating them */
+@media (max-width: 575.98px) {
+    .pokemon-adjacent,
+    .pokemon-adjacent-placeholder {
+        flex: 1 1 0;
+    }
+
+    .pokemon-adjacent {
+        gap: 0.3rem;
+        padding: 0.35rem 0.5rem;
+    }
+
+    .pokemon-adjacent .bi {
+        display: none;
+    }
+
+    .pokemon-adjacent img {
+        width: 32px;
+        height: 32px;
+    }
+
+    .pokemon-adjacent-next {
+        justify-content: flex-end;
+    }
+
+    .pokemon-adjacent-name {
+        white-space: normal;
+        overflow-wrap: anywhere;
+        max-width: none;
+    }
 }
 
 /* Jumping from the index costume tiles */

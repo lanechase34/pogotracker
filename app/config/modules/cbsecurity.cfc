@@ -27,7 +27,9 @@ component {
                 // Skipped automatically during integration tests
                 enableAutoVerifier    : true,
                 // error.* only renders error pages
-                verifyExcludes        : ["^error\."],
+                // login.logout - a page that outlived its session posts a token the remember me re-login just rotated away,
+                // and a forged logout can only log the trainer out
+                verifyExcludes        : ["^error\.", "^login\.logout$"],
                 // Tokens live as long as the session so a page left open doesn't start failing its posts
                 // Rotated on every login (interceptors/security.cfc) and thrown away with the session on logout
                 rotationTimeout       : 0,

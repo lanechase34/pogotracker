@@ -68,3 +68,213 @@
     white-space: pre;
     tab-size: 4;
 }
+
+/* Log viewer - list and log scroll on their own, height set in js to fill the viewport */
+.logViewer {
+    min-height: 360px;
+}
+
+.logViewer > .logSidebar,
+.logViewer > .logPane {
+    height: 100%;
+    min-height: 0;
+}
+
+.logList {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+
+.logLink {
+    padding: 0.5rem 0.75rem;
+}
+
+.logLinkName {
+    min-width: 0;
+    font-weight: 600;
+    font-size: 0.875rem;
+}
+
+.logLinkSize,
+.logLinkMeta {
+    color: var(--bs-secondary-color);
+}
+
+.logLink.active .logLinkSize,
+.logLink.active .logLinkMeta {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.logCard {
+    min-height: 0;
+    overflow: hidden;
+}
+
+.logTitle {
+    min-width: 0;
+    flex: 1 1 12rem;
+}
+
+.logScroller {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: auto;
+    overscroll-behavior: contain;
+    /* Scroll position is corrected by hand when chunks are added or dropped above */
+    overflow-anchor: none;
+    background: var(--bs-tertiary-bg);
+    font-family: var(--bs-font-monospace);
+    font-size: 0.78rem;
+    line-height: 1.5;
+}
+
+.logScroller:focus-visible {
+    outline: 2px solid var(--bs-primary);
+    outline-offset: -2px;
+}
+
+/* max-content so line highlights stretch the full width when scrolling sideways */
+.logLines {
+    min-width: 100%;
+    width: max-content;
+    padding: 0.25rem 0;
+}
+
+.logEntry {
+    border-left: 3px solid transparent;
+}
+
+.logLine {
+    min-height: 1.5em;
+    white-space: pre;
+    padding: 0 0.75rem;
+    tab-size: 4;
+}
+
+.logLine:hover {
+    background: var(--bs-secondary-bg);
+}
+
+.logWrap .logLines {
+    width: auto;
+}
+
+.logWrap .logLine {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+/* Levels - the whole entry gets the edge, the first line the tint */
+.logEntry[data-level='error'] {
+    border-left-color: var(--bs-danger);
+}
+
+.logEntry[data-level='warn'] {
+    border-left-color: var(--bs-warning);
+}
+
+.log-error {
+    color: var(--bs-danger-text-emphasis);
+    background: var(--bs-danger-bg-subtle);
+}
+
+.log-warn {
+    color: var(--bs-warning-text-emphasis);
+    background: var(--bs-warning-bg-subtle);
+}
+
+.log-debug,
+.logTrace {
+    color: var(--bs-secondary-color);
+}
+
+.logLevelWarn .logEntry:not([data-level='error']):not([data-level='warn']),
+.logLevelError .logEntry:not([data-level='error']) {
+    display: none;
+}
+
+/* Collapsible stack traces */
+.logEntry.collapsed .logDetail {
+    display: none;
+}
+
+.logToggle {
+    display: block;
+    padding: 0 0.75rem 0 1.5rem;
+    border: 0;
+    background: none;
+    font: inherit;
+    font-size: 0.72rem;
+    color: var(--bs-link-color);
+    text-align: left;
+}
+
+.logToggle:hover {
+    text-decoration: underline;
+}
+
+/* Search */
+.logSearch {
+    flex: 1 1 14rem;
+    max-width: 28rem;
+}
+
+.logMark {
+    padding: 0;
+    color: inherit;
+    background: rgba(var(--bs-warning-rgb), 0.45);
+    border-radius: 2px;
+}
+
+.logCurrent {
+    outline: 2px solid var(--bs-primary);
+    outline-offset: -2px;
+}
+
+.logCurrent .logMark {
+    background: rgba(var(--bs-warning-rgb), 0.85);
+}
+
+.logSpinning i {
+    display: inline-block;
+    animation: logSpin 0.8s linear infinite;
+}
+
+@keyframes logSpin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .logSpinning i {
+        animation: none;
+    }
+}
+
+.logStatus {
+    padding: 0.5rem 0.75rem;
+    font-family: var(--bs-body-font-family);
+    font-size: 0.8rem;
+    color: var(--bs-secondary-color);
+    text-align: center;
+}
+
+.logEmpty {
+    padding: 4rem 1rem;
+    text-align: center;
+    font-family: var(--bs-body-font-family);
+    color: var(--bs-secondary-color);
+}
+
+@media (max-width: 575.98px) {
+    .logScroller {
+        font-size: 0.72rem;
+    }
+
+    .logLine {
+        padding: 0 0.5rem;
+    }
+}

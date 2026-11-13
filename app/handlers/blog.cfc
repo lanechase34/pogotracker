@@ -86,6 +86,7 @@ component extends="base" {
             return;
         }
         prc.canonicalURL = "#getSetting("domain")#/readblog/#slug#";
+        prc.imageSize    = blogService.getImageSize("#getSetting("uploadPath")#/full/#prc.blog.getImage()#");
 
         prc.header          = "";
         prc.title           = "#prc.blog.getHeader()# | #getSetting("siteName")#";

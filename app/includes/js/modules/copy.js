@@ -1,19 +1,15 @@
 const $copied = `<i class="bi bi-check2 me-1"></i>Copied`;
 
 /**
- * Used when a button changes text
- * Locks the button to the width of largest of the text (original or what it changes to)
+ * Show one label of a .label-swap button (global.css) - the others stay in the layout, hidden, so the width never changes
+ *
+ * @param {HTMLElement} $btn
+ * @param {string} label - data-label of the .label-swap-item to show
  */
-export function lockButtonWidth($btn, html) {
-    const orig = $btn.innerHTML;
-    const origWidth = $btn.offsetWidth;
-    $btn.innerHTML = html;
-    $btn.style.minWidth = `${Math.max(origWidth, $btn.offsetWidth)}px`;
-    $btn.innerHTML = orig;
-}
-
-export function lockCopyButtonWidth($btn) {
-    lockButtonWidth($btn, $copied);
+export function showSwapLabel($btn, label) {
+    $btn.querySelectorAll('.label-swap-item').forEach(($item) => {
+        $item.classList.toggle('active', /** @type {HTMLElement} */ ($item).dataset.label === label);
+    });
 }
 
 export function copyString($btns, string) {
@@ -21,6 +17,16 @@ export function copyString($btns, string) {
 
     $btns.forEach(($btn) => {
         $btn.disabled = true;
+
+        if ($btn.classList.contains('label-swap')) {
+            showSwapLabel($btn, 'copied');
+            setTimeout(() => {
+                showSwapLabel($btn, 'default');
+                $btn.disabled = false;
+            }, 4 * 1000);
+            return;
+        }
+
         const temp = $btn.innerHTML;
 
         $btn.innerHTML = $copied;

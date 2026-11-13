@@ -75,9 +75,23 @@ component persistent="true" extends="base" {
 
     /**
      * Current level and xp progress from the latest stat
-     * Not memoized - stats are recorded from several places and it's only shown on the profile/stats pages
+     * Memoized on the (cached) trainer
      */
     struct function getCurrentLevel() {
+        if(!variables.keyExists("levelMemo")) {
+            variables.levelMemo = loadCurrentLevel();
+        }
+        return duplicate(variables.levelMemo);
+    }
+
+    /**
+     * Forget the memoized level - call after recording a stat
+     */
+    void function clearLevelMemo() {
+        structDelete(variables, "levelMemo");
+    }
+
+    private struct function loadCurrentLevel() {
         // No stat recorded yet
         var latestStat = getLatestStat();
         if(isNull(latestStat)) {
@@ -205,8 +219,7 @@ component persistent="true" extends="base" {
         ];
 
         // Per region: base species, how many have a released shiny, and how many of each this trainer has registered
-        var progress = {};
-        queryExecute(
+        var progress = queryExecute(
             "
             SELECT generation.region,
                 COUNT(pokemon.id) AS caughttotal,
@@ -224,20 +237,18 @@ component persistent="true" extends="base" {
             ",
             {trainerid: {value: getId(), cfsqltype: "integer"}},
             {returntype: "array"}
-        ).each((row) => {
-            progress[row.region] = row;
-        });
+        ).reduce((result, row) => {
+            result[row.region] = row;
+            return result;
+        }, {});
 
-        var icons = [];
-        goals.each((goal) => {
-            if(!progress.keyExists(goal.region)) return;
+        var icons = goals.reduce((result, goal) => {
+            if(!progress.keyExists(goal.region)) return result;
             var region = progress[goal.region];
             var need   = goal.need == "all" ? region["#goal.progress#total"] : goal.need;
 
-            if(need > 0 && region[goal.progress] >= need) {
-                icons.append(goal.icons, true);
-            }
-        });
+            return need > 0 && region[goal.progress] >= need ? result.append(goal.icons, true) : result;
+        }, []);
 
         if(hasPermission("developer")) {
             icons.append("Wobbuffet");

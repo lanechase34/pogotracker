@@ -6,6 +6,13 @@
                 <img
                     src="/includes/uploads/full/#prc.blog.getImage()#"
                     alt="#prc.blog.getAltText()#"
+                    <!--- Attributes give the aspect ratio, the width caps it at the 350px max-height so the box is reserved before it loads --->
+                    <cfif prc.imageSize.keyExists("width") AND prc.imageSize.height GT 0>
+                        width="#prc.imageSize.width#"
+                        height="#prc.imageSize.height#"
+                        style="width: min(100%, #round(min(350, prc.imageSize.height) * prc.imageSize.width / prc.imageSize.height)#px)"
+                    </cfif>
+                    fetchpriority="high"
                     class="blogImageMain rounded"
                 >
             </div>

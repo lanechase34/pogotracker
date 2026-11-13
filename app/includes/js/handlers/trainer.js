@@ -88,12 +88,16 @@ async function getFriendsList($div) {
                 $trainerLoading.addFriend = false;
             });
 
-            const trainerRows = document.querySelectorAll('.trainerRow');
-            Array.from(trainerRows).forEach((row) => {
-                row.addEventListener('click', (evt) => {
-                    window.location.href = /** @type {HTMLElement} */ (evt.currentTarget).dataset.profilelink;
+            // One listener for every row - the list reloads into the same div, so only bind it once
+            if ($div.dataset.rowsBound !== 'true') {
+                $div.dataset.rowsBound = 'true';
+                $div.addEventListener('click', (evt) => {
+                    const $row = /** @type {HTMLElement | null} */ (
+                        /** @type {HTMLElement} */ (evt.target).closest('.trainerRow')
+                    );
+                    if ($row && $div.contains($row)) window.location.href = $row.dataset.profilelink;
                 });
-            });
+            }
         },
     });
 }
@@ -105,16 +109,20 @@ async function getFriendRequests($div) {
         loading: $loadingCard,
         dataHandler: (data) => {
             $div.innerHTML = data;
-            const $decideBtns = document.querySelectorAll('.decideRequest');
-            if ($decideBtns) {
-                Array.from($decideBtns).forEach((btn) => {
-                    btn.addEventListener('click', async (evt) => {
-                        const $btn = /** @type {HTMLButtonElement} */ (evt.currentTarget);
-                        const packet = {};
-                        packet.friendrequestid = $btn.parentElement.dataset.friendrequestid;
-                        packet.accept = $btn.dataset.accept;
-                        await decideFriendRequest(packet, $btn);
-                    });
+
+            // One listener for every accept/decline button - the requests reload into the same div, so only bind it once
+            if ($div.dataset.decideBound !== 'true') {
+                $div.dataset.decideBound = 'true';
+                $div.addEventListener('click', async (evt) => {
+                    const $btn = /** @type {HTMLButtonElement | null} */ (
+                        /** @type {HTMLElement} */ (evt.target).closest('.decideRequest')
+                    );
+                    if (!$btn || !$div.contains($btn)) return;
+
+                    const packet = {};
+                    packet.friendrequestid = $btn.parentElement.dataset.friendrequestid;
+                    packet.accept = $btn.dataset.accept;
+                    await decideFriendRequest(packet, $btn);
                 });
             }
         },

@@ -65,7 +65,7 @@ component {
 		 */
         settings = {
             rootPath   : replace(expandPath("/"), "\", "/", "all"),
-            cacheBuster: "?v=#right(hash(createUUID()), 10)#",
+            cacheBuster: "?v=#getAssetVersion()#",
             concurrency: {
                 activeRequests: 0,
                 maxRequests   : 0,
@@ -152,6 +152,8 @@ component {
                 admin    : 50,
                 developer: 60
             },
+            // Intrinsic width/height (px) for .pokemonIcon imgs, reserves layout space before the sprite loads
+            pokemonIconSize: 128,
             /**
              * Per event rate limits
              *
@@ -497,6 +499,35 @@ component {
         settings.domain        = "http://localhost:#getSystemSetting("HTTP_PORT")#";
 
         moduleSettings.bcrypt = {workFactor: 4};
+    }
+
+    /**
+     * Cache buster built from the js/css contents so browsers keep their cached copies across restarts and only refetch once a file actually changes
+     * Falls back to a random value if nothing is found
+     */
+    private string function getAssetVersion() {
+        var root   = replace(expandPath("/"), "\", "/", "all");
+        var digest = [];
+
+        ["includes/build", "includes/js", "includes/css"].each((dir) => {
+            if(!directoryExists(root & dir)) return;
+
+            var files = directoryList(
+                path     = root & dir,
+                recurse  = true,
+                listInfo = "path",
+                filter   = "*.js|*.css",
+                type     = "file"
+            );
+            files.sort("textnocase");
+            files.each((file) => {
+                var path = replace(file, "\", "/", "all");
+                digest.append("#replace(path, root, "")#:#hash(fileRead(path, "utf-8"), "MD5")#");
+            });
+        });
+
+        if(!digest.len()) return right(hash(createUUID()), 10);
+        return lCase(right(hash(digest.toList(chr(10)), "MD5"), 10));
     }
 
 }

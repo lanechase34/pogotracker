@@ -1,7 +1,7 @@
 component singleton accessors="true" {
 
     property name="async"          inject="asyncManager@coldbox";
-    property name="cache"          inject="cachebox:appCache";
+    property name="trainerCache"   inject="cachebox:trainerCache";
     property name="pagination"     inject="services.pagination";
     property name="imageExtension" inject="coldbox:setting:imageExtension";
     property name="securityLevels" inject="coldbox:setting:securityLevels";
@@ -42,7 +42,7 @@ component singleton accessors="true" {
      */
     public component function getFromId(required numeric trainerid) {
         var cacheKey = getCacheKey(arguments.trainerid);
-        var trainer  = cache.get(cacheKey);
+        var trainer  = trainerCache.get(cacheKey);
         if(isNull(trainer)) {
             trainer = entityLoadByPK("trainer", arguments.trainerid);
             if(isNull(trainer)) {
@@ -51,7 +51,7 @@ component singleton accessors="true" {
             // Make sure relationships are loaded before being cached
             trainer.getIconPath();
             trainer.getIconAltText();
-            cache.set(cacheKey, trainer);
+            trainerCache.set(cacheKey, trainer);
         }
         return trainer;
     }
@@ -63,7 +63,7 @@ component singleton accessors="true" {
      * @trainerid pk of trainer
      */
     public void function clearCache(required numeric trainerid) {
-        cache.clear(getCacheKey(arguments.trainerid));
+        trainerCache.clear(getCacheKey(arguments.trainerid));
         return;
     }
 

@@ -660,6 +660,49 @@ component {
                     }
                 }
             },
+            "admin.getLogChunk": {
+                filename: {
+                    required: true,
+                    type    : "string",
+                    size    : "1..255"
+                },
+                offset: {
+                    required: true,
+                    type    : "integer",
+                    min     : -1
+                },
+                direction: {
+                    required: true,
+                    type    : "string",
+                    udf     : (value, target) => {
+                        return ["forward", "backward"].contains(arguments.value);
+                    }
+                }
+            },
+            "admin.searchLog": {
+                filename: {
+                    required: true,
+                    type    : "string",
+                    size    : "1..255"
+                },
+                query: {
+                    required: true,
+                    type    : "string",
+                    size    : "1..200"
+                },
+                offset: {
+                    required: true,
+                    type    : "integer",
+                    min     : -1
+                },
+                direction: {
+                    required: true,
+                    type    : "string",
+                    udf     : (value, target) => {
+                        return ["forward", "backward"].contains(arguments.value);
+                    }
+                }
+            },
             "admin.getAudits": {
                 draw: {
                     required: true,

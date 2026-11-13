@@ -1,7 +1,7 @@
 component singleton accessors="true" {
 
-    property name="cache"       inject="cachebox:appCache";
-    property name="utilService" inject="services.util";
+    property name="trainerCache" inject="cachebox:trainerCache";
+    property name="utilService"  inject="services.util";
 
     /**
      * Create the custom pokedex entity
@@ -37,8 +37,7 @@ component singleton accessors="true" {
         entitySave(newCustom);
         ormFlush();
 
-        // Clear the custom list cache
-        cache.clearByKeySnippet("custom.getMine");
+        clearMineCache(trainerid = arguments.trainer.getId(), public = arguments.public);
         return newCustom.getId();
     }
 
@@ -50,19 +49,43 @@ component singleton accessors="true" {
         required string name,
         required boolean public
     ) {
-        var custom = getFromId(arguments.customid);
+        var custom    = getFromId(arguments.customid);
+        var wasPublic = custom.getPublic();
         custom.setName(arguments.name);
         custom.setPublic(arguments.public);
         entitySave(custom);
         ormFlush();
 
-        cache.clearByKeySnippet("custom.getMine");
-        cache.clearByKeySnippet("|pokedex.getCustomRegistered|custom=#arguments.customid#");
+        // Going public or private changes everyone's list
+        clearMineCache(trainerid = custom.getTrainer().getId(), public = wasPublic || arguments.public);
+        clearCustomRegisteredCache(arguments.customid);
         return;
     }
 
     public any function getFromId(required numeric id) {
         return entityLoadByPK("custom", arguments.id);
+    }
+
+    /**
+     * Returns a struct of the pokemon ids in a custom pokedex
+     *
+     * @customid custom pk
+     *
+     * @return { pokemonid: true }
+     */
+    public struct function getCustomPokedexIds(required numeric customid) {
+        return queryExecute(
+            "
+            SELECT pokemonid 
+            FROM custompokedex 
+            WHERE customid = :customid
+            ",
+            {customid: {value: arguments.customid, cfsqltype: "integer"}},
+            {returntype: "array"}
+        ).reduce((ids, row) => {
+            ids["#row.pokemonid#"] = true;
+            return ids;
+        }, {});
     }
 
     /**
@@ -138,7 +161,7 @@ component singleton accessors="true" {
             cacheKey &= "|count=#arguments.count#";
         }
 
-        var custom = cache.get(cacheKey);
+        var custom = trainerCache.get(cacheKey);
         if(isNull(custom)) {
             // Custom pokedex list where you are the creator, or the pokedex is public
             custom = ormExecuteQuery(
@@ -156,7 +179,7 @@ component singleton accessors="true" {
                 options
             );
 
-            cache.set(cacheKey, custom, 5, 5);
+            trainerCache.set(cacheKey, custom, 5, 5);
         }
 
         return custom;
@@ -186,9 +209,11 @@ component singleton accessors="true" {
      * @custom custom object
      */
     public void function delete(required component custom) {
-        var customPokedex = arguments.custom.getCustomPokedex();
+        var customid  = arguments.custom.getId();
+        var trainerid = arguments.custom.getTrainer().getId();
+        var public    = arguments.custom.getPublic();
 
-        // If pokedex entries exist
+        var customPokedex = arguments.custom.getCustomPokedex();
         if(!isNull(customPokedex)) {
             customPokedex.each((customPokedex) => {
                 entityDelete(customPokedex);
@@ -198,8 +223,35 @@ component singleton accessors="true" {
 
         entityDelete(arguments.custom);
         ormFlush();
-        cache.clearByKeySnippet("custom.getMine");
+
+        clearMineCache(trainerid = trainerid, public = public);
+        clearCustomRegisteredCache(customid);
         return;
+    }
+
+    /**
+     * Clear custom.getMine for whoever can see the pokedex - every trainer when it is public, otherwise only its creator
+     *
+     * @trainerid creator
+     * @public    whether the pokedex is (or was) public
+     */
+    private void function clearMineCache(required numeric trainerid, required boolean public) {
+        if(arguments.public) {
+            trainerCache.clearByKeySnippet("\|custom\.getMine(\||$)", true);
+        }
+        else {
+            trainerCache.clearByKeySnippet("^#arguments.trainerid#\|custom\.getMine(\||$)", true);
+        }
+    }
+
+    /**
+     * Clear every trainer's cached registered list for one custom pokedex
+     * Anchored on the end of the key so custom 1 doesn't also clear custom 12, 13...
+     *
+     * @customid custom pk
+     */
+    public void function clearCustomRegisteredCache(required numeric customid) {
+        trainerCache.clearByKeySnippet("\|pokedex\.getCustomRegistered\|custom=#arguments.customid#$", true);
     }
 
     /**

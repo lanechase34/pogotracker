@@ -87,6 +87,28 @@ component {
                         resetTimeoutOnAccess         : false
                     }
                 },
+                /**
+				 * --------------------------------------------------------------------------
+				 * Trainer Cache
+				 * --------------------------------------------------------------------------
+				 * Per trainer data (cached trainer, registered pokedex, stats, medals, custom lists).
+				 * Kept apart from appCache so many active trainers can't evict the expensive shared
+				 * entries (pokemon.getAll, the index). Keys start with "<trainerid>|".
+				 */
+                trainerCache: {
+                    provider  : "coldbox.system.cache.providers.CacheBoxColdBoxProvider",
+                    properties: {
+                        objectDefaultTimeout          : 120,
+                        objectDefaultLastAccessTimeout: 30,
+                        useLastAccessTimeouts         : true,
+                        freeMemoryPercentageThreshold : 0,
+                        reapFrequency                 : 5,
+                        evictionPolicy                : "LRU",
+                        evictCount                    : 5,
+                        maxObjects                    : 10000,
+                        objectStore                   : "ConcurrentStore"
+                    }
+                },
                 appCache: {
                     provider  : "coldbox.system.cache.providers.CacheBoxColdBoxProvider",
                     properties: {

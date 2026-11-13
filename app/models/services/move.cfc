@@ -66,13 +66,17 @@ component singleton accessors="true" {
      * One query for the moves it already has (unq_pokemonmove_pokemonid_moveid), a move listed twice is only added once
      */
     public void function updatePokemonMoves(required component pokemon, required array moves) {
-        var existing = {};
-        ormExecuteQuery(
-            "select pokemonmove.move.id from pokemonmove as pokemonmove where pokemonmove.pokemon = :pokemon",
+        var existing = ormExecuteQuery(
+            "
+            select pokemonmove.move.id 
+            from pokemonmove as pokemonmove 
+            where pokemonmove.pokemon = :pokemon
+            ",
             {pokemon: arguments.pokemon}
-        ).each((moveid) => {
-            existing[moveid] = true;
-        });
+        ).reduce((result, moveid) => {
+            result[moveid] = true;
+            return result;
+        }, {});
 
         arguments.moves.each((move) => {
             var moveid = move.move.getId();

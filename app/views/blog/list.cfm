@@ -13,7 +13,7 @@
                 <img
                     src="/includes/uploads/cards/#currBlog.getImage()#"
                     alt="#currBlog.getAltText()#"
-                    <cfif args.offset EQ 0 AND i EQ 0>fetchpriority="high"</cfif>
+                    <cfif args.offset EQ 0 AND i EQ 1 AND !args.sidebar>fetchpriority="high"</cfif>
                     <cfif args.offset NEQ 0 OR i GT 3>loading="lazy"</cfif>
                     class="blogImage rounded-top"
                 >

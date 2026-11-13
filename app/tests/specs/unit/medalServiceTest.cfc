@@ -132,23 +132,23 @@ component extends="tests.resources.baseTest" asyncAll="false" {
 
             describe("Progress cache", () => {
                 beforeEach(() => {
-                    cache    = getInstance("cachebox:appCache");
-                    cacheKey = "#trainer.getId()#|medal.getProgress";
-                    cache.clear(cacheKey);
+                    trainerCache = getInstance("cachebox:trainerCache");
+                    cacheKey     = "#trainer.getId()#|medal.getProgress";
+                    trainerCache.clear(cacheKey);
                 });
 
                 afterEach(() => {
-                    cache.clear(cacheKey);
+                    trainerCache.clear(cacheKey);
                 });
 
                 it("Caches progress on first load", () => {
                     expect(medalService.getProgress(trainer)).toBeArray();
-                    expect(cache.get(cacheKey)).notToBeNull();
+                    expect(trainerCache.get(cacheKey)).notToBeNull();
                 });
 
                 it("Returns the cached value instead of querying again", () => {
                     // A sentinel in the cache can only come back if the query is skipped
-                    cache.set(cacheKey, ["cached"], 10, 10);
+                    trainerCache.set(cacheKey, ["cached"], 10, 10);
                     expect(medalService.getProgress(trainer)).toBe(["cached"]);
                 });
             });

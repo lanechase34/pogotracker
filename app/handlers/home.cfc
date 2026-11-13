@@ -7,6 +7,7 @@ component extends="base" {
         contact    : "POST"
     };
 
+    property name="blogService"  inject="services.blog";
     property name="emailService" inject="services.email";
 
     /**
@@ -21,6 +22,10 @@ component extends="base" {
      */
     function home(event, rc, prc) {
         prc.suppressH1 = true; // hero title is the h1
+
+        // First blog batch renders with the page
+        prc.blogCount = 6;
+        prc.blogs     = blogService.get(count = prc.blogCount, offset = 0);
     }
 
     /**
@@ -43,9 +48,10 @@ component extends="base" {
         }
 
         emailService.sendContact(
-            email   = prc.oCurrentUser.getEmail(),
-            subject = rc.subject,
-            message = rc.message
+            email     = prc.oCurrentUser.getEmail(),
+            subject   = rc.subject,
+            message   = rc.message,
+            trainerid = prc.oCurrentUser.getId()
         );
         jsonOk(event = event);
     }

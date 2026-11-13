@@ -121,6 +121,30 @@ html {
     font-size: 1rem;
 }
 
+/*
+ * Buttons whose label changes (Copied, Locked) - every label sits in the same grid cell and only the
+ * active one is visible, so the button is always as wide as its longest label without measuring in JS
+ */
+.label-swap {
+    display: inline-grid;
+    align-items: center;
+    justify-items: center;
+}
+
+.dropdown-item.label-swap {
+    display: grid;
+    justify-items: start;
+}
+
+.label-swap > .label-swap-item {
+    grid-area: 1 / 1;
+    white-space: nowrap;
+}
+
+.label-swap > .label-swap-item:not(.active) {
+    visibility: hidden;
+}
+
 .btn-adjust {
     --bs-btn-padding-y: 0.25rem;
     --bs-btn-padding-x: 0.5rem;

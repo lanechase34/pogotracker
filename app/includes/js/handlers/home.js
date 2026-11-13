@@ -1,4 +1,4 @@
-import { $blogListDiv, blogFetchStruct, getBlogs } from 'blog';
+import { $blogListDiv, getBlogs } from 'blog';
 import { getWrapper } from 'fetch';
 import { $loading } from 'loading';
 import { createPokemonSearch } from 'search';
@@ -96,8 +96,8 @@ async function loadHomeCards() {
         calls.push(
             getBlogs({
                 $div: $blogListDiv,
-                count: blogFetchStruct.count,
-                offset: 0,
+                // The first batch is server rendered
+                offset: parseInt($blogListDiv.dataset.offset ?? '0'),
                 showImage: true,
                 exclude: -1,
                 sidebar: false,

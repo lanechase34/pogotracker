@@ -1,6 +1,7 @@
 component singleton accessors="true" {
 
-    property name="cache" inject="cachebox:appCache";
+    property name="cache"        inject="cachebox:appCache";
+    property name="trainerCache" inject="cachebox:trainerCache";
 
     private void function create(required struct medalProperties) {
         var newMedal = entityNew("medal", arguments.medalProperties);
@@ -51,7 +52,7 @@ component singleton accessors="true" {
      */
     public array function getProgress(required component trainer) {
         var cacheKey      = "#arguments.trainer.getId()#|medal.getProgress";
-        var medalProgress = cache.get(cacheKey);
+        var medalProgress = trainerCache.get(cacheKey);
 
         if(isNull(medalProgress)) {
             medalProgress = ormExecuteQuery(
@@ -64,7 +65,7 @@ component singleton accessors="true" {
                 {"trainer": arguments.trainer}
             );
 
-            cache.set(cacheKey, medalProgress, 10, 10);
+            trainerCache.set(cacheKey, medalProgress, 10, 10);
         }
 
         return medalProgress;
@@ -97,7 +98,7 @@ component singleton accessors="true" {
         );
 
         // Clear the cache
-        cache.clear("#arguments.trainer.getId()#|medal.getProgress");
+        trainerCache.clear("#arguments.trainer.getId()#|medal.getProgress");
         return;
     }
 

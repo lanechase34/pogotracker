@@ -1,4 +1,4 @@
-import { copyString, lockButtonWidth, lockCopyButtonWidth, removeDuplicates } from 'copy';
+import { copyString, removeDuplicates, showSwapLabel } from 'copy';
 import { escapeHtml } from 'escape';
 import { getWrapper, postWrapper } from 'fetch';
 import { $loading, $loadingModal } from 'loading';
@@ -34,8 +34,8 @@ const fetchStruct = {
     count: 0,
     counter: 0,
     loadingList: false,
-    scrollHandler: () => {},
-    resizeHandler: () => {},
+    /** @type {IntersectionObserver | null} */
+    observer: null,
 };
 
 /**
@@ -172,11 +172,7 @@ function toggleLock() {
     document.body.classList.toggle('pokedex-locked', pokedexStruct.lock === 'true');
 
     Array.from($pokedexLock).forEach((btn) => {
-        if (pokedexStruct.lock === 'true') {
-            btn.innerHTML = '<i class="bi bi-lock me-1"></i>Locked';
-        } else {
-            btn.innerHTML = '<i class="bi bi-unlock me-1"></i>Unlocked';
-        }
+        showSwapLabel(btn, pokedexStruct.lock === 'true' ? 'locked' : 'unlocked');
     });
 }
 
@@ -255,38 +251,71 @@ async function fetchCustomPokedexList(counter) {
         url: `/pokedex/customPokedexList/offset/${counter}`,
         $loadingDiv: $nextGroup,
         loading: $loading,
-        dataHandler: async (data) => {
+        dataHandler: (data) => {
             $nextGroup.insertAdjacentHTML('afterend', data);
             $nextGroup.remove();
 
             createEditEvent(counter);
 
             fetchStruct.counter += fetchStruct.count;
-
-            if (window.innerHeight > document.getElementById('mainSection').scrollHeight) {
-                await fetchCustomPokedexList(fetchStruct.counter);
-            }
         },
     });
 }
 
-async function switchCustomPokedex() {
+/**
+ * Infinite scroll for the custom pokedex list - each page ends with a #nextGroup{offset} placeholder
+ * Loads the next page once that placeholder is within 150px of the viewport (right away if the page
+ * doesn't fill the window) and stops once a page comes back without one
+ */
+function observeCustomPokedexList() {
+    fetchStruct.observer?.disconnect();
+
+    const observer = new IntersectionObserver(
+        async (entries) => {
+            if (!entries.some((entry) => entry.isIntersecting) || fetchStruct.loadingList) return;
+            observer.disconnect();
+
+            const counter = fetchStruct.counter;
+            fetchStruct.loadingList = true;
+            await fetchCustomPokedexList(counter);
+            fetchStruct.loadingList = false;
+
+            const $nextGroup = document.getElementById(`nextGroup${fetchStruct.counter}`);
+            if (!$nextGroup) return;
+
+            if (fetchStruct.counter === counter) {
+                // Fetch failed and the same placeholder is still in view - wait for the next scroll instead of retrying in a loop
+                window.addEventListener('scroll', () => observer.observe($nextGroup), { once: true, passive: true });
+            } else {
+                observer.observe($nextGroup);
+            }
+        },
+        { rootMargin: '0px 0px 150px 0px' }
+    );
+    fetchStruct.observer = observer;
+
+    const $nextGroup = document.getElementById(`nextGroup${fetchStruct.counter}`);
+    if ($nextGroup) observer.observe($nextGroup);
+}
+
+/**
+ * @param {object} [options]
+ * @param {boolean} [options.prerendered] - grid was rendered with the page, attach to it instead of fetching
+ */
+async function switchCustomPokedex({ prerendered = false } = {}) {
+    // First load - the server already rendered this grid into the page
+    if (prerendered && $customPokedexTable.querySelector('#pokedexGrid')) {
+        initPokedexGrid($customPokedexTable);
+        return;
+    }
+
     return await getWrapper({
         url: `/pokedex/getCustomPokedex/trainerid/${customtrainerid}/customid/${customid}/shiny/${pokedexStruct.shiny}/hundo/false`,
         $loadingDiv: $customPokedexTable,
         loading: $loading,
         dataHandler: (data) => {
             $customPokedexTable.innerHTML = data;
-
-            pokedexStruct.view =
-                /** @type {HTMLElement} */ (document.querySelector('#pokedexGrid'))?.dataset?.view ?? 'none';
-            createRegisterEvent($customPokedexTable);
-
-            const currRegistered = document.getElementById('registeredCount').dataset;
-
-            pokedexStruct.registered = currRegistered.registered;
-            pokedexStruct.total = currRegistered.total;
-            updateRegistered();
+            initPokedexGrid($customPokedexTable);
         },
     });
 }
@@ -586,14 +615,12 @@ function copySearchString($btns, missing) {
 export const runtime = {
     all: () => {
         Array.from($copySearchStringBtn).forEach((btn) => {
-            lockCopyButtonWidth(btn);
             btn.addEventListener('click', () => {
                 copySearchString($copySearchStringBtn, false);
             });
         });
 
         Array.from($copyMissingSearchStringBtn).forEach((btn) => {
-            lockCopyButtonWidth(btn);
             btn.addEventListener('click', () => {
                 copySearchString($copyMissingSearchStringBtn, true);
             });
@@ -602,9 +629,8 @@ export const runtime = {
         document.body.classList.toggle('pokedex-locked', pokedexStruct.lock === 'true');
 
         Array.from($pokedexLock).forEach((btn) => {
-            lockButtonWidth(btn, '<i class="bi bi-lock me-1"></i>Unlocked');
             if (pokedexStruct.lock === 'true') {
-                btn.innerHTML = '<i class="bi bi-lock me-1"></i>Locked';
+                showSwapLabel(btn, 'locked');
             }
             btn.addEventListener('click', () => {
                 toggleLock();
@@ -660,7 +686,7 @@ export const runtime = {
     },
     mycustompokedex: () => {
         pokedexStruct.shiny = $customPokedexTable.dataset.shiny === 'true';
-        switchCustomPokedex();
+        switchCustomPokedex({ prerendered: true });
     },
     custompokedexlist: () => {
         $addCustomPokedexBtn.addEventListener('click', async () => {
@@ -678,31 +704,7 @@ export const runtime = {
 
         // start at defined count
         fetchStruct.counter = fetchStruct.count;
-
-        if (window.innerHeight > document.getElementById('mainSection').scrollHeight) {
-            fetchCustomPokedexList(fetchStruct.counter);
-        }
-
-        const scrollHandler = async () => {
-            const atBottom =
-                document.getElementById('mainSection').getBoundingClientRect().bottom <= window.innerHeight + 150;
-            if (atBottom && !fetchStruct.loadingList) {
-                fetchStruct.loadingList = true;
-                await fetchCustomPokedexList(fetchStruct.counter);
-                fetchStruct.loadingList = false;
-            }
-        };
-
-        // Remove old listeners before adding new ones
-        window.removeEventListener('scroll', fetchStruct.scrollHandler);
-        window.removeEventListener('resize', fetchStruct.resizeHandler);
-
-        fetchStruct.scrollHandler = scrollHandler;
-        fetchStruct.resizeHandler = scrollHandler;
-
-        // Listen on scroll and window resize
-        window.addEventListener('scroll', fetchStruct.scrollHandler);
-        window.addEventListener('resize', fetchStruct.resizeHandler);
+        observeCustomPokedexList();
 
         createCustomSearch('customSearch', 'Search a Pokedex...', true, '');
     },

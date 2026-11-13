@@ -244,6 +244,14 @@ component extends="base" secured="user" {
         prc.name   = prc.custom.getName();
 
         prc.header = "#encodeForHTML(prc.name)#";
+
+        // First grid renders with the page
+        prc.pokedexTableArgs = buildCustomPokedexTableArgs(
+            trainer = prc.trainer,
+            custom  = prc.custom,
+            shiny   = rc.shiny,
+            hundo   = false
+        );
     }
 
     /**
@@ -273,23 +281,38 @@ component extends="base" secured="user" {
             return;
         }
 
-        prc.pokedexView = rc.shiny ? "shiny" : rc.hundo ? "hundo" : "caught";
-        prc.custom      = prc.custom[1];
-        prc.name        = prc.custom.getName();
-
-        prc.pokedex = pokedexService.getCustomRegistered(trainer = prc.trainer, custom = prc.custom);
+        prc.custom = prc.custom[1];
+        prc.name   = prc.custom.getName();
 
         event.setView(
             view     = "/views/pokedex/pokedextable",
             nolayout = true,
-            args     = {
-                pokedex    : prc.pokedex,
-                pokedexView: prc.pokedexView,
-                shiny      : rc.shiny,
-                hundo      : rc.hundo,
-                shadow     : false
-            }
+            args     = buildCustomPokedexTableArgs(
+                trainer = prc.trainer,
+                custom  = prc.custom,
+                shiny   = rc.shiny,
+                hundo   = rc.hundo
+            )
         );
+    }
+
+    /**
+     * Build the args for /views/pokedex/pokedextable from a custom pokedex
+     * Shared by myCustomPokedex (first render) and getCustomPokedex (shiny toggle)
+     */
+    private struct function buildCustomPokedexTableArgs(
+        required component trainer,
+        required component custom,
+        boolean shiny = false,
+        boolean hundo = false
+    ) {
+        return {
+            pokedex    : pokedexService.getCustomRegistered(trainer = arguments.trainer, custom = arguments.custom),
+            pokedexView: arguments.shiny ? "shiny" : arguments.hundo ? "hundo" : "caught",
+            shiny      : arguments.shiny,
+            hundo      : arguments.hundo,
+            shadow     : false
+        };
     }
 
     /**
@@ -355,17 +378,10 @@ component extends="base" secured="user" {
             return;
         }
 
-        prc.custom  = customService.get(parseNumber(rc.customid), prc.oCurrentUser)[1];
-        prc.pokemon = pokemonService.getAll();
-
-        prc.customPokedex = {};
-        prc.custom
-            .getCustomPokedex()
-            .each((pokedex) => {
-                prc.customPokedex["#pokedex.getPokemon().getId()#"] = true;
-            });
-
-        prc.header = "Editing #encodeForHTML(prc.custom.getName())#";
+        prc.custom        = customService.get(parseNumber(rc.customid), prc.oCurrentUser)[1];
+        prc.pokemon       = pokemonService.getAll();
+        prc.customPokedex = customService.getCustomPokedexIds(prc.custom.getId());
+        prc.header        = "Editing #encodeForHTML(prc.custom.getName())#";
         event.setView(
             view     = "/views/pokedex/modal/custompokedexform",
             nolayout = true,

@@ -438,4 +438,29 @@ component singleton accessors="true" {
         return image;
     }
 
+    /**
+     * Pixel size of an uploaded image, read from its header once and cached
+     * Lets views put width/height on the img so the page doesn't jump when it loads
+     *
+     * @path full path to the image
+     *
+     * @return {width, height}, empty when the file is missing or unreadable
+     */
+    public struct function getImageSize(required string path) {
+        var cacheKey = "blog.getImageSize|#arguments.path#";
+        var size     = cache.get(cacheKey);
+        if(!isNull(size)) return size;
+
+        try {
+            size = imageService.getDimensions(arguments.path);
+        }
+        catch(any e) {
+            size = {};
+        }
+
+        // Upload names are unique, so a file's size never changes
+        cache.set(cacheKey, size, 0, 0);
+        return size;
+    }
+
 }

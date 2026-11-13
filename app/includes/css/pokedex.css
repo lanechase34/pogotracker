@@ -22,6 +22,18 @@ body:not(.pokedex-locked) .pokemonCell:hover {
     background-color: #8fd9a8;
 }
 
+/* Shadow badge - same placement as .shadowIcon in global.css, one cached background instead of an img per cell */
+.shadowCell::after {
+    content: '';
+    position: absolute;
+    width: 40px;
+    height: 40px;
+    top: 58%;
+    left: 55%;
+    background: url('/includes/images/shadow-pokemon.webp') center / contain no-repeat;
+    pointer-events: none;
+}
+
 .pokemonCell.caught:hover {
     background-color: #6dcc8e;
 }

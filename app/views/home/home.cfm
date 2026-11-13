@@ -9,7 +9,9 @@
         <div class="home-section-label">
             <i class="bi bi-book-half fs-5"></i>Recent Blogs
         </div>
-        <div id="blogList"></div>
+        <div id="blogList" data-offset="#prc.blogCount#">
+            <div>#view(view="/views/blog/list", args={blogs: prc.blogs, showimage: true, offset: 0, exclude: -1, sidebar: false})#</div>
+        </div>
     </section>
 
     <!--- Upcoming Events --->

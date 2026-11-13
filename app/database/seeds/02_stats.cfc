@@ -2,7 +2,7 @@ component extends="base" {
 
     function run(qb, mockdata) {
         var data  = [];
-        var total = 300;
+        var total = 500;
 
         for(var i = 1; i <= total; i++) {
             data.append({
@@ -11,7 +11,7 @@ component extends="base" {
                 "spun"     : randRange(100, 100000),
                 "walked"   : randRange(100, 100000),
                 "xp"       : randRange(100, 100000),
-                "trainerid": 1
+                "trainerid": randRange(1, 3)
             });
         };
 

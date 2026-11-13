@@ -1,6 +1,7 @@
 component singleton accessors="true" {
 
-    property name="mailService" inject="MailService@cbmailservices";
+    property name="auditService" inject="provider:services.audit";
+    property name="mailService"  inject="MailService@cbmailservices";
 
     property name="contactEmail" inject="coldbox:setting:contactEmail";
     property name="mailServer" inject="coldbox:setting:mailServer" getter="false" setter="false";
@@ -28,17 +29,20 @@ component singleton accessors="true" {
     /**
      * Send a user contact email - contains feedback and email from user
      *
-     * @email   User's email
-     * @subject Email subject
-     * @message Email content
+     * @email     User's email
+     * @subject   Email subject
+     * @message   Email content
+     * @trainerid Trainer submitting the form
      */
     public void function sendContact(
         required string email,
         required string subject,
-        required string message
+        required string message,
+        numeric trainerid = -1
     ) {
         mailService
             .newMail(to: getContactEmail(), subject: "User Submitted Feedback")
+            .setAdditionalInfoItem("audit", getAuditContext(event = "email.contact", trainerid = arguments.trainerid))
             .setView(
                 view: "email/contact",
                 args: {
@@ -59,6 +63,7 @@ component singleton accessors="true" {
     public void function sendBug(required struct error, required struct requestContext) {
         mailService
             .newMail(to: getContactEmail(), subject: "BUG Found")
+            .setAdditionalInfoItem("audit", getAuditContext(event = "email.bug"))
             .setView(
                 view: "email/bug",
                 args: {
@@ -125,6 +130,7 @@ component singleton accessors="true" {
     ) {
         mailService
             .newMail(to: arguments.email, subject: "Reset POGO Tracker Password")
+            .setAdditionalInfoItem("audit", getAuditContext(event = "email.resetPassword"))
             .setView(
                 view: "email/resetpassword",
                 args: {
@@ -152,6 +158,7 @@ component singleton accessors="true" {
     ) {
         mailService
             .newMail(to: arguments.email, subject: "POGO Tracker Verification Code")
+            .setAdditionalInfoItem("audit", getAuditContext(event = "email.verificationCode"))
             .setView(
                 view: "email/verificationcode",
                 args: {
@@ -170,10 +177,33 @@ component singleton accessors="true" {
     public void function sendTestEmail() {
         mailService
             .newMail(to: getContactEmail(), subject: "Sending a test email!")
+            .setAdditionalInfoItem("audit", getAuditContext(event = "email.test"))
             .setBody("
                 Sending an email from the testing server! #now()# #createUUID()#
             ")
             .send();
+    }
+
+    /**
+     * Request info for the email audit, captured while the request is still around
+     * Never throws - a mail sent from a scheduler thread has no request to read, so it falls back to empty values
+     *
+     * @event     Audit event name
+     * @trainerid Trainer the email belongs to, -1 for none
+     */
+    private struct function getAuditContext(required string event, numeric trainerid = -1) {
+        try {
+            return auditService.getAuditObj(trainerid = arguments.trainerid, event = arguments.event);
+        }
+        catch(any e) {
+            return {
+                ip       : "-1",
+                event    : arguments.event,
+                referer  : "",
+                agent    : "",
+                trainerid: arguments.trainerid
+            };
+        }
     }
 
 }

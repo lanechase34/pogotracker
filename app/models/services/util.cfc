@@ -27,6 +27,22 @@ component singleton accessors="true" {
     };
 
     /**
+     * Human readable file size - 512 B, 14.2 KB, 3.1 MB
+     *
+     * @bytes size in bytes
+     */
+    public string function formatBytes(required numeric bytes) {
+        var units = ["B", "KB", "MB", "GB", "TB"];
+        var value = arguments.bytes;
+        var unit  = 1;
+        while(value >= 1024 && unit < units.len()) {
+            value /= 1024;
+            unit++;
+        }
+        return unit == 1 ? "#value# B" : "#numberFormat(value, value < 10 ? "0.0" : "0")# #units[unit]#";
+    }
+
+    /**
      * Capitalize the first letter of each word in a sentence string
      *
      * @sentence  the string
@@ -270,13 +286,8 @@ component singleton accessors="true" {
      * Sorted union of the keys of two structs
      */
     private array function sortedKeyUnion(required struct a, required struct b) {
-        var union = {};
-        arguments.a.each((key) => {
-            union[key] = true;
-        });
-        arguments.b.each((key) => {
-            union[key] = true;
-        });
+        var union = arguments.a.copy();
+        union.append(arguments.b);
         return sortJsonKeys(union.keyArray());
     }
 
@@ -432,6 +443,34 @@ component singleton accessors="true" {
             message      = variables.UNIQUE_MESSAGES[constraint] ?: "That value is already in use.",
             extendedInfo = constraint
         );
+    }
+
+    /**
+     * Escape text so it matches literally inside a regex
+     * Used to anchor cache clears (clearByKeySnippet with regex) on an exact key segment
+     */
+    public string function escapeRegex(required string text) {
+        var escaped = replace(arguments.text, "\", "\\", "all");
+        for(
+            var char in [
+                ".",
+                "[",
+                "]",
+                "{",
+                "}",
+                "(",
+                ")",
+                "*",
+                "+",
+                "?",
+                "^",
+                "$",
+                "|"
+            ]
+        ) {
+            escaped = replace(escaped, char, "\" & char, "all");
+        }
+        return escaped;
     }
 
 }

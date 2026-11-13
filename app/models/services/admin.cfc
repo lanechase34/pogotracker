@@ -5,6 +5,7 @@ component singleton accessors="true" {
     property name="auditService"      inject="services.audit";
     property name="blogService"       inject="services.blog";
     property name="cache"             inject="cachebox:appCache";
+    property name="trainerCache"      inject="cachebox:trainerCache";
     property name="customService"     inject="services.custom";
     property name="generationService" inject="services.generation";
     property name="medalService"      inject="services.medal";
@@ -542,13 +543,12 @@ component singleton accessors="true" {
 
                 // Clean up duplicate evos
                 var evoMap         = {};
-                pokemon.evolutions = pokemon.evolutions.each((evolution) => {
+                pokemon.evolutions = pokemon.evolutions.map((evolution) => {
                     // Account for gender evolutions
-                    var safeName = evolution.name;
-                    if(findNoCase("male", safeName)) {
-                        safeName = listToArray(safeName, " ")[1];
+                    if(findNoCase("male", evolution.name)) {
+                        evolution.name = listToArray(evolution.name, " ")[1];
                     }
-                    evolution.name = safeName;
+                    return evolution;
                 });
                 pokemon.evolutions = pokemon.evolutions.filter((evolution) => {
                     // Check that this key isn't already inserted
@@ -1398,9 +1398,8 @@ component singleton accessors="true" {
         // Update the spawns
         customService.createCustomPokedex(custom, pokemon);
 
-        // Clear the cache
-        cache.clearByKeySnippet("custom.getMine");
-        cache.clearByKeySnippet("|pokedex.getCustomRegistered|custom=#custom.getId()#");
+        // Only the entries changed - customService.create already cleared the lists if this event is new
+        customService.clearCustomRegisteredCache(custom.getId());
         return;
     }
 
@@ -1756,14 +1755,17 @@ component singleton accessors="true" {
 
     /**
      * Returns query of logs from lucee and commandbox runtimes
+     *
+     * @includeArchives include rotated .zip archives - they can't be previewed, so only the download all zip wants them
      */
-    public query function getLogs() {
+    public query function getLogs(boolean includeArchives = false) {
         // Commandbox output logs
         var cbLogs = directoryList(
             path    : "#getLogPath()#/../logs",
             recurse : false,
             listInfo: "query",
-            sort    : ""
+            sort    : "",
+            type    : "file"
         );
 
         // Lucee server logs
@@ -1771,54 +1773,320 @@ component singleton accessors="true" {
             path    : "#getLogPath()#/lucee-server/context/logs",
             recurse : false,
             listInfo: "query",
-            sort    : ""
+            sort    : "",
+            type    : "file"
         );
 
-        // Combine results and return
-        return queryExecute(
+        // Combine results - source names the folder each log lives in (zip subfolder)
+        var logs = queryExecute(
             "
-            select name, size, type, dateLastModified, attributes, mode, directory
+            select name, size, type, dateLastModified, attributes, mode, directory, 'server' as source
             from cbLogs
             union
-            select name, size, type, dateLastModified, attributes, mode, directory
+            select name, size, type, dateLastModified, attributes, mode, directory, 'lucee' as source
             from serverLogs
             order by dateLastModified desc
         ",
             {},
             {dbtype: "query"}
         );
+
+        // Empty logs have nothing to show or download
+        var withArchives = arguments.includeArchives;
+        return logs.filter((row) => {
+            return row.size > 0 && (withArchives || listLast(row.name, ".") != "zip");
+        });
     }
 
     /**
-     * Read a log file and save contents
+     * Log list shaped for the viewer sidebar - formatted size and modified labels per file
      */
-    public string function readLog(
-        required string filename,
-        required numeric start,
-        required numeric end
+    public array function getLogList() {
+        return getLogs().reduce((logs, row) => {
+            return logs.append({
+                name         : row.name,
+                size         : row.size,
+                sizeLabel    : utilService.formatBytes(row.size),
+                modifiedLabel: dateTimeFormat(row.dateLastModified, "mmm d, h:nn tt"),
+                modifiedFull : dateTimeFormat(row.dateLastModified, "mmm d, yyyy h:nn tt")
+            });
+        }, []);
+    }
+
+    /**
+     * Absolute path of a listed log file, empty when the name isn't one of getLogs()
+     * Only names from the directory listing resolve, so a crafted filename can't reach outside the log folders
+     *
+     * @filename log file name as shown in the log viewer
+     */
+    public string function resolveLogPath(required string filename) {
+        var logs = getLogs();
+        for(var row in logs) {
+            if(row.name == arguments.filename) return "#row.directory#/#row.name#";
+        }
+        return "";
+    }
+
+    /**
+     * Read one chunk of a log file by byte offset, cut on line boundaries so no line is split between chunks
+     * Seeks straight to the offset, so reading the end of a large log costs the same as reading the start
+     * Carriage returns are kept so the page can count each line's exact byte length
+     *
+     * @path      absolute log path from resolveLogPath
+     * @offset    forward: byte to start reading at; backward: byte to stop reading at (-1 = end of file)
+     * @direction forward reads toward the end of the file, backward toward the start
+     * @chunkSize max bytes to read
+     *
+     * @return { lines, start, end, size } - start/end are the byte range the lines cover, feed them back as the next offset
+     */
+    public struct function readLogChunk(
+        required string path,
+        numeric offset    = 0,
+        string direction  = "forward",
+        numeric chunkSize = 65536
     ) {
-        var logContent = "";
+        var raf = createObject("java", "java.io.RandomAccessFile").init(arguments.path, "r");
+        try {
+            var channel = raf.getChannel();
+            var size    = channel.size();
 
-        var logFile = "";
-        // Commandbox log
-        if(fileExists("#getLogPath()#/../logs/#arguments.filename#")) {
-            logFile = fileOpen("#getLogPath()#/../logs/#arguments.filename#");
+            var start = 0;
+            var end   = 0;
+            if(arguments.direction == "backward") {
+                end   = (arguments.offset < 0 || arguments.offset > size) ? size : arguments.offset;
+                start = max(0, end - arguments.chunkSize);
+            }
+            else {
+                start = min(max(arguments.offset, 0), size);
+                end   = min(start + arguments.chunkSize, size);
+            }
+
+            if(end <= start) {
+                return {
+                    lines: [],
+                    start: start,
+                    end  : start,
+                    size : size
+                };
+            }
+
+            var bytes = readLogBytes(channel, start, end - start);
         }
-        // Lucee server log
-        else if(fileExists("#getLogPath()#/lucee-server/context/logs/#arguments.filename#")) {
-            logFile = fileOpen("#getLogPath()#/lucee-server/context/logs/#arguments.filename#");
+        finally {
+            raf.close();
         }
 
-        if(!isStruct(logFile)) return logContent;
+        var filled    = len(bytes);
+        var latin     = bytesToLatin(bytes);
+        var keepStart = 0;
+        var keepEnd   = filled;
 
-        for(var i = 1; i <= arguments.end; i++) {
-            if(fileIsEOF(logFile)) break;
-            var currLine = fileReadLine(logFile);
-            if(i < arguments.start) continue;
-            logContent &= "#encodeForHTML(currLine)# <br>";
+        // Mid-file chunk edges land inside a line - drop the partial line so the next read picks it up whole
+        // A chunk with no usable line break (one giant line) is kept as is
+        if(arguments.direction == "backward" && start > 0) {
+            var firstBreak = find(chr(10), latin);
+            // A break only at the very end would keep nothing and the next backward read would never move
+            if(firstBreak && firstBreak < filled) keepStart = firstBreak;
+        }
+        else if(arguments.direction == "forward" && start + filled < size) {
+            var lastBreak = find(chr(10), reverse(latin));
+            if(lastBreak) keepEnd = filled - lastBreak + 1;
         }
 
-        return logContent;
+        var text = createObject("java", "java.lang.String").init(
+            bytes,
+            javacast("int", keepStart),
+            javacast("int", keepEnd - keepStart),
+            "UTF-8"
+        );
+        var lines = listToArray(text, chr(10), true);
+        // Trailing line break leaves an empty last field
+        if(lines.len() && right(text, 1) == chr(10)) lines.deleteAt(lines.len());
+
+        return {
+            lines: lines,
+            start: start + keepStart,
+            end  : start + keepEnd,
+            size : size
+        };
+    }
+
+    /**
+     * Find the next or previous case-insensitive match in a log, scanning the file in 1MB chunks
+     *
+     * @path      absolute log path from resolveLogPath
+     * @query     text to find
+     * @offset    forward: first byte a match may start at; backward: matches must start before this byte (-1 = end of file)
+     * @direction forward or backward
+     * @chunkSize bytes scanned per read
+     *
+     * @return { found, offset, lineStart, size } - offset is the match's first byte, lineStart the first byte of its line
+     */
+    public struct function searchLog(
+        required string path,
+        required string query,
+        numeric offset    = 0,
+        string direction  = "forward",
+        numeric chunkSize = 1048576
+    ) {
+        // Same one-char-per-byte form as the scanned text so match positions are byte offsets
+        // Lowercasing latin-1 never changes a string's length, so positions survive it
+        var needle    = lCase(charsetEncode(charsetDecode(arguments.query, "utf-8"), "iso-8859-1"));
+        var needleLen = len(needle);
+        var haystack  = "";
+        var hit       = 0;
+        var result    = {
+            found    : false,
+            offset   : -1,
+            lineStart: -1,
+            size     : 0
+        };
+
+        var raf = createObject("java", "java.io.RandomAccessFile").init(arguments.path, "r");
+        try {
+            var channel = raf.getChannel();
+            var size    = channel.size();
+            result.size = size;
+
+            if(arguments.direction == "backward") {
+                var end = (arguments.offset < 0 || arguments.offset > size) ? size : arguments.offset;
+                while(end > 0) {
+                    var start   = max(0, end - arguments.chunkSize);
+                    // Read past end by needleLen - 1 so a match starting just before end is still whole
+                    var readEnd = min(size, end + needleLen - 1);
+                    haystack    = lCase(bytesToLatin(readLogBytes(channel, start, readEnd - start)));
+                    hit         = find(reverse(needle), reverse(haystack));
+                    if(hit) {
+                        result.offset = start + len(haystack) - hit - needleLen + 1;
+                        break;
+                    }
+                    end = start;
+                }
+            }
+            else {
+                var position = min(max(arguments.offset, 0), size);
+                while(position < size) {
+                    var length = min(arguments.chunkSize, size - position);
+                    haystack   = lCase(bytesToLatin(readLogBytes(channel, position, length)));
+                    hit        = find(needle, haystack);
+                    if(hit) {
+                        result.offset = position + hit - 1;
+                        break;
+                    }
+                    if(position + length >= size) break;
+                    // Overlap the next read so a match across the chunk edge is still found
+                    position += max(1, length - needleLen + 1);
+                }
+            }
+
+            if(result.offset >= 0) {
+                result.found     = true;
+                result.lineStart = findLineStart(channel, result.offset);
+            }
+        }
+        finally {
+            raf.close();
+        }
+
+        return result;
+    }
+
+    /**
+     * First byte of the line holding position - looks back at most 64KB, past that the line is too long to matter
+     */
+    private numeric function findLineStart(required any channel, required numeric position) {
+        var start = max(0, arguments.position - 65536);
+        if(arguments.position <= start) return start;
+
+        var latin = bytesToLatin(
+            readLogBytes(
+                arguments.channel,
+                start,
+                arguments.position - start
+            )
+        );
+        var lastBreak = find(chr(10), reverse(latin));
+        return lastBreak ? start + len(latin) - lastBreak + 1 : start;
+    }
+
+    /**
+     * Read length bytes from position - fewer when the file ends first
+     */
+    private any function readLogBytes(
+        required any channel,
+        required numeric position,
+        required numeric length
+    ) {
+        var buffer = createObject("java", "java.nio.ByteBuffer").allocate(javacast("int", arguments.length));
+        var cursor = arguments.position;
+        while(buffer.hasRemaining()) {
+            var bytesRead = arguments.channel.read(buffer, javacast("long", cursor));
+            if(bytesRead <= 0) break;
+            cursor += bytesRead;
+        }
+
+        var bytes = buffer.array();
+        if(buffer.position() == arguments.length) return bytes;
+        return createObject("java", "java.util.Arrays").copyOf(bytes, javacast("int", buffer.position()));
+    }
+
+    /**
+     * ISO-8859-1 maps every byte to one char, so string positions are byte positions
+     */
+    private string function bytesToLatin(required any bytes) {
+        return createObject("java", "java.lang.String").init(arguments.bytes, "ISO-8859-1");
+    }
+
+    /**
+     * Zip every log (rotated .zip archives included) into the temp directory, server/ and lucee/ subfolders keep same-named logs apart
+     * Logs are copied first so files still being written are archived as a consistent snapshot
+     *
+     * @return absolute path of the zip - the caller is responsible for deleting it
+     */
+    public string function zipLogs() {
+        var workDir = "#getTempDirectory()#/logs-#createUUID()#";
+        var zipPath = "#workDir#.zip";
+        directoryCreate("#workDir#/server", true, true);
+        directoryCreate("#workDir#/lucee", true, true);
+
+        try {
+            for(var row in getLogs(includeArchives = true)) {
+                fileCopy("#row.directory#/#row.name#", "#workDir#/#row.source#/#row.name#");
+            }
+            cfzip(
+                action    = "zip",
+                file      = zipPath,
+                source    = workDir,
+                recurse   = true,
+                overwrite = true
+            );
+        }
+        catch(any e) {
+            if(fileExists(zipPath)) fileDelete(zipPath);
+            rethrow;
+        }
+        finally {
+            directoryDelete(workDir, true);
+        }
+
+        return zipPath;
+    }
+
+    /**
+     * Copy one log to the temp directory so it downloads as a snapshot
+     * Streaming the live file breaks the download when the log grows past the content-length sent up front
+     *
+     * @path absolute log path from resolveLogPath
+     *
+     * @return absolute path of the copy - the caller is responsible for deleting it
+     */
+    public string function snapshotLog(required string path) {
+        var name = getFileFromPath(arguments.path);
+        // sendFile takes the extension from everything after the last dot in the path - give extensionless logs one
+        if(!name.find(".")) name &= ".log";
+        var copyPath = "#getTempDirectory()#/log-#createUUID()#-#name#";
+        fileCopy(arguments.path, copyPath);
+        return copyPath;
     }
 
     /**
@@ -1923,9 +2191,8 @@ component singleton accessors="true" {
         var w3cDate  = (value) => isDate(value) ? dateFormat(value, "yyyy-mm-dd") : "";
 
         // Pokemon detail pages - greatest() skips nulls, so a pokemon without moves/evolutions/costumes uses its own date
-        var pokemonEntries = [];
-        var newestPokemon  = "";
-        queryExecute("
+        var pokemonRows = queryExecute(
+            "
             select p.ses, p.name, p.sprite,
                 greatest(p.updated, m.updated, e.updated, c.updated) as lastmod
             from pokemon p
@@ -1951,11 +2218,23 @@ component singleton accessors="true" {
             ) c on c.name = p.name and c.number = p.number and c.gender = p.gender
             where p.costume = false
             order by p.generation asc, p.number asc, p.form asc, p.name asc
-        ").each((row) => {
-            if(isDate(row.lastmod) && (!isDate(newestPokemon) || dateCompare(row.lastmod, newestPokemon) > 0)) {
-                newestPokemon = row.lastmod;
-            }
-            pokemonEntries.append({
+        ",
+            {},
+            {returntype: "array"}
+        );
+
+        var newestPokemon = pokemonRows.reduce((newest, row) => {
+            return isDate(row.lastmod)
+            && (
+                !isDate(newest)
+                || dateCompare(row.lastmod, newest) > 0
+            )
+             ? row.lastmod
+             : newest;
+        }, "");
+
+        var pokemonEntries = pokemonRows.map((row) => {
+            return {
                 loc       : "#domain#/pokemon/#row.ses#",
                 lastmod   : w3cDate(row.lastmod),
                 changefreq: "monthly",
@@ -1964,7 +2243,7 @@ component singleton accessors="true" {
                     loc  : "#domain#/includes/images/sprites/#encodeForURL(row.sprite)##getImageExtension()#",
                     title: row.name
                 }
-            });
+            };
         });
 
         entries.append({
@@ -1984,18 +2263,25 @@ component singleton accessors="true" {
         entries.append(pokemonEntries, true);
 
         // Blog pages
-        queryExecute("
-            select header, coalesce(updated, created) as lastmod
-            from blog
-            order by created desc
-        ").each((row) => {
-            entries.append({
-                loc       : "#domain#/readblog/#blogService.getSlug(row.header)#",
-                lastmod   : w3cDate(row.lastmod),
-                changefreq: "monthly",
-                priority  : "0.7"
-            });
-        });
+        entries.append(
+            queryExecute(
+                "
+                select header, coalesce(updated, created) as lastmod
+                from blog
+                order by created desc
+            ",
+                {},
+                {returntype: "array"}
+            ).map((row) => {
+                return {
+                    loc       : "#domain#/readblog/#blogService.getSlug(row.header)#",
+                    lastmod   : w3cDate(row.lastmod),
+                    changefreq: "monthly",
+                    priority  : "0.7"
+                };
+            }),
+            true
+        );
 
         // Build sitemap as a string so we can use the image namespace without
         var lines = [];
@@ -2277,10 +2563,14 @@ component singleton accessors="true" {
         var stats = cache.getStats();
 
         var cacheData    = formatCacheData(cache, "appCache");
+        var trainerData  = formatCacheData(trainerCache, "trainerCache");
         var defaultData  = formatCacheData(defaultCache, "defaultCache");
         var templateData = formatCacheData(templateCache, "templateCache");
 
-        var data = cacheData.append(defaultData, true).append(templateData, true);
+        var data = cacheData
+            .append(trainerData, true)
+            .append(defaultData, true)
+            .append(templateData, true);
 
         var info = {
             lastReapDateTime  : stats.getLastReapDateTime(),

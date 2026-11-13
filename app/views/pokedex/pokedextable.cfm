@@ -27,7 +27,7 @@
                 )
             />
             <cfif caught><cfset registered++></cfif>
-            <div class="col d-flex justify-content-center align-items-center col-6 col-sm-6 col-md-4 col-lg-3 col-xl-2 col-xxl-1 pokemonCell <cfif caught>caught</cfif> parent pokemon-entry"
+            <div class="col d-flex justify-content-center align-items-center col-6 col-sm-6 col-md-4 col-lg-3 col-xl-2 col-xxl-1 pokemonCell <cfif caught>caught</cfif><cfif args.shadow> shadowCell</cfif> parent pokemon-entry"
                 data-id="#currEntry[1].getId()#"
                 data-number="#currEntry[1].getNumber()#"
                 data-name="#currEntry[1].getName()#"
@@ -47,12 +47,12 @@
             >
                 <img 
                     class="pokemonIcon" 
+                    width="#getSetting('pokemonIconSize')#"
+                    height="#getSetting('pokemonIconSize')#"
+                    decoding="async"
                     <cfif i GT 10>loading="lazy"</cfif> 
                     src="/includes/images/<cfif args.shiny>shinysprites<cfelse>sprites</cfif>/#currEntry[1].getSprite()##getSetting('imageExtension')#"
                 >
-                <cfif args.shadow>
-                    <img src="/includes/images/shadow-pokemon#getSetting('imageExtension')#" <cfif i GT 10>loading="lazy"</cfif> class="shadowIcon">
-                </cfif>
 
                 <p class="mt-1 mb-0 small fw-semibold text-center text-capitalize">
                     <cfif currEntry[1].getCostume()>

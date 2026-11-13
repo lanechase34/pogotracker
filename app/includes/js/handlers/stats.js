@@ -1,5 +1,5 @@
 import { createAlert } from 'alert';
-import { copyString, lockCopyButtonWidth } from 'copy';
+import { copyString } from 'copy';
 import { escapeHtml } from 'escape';
 import { getWrapper, postWrapper } from 'fetch';
 import { $loading, $loadingCard, $submitBtn } from 'loading';
@@ -82,9 +82,6 @@ export async function getPokedexStats(trainerid, $div) {
             const $pokedexStatsCard = document.getElementById('pokedexStatsCard');
             const $copyMissing = document.getElementById('copyMissingString');
             const $copyMissingShiny = document.getElementById('copyMissingShinyString');
-
-            lockCopyButtonWidth($copyMissing);
-            lockCopyButtonWidth($copyMissingShiny);
 
             $copyMissing.addEventListener('click', (e) => {
                 copyString([e.currentTarget], $pokedexStatsCard.dataset.missingstring);
@@ -255,17 +252,25 @@ async function getMedalProgress($medalProgressDivToLoad) {
         dataHandler: (data) => {
             $medalProgressDivToLoad.innerHTML = data;
 
-            const $medalFields = document.querySelectorAll('.medalInput');
-            Array.from($medalFields).forEach((input) => {
-                input.addEventListener('blur', () => {
-                    if (validateMedalInput(input)) {
-                        trackMedalProgress(input);
+            // One listener each for every .medalInput - focusout is the bubbling version of blur
+            if ($medalProgressDivToLoad.dataset.medalBound !== 'true') {
+                $medalProgressDivToLoad.dataset.medalBound = 'true';
+                const medalInputFrom = (/** @type {Event} */ evt) =>
+                    /** @type {HTMLInputElement | null} */ (
+                        /** @type {HTMLElement} */ (evt.target).closest('.medalInput')
+                    );
+
+                $medalProgressDivToLoad.addEventListener('focusout', (evt) => {
+                    const $input = medalInputFrom(evt);
+                    if ($input && validateMedalInput($input)) {
+                        trackMedalProgress($input);
                     }
                 });
-                input.addEventListener('input', () => {
-                    validateMedalInput(input);
+                $medalProgressDivToLoad.addEventListener('input', (evt) => {
+                    const $input = medalInputFrom(evt);
+                    if ($input) validateMedalInput($input);
                 });
-            });
+            }
         },
     });
 }
@@ -303,10 +308,6 @@ function renderDeltaTable(stat) {
 }
 
 function changeStat(stat) {
-    if (chartStruct.statLineChart) {
-        chartStruct.statLineChart.destroy();
-    }
-
     renderChart(statLineChartCanvas, stat);
     renderDeltaTable(stat);
 
@@ -427,9 +428,22 @@ async function trackMedalProgress($input) {
     });
 }
 
+/**
+ * Draws the stat line chart - built once, later stat switches swap the data in place
+ */
 function renderChart(canvas, stat) {
     const labels = statDataset.labels;
     const data = labels.map((l) => statDataset.data[l][stat]);
+
+    const chart = chartStruct.statLineChart;
+    if (chart) {
+        chart.data.labels = labels;
+        chart.data.datasets[0].label = stat;
+        chart.data.datasets[0].data = data;
+        chart.update();
+        return;
+    }
+
     chartStruct.statLineChart = new Chart(canvas, {
         type: 'line',
         data: {

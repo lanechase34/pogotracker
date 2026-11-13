@@ -68,6 +68,7 @@ component extends="base" {
     }
 
     function loginForm(event, rc, prc) {
+        prc.loadRecaptcha   = true;
         prc.title           = "Sign In | #getSetting("title")#";
         prc.metaDescription = "Sign in to POGO Tracker to track your Pokémon GO journey — Pokédex, XP, medals, shiny collection, and more.";
     }
@@ -114,6 +115,7 @@ component extends="base" {
     }
 
     function registrationForm(event, rc, prc) {
+        prc.loadRecaptcha   = true;
         prc.title           = "Create Account | #getSetting("title")#";
         prc.metaDescription = "Create your free POGO Tracker account. Track your Pokémon GO Pokédex, XP, medals, shinies, walking distance, and plan trades with friends.";
         prc.iconMap         = trainerService.getIconMap();
@@ -257,6 +259,7 @@ component extends="base" {
     }
 
     function forgotPasswordForm(event, rc, prc) {
+        prc.loadRecaptcha   = true;
         prc.title           = "Reset Password | #getSetting("title")#";
         prc.metaDescription = "Forgot your POGO Tracker password? Enter your email and we will send you a link to reset it.";
     }

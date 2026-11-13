@@ -33,6 +33,7 @@ component singleton accessors="true" {
         });
 
         ormFlush();
+        cache.clear("generation.getAll");
         return;
     }
 
@@ -47,7 +48,10 @@ component singleton accessors="true" {
 
     // Get generation record based on region
     public any function getFromRegion(required string region) {
-        return entityLoad("generation", {region: arguments.region}, true);
+        var wanted = arguments.region;
+        var found  = getAll().filter((generation) => compare(generation.getRegion(), wanted) == 0);
+        if(found.len()) return found[1];
+        return;
     }
 
 }

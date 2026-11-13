@@ -17,16 +17,18 @@
                         <th>
                             <div class="d-flex justify-content-between align-items-center">
                                 <span>Caught</span>
-                                <button type="button" class="btn btn-dark btn-sm me-1" id="copyMissingString">
-                                    <i class="bi bi-copy me-1"></i>Missing
+                                <button type="button" class="btn btn-dark btn-sm me-1 label-swap" id="copyMissingString">
+                                    <span class="label-swap-item active" data-label="default"><i class="bi bi-copy me-1"></i>Missing</span>
+                                    <span class="label-swap-item" data-label="copied"><i class="bi bi-check2 me-1"></i>Copied</span>
                                 </button>
                             </div>
                         </th>
                         <th>
                             <div class="d-flex justify-content-between align-items-center">
                                 <span>Shiny</span>
-                                <button type="button" class="btn btn-dark btn-sm me-1" id="copyMissingShinyString">
-                                    <i class="bi bi-copy me-1"></i>Missing
+                                <button type="button" class="btn btn-dark btn-sm me-1 label-swap" id="copyMissingShinyString">
+                                    <span class="label-swap-item active" data-label="default"><i class="bi bi-copy me-1"></i>Missing</span>
+                                    <span class="label-swap-item" data-label="copied"><i class="bi bi-check2 me-1"></i>Copied</span>
                                 </button>
                             </div>
                         </th>

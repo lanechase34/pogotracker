@@ -1,18 +1,27 @@
+<!--- CDN libraries this page needs - read by layouts/header for preconnects and below for the tags --->
+<cfset prc.vendorLibs = getInstance("services.assets").getVendorLibs(prc.currEvent)/>
 <cfoutput>
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    #view(view='/layouts/header')#
+    #view(view='/layouts/header', args={moduleEntry: 'global'})#
 
-    <!--- CSS Lib --->
-    <link rel="stylesheet" type="text/css" href="#getSetting('cssPath')#/multiselect#getSetting('minifiedCSS')#.css#getSetting('cacheBuster')#" media="print" data-async-css/>
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker@3.1.0/daterangepicker.css" integrity="sha384-zLkQsiLfAQqGeIJeKLC+rcCR1YoYaQFLCL7cLDUoKE1ajKJzySpjzWGfYS2vjSG+" crossorigin="anonymous" media="print" data-async-css/>
-    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/bs5/dt-2.1.8/b-3.2.0/fh-4.0.1/r-3.0.3/datatables.min.css" integrity="sha384-LEBUQaRxOXSHy5b75ws2/XGuukLTe8bxOMaFEBZwqxipueCJndxN+ijmD8Zo1T7Z" crossorigin="anonymous" media="print" data-async-css/>
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" integrity="sha384-OXVF05DQEe311p6ohU11NwlnX08FzMCsyoXzGOaL+83dKAb3qS17yZJxESl8YrJQ" crossorigin="anonymous" media="print" data-async-css/>
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" integrity="sha384-IrMr0LFnIMa9H6HhC5VVqVuWNEIwspnRLKQc0SUyPj4Cy4s02DiWDZEoJOo5WNK6" crossorigin="anonymous" media="print" data-async-css/>
+    <cfif prc.vendorLibs.multiselect>
+        <link rel="stylesheet" type="text/css" href="#getSetting('cssPath')#/multiselect#getSetting('minifiedCSS')#.css#getSetting('cacheBuster')#" media="print" onload="this.media='all'"/>
+    </cfif>
+    <cfif prc.vendorLibs.daterangepicker>
+        <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker@3.1.0/daterangepicker.css" integrity="sha384-zLkQsiLfAQqGeIJeKLC+rcCR1YoYaQFLCL7cLDUoKE1ajKJzySpjzWGfYS2vjSG+" crossorigin="anonymous" media="print" onload="this.media='all'"/>
+    </cfif>
+    <cfif prc.vendorLibs.datatables>
+        <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/bs5/dt-2.1.8/b-3.2.0/fh-4.0.1/r-3.0.3/datatables.min.css" integrity="sha384-LEBUQaRxOXSHy5b75ws2/XGuukLTe8bxOMaFEBZwqxipueCJndxN+ijmD8Zo1T7Z" crossorigin="anonymous" media="print" onload="this.media='all'"/>
+    </cfif>
+    <cfif prc.vendorLibs.select2>
+        <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" integrity="sha384-OXVF05DQEe311p6ohU11NwlnX08FzMCsyoXzGOaL+83dKAb3qS17yZJxESl8YrJQ" crossorigin="anonymous" media="print" onload="this.media='all'"/>
+        <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" integrity="sha384-IrMr0LFnIMa9H6HhC5VVqVuWNEIwspnRLKQc0SUyPj4Cy4s02DiWDZEoJOo5WNK6" crossorigin="anonymous" media="print" onload="this.media='all'"/>
+    </cfif>
 
     <!--- Handler styles --->
-    <cfif fileExists("#getSetting('rootPath')##getSetting('cssPath')#/#prc.currHandler##getSetting('minifiedCSS')#.css")>
+    <cfif getInstance("services.assets").hasHandlerCSS(prc.currHandler)>
         <link rel="stylesheet" type="text/css" href="#getSetting('cssPath')#/#prc.currHandler##getSetting('minifiedCSS')#.css#getSetting('cacheBuster')#"/>
     </cfif>
 
@@ -53,14 +62,16 @@
                             </button>
                             <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-start">
                                 <li>
-                                    <button class="copySearchString dropdown-item">
-                                        <i class="bi bi-copy me-2"></i>String
+                                    <button class="copySearchString dropdown-item label-swap">
+                                        <span class="label-swap-item active" data-label="default"><i class="bi bi-copy me-2"></i>String</span>
+                                        <span class="label-swap-item" data-label="copied"><i class="bi bi-check2 me-1"></i>Copied</span>
                                     </button>
                                 </li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li>
-                                    <button class="copyMissingSearchString dropdown-item">
-                                        <i class="bi bi-copy me-2"></i>Missing
+                                    <button class="copyMissingSearchString dropdown-item label-swap">
+                                        <span class="label-swap-item active" data-label="default"><i class="bi bi-copy me-2"></i>Missing</span>
+                                        <span class="label-swap-item" data-label="copied"><i class="bi bi-check2 me-1"></i>Copied</span>
                                     </button>
                                 </li>
                                 <li><hr class="dropdown-divider"></li>
@@ -81,8 +92,9 @@
                                     <li><hr class="dropdown-divider"></li>
                                 </cfif>
                                 <li>
-                                    <button class="pokedexLock dropdown-item">
-                                        <i class="bi bi-unlock me-1"></i>Unlocked
+                                    <button class="pokedexLock dropdown-item label-swap">
+                                        <span class="label-swap-item active" data-label="unlocked"><i class="bi bi-unlock me-1"></i>Unlocked</span>
+                                        <span class="label-swap-item" data-label="locked"><i class="bi bi-lock me-1"></i>Locked</span>
                                     </button>
                                 </li>
                                 <li><hr class="dropdown-divider"></li>
@@ -96,11 +108,13 @@
 
                         <!--- btn group for large screens --->
                         <div id="pokedexBtnGroup" class="d-none d-md-flex btn-group" role="group">
-                            <button class="copySearchString btn btn-adjust btn-primary" type="button">
-                                <i class="bi bi-copy me-2"></i>String
+                            <button class="copySearchString btn btn-adjust btn-primary label-swap" type="button">
+                                <span class="label-swap-item active" data-label="default"><i class="bi bi-copy me-2"></i>String</span>
+                                <span class="label-swap-item" data-label="copied"><i class="bi bi-check2 me-1"></i>Copied</span>
                             </button>
-                            <button class="copyMissingSearchString btn btn-adjust btn-primary" type="button">
-                                <i class="bi bi-copy me-2"></i>Missing
+                            <button class="copyMissingSearchString btn btn-adjust btn-primary label-swap" type="button">
+                                <span class="label-swap-item active" data-label="default"><i class="bi bi-copy me-2"></i>Missing</span>
+                                <span class="label-swap-item" data-label="copied"><i class="bi bi-check2 me-1"></i>Copied</span>
                             </button>
                             <cfif prc.currEvent EQ "pokedex.mypokedex">
                                 <button class="registerAll btn btn-adjust btn-primary" type="button">
@@ -112,8 +126,9 @@
                                     <i class="bi bi-link-45deg me-2"></i>Leekduck
                                 </a>
                             </cfif>
-                            <button class="pokedexLock btn btn-adjust btn-secondary" type="button">
-                                <i class="bi bi-unlock me-1"></i>Unlocked
+                            <button class="pokedexLock btn btn-adjust btn-secondary label-swap" type="button">
+                                <span class="label-swap-item active" data-label="unlocked"><i class="bi bi-unlock me-1"></i>Unlocked</span>
+                                <span class="label-swap-item" data-label="locked"><i class="bi bi-lock me-1"></i>Locked</span>
                             </button>
                             <button class="shinyToggle btn btn-adjust <cfif rc.keyExists('shiny') AND rc.shiny>btn-success<cfelse>btn-danger</cfif>" type="button">
                                 <i class="bi bi-stars me-2"></i>Shiny
@@ -151,6 +166,10 @@
                             <button id="pokemonViewBtn" class="btn btn-primary active" type="button">Pokemon</button>
                             <button id="costumeViewBtn" class="btn btn-primary" type="button">Costume</button>
                         </div>
+                    <cfelseif prc.currEvent EQ "admin.logviewer">
+                        <a id="downloadAllLogs" href="/admin/downloadLogs" class="btn btn-primary" role="button" title="Download every log as a zip">
+                            <i class="bi bi-file-earmark-zip me-2"></i>Download All
+                        </a>
                     <cfelseif prc.currEvent EQ "admin.serverinfo">
                         <button id="showServerInfo" class="btn btn-secondary" role="button" data-bs-toggle="modal" data-bs-target="##serverInfoModal">
                             More Info
@@ -305,15 +324,29 @@
 </div>
 #view(view="/views/fragment/data")#
 
-<!--- JS Lib --->
+<!--- JS Lib - only the libraries this page uses, in dependency order --->
 <script type="text/javascript" defer src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
+<cfif prc.vendorLibs.chart>
 <script type="text/javascript" defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.js" integrity="sha384-G436+Z2nlA8+PNoeRvWdxKbvOf8E/y+lYxqht2iBwNHTQDV5CJr3+AGVj8fGZi5t" crossorigin="anonymous"></script>
+</cfif>
+<cfif prc.vendorLibs.masonry>
 <script type="text/javascript" defer src="https://cdnjs.cloudflare.com/ajax/libs/masonry/4.2.2/masonry.pkgd.min.js" integrity="sha512-JRlcvSZAXT8+5SQQAvklXGJuxXTouyq8oIMaYERZQasB8SBDHZaUbeASsJWpk0UUrf89DP3/aefPPrlMR1h1yQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+</cfif>
+<cfif prc.vendorLibs.jquery>
 <script type="text/javascript" defer src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+</cfif>
+<cfif prc.vendorLibs.moment>
 <script type="text/javascript" defer src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.30.1/moment.min.js" integrity="sha512-QoJS4DOhdmG8kbbHkxmB/rtPdN62cGWXAdAFWWJPvUFF1/zxcPSdAnn4HhYZSIlVoLVEJ0LesfNlusgm2bPfnA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+</cfif>
+<cfif prc.vendorLibs.daterangepicker>
 <script type="text/javascript" defer src="https://cdn.jsdelivr.net/npm/daterangepicker@3.1.0/daterangepicker.js" integrity="sha384-mnAM7GRdEYmwFIfdpoD/nOPQFbdJrbTrXa7om4CrSzKCQfysFJ0jbwgw+55cdvi7" crossorigin="anonymous"></script>
+</cfif>
+<cfif prc.vendorLibs.datatables>
 <script type="text/javascript" defer src="https://cdn.datatables.net/v/bs5/dt-2.1.8/b-3.2.0/fh-4.0.1/r-3.0.3/datatables.min.js" integrity="sha384-iQSEMJu0K+n5/meciE2xGh/DhMUVUTd47E2TGA+3Sy3BY2dh1FzjxHLpMVeA49s+" crossorigin="anonymous"></script>
+</cfif>
+<cfif prc.vendorLibs.select2>
 <script type="text/javascript" defer src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js" integrity="sha384-d3UHjPdzJkZuk5H3qKYMLRyWLAQBJbby2yr2Q58hXXtAGF8RSNO9jpLDlKKPv5v3" crossorigin="anonymous"></script>
+</cfif>
 
 <script type="module" src="#getSetting('jsPath')#/global#getSetting('minifiedJS')#.js#getSetting('cacheBuster')#"></script>
 

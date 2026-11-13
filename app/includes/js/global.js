@@ -8,11 +8,6 @@ import { getFriendRequestToast } from 'toast';
 
 runtime();
 
-// Non-critical stylesheets load as media=print so they don't block render, then apply once this runs
-/** @type {NodeListOf<HTMLLinkElement>} */ (document.querySelectorAll('link[data-async-css]')).forEach(($link) => {
-    $link.media = 'all';
-});
-
 document.querySelectorAll('[data-history-back]').forEach(($btn) => {
     $btn.addEventListener('click', () => history.back());
 });

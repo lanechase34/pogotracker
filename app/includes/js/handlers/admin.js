@@ -4,7 +4,8 @@ import { escapeHtml } from 'escape';
 import { getWrapper, postWrapper } from 'fetch';
 import { format, validate } from 'json';
 import { $submitBtn } from 'loading';
-import { startMetricsSocket } from 'socket';
+import { getLocalStorage, setLocalStorage } from 'localstorage';
+import { startMetricsSocket, stopMetricsSocket } from 'socket';
 
 const $listTrainers = document.getElementById('listTrainers');
 const tables = {};
@@ -70,15 +71,21 @@ function initJsonEditor() {
     });
 }
 
-function attachEditProfileHandler() {
-    Array.from(document.querySelectorAll('.editTrainer')).forEach((btn) => {
-        btn.addEventListener('click', async (evt) => {
-            if (document.getElementById('editProfileModal')) {
-                document.getElementById('editProfileModal').remove();
-            }
-            await getEditTrainer(/** @type {HTMLElement} */ (evt.currentTarget).dataset.trainerid);
-            globalModals.$editProfileModal.show();
-        });
+/**
+ * One listener on the trainer table for every .editTrainer button - survives DataTables redraws
+ */
+function attachEditProfileHandler($table) {
+    $table.addEventListener('click', async (evt) => {
+        const $btn = /** @type {HTMLElement | null} */ (
+            /** @type {HTMLElement} */ (evt.target).closest('.editTrainer')
+        );
+        if (!$btn || !$table.contains($btn)) return;
+
+        if (document.getElementById('editProfileModal')) {
+            document.getElementById('editProfileModal').remove();
+        }
+        await getEditTrainer($btn.dataset.trainerid);
+        globalModals.$editProfileModal.show();
     });
 }
 
@@ -379,8 +386,853 @@ function buildBugDetail(bug) {
     return $wrapper;
 }
 
+/**
+ * Human readable file size - mirrors services.util formatBytes
+ *
+ * @param {number} bytes
+ */
+function formatBytes(bytes) {
+    const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+    let value = bytes;
+    let unit = 0;
+    while (value >= 1024 && unit < units.length - 1) {
+        value /= 1024;
+        unit++;
+    }
+    return unit === 0 ? `${value} B` : `${value.toFixed(value < 10 ? 1 : 0)} ${units[unit]}`;
+}
+
+const LOG_LEVELS = [
+    { pattern: /\b(FATAL|SEVERE|ERROR)\b/, level: 'error' },
+    { pattern: /\bWARN(ING)?\b/, level: 'warn' },
+    { pattern: /\b(DEBUG|TRACE)\b/, level: 'debug' },
+];
+
+/**
+ * Lines that belong to the entry above them - indented stack frames, "Caused by", "... 12 more" and exception class lines
+ */
+const LOG_CONTINUATION = /^(\s|Caused by:|Suppressed:|\.\.\. \d+ more|[\w$]+(\.[\w$]+)+(Exception|Error|Throwable)\b)/;
+
+// Entries with more continuation lines than this start collapsed
+const LOG_COLLAPSE_AFTER = 3;
+
+const utf8 = new TextEncoder();
+
+/**
+ * @param {string} line
+ */
+function logLineLevel(line) {
+    return LOG_LEVELS.find((l) => l.pattern.test(line))?.level ?? '';
+}
+
+/**
+ * Fill $text with line, each case-insensitive match of query wrapped in <mark>
+ * Text nodes only - log lines carry request data (urls, agents) and must never be parsed as html
+ *
+ * @param {HTMLElement} $text
+ * @param {string} line
+ * @param {string} query
+ */
+function highlightLogText($text, line, query) {
+    const lower = line.toLowerCase();
+    const needle = query.toLowerCase();
+    let at = needle ? lower.indexOf(needle) : -1;
+    if (at === -1) {
+        $text.textContent = line;
+        return;
+    }
+
+    const parts = [];
+    let from = 0;
+    while (at !== -1) {
+        if (at > from) parts.push(document.createTextNode(line.slice(from, at)));
+        parts.push(createEl('mark', 'logMark', line.slice(at, at + needle.length)));
+        from = at + needle.length;
+        at = lower.indexOf(needle, from);
+    }
+    if (from < line.length) parts.push(document.createTextNode(line.slice(from)));
+    $text.replaceChildren(...parts);
+}
+
+/**
+ * @param {string} line
+ * @param {number} offset byte offset of the line in the file
+ * @param {string} className
+ * @param {string} query
+ */
+function buildLogLine(line, offset, className, query) {
+    const $line = createEl('div', className);
+    $line.dataset.offset = String(offset);
+    const $text = createEl('span', 'logText');
+    highlightLogText($text, line, query);
+    $line.appendChild($text);
+    return $line;
+}
+
+/**
+ * Collapsed entries get a toggle row between the first line and the rest
+ *
+ * @param {HTMLElement} $entry
+ * @param {number} count lines hidden behind the toggle
+ */
+function addLogToggle($entry, count) {
+    const $toggle = createEl('button', 'logToggle', `+ ${count} more lines`);
+    $toggle.type = 'button';
+    $toggle.dataset.count = String(count);
+    $toggle.setAttribute('aria-expanded', 'false');
+    $entry.classList.add('collapsed');
+    $entry.insertBefore($toggle, $entry.querySelector('.logDetail'));
+}
+
+/**
+ * @param {HTMLElement} $entry
+ * @param {boolean} open
+ */
+function setLogEntryOpen($entry, open) {
+    const $toggle = /** @type {HTMLElement | null} */ ($entry.querySelector('.logToggle'));
+    if (!$toggle) return;
+    $entry.classList.toggle('collapsed', !open);
+    $toggle.setAttribute('aria-expanded', String(open));
+    $toggle.textContent = open ? `− hide ${$toggle.dataset.count} lines` : `+ ${$toggle.dataset.count} more lines`;
+}
+
+/**
+ * One chunk of lines grouped into entries - a line plus the stack trace lines under it
+ * Every line records its byte offset (counted from the chunk start) so search matches can be found on the page
+ *
+ * @param {string[]} lines raw lines, carriage returns included
+ * @param {number} start byte offset of the first line
+ * @param {number} end byte offset just past the last line
+ * @param {string} query text to highlight
+ */
+function buildLogChunk(lines, start, end, query) {
+    const $chunk = createEl('div', 'logChunk');
+    $chunk.dataset.start = String(start);
+    $chunk.dataset.end = String(end);
+
+    let offset = start;
+    let $entry = null;
+    let $detail = null;
+    let detailCount = 0;
+
+    const finishEntry = () => {
+        if ($entry && detailCount > LOG_COLLAPSE_AFTER) addLogToggle($entry, detailCount);
+    };
+
+    for (const raw of lines) {
+        const line = raw.endsWith('\r') ? raw.slice(0, -1) : raw;
+        const lineOffset = offset;
+        offset += utf8.encode(raw).length + 1;
+
+        const continuation = LOG_CONTINUATION.test(line);
+        if ($entry && continuation) {
+            if (!$detail) {
+                $detail = createEl('div', 'logDetail');
+                $entry.appendChild($detail);
+            }
+            $detail.appendChild(buildLogLine(line, lineOffset, 'logLine logTrace', query));
+            detailCount++;
+            continue;
+        }
+
+        finishEntry();
+        // A chunk can start partway through a stack trace - those lines stand alone, dimmed
+        const level = continuation ? '' : logLineLevel(line);
+        $entry = createEl('div', 'logEntry');
+        $entry.dataset.level = level;
+        let className = 'logLine logHead';
+        if (level) className += ` log-${level}`;
+        if (continuation) className += ' logTrace';
+        $entry.appendChild(buildLogLine(line, lineOffset, className, query));
+        $chunk.appendChild($entry);
+        $detail = null;
+        detailCount = 0;
+    }
+    finishEntry();
+
+    return $chunk;
+}
+
+/**
+ * Log viewer - byte offset paging in both directions, so the start or the end of any size log opens instantly
+ * Only MAX_CHUNKS stay in the DOM, chunks scrolled far out of view are dropped and fetched again on the way back
+ * Search runs on the server across the whole file, follow polls for new lines, the file list refreshes itself
+ */
+function initLogViewer() {
+    const MAX_CHUNKS = 12;
+    const EDGE_PX = 800;
+    const FOLLOW_MS = 3000;
+    const LIST_MS = 30000;
+
+    const $viewer = document.getElementById('logViewer');
+    const $scroller = document.getElementById('logScroller');
+    const $lines = document.getElementById('logLines');
+    const $topStatus = document.getElementById('logTopStatus');
+    const $bottomStatus = document.getElementById('logBottomStatus');
+    const $empty = document.getElementById('logEmpty');
+    const $name = document.getElementById('logName');
+    const $meta = document.getElementById('logMeta');
+    const $download = /** @type {HTMLAnchorElement} */ (document.getElementById('logDownload'));
+    const $jumpStart = document.getElementById('logJumpStart');
+    const $jumpEnd = document.getElementById('logJumpEnd');
+    const $follow = /** @type {HTMLInputElement} */ (document.getElementById('logFollow'));
+    const $wrap = /** @type {HTMLInputElement} */ (document.getElementById('logWrap'));
+    const $select = /** @type {HTMLSelectElement} */ (document.getElementById('logSelect'));
+    const $filter = /** @type {HTMLInputElement} */ (document.getElementById('logFilter'));
+    const $filterEmpty = document.getElementById('logFilterEmpty');
+    const $list = document.getElementById('logList');
+    const $refreshBtns = [document.getElementById('logListRefresh'), document.getElementById('logSelectRefresh')];
+    const $searchForm = /** @type {HTMLFormElement} */ (document.getElementById('logSearchForm'));
+    const $search = /** @type {HTMLInputElement} */ (document.getElementById('logSearch'));
+    const $searchPrev = document.getElementById('logSearchPrev');
+    const $searchStatus = document.getElementById('logSearchStatus');
+    const $levels = /** @type {HTMLInputElement[]} */ (Array.from(document.querySelectorAll('input[name="logLevel"]')));
+
+    const state = {
+        filename: '',
+        top: 0,
+        bottom: 0,
+        size: 0,
+        loadingUp: false,
+        loadingDown: false,
+        failed: false,
+        follow: false,
+        query: '',
+        // Byte offset of the current search match, -1 when there isn't one
+        match: -1,
+        searching: false,
+        // Bumped on every open so responses for a log that is no longer shown are ignored
+        token: 0,
+    };
+
+    // Programmatic scrolls record where they left the scroller, so the scroll listener only reacts to the user
+    let lastScrollTop = 0;
+    function setScrollTop(value) {
+        $scroller.scrollTop = value;
+        lastScrollTop = $scroller.scrollTop;
+    }
+
+    /**
+     * Fill the viewport below the navbar - the list and the log scroll on their own, the page doesn't
+     */
+    function fitHeight() {
+        const top = $viewer.getBoundingClientRect().top + window.scrollY;
+        $viewer.style.height = `${Math.max(360, window.innerHeight - top - 16)}px`;
+    }
+
+    function setStatus($el, html) {
+        $el.innerHTML = html;
+        $el.classList.toggle('d-none', !html);
+    }
+
+    function setSearchStatus(text, isError = false) {
+        $searchStatus.textContent = text;
+        $searchStatus.classList.toggle('text-danger', isError);
+        $searchStatus.classList.toggle('text-body-secondary', !isError);
+    }
+
+    function logLinks() {
+        return /** @type {HTMLAnchorElement[]} */ (Array.from($list.querySelectorAll('.logLink')));
+    }
+
+    function selectedLink() {
+        return logLinks().find((l) => l.dataset.filename === state.filename);
+    }
+
+    function renderStatus() {
+        const loading = `<span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>Loading`;
+        const hasLines = $lines.childElementCount > 0;
+
+        if (state.loadingUp) setStatus($topStatus, loading);
+        else if (state.top === 0 && hasLines) setStatus($topStatus, 'Start of file');
+        else setStatus($topStatus, '');
+
+        if (state.loadingDown && !state.follow) setStatus($bottomStatus, loading);
+        else if (state.failed) setStatus($bottomStatus, '<span class="text-danger">Could not load this log</span>');
+        else if (state.follow) {
+            setStatus(
+                $bottomStatus,
+                '<span class="text-success"><i class="bi bi-broadcast me-1"></i>Following new lines</span>'
+            );
+        } else if (state.bottom >= state.size && hasLines) {
+            setStatus(
+                $bottomStatus,
+                `End of file <button type="button" class="btn btn-link btn-sm p-0 ms-2 align-baseline logRefresh">Check for new lines</button>`
+            );
+        } else setStatus($bottomStatus, '');
+
+        $meta.textContent = state.filename
+            ? `${formatBytes(state.size)} · ${selectedLink()?.dataset.modified ?? ''}`
+            : '';
+    }
+
+    /**
+     * @param {number} offset
+     * @param {'forward' | 'backward'} direction
+     * @param {(data: { lines: string[], start: number, end: number, size: number }) => void} onChunk
+     */
+    async function fetchChunk(offset, direction, onChunk) {
+        const token = state.token;
+        const params = new URLSearchParams({ filename: state.filename, offset: String(offset), direction });
+
+        await getWrapper({
+            url: `/admin/getLogChunk?${params}`,
+            $loadingDiv: null,
+            loading: '',
+            dataHandler: (text) => {
+                if (token !== state.token) return;
+                const { data } = JSON.parse(text);
+                onChunk({
+                    lines: data.lines,
+                    start: Number(data.start),
+                    end: Number(data.end),
+                    size: Number(data.size),
+                });
+            },
+            errorHandler: () => {
+                if (token !== state.token) return;
+                state.failed = true;
+            },
+        });
+    }
+
+    /**
+     * @param {{ force?: boolean }} [options] force reads past the known end of file - picks up newly written lines
+     */
+    async function loadDown({ force = false } = {}) {
+        if (state.loadingDown || state.failed) return;
+        if (!force && state.bottom >= state.size) return;
+        state.loadingDown = true;
+        renderStatus();
+
+        await fetchChunk(state.bottom, 'forward', ({ lines, start, end, size }) => {
+            state.size = size;
+            if (end > start) {
+                $lines.appendChild(buildLogChunk(lines, start, end, state.query));
+                state.bottom = end;
+            }
+
+            // Drop the oldest chunks above - keep what's on screen where it is
+            while ($lines.childElementCount > MAX_CHUNKS) {
+                const $first = /** @type {HTMLElement} */ ($lines.firstElementChild);
+                const height = $first.offsetHeight;
+                $first.remove();
+                setScrollTop($scroller.scrollTop - height);
+                state.top = Number(/** @type {HTMLElement} */ ($lines.firstElementChild).dataset.start);
+            }
+
+            if (state.follow) setScrollTop($scroller.scrollHeight);
+        });
+
+        state.loadingDown = false;
+        renderStatus();
+        requestAnimationFrame(() => checkEdges('down'));
+    }
+
+    async function loadUp() {
+        if (state.loadingUp || state.failed || state.top <= 0) return;
+        state.loadingUp = true;
+        renderStatus();
+
+        await fetchChunk(state.top, 'backward', ({ lines, start, end, size }) => {
+            state.size = size;
+            if (end > start) {
+                // Prepending pushes the content down - shift the scroll by the same amount so nothing jumps
+                const before = $scroller.scrollHeight;
+                $lines.prepend(buildLogChunk(lines, start, end, state.query));
+                setScrollTop($scroller.scrollTop + $scroller.scrollHeight - before);
+                state.top = start;
+            }
+
+            while ($lines.childElementCount > MAX_CHUNKS) {
+                /** @type {HTMLElement} */ ($lines.lastElementChild).remove();
+                state.bottom = Number(/** @type {HTMLElement} */ ($lines.lastElementChild).dataset.end);
+            }
+        });
+
+        state.loadingUp = false;
+        renderStatus();
+        requestAnimationFrame(() => checkEdges('up'));
+    }
+
+    /**
+     * Load more when within EDGE_PX of an end. After a load only the same direction is checked again, so a short
+     * page (everything hidden by the level filter) can't bounce between loading the top and the bottom forever
+     *
+     * @param {'up' | 'down' | 'both'} direction
+     */
+    function checkEdges(direction) {
+        // One load at a time - an up and a down load racing could each trim the chunk the other is extending
+        if (!state.filename || state.failed || state.loadingUp || state.loadingDown) return;
+
+        const fromBottom = $scroller.scrollHeight - $scroller.scrollTop - $scroller.clientHeight;
+        if (direction !== 'up' && fromBottom < EDGE_PX && state.bottom < state.size) loadDown();
+        else if (direction !== 'down' && $scroller.scrollTop < EDGE_PX && state.top > 0) loadUp();
+    }
+
+    /**
+     * Clear the view and point every control at filename - callers load the first chunk
+     *
+     * @param {string} filename
+     */
+    function resetView(filename) {
+        state.token++;
+        Object.assign(state, {
+            filename,
+            top: 0,
+            bottom: 0,
+            size: 0,
+            loadingUp: false,
+            loadingDown: false,
+            failed: false,
+        });
+
+        $lines.replaceChildren();
+        $empty.classList.add('d-none');
+        $name.textContent = filename;
+        $name.title = filename;
+        $download.href = `/admin/downloadLog?${new URLSearchParams({ filename })}`;
+        $download.classList.remove('disabled');
+        $download.removeAttribute('aria-disabled');
+        $download.removeAttribute('tabindex');
+        document.querySelectorAll('.logNeedsFile').forEach(($el) => {
+            /** @type {HTMLInputElement} */ ($el).disabled = false;
+        });
+        markActive();
+    }
+
+    function markActive() {
+        logLinks().forEach((l) => {
+            const active = l.dataset.filename === state.filename;
+            l.classList.toggle('active', active);
+            if (active) l.setAttribute('aria-current', 'true');
+            else l.removeAttribute('aria-current');
+        });
+        if (state.filename) $select.value = state.filename;
+    }
+
+    /**
+     * @param {string} filename
+     * @param {boolean} [fromEnd] open at the end of the file instead of the start
+     */
+    async function openLog(filename, fromEnd = false) {
+        resetView(filename);
+        state.match = -1;
+
+        const onFirst = ({ lines, start, end, size }) => {
+            $lines.appendChild(buildLogChunk(lines, start, end, state.query));
+            Object.assign(state, { top: start, bottom: end, size });
+        };
+
+        if (fromEnd) {
+            state.loadingUp = true;
+            renderStatus();
+            await fetchChunk(-1, 'backward', onFirst);
+            state.loadingUp = false;
+            setScrollTop($scroller.scrollHeight);
+        } else {
+            state.loadingDown = true;
+            renderStatus();
+            await fetchChunk(0, 'forward', onFirst);
+            state.loadingDown = false;
+            setScrollTop(0);
+        }
+
+        renderStatus();
+        requestAnimationFrame(() => checkEdges(fromEnd ? 'up' : 'down'));
+    }
+
+    /**
+     * Open the log with lineStart in view - one chunk from there down and one above it for context
+     *
+     * @param {number} lineStart
+     */
+    async function openAt(lineStart) {
+        const filename = state.filename;
+        resetView(filename);
+
+        state.loadingDown = true;
+        renderStatus();
+        await fetchChunk(lineStart, 'forward', ({ lines, start, end, size }) => {
+            $lines.appendChild(buildLogChunk(lines, start, end, state.query));
+            Object.assign(state, { top: start, bottom: end, size });
+        });
+        state.loadingDown = false;
+
+        if (state.top > 0 && !state.failed) {
+            state.loadingUp = true;
+            renderStatus();
+            await fetchChunk(state.top, 'backward', ({ lines, start, end }) => {
+                if (end > start) {
+                    $lines.prepend(buildLogChunk(lines, start, end, state.query));
+                    state.top = start;
+                }
+            });
+            state.loadingUp = false;
+        }
+        renderStatus();
+    }
+
+    /**
+     * The loaded line holding a byte offset - the last line starting at or before it
+     *
+     * @param {number} offset
+     */
+    function lineAt(offset) {
+        const $chunk = /** @type {HTMLElement[]} */ (Array.from($lines.children)).find(
+            ($c) => offset >= Number($c.dataset.start) && offset < Number($c.dataset.end)
+        );
+        if (!$chunk) return null;
+
+        let $found = null;
+        for (const $line of /** @type {NodeListOf<HTMLElement>} */ ($chunk.querySelectorAll('.logLine'))) {
+            if (Number($line.dataset.offset) > offset) break;
+            $found = $line;
+        }
+        return $found;
+    }
+
+    /**
+     * Byte offset of the first line showing at the top of the scroller - where a fresh search starts from
+     */
+    function firstVisibleOffset() {
+        const top = $scroller.getBoundingClientRect().top;
+        for (const $line of /** @type {NodeListOf<HTMLElement>} */ ($lines.querySelectorAll('.logLine'))) {
+            // Hidden lines (collapsed, filtered) measure as zero and are skipped
+            if ($line.getBoundingClientRect().bottom > top) return Number($line.dataset.offset);
+        }
+        return state.top;
+    }
+
+    function rehighlight() {
+        $lines.querySelectorAll('.logText').forEach(($text) => {
+            highlightLogText(/** @type {HTMLElement} */ ($text), $text.textContent, state.query);
+        });
+    }
+
+    /**
+     * @param {number} match byte offset of the match
+     * @param {number} lineStart byte offset of the line holding it
+     */
+    async function showMatch(match, lineStart) {
+        if (state.follow) setFollow(false);
+        if (!lineAt(match)) await openAt(lineStart);
+
+        const $line = lineAt(match);
+        if (!$line) return;
+
+        // Make sure the match isn't hidden by the level filter or a collapsed stack trace
+        const $entry = /** @type {HTMLElement} */ ($line.closest('.logEntry'));
+        const level = $entry.dataset.level;
+        const filter = $levels.find((l) => l.checked)?.value ?? 'all';
+        if ((filter === 'error' && level !== 'error') || (filter === 'warn' && level !== 'error' && level !== 'warn')) {
+            setLevel('all');
+        }
+        if ($line.closest('.logDetail')) setLogEntryOpen($entry, true);
+
+        $lines.querySelector('.logCurrent')?.classList.remove('logCurrent');
+        $line.classList.add('logCurrent');
+        $line.scrollIntoView({ block: 'center' });
+        lastScrollTop = $scroller.scrollTop;
+        requestAnimationFrame(() => checkEdges('both'));
+    }
+
+    /**
+     * Find the next or previous match on the server - searches the whole file, not just what's loaded
+     *
+     * @param {'forward' | 'backward'} direction
+     */
+    async function search(direction) {
+        const query = $search.value;
+        if (!query.trim() || !state.filename || state.searching) return;
+
+        if (query !== state.query) {
+            state.query = query;
+            state.match = -1;
+            rehighlight();
+        }
+
+        let offset;
+        if (state.match >= 0) offset = direction === 'forward' ? state.match + 1 : state.match;
+        else offset = firstVisibleOffset();
+
+        state.searching = true;
+        setSearchStatus('Searching…');
+        const token = state.token;
+        const params = new URLSearchParams({ filename: state.filename, query, offset: String(offset), direction });
+        let result = /** @type {{ found: boolean, offset: number, lineStart: number } | null} */ (null);
+
+        await getWrapper({
+            url: `/admin/searchLog?${params}`,
+            $loadingDiv: null,
+            loading: '',
+            dataHandler: (text) => {
+                result = JSON.parse(text).data;
+            },
+            errorHandler: () => setSearchStatus('Search failed', true),
+        });
+        state.searching = false;
+
+        if (!result || token !== state.token || query !== state.query) return;
+        if (!result.found) {
+            setSearchStatus(direction === 'forward' ? 'No more matches below' : 'No more matches above', true);
+            return;
+        }
+
+        setSearchStatus('');
+        state.match = Number(result.offset);
+        await showMatch(state.match, Number(result.lineStart));
+    }
+
+    /**
+     * @param {string} level all, warn or error
+     */
+    function setLevel(level) {
+        const $radio = $levels.find((l) => l.value === level);
+        if ($radio) $radio.checked = true;
+        $scroller.classList.toggle('logLevelWarn', level === 'warn');
+        $scroller.classList.toggle('logLevelError', level === 'error');
+        // Fewer lines showing - fill the gap below
+        requestAnimationFrame(() => checkEdges('down'));
+    }
+
+    let followTimer = 0;
+    /**
+     * @param {boolean} on
+     */
+    function setFollow(on) {
+        state.follow = on;
+        $follow.checked = on;
+        clearInterval(followTimer);
+        renderStatus();
+        if (!on || !state.filename) return;
+
+        if (state.bottom < state.size || !$lines.childElementCount) openLog(state.filename, true);
+        else setScrollTop($scroller.scrollHeight);
+
+        followTimer = window.setInterval(() => {
+            if (document.hidden || state.loadingUp || state.loadingDown) return;
+            loadDown({ force: true });
+        }, FOLLOW_MS);
+    }
+
+    /**
+     * @param {string} filename
+     */
+    function selectLog(filename) {
+        if (!filename) return;
+        setFollow(false);
+        history.pushState({ filename }, '', `/admin/logViewer?${new URLSearchParams({ filename })}`);
+        openLog(filename);
+    }
+
+    function applyListFilter() {
+        const term = $filter.value.trim().toLowerCase();
+        let shown = 0;
+        logLinks().forEach((l) => {
+            const match = l.dataset.filename.toLowerCase().includes(term);
+            l.classList.toggle('d-none', !match);
+            if (match) shown++;
+        });
+        $filterEmpty.textContent = logLinks().length ? 'No logs match' : 'No log files found';
+        $filterEmpty.classList.toggle('d-none', shown > 0);
+    }
+
+    /**
+     * @param {{ name: string, size: number, sizeLabel: string, modifiedLabel: string, modifiedFull: string }[]} logs
+     */
+    function renderList(logs) {
+        const $links = logs.map((log) => {
+            const $link = /** @type {HTMLAnchorElement} */ (
+                createEl('a', 'logLink list-group-item list-group-item-action')
+            );
+            $link.href = `/admin/logViewer?${new URLSearchParams({ filename: log.name })}`;
+            $link.dataset.filename = log.name;
+            $link.dataset.size = String(log.size);
+            $link.dataset.modified = log.modifiedFull;
+
+            const $top = createEl('div', 'd-flex justify-content-between align-items-baseline gap-2');
+            const $linkName = createEl('span', 'logLinkName text-truncate', log.name);
+            $linkName.title = log.name;
+            $top.append($linkName, createEl('small', 'logLinkSize text-nowrap', log.sizeLabel));
+            $link.append($top, createEl('div', 'small logLinkMeta text-nowrap', log.modifiedLabel));
+            return $link;
+        });
+        $list.replaceChildren(...$links);
+
+        const $placeholder = /** @type {HTMLOptionElement} */ ($select.options[0]);
+        $placeholder.textContent = `Choose a log (${logs.length})`;
+        const $options = logs.map((log) => {
+            const $option = /** @type {HTMLOptionElement} */ (createEl('option', '', `${log.name} (${log.sizeLabel})`));
+            $option.value = log.name;
+            return $option;
+        });
+        $select.replaceChildren($placeholder, ...$options);
+        if (!state.filename) $select.value = '';
+        $filter.placeholder = `Filter ${logs.length} logs`;
+
+        markActive();
+        applyListFilter();
+
+        // The open log grew - let scrolling (or follow) pick up the new lines
+        const current = logs.find((log) => log.name === state.filename);
+        if (current && current.size > state.size && !state.loadingDown) {
+            state.size = current.size;
+            renderStatus();
+            if (!state.follow) checkEdges('down');
+        }
+    }
+
+    let listLoading = false;
+    async function refreshList() {
+        if (listLoading) return;
+        listLoading = true;
+        $refreshBtns.forEach(($btn) => $btn.classList.add('logSpinning'));
+
+        await getWrapper({
+            url: '/admin/listLogs',
+            $loadingDiv: null,
+            loading: '',
+            dataHandler: (text) => renderList(JSON.parse(text).data),
+        });
+
+        $refreshBtns.forEach(($btn) => $btn.classList.remove('logSpinning'));
+        listLoading = false;
+    }
+
+    // Layout
+    fitHeight();
+    window.addEventListener('resize', fitHeight);
+
+    // Infinite scroll - rAF keeps it to one check per frame, the scroll direction picks which edge to check
+    let edgeFrame = 0;
+    $scroller.addEventListener(
+        'scroll',
+        () => {
+            if (edgeFrame) return;
+            edgeFrame = requestAnimationFrame(() => {
+                edgeFrame = 0;
+                const delta = $scroller.scrollTop - lastScrollTop;
+                lastScrollTop = $scroller.scrollTop;
+                if (delta === 0) return;
+
+                // Scrolling up to read stops following
+                const fromBottom = $scroller.scrollHeight - $scroller.scrollTop - $scroller.clientHeight;
+                if (delta < 0 && state.follow && fromBottom > 40) setFollow(false);
+
+                checkEdges(delta > 0 ? 'down' : 'up');
+            });
+        },
+        { passive: true }
+    );
+
+    // File switching without a page load - delegated, the list is rebuilt on refresh
+    $list.addEventListener('click', (evt) => {
+        const $link = /** @type {HTMLAnchorElement | null} */ (
+            /** @type {HTMLElement} */ (evt.target).closest('.logLink')
+        );
+        // Let modified clicks open a new tab as a normal link would
+        if (!$link || evt.ctrlKey || evt.metaKey || evt.shiftKey || evt.button !== 0) return;
+        evt.preventDefault();
+        selectLog($link.dataset.filename);
+    });
+    $select.addEventListener('change', () => selectLog($select.value));
+    window.addEventListener('popstate', () => {
+        const filename = new URLSearchParams(location.search).get('filename');
+        if (filename && logLinks().some((l) => l.dataset.filename === filename)) {
+            setFollow(false);
+            openLog(filename);
+        }
+    });
+
+    $jumpStart.addEventListener('click', () => {
+        setFollow(false);
+        openLog(state.filename);
+    });
+    $jumpEnd.addEventListener('click', () => openLog(state.filename, true));
+    $follow.addEventListener('change', () => setFollow($follow.checked));
+
+    // Picks up lines written since the end was reached
+    $bottomStatus.addEventListener('click', (evt) => {
+        if (!(/** @type {HTMLElement} */ (evt.target).closest('.logRefresh'))) return;
+        loadDown({ force: true });
+    });
+
+    // Collapsed stack traces
+    $lines.addEventListener('click', (evt) => {
+        const $toggle = /** @type {HTMLElement} */ (evt.target).closest('.logToggle');
+        if (!$toggle) return;
+        const $entry = /** @type {HTMLElement} */ ($toggle.closest('.logEntry'));
+        setLogEntryOpen($entry, $entry.classList.contains('collapsed'));
+    });
+
+    // Search - Enter for next, Shift+Enter for previous, highlights update as you type
+    $searchForm.addEventListener('submit', (evt) => {
+        evt.preventDefault();
+        search('forward');
+    });
+    $search.addEventListener('keydown', (evt) => {
+        if (evt.key === 'Enter' && evt.shiftKey) {
+            evt.preventDefault();
+            search('backward');
+        }
+    });
+    $searchPrev.addEventListener('click', () => search('backward'));
+    let highlightTimer = 0;
+    $search.addEventListener('input', () => {
+        clearTimeout(highlightTimer);
+        highlightTimer = window.setTimeout(() => {
+            if ($search.value === state.query) return;
+            state.query = $search.value.trim() ? $search.value : '';
+            state.match = -1;
+            $lines.querySelector('.logCurrent')?.classList.remove('logCurrent');
+            setSearchStatus('');
+            rehighlight();
+        }, 250);
+    });
+
+    // Level filter
+    $levels.forEach(($radio) => $radio.addEventListener('change', () => setLevel($radio.value)));
+
+    // Line wrap - remembered per browser
+    const WRAP_KEY = 'logViewerWrap';
+    try {
+        $wrap.checked = getLocalStorage(WRAP_KEY) === 'true';
+    } catch {
+        // storage blocked - default to no wrap
+    }
+    $scroller.classList.toggle('logWrap', $wrap.checked);
+    $wrap.addEventListener('change', () => {
+        $scroller.classList.toggle('logWrap', $wrap.checked);
+        try {
+            setLocalStorage(WRAP_KEY, String($wrap.checked));
+        } catch {
+            // storage blocked - wrap still applies for this page
+        }
+    });
+
+    // File list - filter, manual refresh, and a quiet refresh every LIST_MS while the tab is visible
+    $filter.addEventListener('input', applyListFilter);
+    $refreshBtns.forEach(($btn) => $btn.addEventListener('click', refreshList));
+    window.setInterval(() => {
+        if (!document.hidden) refreshList();
+    }, LIST_MS);
+    document.addEventListener('visibilitychange', () => {
+        if (!document.hidden) refreshList();
+    });
+
+    if ($viewer.dataset.filename) {
+        history.replaceState({ filename: $viewer.dataset.filename }, '');
+        openLog($viewer.dataset.filename);
+        selectedLink()?.scrollIntoView({ block: 'nearest' });
+    }
+}
+
 export const runtime = {
     all: () => {},
+    logviewer: () => {
+        initLogViewer();
+    },
     auditlog: () => {
         new DataTable($auditLog, {
             ajax: {
@@ -454,7 +1306,7 @@ export const runtime = {
         });
     },
     listtrainers: () => {
-        const listTrainers = new DataTable($listTrainers, {
+        new DataTable($listTrainers, {
             ajax: {
                 url: '/admin/getTrainers',
                 type: 'GET',
@@ -516,12 +1368,7 @@ export const runtime = {
             scrollY: 'calc(100vh - 250px)',
         });
 
-        listTrainers.on('page.dt', () => {
-            attachEditProfileHandler();
-        });
-        listTrainers.on('draw.dt', () => {
-            attachEditProfileHandler();
-        });
+        attachEditProfileHandler($listTrainers);
     },
     listpokemon: () => {
         let isCostume = false;
@@ -758,7 +1605,6 @@ export const runtime = {
                                 },
                             },
                             maintainAspectRatio: false,
-                            devicePixelRatio: 3,
                             cutout: '50%',
                         },
                     });
@@ -778,7 +1624,20 @@ export const runtime = {
         }
 
         updateCacheData();
-        setInterval(updateCacheData, 10000);
+        let cacheTimer = setInterval(updateCacheData, 10000);
+
+        // Hidden tab - stop polling and drop the websocket, catch up and resume once it's visible again
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                clearInterval(cacheTimer);
+                stopMetricsSocket();
+            } else {
+                updateCacheData();
+                clearInterval(cacheTimer);
+                cacheTimer = setInterval(updateCacheData, 10000);
+                startMetricsSocket();
+            }
+        });
 
         /**
          * Listener for when metrics is updated
@@ -826,7 +1685,6 @@ export const runtime = {
                             },
                         },
                         maintainAspectRatio: false,
-                        devicePixelRatio: 3,
                         cutout: '50%',
                     },
                 });
@@ -873,7 +1731,6 @@ export const runtime = {
                             },
                         },
                         backgroundColor: 'transparent',
-                        devicePixelRatio: 3,
                     },
                 });
                 requestChartCanvas.classList.remove('d-none');

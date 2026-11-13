@@ -104,6 +104,24 @@ jobs:
           RECAPTCHASECRETKEY=${{ secrets.RECAPTCHASECRETKEY }}
           EOL
 
+      # The test environment serves the minified build
+      - name: Setup Node.js
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
+        with:
+          node-version: "24"
+          cache: "npm"
+          cache-dependency-path: app/includes/package-lock.json
+
+      - name: Clean Install Dependencies
+        working-directory: ./app/includes
+        run: npm ci
+
+      - name: Build JS and CSS assets
+        working-directory: ./app/includes
+        run: |
+          npm run minJS
+          npm run minCSS
+
       - name: Install, Migrate, Seed, and Start Server
         run: box recipe scripts/test-setup.boxr
         timeout-minutes: 10
