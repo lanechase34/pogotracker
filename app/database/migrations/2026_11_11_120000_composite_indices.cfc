@@ -27,13 +27,13 @@ component {
                 shadowshiny = dupes.shadowshiny,
                 seen = dupes.seen,
                 total = dupes.total,
-                updated = now()
+                updated = NOW()
             FROM dupes
             WHERE pokedex.id = dupes.keepid
         ");
         queryExecute("
             DELETE FROM pokedex
-            USING pokedex keep
+            USING pokedex AS keep
             WHERE pokedex.trainerid = keep.trainerid
                 AND pokedex.pokemonid = keep.pokemonid
                 AND pokedex.id > keep.id

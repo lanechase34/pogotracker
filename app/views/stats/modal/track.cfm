@@ -10,7 +10,7 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title fs-5" id="trackStats">Track Stats for #dateFormat(args.currDate, "short")#</h5>
+                <h5 class="modal-title fs-5" id="trackStatsLabel">Track Stats for #dateFormat(args.currDate, "short")#</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
@@ -20,15 +20,15 @@
                     class="needs-validation row g-3" 
                     novalidate 
                     autocomplete="off"
-                    <cfif isObject(args.latestStat)>
-                        data-latest-xp="#EncodeForHTML(args.latestStat.getXp())#"
-                        data-latest-caught="#EncodeForHTML(args.latestStat.getCaught())#"
-                        data-latest-spun="#EncodeForHTML(args.latestStat.getSpun())#"
-                        data-latest-walked="#EncodeForHTML(args.latestStat.getWalked())#"
+                    <cfif isStruct(args.latestStat)>
+                        data-latest-xp="#EncodeForHTML(args.latestStat.xp)#"
+                        data-latest-caught="#EncodeForHTML(args.latestStat.caught)#"
+                        data-latest-spun="#EncodeForHTML(args.latestStat.spun)#"
+                        data-latest-walked="#EncodeForHTML(args.latestStat.walked)#"
                     </cfif>
                 >
                     <div id="statAlert"></div>
-                    <input type="hidden" id="trainerid" name="trainerid" value="#EncodeForHTML(args.trainer.getId())#">
+                    <input type="hidden" id="trainerid" name="trainerid" value="#EncodeForHTML(args.trainerid)#">
                     <div class="col-12">
                         <label for="inputWalked" class="form-label">Distance Walked</label>
                         <input name="walked" type="number" class="form-control" id="inputWalked" value="" min="1" max="1000000" step=".01" required>

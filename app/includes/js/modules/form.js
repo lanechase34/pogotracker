@@ -35,6 +35,13 @@ const siteKey = document.getElementById('currentEvent').dataset.sitekey;
  */
 export async function checkFormValidity(form, event, submit = true) {
     event.preventDefault();
+
+    // Already submitting (double click, Enter while the recaptcha check runs) - drop the repeat
+    if (submit && form.dataset.submitting === 'true') {
+        event.stopPropagation();
+        return false;
+    }
+
     let valid = form.checkValidity();
 
     // Custom validation
@@ -56,12 +63,20 @@ export async function checkFormValidity(form, event, submit = true) {
     form.classList.add('was-validated');
 
     if (valid && submit) {
-        const submitter = /** @type {HTMLButtonElement} */ (event.submitter);
-        const originalLabel = submitter.innerHTML;
+        form.dataset.submitting = 'true';
+
+        // Enter in a field submits without a submitter on some browsers - fall back to the form's submit button
+        const submitter = /** @type {HTMLButtonElement | null} */ (
+            event.submitter ?? form.querySelector('[type="submit"]')
+        );
+        const originalLabel = submitter?.innerHTML ?? '';
 
         // Show loading state on the submit button.
-        submitter.innerHTML = $submitBtn;
-        submitter.disabled = true;
+        if (submitter) {
+            submitter.dataset.originalLabel = originalLabel;
+            submitter.innerHTML = $submitBtn;
+            submitter.disabled = true;
+        }
 
         if (form.classList.contains('verifyRecaptcha')) {
             let token = null;
@@ -80,8 +95,11 @@ export async function checkFormValidity(form, event, submit = true) {
             }
 
             if (!token) {
-                submitter.innerHTML = originalLabel;
-                submitter.disabled = false;
+                if (submitter) {
+                    submitter.innerHTML = originalLabel;
+                    submitter.disabled = false;
+                }
+                delete form.dataset.submitting;
                 return false;
             }
         }
@@ -95,6 +113,26 @@ export async function checkFormValidity(form, event, submit = true) {
 }
 
 /**
+ * Validate a modal form when its submit button is clicked
+ * An invalid form is marked validated and the click is stopped
+ *
+ * @param {HTMLFormElement} form
+ * @param {Event} event - the submit button's click
+ * @returns {Record<string, FormDataEntryValue> | null} the form's fields, or null when the form is invalid
+ */
+export function validatedPacket(form, event) {
+    const valid = form.checkValidity();
+    form.classList.add('was-validated');
+
+    if (!valid) {
+        event.preventDefault();
+        event.stopPropagation();
+        return null;
+    }
+    return Object.fromEntries(new FormData(form).entries());
+}
+
+/**
  * Attaches a `submit` event listener to every form in the provided collection.
  * Each listener delegates to {@link checkFormValidity} with `submit = true`.
  *
@@ -104,6 +142,10 @@ export async function checkFormValidity(form, event, submit = true) {
  */
 export function addValidator(forms) {
     Array.from(forms).forEach((form) => {
+        // Bound once - a second listener would run the recaptcha check and submit twice
+        if (form.dataset.validatorBound === 'true') return;
+        form.dataset.validatorBound = 'true';
+
         form.addEventListener(
             'submit',
             async (event) => {
@@ -113,6 +155,25 @@ export function addValidator(forms) {
         );
     });
 }
+
+/**
+ * A page restored from the back/forward cache keeps the submitting state of the form that navigated away
+ * Unlock those forms so they can be submitted again
+ */
+window.addEventListener('pageshow', (event) => {
+    if (!event.persisted) return;
+    document.querySelectorAll('form[data-submitting="true"]').forEach((form) => {
+        delete (/** @type {HTMLFormElement} */ (form).dataset.submitting);
+        form.querySelectorAll('[type="submit"]').forEach(($btn) => {
+            const $submit = /** @type {HTMLButtonElement} */ ($btn);
+            if ($submit.dataset.originalLabel !== undefined) {
+                $submit.innerHTML = $submit.dataset.originalLabel;
+                delete $submit.dataset.originalLabel;
+            }
+            $submit.disabled = false;
+        });
+    });
+});
 
 /**
  * Executes a reCAPTCHA v3 challenge and verifies the resulting token

@@ -19,16 +19,6 @@ component extends="tests.resources.baseTest" asyncAll="true" {
         return deserializeJSON(json);
     }
 
-    private array function getGraphTypes(required struct parsed) {
-        return parsed["@graph"].map((node) => node["@type"]);
-    }
-
-    private struct function getGraphNode(required struct parsed, required string type) {
-        var nodes = parsed["@graph"].filter((node) => node["@type"] == type);
-        expect(nodes).toHaveLength(1, "Expected exactly one #type# node");
-        return nodes[1];
-    }
-
     function run() {
         describe("SEO Service", () => {
             describe("toJsonLd", () => {
@@ -59,12 +49,12 @@ component extends="tests.resources.baseTest" asyncAll="true" {
                 it("Contains the WebSite and WebApplication nodes", () => {
                     var parsed = roundTrip(seoService.getSiteGraph());
                     expect(parsed["@context"]).toBe("https://schema.org");
-                    expect(getGraphTypes(parsed)).toBe(["WebSite", "WebApplication"]);
+                    expect(globalFunctions.getGraphTypes(parsed)).toBe(["WebSite", "WebApplication"]);
                 });
 
                 it("Keeps the meta description intact (no javascript escapes)", () => {
                     var parsed = roundTrip(seoService.getSiteGraph());
-                    var app    = getGraphNode(parsed, "WebApplication");
+                    var app    = globalFunctions.getGraphNode(parsed, "WebApplication");
                     expect(app.description).toBe(getController().getSetting("metaDescription"));
                     expect(app.description).notToInclude("\x");
                 });
@@ -104,15 +94,15 @@ component extends="tests.resources.baseTest" asyncAll="true" {
                         )
                     );
 
-                    expect(getGraphTypes(parsed)).toBe(["WebPage", "BreadcrumbList", "WebSite"]);
+                    expect(globalFunctions.getGraphTypes(parsed)).toBe(["WebPage", "BreadcrumbList", "WebSite"]);
 
-                    var page = getGraphNode(parsed, "WebPage");
+                    var page = globalFunctions.getGraphNode(parsed, "WebPage");
                     expect(page["@id"]).toBe(pageURL);
                     expect(page.name).toBe("Bulbasaur");
                     expect(page.primaryImageOfPage.contentUrl).toBe("#domain#/includes/images/sprites/1.webp");
                     expect(page.breadcrumb["@id"]).toBe("#pageURL###breadcrumb");
 
-                    var crumb = getGraphNode(parsed, "BreadcrumbList");
+                    var crumb = globalFunctions.getGraphNode(parsed, "BreadcrumbList");
                     expect(crumb.itemListElement.map((item) => item.item)).toBe(["#domain#/", "#domain#/pokemon", pageURL]);
                 });
             });
@@ -128,9 +118,9 @@ component extends="tests.resources.baseTest" asyncAll="true" {
                         )
                     );
 
-                    expect(getGraphTypes(parsed)).toBe(["CollectionPage", "BreadcrumbList", "WebSite"]);
-                    expect(getGraphNode(parsed, "CollectionPage")["@id"]).toBe(pageURL);
-                    expect(getGraphNode(parsed, "BreadcrumbList").itemListElement).toHaveLength(2);
+                    expect(globalFunctions.getGraphTypes(parsed)).toBe(["CollectionPage", "BreadcrumbList", "WebSite"]);
+                    expect(globalFunctions.getGraphNode(parsed, "CollectionPage")["@id"]).toBe(pageURL);
+                    expect(globalFunctions.getGraphNode(parsed, "BreadcrumbList").itemListElement).toHaveLength(2);
                 });
             });
 
@@ -138,24 +128,24 @@ component extends="tests.resources.baseTest" asyncAll="true" {
                 var isoPattern = "^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?(Z|[+-]\d{2}:\d{2})$";
 
                 it("Builds a BlogPosting with ISO 8601 dates from a saved blog", () => {
-                    var blogs = entityLoad("blog", {}, "id asc", {maxresults: 1});
-                    expect(blogs).notToBeEmpty("Test data needs at least one blog");
-                    var blog = blogs[1];
+                    var firstBlog = testData.findRow("blog", {}, "id ASC");
+                    expect(firstBlog).notToBeEmpty("Test data needs at least one blog");
+                    var blog = getInstance("services.blog").getFromId(firstBlog.id, false);
 
-                    var pageURL = "#domain#/readblog/#blog.getHeader().replace(" ", "-", "all")#";
+                    var pageURL = "#domain#/readblog/#blog.header.replace(" ", "-", "all")#";
                     var parsed  = roundTrip(seoService.getBlogPosting(blog = blog, pageURL = pageURL));
 
-                    expect(getGraphTypes(parsed)).toBe([
+                    expect(globalFunctions.getGraphTypes(parsed)).toBe([
                         "BlogPosting",
                         "BreadcrumbList",
                         "Organization",
                         "WebSite"
                     ]);
 
-                    var posting = getGraphNode(parsed, "BlogPosting");
-                    expect(posting.headline).toBe(left(blog.getHeader(), 110));
+                    var posting = globalFunctions.getGraphNode(parsed, "BlogPosting");
+                    expect(posting.headline).toBe(left(blog.header, 110));
                     expect(posting.mainEntityOfPage).toBe(pageURL);
-                    expect(posting.image).toBe(blog.getOgImage());
+                    expect(posting.image).toBe(blog.ogimage);
                     expect(reFind(isoPattern, posting.datePublished)).toBeGT(
                         0,
                         "datePublished is not ISO 8601: #posting.datePublished#"
@@ -169,11 +159,11 @@ component extends="tests.resources.baseTest" asyncAll="true" {
                 });
 
                 it("Does not throw for a blog without dates, trainer, or meta", () => {
-                    // Never saved - created/updated/trainer/meta are all null
-                    var blog = entityNew("blog", {header: "Unsaved SEO Test Blog", image: "seo-test.webp"});
+                    // Never saved - no created/updated/author/meta
+                    var blog = {header: "Unsaved SEO Test Blog", image: "seo-test.webp"};
 
                     var parsed  = roundTrip(seoService.getBlogPosting(blog = blog, pageURL = "#domain#/readblog/x"));
-                    var posting = getGraphNode(parsed, "BlogPosting");
+                    var posting = globalFunctions.getGraphNode(parsed, "BlogPosting");
 
                     expect(posting).notToHaveKey("datePublished");
                     expect(posting).notToHaveKey("dateModified");

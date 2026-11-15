@@ -36,7 +36,7 @@
       "connectionTimeout": "30",
       "liveTimeout": "30",
       "validate": "false",
-      "custom": "",
+      "custom": "ApplicationName=pogotracker",
       "database": "${DB_NAME}",
       "dbdriver": "postgresql",
       "dsn": "jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_NAME}",

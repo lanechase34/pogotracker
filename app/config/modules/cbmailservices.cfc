@@ -6,7 +6,7 @@ component {
             mailers        : {
                 "default" : {class: "CFMail"},
                 "devFiles": {
-                    class     : "models.objects.UniqueFileProtocol",
+                    class     : "models.objects.uniqueFileProtocol",
                     properties: {filePath: controller.getSetting("testEmailPath"), autoExpand: false}
                 }
             },

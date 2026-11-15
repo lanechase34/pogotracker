@@ -110,12 +110,21 @@ function startCsrfTimer() {
 
 export const runtime = {
     all: () => {
+        // global.js already binds the validator to every form - addValidator skips forms already bound
         addValidator($forms);
         startCsrfTimer();
     },
     verifyform: () => {
         const $resendForm = /** @type {HTMLFormElement} */ (document.getElementById('resendVerificationForm'));
-        document.getElementById('submitResend').addEventListener('click', () => {
+        const $submitResend = document.getElementById('submitResend');
+        let resending = false;
+        $submitResend.addEventListener('click', (event) => {
+            event.preventDefault();
+            // One resend per click - a double click would send two codes and leave neither working
+            if (resending) return;
+            resending = true;
+            $submitResend.setAttribute('aria-disabled', 'true');
+            $submitResend.classList.add('disabled', 'pe-none');
             $resendForm.submit();
         });
     },

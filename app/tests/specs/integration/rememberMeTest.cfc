@@ -2,7 +2,7 @@ component extends="tests.resources.baseTest" asyncAll="false" {
 
     function beforeAll() {
         super.beforeAll();
-        mockTrainer    = getInstance("tests.resources.mocktrainer");
+        mockTrainer    = getInstance("tests.resources.mockTrainer");
         auth           = getInstance("authenticationService@cbauth");
         persistService = getInstance("services.persist");
         accountService = getInstance("services.account");
@@ -16,16 +16,16 @@ component extends="tests.resources.baseTest" asyncAll="false" {
 
     function afterAll() {
         persistService.deleteCookie();
-        mockTrainer.delete(trainer.getId());
+        mockTrainer.deleteTrainer(trainer.id);
         super.afterAll();
     }
 
     /**
      * A logged out visitor holding a valid remember me cookie for the trainer
      */
-    private void function guestWithCookie(required component trainer) {
+    private void function guestWithCookie(required struct trainer) {
         mockTrainer.actAsGuest();
-        persistService.addCookie(trainerService.getFromId(arguments.trainer.getId()));
+        persistService.addCookie(arguments.trainer.id);
         expect(persistService.checkCookie()).toBeTrue();
         expect(auth.isLoggedIn()).toBeFalse();
     }
@@ -41,38 +41,25 @@ component extends="tests.resources.baseTest" asyncAll="false" {
         cookie[cookieName] = arguments.value;
     }
 
-    private numeric function countPersist(required numeric trainerid) {
-        return queryExecute(
-            "select count(id) as count from persist where trainerid = :trainerid",
-            {trainerid: {value: arguments.trainerid, cfsqltype: "integer"}}
-        ).count;
-    }
-
     private numeric function countAudits(required string detail) {
-        return ormExecuteQuery(
-            "select count(id) from audit where detail like :detail",
-            {detail: arguments.detail},
-            true
-        );
+        return queryExecute(
+            "SELECT COUNT(id) AS count FROM audit WHERE detail LIKE :detail",
+            {detail: {value: arguments.detail, cfsqltype: "varchar"}}
+        ).count;
     }
 
     function run() {
         describe("Remember me life cycle", () => {
             it("Can submit login form with remember me option and get a persist token", () => {
-                countBefore = countPersist(trainer.getId());
+                var countBefore = testData.countRows("persist", {trainerid: trainer.id});
 
-                session.recaptcha = {
-                    token    : "a",
-                    valid    : true,
-                    timestamp: now(),
-                    action   : "doLogin"
-                };
+                globalFunctions.storeRecaptcha("doLogin");
 
                 setup();
-                event = post(
+                var event = post(
                     route  = "/login/doLogin",
                     params = {
-                        email   : trainer.getEmail(),
+                        email   : trainer.email,
                         password: createUUID(),
                         persist : "on"
                     }
@@ -81,11 +68,11 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                 // Successful login redirects home
                 expect(event.getValue("relocate_uri")).toBe("/");
                 expect(auth.isLoggedIn()).toBeTrue();
-                expect(auth.getUserId()).toBe(trainer.getId());
+                expect(auth.getUserId()).toBe(trainer.id);
 
                 // Persist cookie record created in DB and cookie set in browser
                 expect(persistService.checkCookie()).toBeTrue();
-                expect(countPersist(trainer.getId())).toBe(countBefore + 1);
+                expect(testData.countRows("persist", {trainerid: trainer.id})).toBe(countBefore + 1);
             });
 
             it("Can have an 'idle' logout and automatically persist log back in", () => {
@@ -93,16 +80,16 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                 expect(persistService.checkCookie()).toBeTrue();
 
                 // Idle logout - session is destroyed but cookie is preserved
-                event = post(route = "/logout", params = {idle: true});
+                post(route = "/logout", params = {idle: true});
                 expect(auth.isLoggedIn()).toBeFalse();
                 expect(persistService.checkCookie()).toBeTrue();
 
                 // Next request logs back in from the cookie
                 setup();
-                event = get(route = "/", renderResults = true);
+                execute(route = "/");
 
                 expect(auth.isLoggedIn()).toBeTrue();
-                expect(auth.getUserId()).toBe(trainer.getId());
+                expect(auth.getUserId()).toBe(trainer.id);
             });
 
             it("Can persist login when session becomes invalidated (jsessionid deleted)", () => {
@@ -113,10 +100,10 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                 sessionInvalidate();
 
                 setup();
-                event = get(route = "/", renderResults = true);
+                execute(route = "/");
 
                 expect(auth.isLoggedIn()).toBeTrue();
-                expect(auth.getUserId()).toBe(trainer.getId());
+                expect(auth.getUserId()).toBe(trainer.id);
             });
 
             it("Clicking logout deletes the persist cookie", () => {
@@ -124,7 +111,7 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                 expect(persistService.checkCookie()).toBeTrue();
 
                 // Full logout (not idle) - session AND browser cookie are both destroyed
-                event = post(route = "/logout");
+                post(route = "/logout");
 
                 expect(auth.isLoggedIn()).toBeFalse();
                 expect(persistService.checkCookie()).toBeFalse();
@@ -133,7 +120,7 @@ component extends="tests.resources.baseTest" asyncAll="false" {
             it("Clicking logout does nothing if no persist cookie", () => {
                 expect(persistService.checkCookie()).toBeFalse();
 
-                event = post(route = "/logout");
+                post(route = "/logout");
 
                 expect(auth.isLoggedIn()).toBeFalse();
                 expect(persistService.checkCookie()).toBeFalse();
@@ -158,8 +145,8 @@ component extends="tests.resources.baseTest" asyncAll="false" {
 
                 expect(event.getValue("relocate_uri", "")).toBe("");
                 expect(event.getCurrentEvent()).toBe("pokedex.myPokedex");
-                expect(auth.getUserId()).toBe(trainer.getId());
-                expect(event.getPrivateValue("oCurrentUser").getId()).toBe(trainer.getId());
+                expect(auth.getUserId()).toBe(trainer.id);
+                expect(event.getPrivateValue("oCurrentUser").getId()).toBe(trainer.id);
             });
 
             it("Rotates the session id and stamps the last login", () => {
@@ -168,19 +155,13 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                 var before    = now();
 
                 // The row is written in a fire and forget future - run it inline so it's there to read
-                var originalAsync = prepareMock(trainerService).$getProperty("async");
-                trainerService.$property(propertyName = "async", mock = syncAsync());
-                try {
+                withSyncAsync(trainerService, () => {
                     setup();
                     execute(route = "/");
-                }
-                finally {
-                    trainerService.$property(propertyName = "async", mock = originalAsync);
-                }
+                });
 
                 expect(session.sessionid).notToBe(sessionid);
-                ormClearSession();
-                expect(entityLoadByPK("trainer", trainer.getId()).getLastLogin()).toBeGTE(dateAdd("s", -1, before));
+                expect(mockTrainer.getSaved(trainer.id).lastlogin).toBeGTE(dateAdd("s", -1, before));
             });
 
             it("Audits the remember me login", () => {
@@ -221,33 +202,33 @@ component extends="tests.resources.baseTest" asyncAll="false" {
             it("Ignores an expired cookie and removes its record", () => {
                 guestWithCookie(trainer);
                 queryExecute(
-                    "update persist set created = :created where trainerid = :trainerid",
+                    "UPDATE persist SET created = :created WHERE trainerid = :trainerid",
                     {
                         created  : {value: dateAdd("d", -(persistDays + 1), now()), cfsqltype: "timestamp"},
-                        trainerid: {value: trainer.getId(), cfsqltype: "integer"}
+                        trainerid: {value: trainer.id, cfsqltype: "integer"}
                     }
                 );
-                ormClearSession(); // the persist row was created by orm this request - make it re-read the new date
+                mockTrainer.refresh(trainer.id); // drop this request's user and the cached trainer so the next request starts clean
 
                 setup();
                 execute(route = "/");
 
                 expect(auth.isLoggedIn()).toBeFalse();
                 expect(persistService.checkCookie()).toBeFalse();
-                expect(countPersist(trainer.getId())).toBe(0);
+                expect(testData.countRows("persist", {trainerid: trainer.id})).toBe(0);
             });
 
             it("Is revoked when the trainer's password changes", () => {
                 guestWithCookie(trainer);
 
-                accountService.update(
-                    trainerid = trainer.getId(),
-                    username  = trainer.getUsername(),
+                accountService.updateTrainer(
+                    trainerid = trainer.id,
+                    username  = trainer.username,
                     password  = "NewPass_#createUUID()#",
-                    email     = trainer.getEmail(),
-                    icon      = trainer.getIcon()
+                    email     = trainer.email,
+                    icon      = trainer.icon
                 );
-                expect(countPersist(trainer.getId())).toBe(0);
+                expect(testData.countRows("persist", {trainerid: trainer.id})).toBe(0);
 
                 setup();
                 execute(route = "/");
@@ -257,15 +238,15 @@ component extends="tests.resources.baseTest" asyncAll="false" {
             it("Is revoked when the trainer's security level changes", () => {
                 guestWithCookie(trainer);
 
-                accountService.update(
-                    trainerid     = trainer.getId(),
-                    username      = trainer.getUsername(),
+                accountService.updateTrainer(
+                    trainerid     = trainer.id,
+                    username      = trainer.username,
                     password      = "",
-                    email         = trainer.getEmail(),
-                    icon          = trainer.getIcon(),
+                    email         = trainer.email,
+                    icon          = trainer.icon,
                     securityLevel = "20"
                 );
-                expect(countPersist(trainer.getId())).toBe(0);
+                expect(testData.countRows("persist", {trainerid: trainer.id})).toBe(0);
 
                 setup();
                 execute(route = "/");

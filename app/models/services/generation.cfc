@@ -4,54 +4,77 @@ component singleton accessors="true" {
     property name="generationMap" type="struct";
 
     public void function init() {
-        setGenerationMap(deserializeJSON(fileRead("/includes/assets/generationmap.json")));
+        setGenerationMap(deserializeJSON(fileRead("/includes/assets/generationmap.json", "UTF-8")));
         return;
     }
 
+    /**
+     * Every generation, in order - each {id, generation, region}
+     */
     public array function getAll() {
-        var cacheKey       = "generation.getAll";
-        var allGenerations = cache.get(cacheKey);
-        if(isNull(allGenerations)) {
-            allGenerations = entityLoad("generation", {}, "generation asc");
-            cache.set(cacheKey, allGenerations, 720, 720);
-        }
-        return allGenerations;
+        return cache.getOrSet(
+            getAllCacheKey(),
+            () => queryExecute(
+                "
+                SELECT id, generation, region 
+                FROM generation 
+                ORDER BY generation ASC
+                ",
+                {},
+                {returnType: "array"}
+            ),
+            720,
+            720
+        );
     }
 
-    private void function create(required struct generationProperties) {
-        var newGeneration = entityNew("generation", arguments.generationProperties);
-        entitySave(newGeneration);
+    /**
+     * Evict the cached generation list so the next getAll reads the database
+     * Call after anything that changes the generations
+     */
+    public void function clearAllCache() {
+        cache.clear(getAllCacheKey());
         return;
     }
 
     // This function creates any missing generations
     public void function createAll() {
         getGenerationMap().each((key, value) => {
-            if(isNull(get(key))) {
-                create({"generation": key, "region": value});
-            }
+            queryExecute(
+                "
+                INSERT INTO generation (generation, region) 
+                VALUES (:generation, :region) 
+                ON CONFLICT (generation) DO NOTHING
+                ",
+                {
+                    generation: {
+                        value    : key,
+                        cfsqltype: "decimal",
+                        scale    : 1
+                    },
+                    region: {value: value, cfsqltype: "varchar"}
+                }
+            );
         });
 
-        ormFlush();
-        cache.clear("generation.getAll");
+        clearAllCache();
         return;
     }
 
-    // Get single generation
-    public any function get(required numeric generation) {
-        return entityLoad(
-            "generation",
-            {"generation": arguments.generation},
-            true
-        );
-    }
-
-    // Get generation record based on region
+    // Get generation record based on region, null when there is none
     public any function getFromRegion(required string region) {
-        var wanted = arguments.region;
-        var found  = getAll().filter((generation) => compare(generation.getRegion(), wanted) == 0);
-        if(found.len()) return found[1];
+        var wanted      = arguments.region;
+        var generations = getAll();
+        var position    = generations.find((generation) => compare(generation.region, wanted) == 0);
+        if(position) return generations[position];
         return;
+    }
+
+    /**
+     * Cache key for the generation list getAll loads
+     */
+    private string function getAllCacheKey() {
+        return "generation.getAll";
     }
 
 }

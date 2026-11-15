@@ -163,7 +163,7 @@ test.describe('Module loading', () => {
             path: '/login',
             handler: 'login',
             entry: 'runtime',
-            expected: ['login', 'form', 'fetch'],
+            expected: ['login', 'form', 'fetch', 'contact', 'modals'],
         });
 
         const { preloads } = await readPageAssets(page);

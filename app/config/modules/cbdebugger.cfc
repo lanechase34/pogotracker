@@ -76,13 +76,6 @@ component {
                 // Log the binding parameters
                 logParams: true
             },
-            // cborm Reporting
-            cborm: {
-                enabled  : false,
-                expanded : false,
-                // Log the binding parameters
-                logParams: true
-            },
             // Adobe ColdFusion SQL Collector
             acfSql: {
                 enabled  : false,

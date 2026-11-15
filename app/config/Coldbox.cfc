@@ -105,7 +105,6 @@ component {
                 iterations: getSystemSetting("ITERATIONS"),
                 pepper    : getSystemSetting("PEPPER")
             },
-            healthCheck    : true,
             httpPort       : getSystemSetting("HTTP_PORT"),
             imageExtension : ".webp",
             imageMagickPath: getSystemSetting("IMAGEMAGICKPATH"),
@@ -152,6 +151,34 @@ component {
                 admin    : 50,
                 developer: 60
             },
+            /**
+             * Blog comments
+             *
+             * pageSize         : comments shown at a time
+             * profanityStrikes : distinct comments blocked for banned words before the trainer is banned from commenting
+             * strikeWindowDays : how far back blocked comments count toward the ban
+             */
+            comments: {
+                pageSize        : 10,
+                profanityStrikes: 5,
+                strikeWindowDays: 30
+            },
+            /**
+             * Banned word check
+             * The list is the @2toad/profanity npm package's English words, written on npm install
+             *
+             * allowedWords : words from that list this site allows - balls for Poke/Great/Ultra Balls, pawn for Pawniard
+             * listPath     : the written list (includes/scripts/buildProfanityList.js)
+             */
+            profanity: {
+                allowedWords: ["balls", "pawn"],
+                listPath    : replace(
+                    expandPath("/includes/assets/profanity.json"),
+                    "\",
+                    "/",
+                    "all"
+                )
+            },
             // Intrinsic width/height (px) for .pokemonIcon imgs, reserves layout space before the sprite loads
             pokemonIconSize: 128,
             /**
@@ -162,6 +189,8 @@ component {
              * limit          : hits allowed per window
              * window         : window length in minutes
              * resetOnSuccess : clear the counter when the request logs a trainer in, optional
+             * afterRecaptcha : only count the hit once the request passed its recaptcha check (reCaptchaChecks), optional
+             *                  rules scoped to someone else's value (email) use it, so junk posts can't lock that person out
              */
             rateLimits: {
                 "login.dologin": {
@@ -176,14 +205,24 @@ component {
                             resetOnSuccess: true
                         },
                         // Credential stuffing against one account from many ips
-                        {by: "email", limit: 10, window: 15}
+                        {
+                            by            : "email",
+                            limit         : 10,
+                            window        : 15,
+                            afterRecaptcha: true
+                        }
                     ]
                 },
                 "login.register": {
                     redirect: "/register",
                     rules   : [
                         {by: "ip", limit: 5, window: 60},
-                        {by: "email", limit: 3, window: 60}
+                        {
+                            by            : "email",
+                            limit         : 3,
+                            window        : 60,
+                            afterRecaptcha: true
+                        }
                     ]
                 },
                 "login.forgotpassword": {
@@ -191,13 +230,26 @@ component {
                     rules   : [
                         {by: "ip", limit: 5, window: 15},
                         // Stops flooding a user's inbox with resets
-                        {by: "email", limit: 3, window: 60}
+                        {
+                            by            : "email",
+                            limit         : 3,
+                            window        : 60,
+                            afterRecaptcha: true
+                        }
                     ]
                 },
                 "login.verify"         : {redirect: "/verify", rules: [{by: "ip", limit: 10, window: 15}]},
                 "login.resetpassword"  : {redirect: "/forgot", rules: [{by: "ip", limit: 10, window: 15}]},
                 "login.verifyrecaptcha": {redirect: "", rules: [{by: "ip", limit: 30, window: 15}]},
                 "home.contact"         : {redirect: "", rules: [{by: "ip", limit: 5, window: 60}]},
+                // Comment spam - a burst, then a cap per hour
+                "blog.addcomment"      : {
+                    redirect: "",
+                    rules   : [
+                        {by: "ip", limit: 3, window: 1},
+                        {by: "ip", limit: 20, window: 60}
+                    ]
+                },
                 // Changing your own email/password checks your current password - stops guessing it from a stolen session
                 "trainer.updateprofile": {redirect: "", rules: [{by: "ip", limit: 10, window: 15}]},
                 // Not an event - remember me logins, over the limit carries on as a guest
@@ -205,19 +257,15 @@ component {
                 "persist.login"        : {redirect: "", rules: [{by: "ip", limit: 50, window: 5}]}
             },
             reCaptchaChecks: {
-                // Validate a user's recaptcha session data for these actions
-                dologin       : true,
-                forgotpassword: true,
-                register      : true
+                // Validate a user's recaptcha session data for these events
+                "login.dologin"       : true,
+                "login.forgotpassword": true,
+                "login.register"      : true
             },
             reCaptchaSiteKey  : getSystemSetting("RECAPTCHASITEKEY"),
             reCaptchaSecretKey: getSystemSetting("RECAPTCHASECRETKEY"),
             requestLog        : {
                 // Request Log settings
-                urlpathLength       : 500,
-                methodLength        : 10,
-                agentLength         : 250,
-                refererLength       : 250,
                 slowRequestThreshold: 1000, // ms
                 maxSlowRequests     : 25
             },
@@ -240,6 +288,7 @@ component {
                 "nocookie.net",
                 "pokemondb.net",
                 "pokemongo.com",
+                "pokemongohub.com",
                 "pokemongolive.com",
                 "pvpoke.com"
             ],
@@ -296,7 +345,7 @@ component {
                 // Changes made when rebuilding json asset files, one entry per write
                 jsonDiffLog: {
                     class     : "coldbox.system.logging.appenders.RollingFileAppender",
-                    layout    : "models.objects.PlainLayout",
+                    layout    : "models.objects.plainLayout",
                     properties: {
                         filePath       : "#logPath#/../logs",
                         filename       : "jsondiff",
@@ -360,7 +409,7 @@ component {
 		 */
         interceptors = [
             {
-                class     : "interceptors.applifecycle",
+                class     : "interceptors.appLifecycle",
                 name      : "appLifeCycleInterceptor",
                 properties: {}
             },
@@ -385,17 +434,17 @@ component {
                 properties: {}
             },
             {
-                class     : "interceptors.guestonly",
+                class     : "interceptors.guestOnly",
                 name      : "guestOnlyInterceptor",
                 properties: {}
             },
             {
-                class     : "interceptors.logrequest",
+                class     : "interceptors.logRequest",
                 name      : "logRequestInterceptor",
                 properties: {}
             },
             {
-                class     : "interceptors.ratelimiter",
+                class     : "interceptors.rateLimiter",
                 name      : "rateLimiterInterceptor",
                 properties: {}
             }
@@ -470,7 +519,6 @@ component {
 
         settings.impersonation = true;
 
-        // settings.debugging     = true;
         settings.shadowData  = true;
         settings.costumeData = true;
 

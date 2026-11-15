@@ -3,6 +3,28 @@
     height: 90px;
 }
 
+/* Admin index nav cards - only what bootstrap utilities don't cover */
+.adminNavHeader {
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+}
+
+/* Fixed width keeps labels aligned, icon glyphs vary in width */
+.adminNavIcon {
+    width: 1.25rem;
+}
+
+/* border-2 would widen every side of a flush list item, only the bottom is wanted */
+.adminNavState {
+    border-bottom-width: 2px;
+}
+
+/* Comment review - keep the trainer's line breaks */
+.adminCommentText {
+    white-space: pre-line;
+    min-width: 250px;
+}
+
 .shadowIcon {
     position: absolute;
     width: 40px;

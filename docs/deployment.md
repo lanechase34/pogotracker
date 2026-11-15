@@ -1,46 +1,28 @@
 ## Github Actions
 
 - Testing workflow `test.yml`
-- Deploy workflow `deploy.yml`
+- Deploy workflow `deploy.yml` - run manually from the Actions tab (`workflow_dispatch`, repo owner only)
 
-## Manual Deploy
+### Deploy Flow
 
-1. Start commandbox
+`deploy.yml` builds on the runner and rsyncs `app/` to `/var/www/wwwroot/pogotracker/`:
 
-    `sudo box`
-
-2. Go to apache web hosting root on ubuntu
-
-    `cd /var/www/wwwroot/pogotracker`
-
-3. Stop POGOTracker Site
-
-    `server stop`
-
-4. Pull latest changes
-
-    `sudo git pull`
-
-5. Enter username and github access token
-
-    If codebase has changes on server try the following
+1. Rsync `config/` to `/tmp/nginx-deploy/`, copy `nginx.conf`, `site.conf` (`sites-available/pogotracker.app`), and `security_headers.conf` into `/etc/nginx`, then `nginx -t` and reload
+2. Build assets in `app/includes` - `npm ci` (its postinstall runs `buildProfanity`, writing `assets/profanity.json`), `npm run minJS`, `npm run minCSS`. `includes/build/` and `profanity.json` are gitignored, so they only exist from this build
+3. Rsync `./app/` with `--delete-after`
+    - Never sent or deleted: `.env`, `includes/uploads/`, `includes/sitemap.xml`, `coldbox/`, `modules/`
+    - Sent, but server only files are kept: `version.html`, `includes/images/`, `includes/assets/`
+    - Dev only, removed from the server: frontend sources/tooling (`includes/js/*` except `vendor/`, `includes/css/`, `package*.json`, `includes/scripts/`, ...), `handlers/dev.cfc`, `views/dev/`, `tests/`, `database/seeds/`, `_testemails/`
+4. Write the deploy date to `version.html`, then run `sudo box recipe scripts/deploy.boxr` in the site dir
 
     ```
-    git restore .
-    git reset --hard
+    server stop
+    install --production
+    migrate up
+    server start
     ```
 
-6. Check and remove any dev only dirs/files
-
-    ```
-    ls -l
-    sudo rm -r tests
-    sudo rm package.json package-lock.json
-    ```
-
-7. Start the site
-
-    `server start`
+5. Reload nginx so `open_file_cache` can't serve stale files under the new cacheBuster
 
 ### NGINX
 
@@ -173,11 +155,11 @@ Stack:
     sudo mkdir wwwroot
     ```
 
-8.  Clone site into wwwroot
+8.  Create the site dir and send the code with the Manual Deploy steps 1-2 above (the server is not a git checkout)
 
-    `sudo git clone ${url}`
+    `sudo mkdir /var/www/wwwroot/pogotracker`
 
-9.  Make and modify env as needed
+9.  Make and modify env as needed in `/var/www/wwwroot/pogotracker`
 
     ```
     sudo touch .env
@@ -190,11 +172,13 @@ Stack:
 
 11. Start commandbox and init dependencies
 
+    > **WARNING:** never run `migrate fresh` on the server. It drops every table and reruns all migrations, wiping all production data. A new database only needs `migrate install` + `migrate up`.
+
     ```
     sudo box
     update --system
     install --production
-    migrate fresh # only run once - this initializes the database
+    migrate install
     migrate up
     dotenv check
     server start

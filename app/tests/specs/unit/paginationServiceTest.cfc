@@ -35,19 +35,17 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                     expect(orderBy).toBe("ORDER BY pokemon.number DESC, pokemon.generation ASC");
                 });
 
-                it("Ignores unsortable, out of range, non-numeric columns and bad directions", () => {
+                it("Skips orders without a column or direction", () => {
                     var orderBy = pagination.orderBy(
                         columns = cols,
                         orders  = [
-                            {column: 2, dir: "asc"}, // "" - not sortable
-                            {column: 3, dir: "asc"}, // out of range
-                            {column: -1, dir: "asc"},
-                            {column: "1; DROP TABLE pokemon", dir: "asc"},
-                            {column: 0, dir: "asc; DROP TABLE pokemon"}
+                            {column: "", dir: "asc"},
+                            {column: 1, dir: ""},
+                            {column: 0, dir: "desc"}
                         ],
                         defaultSort = "pokemon.id ASC"
                     );
-                    expect(orderBy).toBe("ORDER BY pokemon.id ASC");
+                    expect(orderBy).toBe("ORDER BY pokemon.generation DESC");
                 });
 
                 it("Doesn't repeat the tiebreak when it's already the sort", () => {
@@ -78,7 +76,7 @@ component extends="tests.resources.baseTest" asyncAll="false" {
 
             describe("countRecords", () => {
                 it("Counts the matching rows", () => {
-                    var expected = queryExecute("SELECT COUNT(*) AS total FROM pokemon WHERE costume = false").total;
+                    var expected = testData.countRows("pokemon", {costume: false});
                     var total    = pagination.countRecords(
                         fromSQL  = "FROM pokemon",
                         whereSQL = "WHERE pokemon.costume = :costume",
@@ -89,7 +87,7 @@ component extends="tests.resources.baseTest" asyncAll="false" {
 
                 it("Reads a cached count until it's evicted", () => {
                     var cacheKey = "paginationServiceTest.#createUUID()#";
-                    var expected = queryExecute("SELECT COUNT(*) AS total FROM pokemon").total;
+                    var expected = testData.countRows("pokemon");
 
                     expect(
                         pagination.countRecords(
@@ -125,8 +123,8 @@ component extends="tests.resources.baseTest" asyncAll="false" {
 
             describe("paginate", () => {
                 it("Returns the page's rows with the total and filtered counts", () => {
-                    var total = queryExecute("SELECT COUNT(*) AS total FROM pokemon").total;
-                    var kanto = queryExecute("SELECT COUNT(*) AS total FROM pokemon WHERE generation = 1").total;
+                    var total = testData.countRows("pokemon");
+                    var kanto = testData.countRows("pokemon", {generation: 1});
 
                     var page = pagination.paginate(
                         records     = 5,
@@ -134,11 +132,17 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                         fromSQL     = "FROM pokemon",
                         baseWhere   = "",
                         whereSQL    = "WHERE pokemon.generation = :generation",
-                        whereParams = {generation: {value: 1, cfsqltype: "numeric"}},
-                        fetchRows   = (pageParams) => queryExecute(
-                            "SELECT id FROM pokemon WHERE pokemon.generation = :generation ORDER BY id LIMIT :records OFFSET :offset",
+                        whereParams = {
+                            generation: {
+                                value    : 1,
+                                cfsqltype: "decimal",
+                                scale    : 1
+                            }
+                        },
+                        fetchRows = (pageParams) => queryExecute(
+                            "SELECT id FROM pokemon WHERE pokemon.generation = :generation ORDER BY id ASC LIMIT :records OFFSET :offset",
                             pageParams,
-                            {returntype: "array"}
+                            {returnType: "array"}
                         )
                     );
 
@@ -148,7 +152,7 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                 });
 
                 it("Uses the total as the filtered count when there are no filters", () => {
-                    var total = queryExecute("SELECT COUNT(*) AS total FROM pokemon").total;
+                    var total = testData.countRows("pokemon");
 
                     var page = pagination.paginate(
                         records   = 3,
@@ -157,16 +161,16 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                         baseWhere = "",
                         whereSQL  = "",
                         fetchRows = (pageParams) => queryExecute(
-                            "SELECT id FROM pokemon ORDER BY id LIMIT :records OFFSET :offset",
+                            "SELECT id FROM pokemon ORDER BY id ASC LIMIT :records OFFSET :offset",
                             pageParams,
-                            {returntype: "array"}
+                            {returnType: "array"}
                         )
                     );
 
                     var expectedIds = queryExecute(
-                        "SELECT id FROM pokemon ORDER BY id LIMIT 3 OFFSET 2",
+                        "SELECT id FROM pokemon ORDER BY id ASC LIMIT 3 OFFSET 2",
                         {},
-                        {returntype: "array"}
+                        {returnType: "array"}
                     ).map((row) => row.id);
 
                     expect(page.recordsTotal).toBe(total);

@@ -2,31 +2,41 @@ component extends="tests.resources.baseTest" asyncAll="false" {
 
     function beforeAll() {
         super.beforeAll();
-        mockTrainer  = getInstance("tests.resources.mocktrainer");
-        trainer      = mockTrainer.make();
+        mockTrainer  = getInstance("tests.resources.mockTrainer");
+        trainer      = mockTrainer.make(autoLogin = false);
         statsService = getInstance("services.stats");
         cache        = getInstance("cachebox:appCache");
 
-        // Two stats this month with a delta no seeded trainer can beat
-        statsService.track(
-            trainer = trainer,
-            xp      = 1,
-            caught  = 0,
-            spun    = 0,
-            walked  = 0
+        // Last month, so there are always two days for the two stats (one stat per trainer per day)
+        boardDate = dateAdd(
+            "s",
+            -1,
+            createDateTime(year(now()), month(now()), 1, 0, 0, 0)
         );
-        statsService.track(
-            trainer = trainer,
-            xp      = 5000000000000,
-            caught  = 0,
-            spun    = 0,
-            walked  = 0
-        );
+        var first = createDateTime(year(boardDate), month(boardDate), 1, 12, 0, 0);
+
+        // Two stats in the month with a delta no seeded trainer can beat
+        [
+            {created: first, xp: 1},
+            {created: dateAdd("d", 1, first), xp: 5000000000000}
+        ].each((stat) => {
+            testData.insertRow(
+                "stat",
+                {
+                    trainerid: trainer.id,
+                    created  : stat.created,
+                    xp       : stat.xp,
+                    caught   : 0,
+                    spun     : 0,
+                    walked   : 0
+                }
+            );
+        });
     }
 
     function afterAll() {
         super.afterAll();
-        mockTrainer.delete();
+        mockTrainer.deleteTrainer(trainer.id);
         // Don't leave the huge test delta in the cached leaderboard
         cache.clearByKeySnippet("stats.getLeaderboard");
     }
@@ -39,11 +49,11 @@ component extends="tests.resources.baseTest" asyncAll="false" {
             });
 
             it("Returns the true top 10 by monthly delta, largest first", () => {
-                var leaderboard = statsService.getLeaderboard(date = now(), stat = "xp");
+                var leaderboard = statsService.getLeaderboard(date = boardDate, stat = "xp");
 
-                var low         = createDateTime(year(now()), month(now()), 1, 0, 0, 0);
+                var low         = createDateTime(year(boardDate), month(boardDate), 1, 0, 0, 0);
                 var high        = dateAdd("s", -1, dateAdd("m", 1, low));
-                var daysElapsed = dateDiff("d", low, now()) + 1;
+                var daysElapsed = dateDiff("d", low, boardDate) + 1;
 
                 var expected = queryExecute(
                     "
@@ -60,7 +70,7 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                 );
 
                 expect(leaderboard.len()).toBe(expected.recordCount);
-                expect(leaderboard[1].username).toBe(trainer.getUsername());
+                expect(leaderboard[1].username).toBe(trainer.username);
 
                 leaderboard.each((row, index) => {
                     expect(row.delta).toBeCloseTo(expected.delta[index] / daysElapsed, 0.0001);

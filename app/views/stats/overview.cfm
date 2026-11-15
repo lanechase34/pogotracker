@@ -70,7 +70,7 @@
     </div>
 
     <!--- Leaderboard --->
-    <div class="col-12 col-xl-4 mt-3 statCard" id="leaderboardDiv" data-epoch="#now().getTime()#"></div>
+    <div class="col-12 col-xl-4 mt-3 statCard" id="leaderboardDiv"></div>
 </div>
 <script>
     const statDataset = #serializeJSON(prc.stats)#;

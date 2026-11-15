@@ -3,57 +3,63 @@ component singleton accessors="true" {
     /**
      * Find the exclusive pokemon that only left trainer has and right trainer does not
      *
-     * @leftTrainer  trainer cfc
-     * @rightTrainer trainer cfc
-     * @shiny        t/f
-     * @generation   generation cfc 
-     * @custom       custom cfc
+     * @leftTrainerid  trainer pk
+     * @rightTrainerid trainer pk
+     * @shiny          t/f
+     * @generation     generation struct (generationService)
+     * @custom         custom pokedex (customService.getFromId/get)
+     *
+     * @return pokemon rows (id, number, name, sprite, costume, costumetype), by number
      */
     public array function findExclusive(
-        required component leftTrainer,
-        required component rightTrainer,
+        required numeric leftTrainerid,
+        required numeric rightTrainerid,
         required boolean shiny,
-        component generation,
-        component custom
+        struct generation,
+        struct custom
     ) {
-        var conditionL  = "and pokedexL.caught = true";
-        var conditionR  = "and pokedexR.caught = true";
-        var whereClause = "where pokemon.tradable = true and pokedexR.pokemon is null";
-
+        // Column is never user supplied, only one of two literals
+        var flag        = arguments.shiny ? "shiny" : "caught";
+        var whereClause = "WHERE pokemon.tradable = true AND pokedexr.id IS NULL";
         if(arguments.shiny) {
-            conditionL = " and pokedexL.shiny = true";
-            conditionR = " and pokedexR.shiny = true";
-            whereClause &= " and pokemon.shiny = true";
+            whereClause &= " AND pokemon.shiny = true";
         }
 
-        var params = {"leftTrainer": arguments.leftTrainer, "rightTrainer": arguments.rightTrainer};
+        var params = {
+            lefttrainerid : {value: arguments.leftTrainerid, cfsqltype: "integer"},
+            righttrainerid: {value: arguments.rightTrainerid, cfsqltype: "integer"}
+        };
 
         if(!isNull(arguments.generation)) {
-            whereClause &= " and pokemon.generation = :generation and pokemon.costume = false";
-            params.insert("generation", arguments.generation);
+            whereClause &= " AND pokemon.generation = :generation AND pokemon.costume = false";
+            params.generation = {
+                value    : arguments.generation.generation,
+                cfsqltype: "decimal",
+                scale    : 1
+            };
         }
 
         var customClause = "";
         if(!isNull(arguments.custom)) {
-            customClause = "inner join pokemon.custompokedex as custompokedex with custompokedex.custom = :custom";
-            params.insert("custom", arguments.custom);
+            customClause    = "INNER JOIN custompokedex ON custompokedex.pokemonid = pokemon.id AND custompokedex.customid = :customid";
+            params.customid = {value: arguments.custom.id, cfsqltype: "integer"};
         }
 
-        return ormExecuteQuery(
+        return queryExecute(
             "
-            select pokemon
-            from pokemon as pokemon
+            SELECT pokemon.id, pokemon.number, pokemon.name, pokemon.sprite, pokemon.costume,
+                COALESCE(pokemon.costumetype, '') AS costumetype
+            FROM pokemon
             #customClause#
-            inner join pokemon.pokedex as pokedexL 
-                with pokedexL.trainer = :leftTrainer
-                #conditionL#
-            left outer join pokemon.pokedex as pokedexR
-                with pokedexR.trainer = :rightTrainer
-                #conditionR#
+            INNER JOIN pokedex AS pokedexl
+                ON pokedexl.pokemonid = pokemon.id AND pokedexl.trainerid = :lefttrainerid AND pokedexl.#flag# = true
+            LEFT JOIN pokedex AS pokedexr
+                ON pokedexr.pokemonid = pokemon.id AND pokedexr.trainerid = :righttrainerid AND pokedexr.#flag# = true
             #whereClause#
-            order by pokemon.number asc
+            ORDER BY pokemon.number ASC, pokemon.id ASC
             ",
-            params
+            params,
+            {returnType: "array"}
         );
     }
 

@@ -1,23 +1,38 @@
 component extends="coldbox.system.testing.BaseTestCase" {
 
-    function init() {
-        customService = getInstance("services.custom");
-    }
-
-    public numeric function count() {
+    /**
+     * The pokemon in a custom pokedex, as structs of pokemonid, name, gender, costume, costumetype
+     *
+     * @customid custom pk
+     */
+    public array function getMembers(required numeric customid) {
         return queryExecute(
             "
-            select count(id) as count
-            from custom
-            "
-        ).count;
+            SELECT pokemon.id AS pokemonid, pokemon.name, pokemon.gender, pokemon.costume, COALESCE(pokemon.costumetype, '') AS costumetype
+            FROM custompokedex
+            INNER JOIN pokemon ON pokemon.id = custompokedex.pokemonid
+            WHERE custompokedex.customid = :customid
+            ORDER BY pokemon.id ASC
+            ",
+            {customid: {value: arguments.customid, cfsqltype: "integer"}},
+            {returnType: "array"}
+        );
+    }
+
+    /**
+     * The ids of the pokemon in a custom pokedex, ascending
+     *
+     * @customid custom pk
+     */
+    public array function getMemberIds(required numeric customid) {
+        return getMembers(arguments.customid).map((member) => member.pokemonid);
     }
 
     public numeric function getMostRecentCreated() {
         return queryExecute(
             "
-            select max(id) as id
-            from custom
+            SELECT MAX(id) AS id
+            FROM custom
             "
         ).id;
     }
@@ -25,9 +40,9 @@ component extends="coldbox.system.testing.BaseTestCase" {
     public void function deleteByName(required string name) {
         var customid = queryExecute(
             "
-            select id
-            from custom
-            where name = :name
+            SELECT id
+            FROM custom
+            WHERE name = :name
             ",
             {name: {value: arguments.name, cfsqltype: "varchar"}}
         ).id;
@@ -35,18 +50,18 @@ component extends="coldbox.system.testing.BaseTestCase" {
         if(customid.len()) {
             queryExecute(
                 "
-                delete from custompokedex
-                where customid = :customid
+                DELETE FROM custompokedex
+                WHERE customid = :customid
                 ",
-                {customid: {value: customid, cfsqltype: "numeric"}}
+                {customid: {value: customid, cfsqltype: "integer"}}
             );
 
             queryExecute(
                 "
-                delete from custom
-                where id = :customid
+                DELETE FROM custom
+                WHERE id = :customid
                 ",
-                {customid: {value: customid, cfsqltype: "numeric"}}
+                {customid: {value: customid, cfsqltype: "integer"}}
             );
         }
 

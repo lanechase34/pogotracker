@@ -1,15 +1,19 @@
 component singleton accessors="true" {
 
+    property name="async"       inject="asyncManager@coldbox";
     property name="environment" inject="coldbox:setting:environment";
     property name="jsonDiffLog" inject="logbox:logger:jsonDiff";
+    property name="logger"      inject="logbox:logger:{this}";
     property name="rootPath"    inject="coldbox:setting:rootPath";
+
+    property name="hashing" inject="coldbox:setting:hashing" getter="false" setter="false";
 
     // User facing message per unique index/constraint
     variables.UNIQUE_MESSAGES = {
         "unq_trainer_lower_username"          : "That username is already taken.",
         "unq_trainer_email"                   : "That email is already in use.",
         "unq_trainer_friendcode"              : "That friend code is already in use.",
-        "unq_blog_lower_header"               : "A blog with that header already exists.",
+        "unq_blog_slug"                       : "A blog with that header (or the same url) already exists.",
         "unq_friend_trainerid_friendid"       : "That friend request already exists.",
         "unq_pokedex_trainerid_pokemonid"     : "That pokemon is already registered.",
         "unq_custompokedex_customid_pokemonid": "That pokemon is already in this custom pokedex.",
@@ -25,6 +29,28 @@ component singleton accessors="true" {
         "unq_generation_generation"           : "That generation already exists.",
         "unq_level_level"                     : "That level already exists."
     };
+
+    /**
+     * Fire and forget - run the task on another thread and log it if it fails
+     * Never throws to the caller, so a background write can't break the request that queued it
+     *
+     * @task    the work to run
+     * @failure what to log when it fails, e.g. "Failed to audit login.doLogin"
+     */
+    public void function runInBackground(required function task, required string failure) {
+        var message = arguments.failure;
+        try {
+            async
+                .newFuture(arguments.task)
+                .onException((e) => {
+                    logger.error("#message#: #e.message#", e);
+                });
+        }
+        catch(any e) {
+            logger.error("#message#: #e.message#", e);
+        }
+        return;
+    }
 
     /**
      * Human readable file size - 512 B, 14.2 KB, 3.1 MB
@@ -48,7 +74,7 @@ component singleton accessors="true" {
      * @sentence  the string
      * @delimiter optional delimiter for the sentence, defaults to space
      */
-    function capitalizeWords(required string sentence, string delimiter = " ") {
+    public string function capitalizeWords(required string sentence, string delimiter = " ") {
         return sentence
             .listToArray(delimiter)
             .map((word) => {
@@ -58,25 +84,16 @@ component singleton accessors="true" {
     }
 
     /**
-     * Remove duplicate entries in a delimited list
+     * Remove duplicate entries in a delimited list - entries are trimmed, compared ignoring case, first occurrence kept
      *
-     * @list      The list with potential duplicates
-     * @delimiter The list delimiter
+     * @delimitedList The list with potential duplicates
+     * @delimiter     The list delimiter
      */
-    public string function removeDuplicates(required string list, string delimiter = ",") {
-        return arrayToList(
-            listToArray(arguments.list, arguments.delimiter)
-                .map((item) => trim(item))
-                .reduce((seen, item) => {
-                    if(!seen.keyExists(item)) {
-                        seen.result.append(item);
-                        seen[item] = true;
-                    }
-                    return seen;
-                }, {result: []})
-                .result,
-            arguments.delimiter
-        );
+    public string function dedupeList(required string delimitedList, string delimiter = ",") {
+        return listToArray(arguments.delimitedList, arguments.delimiter)
+            .map((item) => item.trim())
+            .toList(arguments.delimiter)
+            .listRemoveDuplicates(arguments.delimiter, true);
     }
 
     /**
@@ -114,19 +131,15 @@ component singleton accessors="true" {
     }
 
     /**
-     * Returns timestamp of date at 23:59:59
+     * Returns timestamp of the next day at 00:00:00 - an exclusive upper bound, compare with created < high
      *
      * @high date
      */
     public date function makeHighDate(required date high) {
         return dateAdd(
-            "s",
-            -1,
-            dateAdd(
-                "d",
-                1,
-                createDateTime(year(high), month(high), day(high), 0, 0, 0)
-            )
+            "d",
+            1,
+            createDateTime(year(high), month(high), day(high), 0, 0, 0)
         );
     }
 
@@ -134,22 +147,24 @@ component singleton accessors="true" {
      * Write a json asset file ordered and formatted with the project's prettier
      * Diffs against the current file first and logs what changed
      *
-     * @path relative path from the app root, e.g. /includes/assets/costumes.json
-     * @data struct of records keyed by record id
-     * @name label for the diff log entry
+     * @path     relative path from the app root, e.g. /includes/assets/costumes.json
+     * @data     struct of records keyed by record id, or an array of records with a keyField
+     * @name     label for the diff log entry
+     * @keyField record field the diff keys an array of records by, e.g. nameid
      */
     public void function writeJsonFile(
         required string path,
-        required struct data,
-        required string name
+        required any data,
+        required string name,
+        string keyField = ""
     ) {
         var fullPath = "#getRootPath()##arguments.path#";
-        var previous = fileExists(fullPath) ? deserializeJSON(fileRead(fullPath)) : {};
+        var previous = fileExists(fullPath) ? deserializeJSON(fileRead(fullPath, "UTF-8")) : {};
 
         writeJsonDiff(
             name    : arguments.name,
-            previous: previous,
-            current : arguments.data
+            previous: keyRecords(previous, arguments.keyField),
+            current : keyRecords(arguments.data, arguments.keyField)
         );
 
         fileWrite(
@@ -159,6 +174,21 @@ component singleton accessors="true" {
         );
 
         runPrettier(fullPath);
+    }
+
+    /**
+     * Records keyed by record id for writeJsonDiff - a struct is already keyed, an array is keyed by its keyField
+     *
+     * @records  struct keyed by record id, or array of records
+     * @keyField record field to key an array by
+     */
+    private struct function keyRecords(required any records, required string keyField) {
+        if(isStruct(arguments.records)) return arguments.records;
+        var field = arguments.keyField;
+        return arguments.records.reduce((keyed, record) => {
+            keyed[record[field]] = record;
+            return keyed;
+        }, {});
     }
 
     /**
@@ -377,7 +407,17 @@ component singleton accessors="true" {
     }
 
     /**
-     * Search term wrapped for a "contains" match - lowercased for searchHQL (ILIKE ignores the case anyway)
+     * The first row of a query result, null when there are none
+     *
+     * @rows query result as an array of rows
+     */
+    public any function firstRow(required array rows) {
+        if(!arguments.rows.len()) return;
+        return arguments.rows[1];
+    }
+
+    /**
+     * Search term wrapped for a "contains" match - match it with ILIKE, which ignores case
      * LIKE wildcards the user typed are matched literally - backslash is postgres' default LIKE escape
      *
      * @search raw search term
@@ -392,19 +432,9 @@ component singleton accessors="true" {
     }
 
     /**
-     * HQL condition matching :search (from likeContains) anywhere in any of the columns, ignoring case
-     * HQL has no ILIKE, so each column is lowercased to match the lowercased term
-     *
-     * @columns HQL paths to search, e.g. ["bug.event", "trainer.username"]
-     */
-    public string function searchHQL(required array columns) {
-        return "(" & arguments.columns.map((column) => "lower(#column#) like :search").toList(" or ") & ")";
-    }
-
-    /**
      * Name of the unique index/constraint a database error violated, empty if it wasn't a unique violation
      * Every unique index/constraint is named unq_* - the quoted name is in the driver message in any server locale
-     * ORM flushes wrap the driver error, so the stack trace (which carries the "Caused by" chain) is searched too
+     * A wrapped driver error may only carry it in the "Caused by" chain, so the stack trace is searched too
      *
      * @e caught exception
      */
@@ -426,8 +456,6 @@ component singleton accessors="true" {
     /**
      * Call from a catch around a write - a unique violation is rethrown as UniqueViolation with a message fit to show
      * the user (constraint name in extendedInfo), anything else is rethrown untouched
-     * The orm session is cleared on a violation - hibernate can't flush a session after a failed statement, and the
-     * failed entity would otherwise be retried (and fail again) by the next ormFlush in the request
      *
      * @e caught exception
      */
@@ -437,7 +465,6 @@ component singleton accessors="true" {
             throw(object = arguments.e);
         }
 
-        ormClearSession();
         throw(
             type         = "UniqueViolation",
             message      = variables.UNIQUE_MESSAGES[constraint] ?: "That value is already in use.",
@@ -471,6 +498,20 @@ component singleton accessors="true" {
             escaped = replace(escaped, char, "\" & char, "all");
         }
         return escaped;
+    }
+
+    /**
+     * Peppered hash of a secret before it is stored or looked up
+     *
+     * @value text to hash
+     */
+    public string function pepperedHash(required string value) {
+        return hash(
+            arguments.value & variables.hashing.pepper,
+            variables.hashing.algorithm,
+            variables.hashing.encoding,
+            variables.hashing.iterations
+        );
     }
 
 }

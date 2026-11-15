@@ -10,6 +10,7 @@ component singleton accessors="true" {
     property name="utilService"   inject="services.util";
 
     property name="imageExtension" inject="coldbox:setting:imageExtension";
+    property name="domain"         inject="coldbox:setting:domain";
 
     property name="catchModifiersMap" type="struct";
     property name="cpMultiplierMap"   type="struct";
@@ -18,13 +19,44 @@ component singleton accessors="true" {
     property name="types"             type="array";
     property name="cacheTime"         type="numeric";
 
+    // A pokemon row with its generation's region
+    variables.POKEMON_SELECT = "
+        SELECT pokemon.id, pokemon.created, pokemon.updated, pokemon.number, pokemon.name, pokemon.gender,
+            pokemon.live, pokemon.shiny, pokemon.shadow, pokemon.shadowshiny, pokemon.type1, pokemon.type2,
+            pokemon.attack, pokemon.defense, pokemon.hp, pokemon.catch, pokemon.flee, pokemon.form, pokemon.mega,
+            pokemon.sprite, pokemon.tradable, pokemon.giga, pokemon.generation, COALESCE(pokemon.ses, '') AS ses,
+            COALESCE(pokemon.formtype, '') AS formtype, pokemon.costume, pokemon.costumetype, generation.region
+        FROM pokemon
+        LEFT JOIN generation ON generation.generation = pokemon.generation
+    ";
+
+    // pokemon columns findPokemon() may filter on, and their sql types
+    variables.POKEMON_FILTERS = {
+        id         : "integer",
+        number     : "integer",
+        name       : "varchar",
+        gender     : "varchar",
+        live       : "boolean",
+        shiny      : "boolean",
+        shadow     : "boolean",
+        shadowshiny: "boolean",
+        form       : "boolean",
+        mega       : "boolean",
+        giga       : "boolean",
+        tradable   : "boolean",
+        costume    : "boolean",
+        costumetype: "varchar",
+        generation : "decimal",
+        ses        : "varchar"
+    };
+
     public void function init() {
-        setCatchModifiersMap(deserializeJSON(fileRead("/includes/assets/catchmodifiersmap.json")));
-        setCpMultiplierMap(deserializeJSON(fileRead("/includes/assets/cpmultipliermap.json")));
+        setCatchModifiersMap(deserializeJSON(fileRead("/includes/assets/catchmodifiersmap.json", "UTF-8")));
+        setCpMultiplierMap(deserializeJSON(fileRead("/includes/assets/cpmultipliermap.json", "UTF-8")));
         var levels = [];
         for(var i = 1; i <= 50; i++) levels.append(i);
         setLevels(levels);
-        setTypes(deserializeJSON(fileRead("/includes/assets/types.json")).types);
+        setTypes(deserializeJSON(fileRead("/includes/assets/types.json", "UTF-8")).types);
 
         // Sortable admin datatable columns, by column index
         setDatatableCols([
@@ -35,14 +67,94 @@ component singleton accessors="true" {
             "pokemon.costumetype"
         ]);
 
-        setCacheTime(1400); // 23 hours, 20 mins
+        setCacheTime(1500); // 25 hours (minutes) - outlives the 24 hour gap between nightly rebuilds
     }
 
-    private component function create(required struct pokemonProperties) {
-        var newPokemon = entityNew("pokemon", arguments.pokemonProperties);
+    /**
+     * A pokemon row as the app uses it - its columns plus
+     * fullname (name with gender), gendertext, ogimage, type1img and type2img
+     *
+     * @row POKEMON_SELECT row
+     */
+    private struct function toPokemon(required struct row) {
+        var pokemon        = arguments.row;
+        pokemon.gendertext = buildGenderText(pokemon.number, pokemon.gender);
+        pokemon.fullname   = "#pokemon.name##pokemon.gendertext#";
+        pokemon.ogimage    = "#getDomain()#/includes/images/sprites/#pokemon.sprite##getImageExtension()#";
+        pokemon.type1img   = "/includes/images/typeicon/#lCase(pokemon.type1)#.webp";
+        pokemon.type2img   = "/includes/images/typeicon/#lCase(pokemon.type2)#.webp";
+        return pokemon;
+    }
+
+    /**
+     * " (Male)" / " (Female)" for gendered pokemon - nidorans are their own species, so they get none
+     */
+    private string function buildGenderText(required numeric number, required string gender) {
+        if(arguments.number == 32 || arguments.number == 29) return "";
+        if(arguments.gender == "Male") return " (Male)";
+        if(arguments.gender == "Female") return " (Female)";
+        return "";
+    }
+
+    /**
+     * Insert a new pokemon and return it
+     *
+     * @pokemonProperties pokemon columns - generation is its generation number (generation.generation)
+     */
+    private struct function create(required struct pokemonProperties) {
+        var props = arguments.pokemonProperties;
         try {
-            entitySave(newPokemon);
-            ormFlush();
+            var pokemonid = queryExecute(
+                "
+                INSERT INTO pokemon (
+                    number, name, generation, gender, live, shiny, type1, type2, attack, defense, hp, catch, flee,
+                    form, mega, sprite, tradable, shadow, shadowshiny, giga, formtype, ses, costume, costumetype
+                )
+                VALUES (
+                    :number, :name, :generation, :gender, :live, :shiny, :type1, :type2, :attack, :defense, :hp, :catch, :flee,
+                    :form, :mega, :sprite, :tradable, :shadow, :shadowshiny, :giga, :formtype, :ses, :costume, :costumetype
+                )
+                RETURNING id
+                ",
+                {
+                    number    : {value: props.number, cfsqltype: "integer"},
+                    name      : {value: props.name, cfsqltype: "varchar"},
+                    generation: {
+                        value    : props.generation,
+                        cfsqltype: "decimal",
+                        scale    : 1
+                    },
+                    gender : {value: props.gender, cfsqltype: "varchar"},
+                    live   : {value: props.live ? true : false, cfsqltype: "boolean"},
+                    shiny  : {value: props.shiny ? true : false, cfsqltype: "boolean"},
+                    type1  : {value: props.type1, cfsqltype: "varchar"},
+                    type2  : {value: props.type2, cfsqltype: "varchar"},
+                    attack : {value: props.attack, cfsqltype: "integer"},
+                    defense: {value: props.defense, cfsqltype: "integer"},
+                    hp     : {value: props.hp, cfsqltype: "integer"},
+                    catch  : {
+                        value    : props.catch,
+                        cfsqltype: "decimal",
+                        scale    : 2
+                    },
+                    flee: {
+                        value    : props.flee,
+                        cfsqltype: "decimal",
+                        scale    : 2
+                    },
+                    form       : {value: props.form ? true : false, cfsqltype: "boolean"},
+                    mega       : {value: props.mega ? true : false, cfsqltype: "boolean"},
+                    sprite     : {value: props.sprite, cfsqltype: "varchar"},
+                    tradable   : {value: props.tradable ? true : false, cfsqltype: "boolean"},
+                    shadow     : {value: props.shadow ? true : false, cfsqltype: "boolean"},
+                    shadowshiny: {value: props.shadowshiny ? true : false, cfsqltype: "boolean"},
+                    giga       : {value: props.giga ? true : false, cfsqltype: "boolean"},
+                    formtype   : {value: props.formtype, cfsqltype: "varchar"},
+                    ses        : {value: props.ses, cfsqltype: "varchar"},
+                    costume    : {value: props.costume ? true : false, cfsqltype: "boolean"},
+                    costumetype: {value: props.costumetype, cfsqltype: "varchar"}
+                }
+            ).id;
         }
         catch(any e) {
             // unq_pokemon_ses / unq_pokemon_identity - name the pokemon so the import's bug log says which one
@@ -52,58 +164,84 @@ component singleton accessors="true" {
             }
             throw(
                 type         = "UniqueViolation",
-                message      = "Pokemon #arguments.pokemonProperties.number# #arguments.pokemonProperties.name# (ses #arguments.pokemonProperties.ses#) conflicts with an existing pokemon on #constraint#",
+                message      = "Pokemon #props.number# #props.name# (ses #props.ses#) conflicts with an existing pokemon on #constraint#",
                 extendedInfo = constraint
             );
         }
-        auditService.audit(
-            ip      = "localhost",
-            event   = "pokemonService.create",
-            referer = "",
-            detail  = "Created Pokemon: #arguments.pokemonProperties.number# | #arguments.pokemonProperties.name# | #arguments.pokemonProperties.gender# | #arguments.pokemonProperties.costumetype#",
-            agent   = ""
-        );
-        return newPokemon;
+        return getFromId(pokemonid);
     }
 
-    public void function update(
+    public void function upsertPokemon(
         required struct pokemonProperties,
         required array moves,
         required array evolutions
     ) {
+        var props = arguments.pokemonProperties;
+
         // This assumes these properties cannot be changed
-        var currPokemon = get({
-            number     : arguments.pokemonProperties.number,
-            name       : arguments.pokemonProperties.name,
-            gender     : arguments.pokemonProperties.gender,
-            costume    : arguments.pokemonProperties.costume,
-            costumetype: arguments.pokemonProperties.costumetype
+        var currPokemon = findPokemon({
+            number     : props.number,
+            name       : props.name,
+            gender     : props.gender,
+            costume    : props.costume,
+            costumetype: props.costumetype
         });
 
-        // If this is a new pokemon, create
-        if(!currPokemon.len()) {
-            currPokemon = create(arguments.pokemonProperties);
-        }
-        // Otherwise, update
-        else {
-            currPokemon = currPokemon[1];
-            currPokemon.setLive(arguments.pokemonProperties.live);
-            currPokemon.setShiny(arguments.pokemonProperties.shiny);
-            currPokemon.setSprite(arguments.pokemonProperties.sprite);
-            currPokemon.setTradable(arguments.pokemonProperties.tradable);
-            currPokemon.setShadow(arguments.pokemonProperties.shadow);
-            currPokemon.setShadowShiny(arguments.pokemonProperties.shadowShiny);
-            currPokemon.setGiga(arguments.pokemonProperties.giga);
-            currPokemon.setFormType(arguments.pokemonProperties.formType);
-            currPokemon.setSes(arguments.pokemonProperties.ses);
-            entitySave(currPokemon);
+        // The pokemon, its moves and its evolutions are saved together or not at all
+        var created = false;
+        transaction {
+            // If this is a new pokemon, create
+            if(!currPokemon.len()) {
+                currPokemon = create(props);
+                created     = true;
+            }
+            // Otherwise, update - only when something changed, so updated (and the sitemap's lastmod) marks a real change
+            else {
+                currPokemon = currPokemon[1];
+                try {
+                    queryExecute(
+                        "
+                        UPDATE pokemon
+                        SET live = :live, shiny = :shiny, sprite = :sprite, tradable = :tradable, shadow = :shadow,
+                            shadowshiny = :shadowshiny, giga = :giga, formtype = :formtype, ses = :ses
+                        WHERE id = :pokemonid
+                            AND (live, shiny, sprite, tradable, shadow, shadowshiny, giga, formtype, ses)
+                                IS DISTINCT FROM (:live, :shiny, :sprite, :tradable, :shadow, :shadowshiny, :giga, :formtype, :ses)
+                        ",
+                        {
+                            live       : {value: props.live ? true : false, cfsqltype: "boolean"},
+                            shiny      : {value: props.shiny ? true : false, cfsqltype: "boolean"},
+                            sprite     : {value: props.sprite, cfsqltype: "varchar"},
+                            tradable   : {value: props.tradable ? true : false, cfsqltype: "boolean"},
+                            shadow     : {value: props.shadow ? true : false, cfsqltype: "boolean"},
+                            shadowshiny: {value: props.shadowShiny ? true : false, cfsqltype: "boolean"},
+                            giga       : {value: props.giga ? true : false, cfsqltype: "boolean"},
+                            formtype   : {value: props.formType, cfsqltype: "varchar"},
+                            ses        : {value: props.ses, cfsqltype: "varchar"},
+                            pokemonid  : {value: currPokemon.id, cfsqltype: "integer"}
+                        }
+                    );
+                }
+                catch(any e) {
+                    // A changed ses that collides with another pokemon's
+                    utilService.rethrowUniqueViolation(e);
+                }
+            }
+
+            // Create the pokemon's moves
+            moveService.updatePokemonMoves(currPokemon, arguments.moves);
+
+            // Create the evolutions
+            createEvolutions(currPokemon, arguments.evolutions);
         }
 
-        // Create the pokemon's moves
-        moveService.updatePokemonMoves(currPokemon, arguments.moves);
-
-        // Create the evolutions
-        createEvolutions(currPokemon, arguments.evolutions);
+        // Audit only once the transaction has committed, so a rolled-back create is never recorded
+        if(created) {
+            auditService.auditSystem(
+                event  = "pokemonService.create",
+                detail = "Created Pokemon: #props.number# | #props.name# | #props.gender# | #props.costumetype#"
+            );
+        }
         return;
     }
 
@@ -111,201 +249,301 @@ component singleton accessors="true" {
      * Get all non-costume pokemon
      */
     public array function getAll() {
-        var cacheKey   = "pokemon.getAll";
-        var allPokemon = cache.get(cacheKey);
-        if(isNull(allPokemon)) {
-            allPokemon = get({"costume": false}, "generation asc, number asc, form asc, name asc");
-
-            // Make sure relationships are loaded before being cached
-            allPokemon.each((pokemon) => {
-                pokemon.getMovesText("fast", "all");
-                pokemon.getMovesText("charge", "all");
-                pokemon.getEvolutionText();
-                pokemon.getGeneration().getRegion();
-            });
-
-            cache.set(
-                cacheKey,
-                allPokemon,
-                getCacheTime(),
-                getCacheTime()
-            );
-        }
-        return allPokemon;
-    }
-
-    public array function get(
-        required struct params,
-        string order   = "number asc",
-        struct options = {}
-    ) {
-        return entityLoad(
-            "pokemon",
-            arguments.params,
-            arguments.order,
-            arguments.options
+        return cache.getOrSet(
+            "pokemon.getAll",
+            () => findPokemon({"costume": false}, "generation ASC, number ASC, form ASC, name ASC"),
+            getCacheTime(),
+            getCacheTime()
         );
     }
 
-    public component function getFromId(required numeric pokemonid) {
-        return entityLoadByPK("pokemon", arguments.pokemonid);
-    }
+    /**
+     * Pokemon matching every column = value pair, as structs
+     *
+     * @params  column -> value, columns from POKEMON_FILTERS (generation also takes a generation struct)
+     * @order   order by, eg "number ASC, name ASC" - a column without a direction sorts ASC
+     * @options maxResults to limit the rows
+     */
+    public array function findPokemon(
+        required struct params,
+        string order   = "number ASC",
+        struct options = {}
+    ) {
+        var clauses     = [];
+        var queryParams = {};
+        arguments.params.each((column, value) => {
+            if(!variables.POKEMON_FILTERS.keyExists(column)) {
+                throw(type = "pokemonService.InvalidFilter", message = "Can't filter pokemon on #column#");
+            }
+            if(column == "generation" && isStruct(value)) {
+                value = value.generation;
+            }
+            var sqlType = variables.POKEMON_FILTERS[column];
+            clauses.append("pokemon.#column# = :#column#");
+            queryParams[column] = {value: sqlType == "boolean" ? (value ? true : false) : value, cfsqltype: sqlType};
+            if(sqlType == "decimal") queryParams[column].scale = 1;
+        });
 
-    public any function getFromSes(required string ses) {
-        return entityLoad("pokemon", {ses: ses, costume: false}, true);
-    }
-
-    public array function getEvolution(required component pokemon, component evolution) {
-        var params = {"pokemon": arguments.pokemon};
-        if(!isNull(arguments.evolution)) {
-            params.insert("evolution", arguments.evolution);
+        if(!reFindNoCase("^[a-z]+( (asc|desc))?(, *[a-z]+( (asc|desc))?)*$", trim(arguments.order))) {
+            throw(type = "pokemonService.InvalidOrder", message = "Invalid pokemon order: #arguments.order#");
         }
-        return entityLoad("evolution", params);
+        // Every column gets an explicit, uppercase direction - ASC when none was given
+        var orderBy = listToArray(arguments.order)
+            .map((part) => {
+                var words = listToArray(trim(part), " ");
+                return "pokemon.#words[1]# #words.len() > 1 ? uCase(words[2]) : "ASC"#";
+            })
+            .toList(", ");
+
+        var limit = arguments.options.keyExists("maxResults") ? "LIMIT #int(arguments.options.maxResults)#" : "";
+
+        return queryExecute(
+            "
+            #variables.POKEMON_SELECT#
+            #clauses.len() ? "WHERE " & clauses.toList(" AND ") : ""#
+            ORDER BY #orderBy#, pokemon.id ASC
+            #limit#
+            ",
+            queryParams,
+            {returnType: "array"}
+        ).map((row) => toPokemon(row));
     }
 
     /**
-     * Create the array of evolutions for the supplied pokemon
+     * One pokemon, null when there is no such pokemon
+     *
+     * @pokemonid pokemon pk
      */
-    private void function createEvolutions(required component pokemon, required array evolutions) {
-        evolutions.each((evolution) => {
-            // Attempt to load the evolution pokemon trying to be made
-            var evolvedPokemon = get({
-                "number"     : evolution.number,
-                "name"       : evolution.name,
-                "gender"     : evolution.gender,
-                "costume"    : evolution?.costume ?: false,
-                "costumetype": evolution?.costumetype ?: ""
-            });
+    public any function getFromId(required numeric pokemonid) {
+        var pokemon = findPokemon({id: arguments.pokemonid});
+        return utilService.firstRow(pokemon);
+    }
 
-            // have to skip since the evolved pokemon hasn't been created yet
-            if(!evolvedPokemon.len()) continue;
+    /**
+     * The non-costume pokemon with this ses key, null when there is none
+     *
+     * @ses pokemon SES key
+     */
+    public any function getFromSes(required string ses) {
+        var pokemon = findPokemon({ses: arguments.ses, costume: false});
+        return utilService.firstRow(pokemon);
+    }
 
-            evolvedPokemon = evolvedPokemon[1];
+    /**
+     * The evolutions out of a pokemon, in the order they were added
+     * Each row: id, cost, condition, special, pokemon (the pokemon evolving) and evolution (what it evolves into)
+     *
+     * @pokemon   pokemon struct
+     * @evolution (optional) only the evolution into this pokemon
+     */
+    public array function getEvolution(required struct pokemon, struct evolution) {
+        var whereSQL = "evolution.pokemonid = :pokemonid";
+        var params   = {pokemonid: {value: arguments.pokemon.id, cfsqltype: "integer"}};
+        if(!isNull(arguments.evolution)) {
+            whereSQL &= " AND evolution.evolutionid = :evolutionid";
+            params.evolutionid = {value: arguments.evolution.id, cfsqltype: "integer"};
+        }
 
-            // See if the evolution has already been created
-            if(!getEvolution(pokemon, evolvedPokemon).len()) {
-                var newEvolution = entityNew(
-                    "evolution",
-                    {
-                        "cost"     : evolution.cost,
-                        "condition": evolution.condition,
-                        "pokemon"  : pokemon,
-                        "evolution": evolvedPokemon,
-                        "special"  : evolution.special
-                    }
-                );
+        var evolutions = queryExecute(
+            "
+            SELECT id, COALESCE(cost, 0) AS cost, condition, special, pokemonid, evolutionid
+            FROM evolution
+            WHERE #whereSQL#
+            ORDER BY id ASC
+            ",
+            params,
+            {returnType: "array"}
+        );
+        if(!evolutions.len()) return [];
 
-                entitySave(newEvolution);
-                ormFlush();
-            }
+        // Both ends of every evolution in one query
+        var ids  = evolutions.reduce((result, row) => result.append(row.pokemonid).append(row.evolutionid), []);
+        var byId = queryExecute(
+            "#variables.POKEMON_SELECT# WHERE pokemon.id IN (:ids)",
+            {
+                ids: {
+                    value    : ids.toList(),
+                    cfsqltype: "integer",
+                    list     : true
+                }
+            },
+            {returnType: "array"}
+        ).reduce((result, row) => {
+            result[row.id] = toPokemon(row);
+            return result;
+        }, {});
+
+        return evolutions.map((row) => {
+            return {
+                id       : row.id,
+                cost     : row.cost,
+                condition: row.condition,
+                special  : row.special,
+                pokemon  : byId[row.pokemonid],
+                evolution: byId[row.evolutionid]
+            };
         });
+    }
+
+    /**
+     * Create the array of evolutions for the supplied pokemon, in one statement
+     * Each evolution's pokemon is matched on its identity (unq_pokemon_identity) - one not created yet is skipped
+     * An evolution already there (unq_evolution_pokemonid_evolutionid) is left as is
+     * Rows go in the order given, so evolution.id keeps the evolutions' order
+     */
+    private void function createEvolutions(required struct pokemon, required array evolutions) {
+        if(!arguments.evolutions.len()) return;
+
+        var params = {pokemonid: {value: arguments.pokemon.id, cfsqltype: "integer"}};
+        var rows   = [];
+        arguments.evolutions.each((evolution, i) => {
+            rows.append(
+                "(#i#, :number#i#, :name#i#, :gender#i#, :costume#i#, :costumetype#i#, :cost#i#, :condition#i#, :special#i#)"
+            );
+            params["number#i#"]      = {value: evolution.number, cfsqltype: "integer"};
+            params["name#i#"]        = {value: evolution.name, cfsqltype: "varchar"};
+            params["gender#i#"]      = {value: evolution.gender, cfsqltype: "varchar"};
+            params["costume#i#"]     = {value: (evolution?.costume ?: false) ? true : false, cfsqltype: "boolean"};
+            params["costumetype#i#"] = {value: evolution?.costumetype ?: "", cfsqltype: "varchar"};
+            params["cost#i#"]        = {
+                value    : val(evolution.cost),
+                cfsqltype: "integer",
+                null     : !len(evolution.cost)
+            };
+            params["condition#i#"] = {value: evolution.condition, cfsqltype: "varchar"};
+            params["special#i#"]   = {value: evolution.special ? true : false, cfsqltype: "boolean"};
+        });
+
+        queryExecute(
+            "
+            INSERT INTO evolution (cost, condition, pokemonid, evolutionid, special)
+            SELECT wanted.cost, wanted.condition, :pokemonid, pokemon.id, wanted.special
+            FROM (
+                VALUES #rows.toList(", ")#
+            ) AS wanted (position, number, name, gender, costume, costumetype, cost, condition, special)
+            INNER JOIN pokemon
+                ON pokemon.number = wanted.number
+                AND pokemon.name = wanted.name
+                AND pokemon.gender = wanted.gender
+                AND pokemon.costume = wanted.costume
+                AND pokemon.costumetype = wanted.costumetype
+            ORDER BY wanted.position ASC
+            ON CONFLICT (pokemonid, evolutionid) DO NOTHING
+            ",
+            params
+        );
     }
 
     /**
      * Determine the max attack, defense, and hp of all live pokemon
      */
     public struct function getMaxStats() {
-        var cacheKey = "pokemon.getMaxStats";
-        var max      = cache.get(cacheKey);
-        if(isNull(max)) {
-            var stats = ormExecuteQuery("
-                select max(attack), max(defense), max(hp)
-                from pokemon
-            ")[1];
+        return cache.getOrSet(
+            "pokemon.getMaxStats",
+            () => {
+                var stats = queryExecute(
+                    "SELECT MAX(attack) AS attack, MAX(defense) AS defense, MAX(hp) AS hp FROM pokemon WHERE live = true"
+                );
 
-            max = {
-                attack : stats[1],
-                defense: stats[2],
-                hp     : stats[3],
-                cp     : 7000
-            };
-
-            cache.set(cacheKey, max, getCacheTime(), getCacheTime());
-        }
-
-        return max;
+                return {
+                    attack : stats.attack,
+                    defense: stats.defense,
+                    hp     : stats.hp,
+                    cp     : 7000
+                };
+            },
+            getCacheTime(),
+            getCacheTime()
+        );
     }
 
     /**
      * Get the pokemon that evolve into the argument pokemon
+     *
+     * @pokemon pokemon struct
      */
-    public array function getEvolvers(required component pokemon) {
-        return ormExecuteQuery(
+    public array function getEvolvers(required struct pokemon) {
+        return queryExecute(
             "
-            select evolution.pokemon
-            from evolution as evolution
-            where evolution.evolution = :pokemon
+            #variables.POKEMON_SELECT#
+            INNER JOIN evolution ON evolution.pokemonid = pokemon.id
+            WHERE evolution.evolutionid = :pokemonid
+            ORDER BY evolution.id ASC
             ",
-            {pokemon: arguments.pokemon}
-        );
+            {pokemonid: {value: arguments.pokemon.id, cfsqltype: "integer"}},
+            {returnType: "array"}
+        ).map((row) => toPokemon(row));
     }
 
     private numeric function calculateCP(
-        required component pokemon,
+        required struct pokemon,
         required numeric level,
         numeric iv = 15
     ) {
         return floor(
             (
-                (pokemon.getAttack() + iv) *
-                (sqr(pokemon.getDefense() + iv)) *
-                (sqr(pokemon.getHp() + iv)) *
+                (pokemon.attack + iv) *
+                (sqr(pokemon.defense + iv)) *
+                (sqr(pokemon.hp + iv)) *
                 (getCpMultiplierMap()[level] ^ 2)
             ) / 10
         );
     }
 
     private numeric function calculateCatchRate(
-        required component pokemon,
+        required struct pokemon,
         required numeric level,
         numeric modifier = 1
     ) {
         return 1 - (
             1 -
-            (pokemon.getCatch() / (2 * getCpMultiplierMap()[level])) ^ modifier
+            (pokemon.catch / (2 * getCpMultiplierMap()[level])) ^ modifier
         );
     }
 
     /**
      * Get previous events this pokemon and costume types they were featured in 
      *
-     * @pokemon pokemon cfc
+     * @pokemon pokemon struct
      * @limit   record limit
      */
     public array function getPreviousEvents(
-        required component pokemon,
+        required struct pokemon,
         numeric limit  = 5,
         numeric offset = 0
     ) {
         var events = queryExecute(
             "
-            SELECT c.id, c.created, c.begins, c.ends, c.name, c.link, c.commday, STRING_AGG(costumetype, ',') AS form_list
-            FROM custom c
-            JOIN custompokedex cp ON cp.customid = c.id
-            JOIN pokemon p ON cp.pokemonid = p.id
-            WHERE p.name = :name
-            AND p.number = :number
-            AND p.gender = :gender
-            AND (
-                c.commday = true
-                OR (c.link IS NOT NULL AND c.link <> '')
-            )
-            GROUP BY c.id, c.created, c.begins, c.ends, c.name, c.link, p.name, p.number, p.gender
-            ORDER BY c.ends DESC
+            SELECT custom.id, custom.created, custom.begins, custom.ends, custom.name, custom.link, custom.commday,
+                STRING_AGG(pokemon.costumetype, ',' ORDER BY pokemon.id ASC) AS form_list
+            FROM custom
+            INNER JOIN custompokedex ON custompokedex.customid = custom.id
+            INNER JOIN pokemon ON pokemon.id = custompokedex.pokemonid
+            WHERE pokemon.name = :name
+                AND pokemon.number = :number
+                AND pokemon.gender = :gender
+                AND (
+                    custom.commday = true
+                    OR (custom.link IS NOT NULL AND custom.link <> '')
+                )
+            GROUP BY custom.id, custom.created, custom.begins, custom.ends, custom.name, custom.link,
+                pokemon.name, pokemon.number, pokemon.gender
+            ORDER BY custom.ends DESC, custom.id DESC
             LIMIT :limit
             OFFSET :offset
             ",
             {
-                name  : {value: pokemon.getName(), cfsqltype: "varchar"},
-                number: {value: pokemon.getNumber(), cfsqltype: "integer"},
-                gender: {value: pokemon.getGender(), cfsqltype: "varchar"},
+                name  : {value: pokemon.name, cfsqltype: "varchar"},
+                number: {value: pokemon.number, cfsqltype: "integer"},
+                gender: {value: pokemon.gender, cfsqltype: "varchar"},
                 limit : {value: limit, cfsqltype: "integer"},
                 offset: {value: offset, cfsqltype: "integer"}
-            }
+            },
+            {returnType: "array"}
         );
 
-        return events.reduce((result, row) => {
-            result.append({
+        return events.map((row) => {
+            return {
                 id      : row.id,
                 begins  : dateFormat((!isDate(row.begins) ? row.created : row.begins), "mmm d, yyyy"),
                 ends    : dateFormat((!isDate(row.ends) ? row.created : row.ends), "mmm d, yyyy"),
@@ -317,37 +555,81 @@ component singleton accessors="true" {
                     delimiters         = ",",
                     includeEmptyFields = false
                 )
-            });
-            return result;
-        }, []);
+            };
+        });
     }
 
     /**
-     * Get the costume forms of this pokemon
+     * Get the live costume forms of this pokemon
      *
-     * @pokemon pokemon cfc
+     * @pokemon pokemon struct
      */
-    public array function getCostumes(required component pokemon) {
-        return ormExecuteQuery(
-            "
-            select pokemon
-            from pokemon as pokemon
-            where pokemon.costume = true
-            and pokemon.name = :name
-            and pokemon.number = :number
-            and pokemon.gender = :gender
-            and pokemon.live = true
-            ",
+    public array function getCostumes(required struct pokemon) {
+        return findPokemon(
             {
-                name  : pokemon.getName(),
-                number: pokemon.getNumber(),
-                gender: pokemon.getGender()
-            }
+                costume: true,
+                name   : arguments.pokemon.name,
+                number : arguments.pokemon.number,
+                gender : arguments.pokemon.gender,
+                live   : true
+            },
+            "id ASC"
         );
     }
 
     /**
-     * Get the cached, plain data detail of a pokemon (no entities)
+     * The pokemon's fast and charge moves in one query, each in the order they were added
+     * Each row is the move (moveService.toMove) plus the pokemon's shadow and legacy flags for it
+     * A move with no turns is neither fast nor charge, and is left out
+     *
+     * @pokemon     pokemon struct
+     * @pokemonType all, normal (not shadow only), shadow
+     *
+     * @return {fast: [moves], charge: [moves]}
+     */
+    public struct function getMovesByKind(required struct pokemon, required string pokemonType) {
+        var shadowSQL = "";
+        if(arguments.pokemonType == "normal") shadowSQL = "AND pokemonmove.shadow = false";
+        if(arguments.pokemonType == "shadow") shadowSQL = "AND pokemonmove.shadow = true";
+
+        return queryExecute(
+            "
+            SELECT #moveService.getMoveColumns()#, pokemonmove.shadow, pokemonmove.legacy
+            FROM pokemonmove
+            INNER JOIN move ON move.id = pokemonmove.moveid
+            WHERE pokemonmove.pokemonid = :pokemonid
+                AND move.turns IS NOT NULL
+                #shadowSQL#
+            ORDER BY pokemonmove.id ASC
+            ",
+            {pokemonid: {value: arguments.pokemon.id, cfsqltype: "integer"}},
+            {returnType: "array"}
+        ).reduce((result, row) => {
+            result[row.turns > 0 ? "fast" : "charge"].append(moveService.toMove(row));
+            return result;
+        }, {fast: [], charge: []});
+    }
+
+    /**
+     * Every evolution out of a pokemon and out of what it evolves into, in the order the detail page lists them
+     * Each one is followed by the evolutions out of what it evolves into - three stages at most
+     *
+     * @baseStage pokemon the chain starts from - the first pokemon of the line on the detail page
+     */
+    public array function buildEvolutionChain(required struct baseStage) {
+        var chain = [];
+        getEvolution(arguments.baseStage).each((firstStage) => {
+            chain.append(firstStage);
+            getEvolution(firstStage.evolution).each((secondStage) => {
+                chain.append(secondStage);
+                chain.append(getEvolution(secondStage.evolution), true);
+            });
+        });
+        return chain;
+    }
+
+    /**
+     * Get the cached, plain data detail of a pokemon (no objects)
      * Only touches the DB when the cache is cold
      *
      * @ses pokemon SES key
@@ -380,33 +662,25 @@ component singleton accessors="true" {
 
         var info = cache.get(getDetailCacheKey(ses)) ?: cacheDetailInfo(pokemon);
 
-        // Get the base stage
+        // Get the base stage - stop at a pokemon already walked so cyclic evolution data (A -> B -> A) can't loop forever
         var baseStage = pokemon;
+        var visited   = {"#baseStage.id#": true};
         var evolvers  = getEvolvers(baseStage);
-        while(evolvers.len()) {
-            baseStage = evolvers[1];
-            evolvers  = getEvolvers(baseStage);
+        while(evolvers.len() && !visited.keyExists(evolvers[1].id)) {
+            baseStage             = evolvers[1];
+            visited[baseStage.id] = true;
+            evolvers              = getEvolvers(baseStage);
         }
 
         // Shallow copy so the cached struct is never mutated by a request
-        var detail       = structCopy(info);
-        detail.pokemon   = pokemon;
-        detail.baseStage = baseStage;
-        detail.costumes  = getCostumes(pokemon);
-        detail.adjacent  = getAdjacent(ses = ses);
+        var detail            = structCopy(info);
+        detail.pokemon        = pokemon;
+        detail.baseStage      = baseStage;
+        detail.evolutionChain = buildEvolutionChain(baseStage);
+        detail.moves          = getMovesByKind(pokemon, "normal");
+        detail.costumes       = getCostumes(pokemon);
+        detail.adjacent       = getAdjacent(ses = ses);
         return detail;
-    }
-
-    /**
-     * Clear every cached piece of a pokemon's detail page
-     *
-     * @ses pokemon SES key
-     */
-    public void function clearDetailCache(required string ses) {
-        cache.clear(getDetailCacheKey(ses));
-        // Rendered detailContent viewlets, keys are lower cased by ColdBox: <prefix>pokemon.detailcontent-<ses>|<audience>-<hash>
-        templateCache.clearByKeySnippet("pokemon.detailcontent-#lCase(ses)#|");
-        return;
     }
 
     /**
@@ -427,21 +701,21 @@ component singleton accessors="true" {
      * Unique meta description for a pokemon's detail page using its real numbers
      * ie. Pikachu (#25) in Pokémon GO: max CP 1,048 at level 50, base stats 112 ATK / 96 DEF / 111 HP. Shiny available. ...
      *
-     * @pokemon  pokemon orm entity
+     * @pokemon  pokemon struct
      * @fullname pokemon's full name
      * @maxCP    hundo CP at level 50
      */
     private string function buildDetailMetaDescription(
-        required component pokemon,
+        required struct pokemon,
         required string fullname,
         required numeric maxCP
     ) {
         var availability = [];
-        if(pokemon.getShiny()) availability.append("shiny");
-        if(pokemon.getShadow()) availability.append("shadow");
+        if(pokemon.shiny) availability.append("shiny");
+        if(pokemon.shadow) availability.append("shadow");
 
-        var description = "#ucFirst(fullname)# (###pokemon.getNumber()#) in Pokémon GO: max CP #numberFormat(maxCP, ",")# at level 50, "
-        & "base stats #pokemon.getAttack()# ATK / #pokemon.getDefense()# DEF / #pokemon.getHP()# HP.";
+        var description = "#ucFirst(fullname)# (###pokemon.number#) in Pokémon GO: max CP #numberFormat(maxCP, ",")# at level 50, "
+        & "base stats #pokemon.attack# ATK / #pokemon.defense# DEF / #pokemon.hp# HP.";
         if(availability.len()) {
             description &= " #ucFirst(availability.toList(" and "))# available.";
         }
@@ -455,37 +729,30 @@ component singleton accessors="true" {
      * @return array of {generation, region, pokemon: [{name, number, ses, sprite, type1, type2}]}
      */
     public array function getIndex() {
-        var cacheKey = "pokemon.getIndex";
-        var index    = cache.get(cacheKey);
-        if(!isNull(index)) {
-            return index;
-        }
+        return cache.getOrSet(
+            "pokemon.getIndex",
+            () => {
+                var index  = [];
+                var groups = [:];
+                getAll().each((pokemon) => {
+                    if(!pokemon.live) return;
 
-        index      = [];
-        var groups = [:];
-        getAll().each((pokemon) => {
-            if(!pokemon.getLive()) return;
-
-            var generation = pokemon.getGeneration();
-            var key        = toString(generation.getGeneration());
-            if(!groups.keyExists(key)) {
-                groups[key] = {
-                    generation: reReplace(key, "\.0+$", ""),
-                    region    : generation.getRegion(),
-                    pokemon   : []
-                };
-                index.append(groups[key]);
-            }
-            groups[key].pokemon.append(buildIndexEntry(pokemon));
-        });
-
-        cache.set(
-            cacheKey,
-            index,
+                    var key = toString(pokemon.generation);
+                    if(!groups.keyExists(key)) {
+                        groups[key] = {
+                            generation: reReplace(key, "\.0+$", ""),
+                            region    : pokemon.region,
+                            pokemon   : []
+                        };
+                        index.append(groups[key]);
+                    }
+                    groups[key].pokemon.append(buildIndexEntry(pokemon));
+                });
+                return index;
+            },
             getCacheTime() * 15,
             getCacheTime() * 15
         );
-        return index;
     }
 
     /**
@@ -494,36 +761,29 @@ component singleton accessors="true" {
      * @return array of {name, number, ses, costumeType, sprite, shinySprite, shiny, type1, type2}
      */
     public array function getCostumeIndex() {
-        var cacheKey = "pokemon.getCostumeIndex";
-        var index    = cache.get(cacheKey);
-        if(!isNull(index)) {
-            return index;
-        }
+        return cache.getOrSet(
+            "pokemon.getCostumeIndex",
+            () => {
+                // Costumes have no detail page of their own - link to the matching base form
+                var baseKey = (pokemon) => "#pokemon.name#|#pokemon.number#|#pokemon.gender#";
+                var baseSes = getAll().reduce((result, pokemon) => {
+                    var key = baseKey(pokemon);
+                    if(!result.keyExists(key)) result[key] = pokemon.ses;
+                    return result;
+                }, {});
 
-        // Costumes have no detail page of their own - link to the matching base form
-        var baseKey = (pokemon) => "#pokemon.getName()#|#pokemon.getNumber()#|#pokemon.getGender()#";
-        var baseSes = getAll().reduce((result, pokemon) => {
-            var key = baseKey(pokemon);
-            if(!result.keyExists(key)) result[key] = pokemon.getSes();
-            return result;
-        }, {});
-
-        index = get({"costume": true, "live": true}, "number asc, costumetype asc")
-            .filter((costume) => baseSes.keyExists(baseKey(costume)))
-            .map((costume) => {
-                var entry         = buildIndexEntry(costume);
-                entry.ses         = baseSes[baseKey(costume)];
-                entry.costumeType = costume.getCostumeType() ?: "";
-                return entry;
-            });
-
-        cache.set(
-            cacheKey,
-            index,
+                return findPokemon({"costume": true, "live": true}, "number ASC, costumetype ASC")
+                    .filter((costume) => baseSes.keyExists(baseKey(costume)))
+                    .map((costume) => {
+                        var entry         = buildIndexEntry(costume);
+                        entry.ses         = baseSes[baseKey(costume)];
+                        entry.costumeType = costume.costumetype ?: "";
+                        return entry;
+                    });
+            },
             getCacheTime() * 15,
             getCacheTime() * 15
         );
-        return index;
     }
 
     /**
@@ -552,23 +812,23 @@ component singleton accessors="true" {
     /**
      * Plain data tile for the Pokedex index grid
      */
-    private struct function buildIndexEntry(required component pokemon) {
+    private struct function buildIndexEntry(required struct pokemon) {
         return {
-            name       : pokemon.getFullname(),
-            number     : pokemon.getNumber(),
-            ses        : pokemon.getSes(),
-            sprite     : "/includes/images/sprites/#pokemon.getSprite()##getImageExtension()#",
-            shinySprite: "/includes/images/shinysprites/#pokemon.getSprite()##getImageExtension()#",
-            shiny      : pokemon.getShiny() ? true : false,
-            type1      : pokemon.getType1(),
-            type2      : pokemon.getType2() ?: ""
+            name       : pokemon.fullname,
+            number     : pokemon.number,
+            ses        : pokemon.ses,
+            sprite     : "/includes/images/sprites/#pokemon.sprite##getImageExtension()#",
+            shinySprite: "/includes/images/shinysprites/#pokemon.sprite##getImageExtension()#",
+            shiny      : pokemon.shiny ? true : false,
+            type1      : pokemon.type1,
+            type2      : pokemon.type2 ?: ""
         };
     }
 
     /**
      * Compute and cache the plain data detail of a pokemon
      */
-    private struct function cacheDetailInfo(required component pokemon) {
+    private struct function cacheDetailInfo(required struct pokemon) {
         var info = {};
 
         // CP Info | Research(lvl15), egg/raid(lvl20), weather boosted raid(lvl25), max cp(lvl50)
@@ -583,14 +843,14 @@ component singleton accessors="true" {
         var maxStats         = getMaxStats();
         info.catchRate       = {lvl20: calculateCatchRate(pokemon, 20)};
         info.statPercentages = {
-            attack : (pokemon.getAttack() / maxStats.attack) * 100,
-            defense: (pokemon.getDefense() / maxStats.defense) * 100,
-            hp     : (pokemon.getHP() / maxStats.hp) * 100,
+            attack : (pokemon.attack / maxStats.attack) * 100,
+            defense: (pokemon.defense / maxStats.defense) * 100,
+            hp     : (pokemon.hp / maxStats.hp) * 100,
             cp     : (info.cp.lvl50[2] / maxStats.cp) * 100
         };
         info.events   = getPreviousEvents(pokemon);
-        info.fullname = pokemon.getFullname();
-        info.number   = pokemon.getNumber();
+        info.fullname = pokemon.fullname;
+        info.number   = pokemon.number;
         // Name first - that's what people search for
         info.title    = "#info.fullname# - Pokémon GO Max CP, Moves & Stats";
 
@@ -599,10 +859,10 @@ component singleton accessors="true" {
             fullname = info.fullname,
             maxCP    = info.cp.lvl50[2]
         );
-        info.ogImage = pokemon.getOgImage();
+        info.ogImage = pokemon.ogimage;
 
         cache.set(
-            getDetailCacheKey(pokemon.getSes()),
+            getDetailCacheKey(pokemon.ses),
             info,
             getCacheTime() * 15,
             getCacheTime() * 15
@@ -614,38 +874,69 @@ component singleton accessors="true" {
      * Manually update the flags of a pokemon, saves these to env specific config
      */
     public void function updateDetail(
-        required component pokemon,
+        required struct pokemon,
         required boolean live,
         required boolean shiny,
         required boolean shadow,
         required boolean shinyShadow,
         required boolean tradable
     ) {
-        var overrides = adminService.getOverride(name = "envpokedexoverrides");
+        // Update env pokedex overrides, under the same key the nightly build uses, so the toggles survive the rebuild
+        // Costumes aren't built from the pokedex scrape - their name key would override the base pokemon instead
+        if(!arguments.pokemon.costume) {
+            var overrides = adminService.getOverride(name = "envpokedexoverrides");
+            var key       = adminService.getOverrideKey(arguments.pokemon);
+            if(!overrides.keyExists(key) || !isStruct(overrides[key])) {
+                overrides[key] = {};
+            }
 
-        // Update env pokedex overrides
-        overrides[pokemon.getName()].live = live;
-        overrides[pokemon.getName()].shiny = shiny;
-        overrides[pokemon.getName()].shadow = shadow;
-        overrides[pokemon.getName()].shadowshiny = shinyShadow;
-        overrides[pokemon.getName()].tradable = tradable;
+            overrides[key].live = arguments.live;
+            overrides[key].shiny = arguments.shiny;
+            overrides[key].shadow = arguments.shadow;
+            overrides[key].shadowshiny = arguments.shinyShadow;
+            overrides[key].tradable = arguments.tradable;
 
-        adminService.saveOverride(name = "envpokedexoverrides", override = overrides);
+            adminService.saveOverride(name = "envpokedexoverrides", override = overrides);
+        }
 
         // Update the DB
-        pokemon.setLive(live);
-        pokemon.setShiny(shiny);
-        pokemon.setShadow(shadow);
-        pokemon.setShadowShiny(shinyShadow);
-        pokemon.setTradable(tradable);
-        entitySave(pokemon);
-        ormFlush();
+        queryExecute(
+            "
+            UPDATE pokemon
+            SET live = :live, shiny = :shiny, shadow = :shadow, shadowshiny = :shadowshiny, tradable = :tradable
+            WHERE id = :pokemonid
+            ",
+            {
+                live       : {value: arguments.live ? true : false, cfsqltype: "boolean"},
+                shiny      : {value: arguments.shiny ? true : false, cfsqltype: "boolean"},
+                shadow     : {value: arguments.shadow ? true : false, cfsqltype: "boolean"},
+                shadowshiny: {value: arguments.shinyShadow ? true : false, cfsqltype: "boolean"},
+                tradable   : {value: arguments.tradable ? true : false, cfsqltype: "boolean"},
+                pokemonid  : {value: arguments.pokemon.id, cfsqltype: "integer"}
+            }
+        );
 
-        clearDetailCache(ses = pokemon.getSes());
-        // Index tiles show shiny availability and both indexes respect live
-        cache.clear("pokemon.getIndex");
-        cache.clear("pokemon.getCostumeIndex");
+        // getAll feeds the indexes and builders, live changes max stats and every page's previous/next links
+        clearAllCaches();
+        return;
+    }
+
+    /**
+     * Clear every cached pokemon entry and rendered pokemon page
+     */
+    public void function clearAllCaches() {
+        cache.clearByKeySnippet("pokemon.");
+        templateCache.clearEvent("pokemon.detailContent");
         templateCache.clearEvent("pokemon.indexContent");
+        return;
+    }
+
+    /**
+     * Clear every pokemon's cached detail info and rendered detail page
+     */
+    public void function clearAllDetailCaches() {
+        cache.clearByKeySnippet("pokemon.getDetail|");
+        templateCache.clearEvent("pokemon.detailContent");
         return;
     }
 
@@ -653,26 +944,20 @@ component singleton accessors="true" {
      * Build array for pokemon search box
      */
     public array function getSearchArray() {
-        var cacheKey    = "pokemon.getSearchArray";
-        var searchArray = cache.get(cacheKey);
-        if(isNull(searchArray)) {
-            searchArray = getAll().map((pokemon) => {
+        return cache.getOrSet(
+            "pokemon.getSearchArray",
+            () => getAll().map((pokemon) => {
                 return {
-                    id   : pokemon.getId(),
-                    text : "#pokemon.getFullname()#",
-                    image: "#pokemon.getSprite()##getImageExtension()#",
-                    alt  : "Pokemon #pokemon.getFullname()#",
-                    ses  : "#pokemon.getSes()#"
+                    id   : pokemon.id,
+                    text : "#pokemon.fullname#",
+                    image: "#pokemon.sprite##getImageExtension()#",
+                    alt  : "Pokemon #pokemon.fullname#",
+                    ses  : "#pokemon.ses#"
                 };
-            });
-            cache.set(
-                cacheKey,
-                searchArray,
-                getCacheTime(),
-                getCacheTime()
-            );
-        }
-        return searchArray;
+            }),
+            getCacheTime(),
+            getCacheTime()
+        );
     }
 
     /**
@@ -692,20 +977,11 @@ component singleton accessors="true" {
             return lCase(item.text).find(searchLower) > 0;
         });
 
-        var offset   = (page - 1) * pageSize;
-        var rowCount = filtered.len();
-        var results  = [];
-
-        // Slice the correct page from the filtered result
-        if(rowCount && offset < rowCount) {
-            var startPosition = offset + 1; // slice offset is 1-based
-            var remaining     = rowCount - offset; // how many elements remaining after startPosition
-
-            var length = min(remaining, pageSize); // clamp the records returned to not go out of bounds
-            results    = filtered.slice(startPosition, length);
-        }
-
-        return {results: results, pagination: {more: filtered.len() > offset + pageSize}};
+        var offset = (page - 1) * pageSize;
+        return {
+            results   : pagination.slicePage(filtered, offset, pageSize),
+            pagination: {more: filtered.len() > offset + pageSize}
+        };
     }
 
     /**
@@ -721,28 +997,19 @@ component singleton accessors="true" {
         string orderDir2          = "",
         boolean costume           = false
     ) {
-        var fromSQL    = "FROM pokemon JOIN generation ON generation.generation = pokemon.generation";
-        var baseWhere  = "WHERE pokemon.costume = :costume";
-        var baseParams = {costume: {value: costume, cfsqltype: "boolean"}};
-
-        var whereSQL    = baseWhere;
-        var whereParams = duplicate(baseParams);
-        if(search.len()) {
-            var matches = [
-                "generation.region ILIKE :search",
-                "pokemon.gender ILIKE :search",
-                "pokemon.name ILIKE :search",
-                "pokemon.costumetype ILIKE :search"
-            ];
-            whereParams.search = {value: utilService.likeContains(search), cfsqltype: "varchar"};
-
-            if(isNumeric(search)) {
-                matches.append("pokemon.number = :number");
-                whereParams.number = {value: search, cfsqltype: "numeric"};
-            }
-
-            whereSQL &= " AND (#matches.toList(" OR ")#)";
-        }
+        var fromSQL = "FROM pokemon INNER JOIN generation ON generation.generation = pokemon.generation";
+        var filters = pagination.buildFilters(
+            searchColumns = [
+                "generation.region",
+                "pokemon.gender",
+                "pokemon.name",
+                "pokemon.costumetype"
+            ],
+            search         = search,
+            baseCondition  = "pokemon.costume = :costume",
+            baseParams     = {costume: {value: costume, cfsqltype: "boolean"}},
+            integerColumns = ["pokemon.number"]
+        );
 
         var orderBy = pagination.orderBy(
             columns = getDatatableCols(),
@@ -758,22 +1025,22 @@ component singleton accessors="true" {
             records     = records,
             offset      = offset,
             fromSQL     = fromSQL,
-            baseWhere   = baseWhere,
-            whereSQL    = whereSQL,
-            baseParams  = baseParams,
-            whereParams = whereParams,
+            baseWhere   = filters.baseWhere,
+            whereSQL    = filters.whereSQL,
+            baseParams  = filters.baseParams,
+            whereParams = filters.whereParams,
             fetchRows   = (pageParams) => queryExecute(
                 "
                 SELECT pokemon.id, pokemon.number, pokemon.gender, pokemon.name, pokemon.costume, COALESCE(pokemon.costumetype, '') AS costumetype,
                     pokemon.sprite, pokemon.shiny, pokemon.shadow, pokemon.shadowshiny, pokemon.ses, generation.region
                 #fromSQL#
-                #whereSQL#
+                #filters.whereSQL#
                 #orderBy#
                 LIMIT :records
                 OFFSET :offset
                 ",
                 pageParams,
-                {returntype: "array"}
+                {returnType: "array"}
             )
         );
 
@@ -805,8 +1072,8 @@ component singleton accessors="true" {
     }
 
     /**
-     * Move and evolution text for a page of the admin table, two queries for the whole page instead of lazy loads per pokemon
-     * Same text as pokemon.getMovesText("fast"/"charge", "all") and pokemon.getEvolutionText()
+     * Move and evolution text for a page of the admin table, two queries for the whole page instead of a lookup per pokemon
+     * Move text (name, $ shadow, * legacy) and evolution text (costume type + name) for the table rows
      *
      * @pokemonIds ids on the page
      *
@@ -834,23 +1101,23 @@ component singleton accessors="true" {
                     SELECT pokemonmove.pokemonid, move.name, pokemonmove.shadow, pokemonmove.legacy,
                         CASE WHEN move.turns > 0 THEN 'fastMoves' ELSE 'chargeMoves' END AS kind
                     FROM pokemonmove
-                    JOIN move ON move.id = pokemonmove.moveid
+                    INNER JOIN move ON move.id = pokemonmove.moveid
                     WHERE pokemonmove.pokemonid IN (:ids)
                         AND move.turns IS NOT NULL
                     ",
                     {ids: ids},
-                    {returntype: "array"}
+                    {returnType: "array"}
                 ),
                 () => queryExecute(
                     "
                     SELECT evolution.pokemonid, evolved.name, evolved.costume, COALESCE(evolved.costumetype, '') AS costumetype
                     FROM evolution
-                    JOIN pokemon AS evolved ON evolved.id = evolution.evolutionid
+                    INNER JOIN pokemon AS evolved ON evolved.id = evolution.evolutionid
                     WHERE evolution.pokemonid IN (:ids)
-                    ORDER BY evolution.id
+                    ORDER BY evolution.id ASC
                     ",
                     {ids: ids},
-                    {returntype: "array"}
+                    {returnType: "array"}
                 )
             )
             .get();

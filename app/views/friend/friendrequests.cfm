@@ -8,34 +8,20 @@
             <table class="table table-hover table-sm mb-0">
                 <cfloop index="i" item="currFriend" array="#args.friendRequests#">
                     <tr>
-                        <td class="align-middle" style="width: 56px;">
-                            <img
-                                class="profileIcon"
-                                src="#encodeForHTMLAttribute(currFriend[1].getIconPath())#"
-                                alt="#encodeForHTMLAttribute(currFriend[1].getIconAltText())#"
-                            >
-                        </td>
-                        <td class="align-middle">#EncodeForHTML(currFriend[1].getUsername())#</td>
-                        <td class="align-middle text-end" data-friendrequestid="#currFriend[2]#">
-                            <button type="button" class="btn btn-success btn-sm decideRequest" data-accept="true">
-                                <i class="bi bi-check"></i>
+                        #view(view = "/views/friend/fragment/trainerCells", args = {trainer: currFriend})#
+                        <td class="align-middle text-end" data-friendrequestid="#currFriend.friendrequestid#">
+                            <button type="button" class="btn btn-success btn-sm decideRequest" data-accept="true" aria-label="Accept friend request from #encodeForHTMLAttribute(currFriend.username)#">
+                                <i class="bi bi-check" aria-hidden="true"></i>
                             </button>
-                            <button type="button" class="btn btn-danger btn-sm decideRequest" data-accept="false">
-                                <i class="bi bi-x"></i>
+                            <button type="button" class="btn btn-danger btn-sm decideRequest" data-accept="false" aria-label="Decline friend request from #encodeForHTMLAttribute(currFriend.username)#">
+                                <i class="bi bi-x" aria-hidden="true"></i>
                             </button>
                         </td>
                     </tr>
                 </cfloop>
                 <cfloop index="i" item="currFriend" array="#args.sentFriendRequests#">
                     <tr>
-                        <td class="align-middle" style="width: 56px;">
-                            <img
-                                class="profileIcon"
-                                src="#encodeForHTMLAttribute(currFriend[1].getIconPath())#"
-                                alt="#encodeForHTMLAttribute(currFriend[1].getIconAltText())#"
-                            >
-                        </td>
-                        <td class="align-middle">#encodeForHTML(currFriend[1].getUsername())#</td>
+                        #view(view = "/views/friend/fragment/trainerCells", args = {trainer: currFriend})#
                         <td class="align-middle text-end">
                             <span class="badge text-bg-secondary">Pending</span>
                         </td>

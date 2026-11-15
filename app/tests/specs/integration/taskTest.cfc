@@ -2,9 +2,37 @@ component extends="tests.resources.baseTest" asyncAll="false" {
 
     function beforeAll() {
         super.beforeAll();
+        inlineBackgroundLogs();
+
+        scheduler    = getInstance("appScheduler@coldbox");
+        adminService = getInstance("services.admin");
+
+        /**
+         * Test-only task wired to the app scheduler's callbacks so the success/failure paths
+         * run without touching a real task. Registered after scheduler startup, so it never gets scheduled
+         */
+        probeTaskName = "taskTestProbe";
+        probeFails    = false;
+        scheduler
+            .task(probeTaskName)
+            .before((task) => {
+                task.overviewStruct.event = probeTaskName;
+            })
+            .call(() => {
+                if(probeFails) throw("Probe task failure");
+                return "Ok!";
+            })
+            .onFailure((task, exception) => {
+                scheduler.callbackOnFailure(task, exception);
+            })
+            .onSuccess((task, results) => {
+                scheduler.callbackOnSuccess(task);
+            });
     }
 
     function afterAll() {
+        if(scheduler.hasTask(probeTaskName)) scheduler.removeTask(probeTaskName);
+        restoreBackgroundLogs();
         super.afterAll();
     }
 
@@ -12,111 +40,89 @@ component extends="tests.resources.baseTest" asyncAll="false" {
         describe("Scheduled Tasks Tests", () => {
             beforeEach(() => {
                 setup();
-
-                testTaskName = "healthCheck";
-
-                scheduler        = getInstance("appScheduler@coldbox");
-                schedulerService = getInstance("coldbox:schedulerService");
             });
 
             it("Can register tasks from config/", () => {
-                adminService = getInstance("services.admin");
-                taskInfo     = adminService.getTaskInfo();
+                var taskInfo  = adminService.getTaskInfo();
+                var taskNames = taskInfo.map((task) => task.name);
                 expect(taskInfo).toBeArray();
-                expect(taskInfo.len()).toBe(8); // number of tasks defined + mail queue
+                expect(taskInfo.len()).toBe(8); // 6 config tasks + mail queue + test probe
+
+                [
+                    "nightlyUpdatePokemonData",
+                    "nightlyUpdateMoveData",
+                    "weeklyUpdateMedalData",
+                    "nightlyCreateEvents",
+                    "metricsSubscription",
+                    "cleanupCookies"
+                ].each((name) => {
+                    expect(taskNames).toInclude(name);
+                });
             });
 
             it("Can run a task successfully", () => {
-                task = scheduler.getTaskRecord(testTaskName).task;
-                expect(task).toBeComponent();
+                var task             = scheduler.getTaskRecord(probeTaskName).task;
+                var auditCountBefore = testData.countRows("audit");
 
-                // Verify the task has successful audits
-                auditCountBefore = ormExecuteQuery("select count(id) from audit")[1];
-
-                // Force run the task
                 task.run(true);
-                stats = task.getStats();
+                var stats = task.getStats();
                 expect(stats).toBeStruct();
                 expect(dateDiff("s", parseDateTime(stats.lastRun), now())).toBeLTE(10);
-
-                auditCountAfter = ormExecuteQuery("select count(id) from audit")[1];
-                expect(auditCountAfter - auditCountBefore).toBe(1);
+                expect(testData.countRows("audit") - auditCountBefore).toBe(1);
             });
 
             it("Can run a task that errors and trap error", () => {
-                task = scheduler.getTaskRecord(testTaskName).task;
-                expect(task).toBeComponent();
+                var task             = scheduler.getTaskRecord(probeTaskName).task;
+                var auditCountBefore = testData.countRows("audit");
+                var bugCountBefore   = testData.countRows("bug");
 
-                // Verify the task successfully logs bug and audits
-                auditCountBefore = ormExecuteQuery("select count(id) from audit")[1];
-                bugCountBefore   = ormExecuteQuery("select count(id) from bug")[1];
+                probeFails = true;
+                try {
+                    task.run(true);
+                }
+                finally {
+                    probeFails = false;
+                }
 
-                // Set the task to fail
-                application.cbController.setSetting("healthCheck", false);
-
-                // Force run the task
-                task.run(true);
-                stats = task.getStats();
+                var stats = task.getStats();
                 expect(stats).toBeStruct();
                 expect(dateDiff("s", parseDateTime(stats.lastRun), now())).toBeLTE(10);
-
-                auditCountAfter = ormExecuteQuery("select count(id) from audit")[1];
-                expect(auditCountAfter - auditCountBefore).toBe(1);
-                bugCountAfter = ormExecuteQuery("select count(id) from bug")[1];
-                expect(bugCountAfter - bugCountBefore).toBe(1);
-
-                application.cbController.setSetting("healthCheck", true);
+                expect(testData.countRows("audit") - auditCountBefore).toBe(1);
+                expect(testData.countRows("bug") - bugCountBefore).toBe(1);
             });
 
             it("Can force run a task through the admin service", () => {
-                adminService = getInstance("services.admin");
-
-                result = adminService.runTask("appScheduler@coldbox", testTaskName);
+                var result = adminService.runTask("appScheduler@coldbox", probeTaskName);
                 expect(result).toBeStruct();
                 expect(result.success).toBeTrue();
                 expect(result.errorMessage).toBe("");
+                expect(result.result).toBe("Ok!");
                 expect(dateDiff("s", parseDateTime(result.lastRun), now())).toBeLTE(10);
             });
 
             it("Reports failure when a force run task errors", () => {
-                adminService = getInstance("services.admin");
-                application.cbController.setSetting("healthCheck", false);
+                var result = {};
+                probeFails = true;
+                try {
+                    result = adminService.runTask("appScheduler@coldbox", probeTaskName);
+                }
+                finally {
+                    probeFails = false;
+                }
 
-                result = adminService.runTask("appScheduler@coldbox", testTaskName);
                 expect(result.success).toBeFalse();
-                expect(result.errorMessage).notToBe("");
-
-                application.cbController.setSetting("healthCheck", true);
+                expect(result.errorMessage).toBe("Probe task failure");
             });
 
-            it("Throws when force running an unknown task", () => {
-                adminService = getInstance("services.admin");
+            it("Rejects force running an unknown task", () => {
+                var validation = getInstance("ValidationManager@cbvalidation");
+                var passes     = (scheduler, name) => !validation
+                    .validate(target = {scheduler: scheduler, name: name}, constraints = "admin.runTask")
+                    .hasErrors();
 
-                expect(() => adminService.runTask("appScheduler@coldbox", "notARealTask")).toThrow("TaskNotFound");
-                expect(() => adminService.runTask("notARealScheduler", testTaskName)).toThrow("TaskNotFound");
-            });
-
-            it("Can toggle a task", () => {
-                task = scheduler.getTaskRecord(testTaskName).task;
-                expect(task).toBeComponent();
-
-                task.disable();
-                expect(task.isDisabled()).toBeTrue();
-
-                task.enable();
-                expect(task.isDisabled()).toBeFalse();
-            });
-
-            it("Can delete a task", () => {
-                taskInfoBefore = adminService.getTaskInfo();
-                expect(taskInfoBefore).toBeArray();
-                expect(taskInfoBefore.len()).toBe(8);
-
-                scheduler.removeTask(testTaskName);
-                taskInfoAfter = adminService.getTaskInfo();
-                expect(taskInfoAfter).toBeArray();
-                expect(taskInfoAfter.len()).toBe(7);
-                expect(scheduler.hasTask(testTaskName)).toBeFalse();
+                expect(passes("appScheduler@coldbox", "cleanupCookies")).toBeTrue("known task");
+                expect(passes("appScheduler@coldbox", "notARealTask")).toBeFalse("unknown task");
+                expect(passes("notARealScheduler", "cleanupCookies")).toBeFalse("unknown scheduler");
             });
         });
     }

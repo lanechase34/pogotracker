@@ -12,13 +12,11 @@ component extends="tests.resources.baseTest" {
         describe("Image Service Test", () => {
             beforeEach(() => {
                 setup();
-
                 imageService = getInstance("Helpers@ImageMagick");
             });
 
-            // Skip check in test env
             it(
-                "Can verify image magickis functioning",
+                "Can verify ImageMagick is functioning",
                 () => {
                     expect(() => {
                         imageService.verifyImageMagick()

@@ -15,13 +15,13 @@
     <tbody>
         <cfloop index="i" item="currMedal" array="#prc.data#">
             <tr>
-                <td class="align-middle text-center"><img src="/includes/images/medals/#currMedal.getName()##getSetting('imageExtension')#" alt="#currMedal.getAltText()#" loading="lazy" class="medalIcon"/></td>
-                <td>#currMedal.getName()#</td>
-                <td>#currMedal.getDescription()#</td>
-                <td>#currMedal.getBronze()#</td>
-                <td>#currMedal.getSilver()#</td>
-                <td>#currMedal.getGold()#</td>
-                <td>#currMedal.getPlatinum()#</td>
+                <td class="align-middle text-center"><img src="/includes/images/medals/#currMedal.name##getSetting('imageExtension')#" alt="#currMedal.alttext#" loading="lazy" class="medalIcon"/></td>
+                <td>#currMedal.name#</td>
+                <td>#currMedal.description#</td>
+                <td>#currMedal.bronze#</td>
+                <td>#currMedal.silver#</td>
+                <td>#currMedal.gold#</td>
+                <td>#currMedal.platinum#</td>
             </tr>
         </cfloop>
     </tbody>

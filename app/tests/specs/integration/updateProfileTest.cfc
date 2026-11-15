@@ -2,31 +2,39 @@ component extends="tests.resources.baseTest" asyncAll="false" {
 
     function beforeAll() {
         super.beforeAll();
-        mockTrainer    = getInstance("tests.resources.mocktrainer");
+        mockTrainer    = getInstance("tests.resources.mockTrainer");
         auth           = getInstance("authenticationService@cbauth");
         trainerService = getInstance("services.trainer");
         defaults       = application.cbController.getSetting("defaultSettings");
 
-        // Other trainer used for uniqueness conflicts
-        otherTrainer   = mockTrainer.make(securityLevel = 10, autoLogin = false);
-        otherTrainerId = otherTrainer.getId();
+        // Other trainer used for uniqueness conflicts, and as the untouched target of rejected edits
+        otherTrainer = mockTrainer.make(securityLevel = 10, autoLogin = false);
+
+        // Shared by the specs that never change them (rejected edits) - specs that do make their own
+        sharedTrainer = mockTrainer.make(securityLevel = 10, autoLogin = false);
+        sharedAdmin   = mockTrainer.make(securityLevel = 50, autoLogin = false);
+
+        // Not a spec's own trainer - afterEach must not delete it
+        session.delete("mocktrainerid");
     }
 
     function afterAll() {
         super.afterAll();
-        mockTrainer.delete(otherTrainerId);
+        mockTrainer.deleteTrainer(otherTrainer.id);
+        mockTrainer.deleteTrainer(sharedTrainer.id);
+        mockTrainer.deleteTrainer(sharedAdmin.id);
     }
 
     /**
      * Post the profile form as the logged in trainer
      */
-    private any function postProfile(required component trainer, struct overrides = {}) {
+    private any function postProfile(required struct trainer, struct overrides = {}) {
         setup();
         var params = {
-            trainerid    : arguments.trainer.getId(),
-            username     : arguments.trainer.getUsername(),
-            email        : arguments.trainer.getEmail(),
-            icon         : arguments.trainer.getIcon(),
+            trainerid    : arguments.trainer.id,
+            username     : arguments.trainer.username,
+            email        : arguments.trainer.email,
+            icon         : arguments.trainer.icon,
             password     : "",
             defaultView  : "normal",
             defaultRegion: "Kanto",
@@ -40,9 +48,9 @@ component extends="tests.resources.baseTest" asyncAll="false" {
     /**
      * Settings as currently saved - a fresh load, not a possibly memoized instance from earlier in the test
      */
-    private struct function savedSettings(required component trainer) {
-        trainerService.clearCache(arguments.trainer.getId());
-        return trainerService.getFromId(arguments.trainer.getId()).getSettings();
+    private struct function savedSettings(required struct trainer) {
+        trainerService.clearCache(arguments.trainer.id);
+        return trainerService.getFromId(arguments.trainer.id).settings;
     }
 
     /**
@@ -59,66 +67,53 @@ component extends="tests.resources.baseTest" asyncAll="false" {
 
     function run() {
         describe("Update profile", () => {
-            beforeEach(() => {
-                extraTrainerIds = [];
-            });
-
             afterEach(() => {
-                if(session.keyExists("mocktrainerid")) mockTrainer.delete();
-                extraTrainerIds.each((id) => mockTrainer.delete(id));
-            });
-
-            it("Lets a regular user save their profile without changing username/email", () => {
-                var trainer = mockTrainer.make(securityLevel = 10, autoLogin = true);
-
-                var event = postProfile(trainer);
-                var res   = event.getPrivateValue("responseObj");
-
-                expect(res.success).toBeTrue(res.message);
+                if(session.keyExists("mocktrainerid")) {
+                    mockTrainer.deleteTrainer();
+                }
+                else {
+                    mockTrainer.actAsGuest();
+                }
             });
 
             it("Lets a regular user change their username", () => {
-                var trainer     = mockTrainer.make(securityLevel = 10, autoLogin = true);
+                var trainer     = mockTrainer.makeSignedIn();
                 var newUsername = "UPD_#left(createUUID().replace("-", "", "all"), 10)#";
 
                 var event = postProfile(trainer, {username: newUsername});
                 expect(event.getPrivateValue("responseObj").success).toBeTrue();
 
-                entityReload(trainer);
-                expect(trainer.getUsername()).toBe(newUsername);
+                expect(mockTrainer.getSaved(trainer.id).username).toBe(newUsername);
             });
 
             it("Lets a regular user switch to another base icon", () => {
-                var trainer = mockTrainer.make(securityLevel = 10, autoLogin = true);
-                var newIcon = trainer.getIcon() == "bulbasaur" ? "squirtle" : "bulbasaur";
+                var trainer = mockTrainer.makeSignedIn();
+                var newIcon = trainer.icon == "bulbasaur" ? "squirtle" : "bulbasaur";
 
                 var event = postProfile(trainer, {icon: newIcon});
                 expect(event.getPrivateValue("responseObj").success).toBeTrue();
 
-                entityReload(trainer);
-                expect(trainer.getIcon()).toBe(newIcon);
+                expect(mockTrainer.getSaved(trainer.id).icon).toBe(newIcon);
             });
 
             it("Rejects an icon the trainer has not unlocked", () => {
-                var trainer = mockTrainer.make(securityLevel = 10, autoLogin = true);
-                var before  = trainer.getIcon();
+                mockTrainer.actAs(sharedTrainer);
 
                 // A new trainer has no caught pokemon, so mewtwo is still locked - its file exists, so only the unlock check stops it
-                var event = postProfile(trainer, {icon: "mewtwo"});
+                var event = postProfile(sharedTrainer, {icon: "mewtwo"});
                 expect(event.getPrivateValue("responseObj").success).toBeFalse();
 
-                entityReload(trainer);
-                expect(trainer.getIcon()).toBe(before);
+                expect(mockTrainer.getSaved(sharedTrainer.id).icon).toBe(sharedTrainer.icon);
             });
 
             it("Offers and saves an unlocked icon whose name has a space", () => {
-                var trainer = mockTrainer.make(securityLevel = 10, autoLogin = true);
+                var trainer = mockTrainer.makeSignedIn();
                 getInstance("services.pokedex").registerAll(
-                    trainer = trainer,
-                    region  = "Kanto",
-                    shiny   = true
+                    trainerid = trainer.id,
+                    region    = "Kanto",
+                    shiny     = true
                 );
-                trainerService.clearCache(trainer.getId());
+                trainerService.clearCache(trainer.id);
 
                 // The option shows "Shiny Mew" but its value matches the file name
                 setup();
@@ -134,11 +129,11 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                     event.getPrivateValue("responseObj").message
                 );
 
-                entityReload(trainer);
-                expect(trainer.getIcon()).toBe("shinymew");
+                expect(mockTrainer.getSaved(trainer.id).icon).toBe("shinymew");
             });
 
             it("Keeps the trainer signed in after changing their own password", () => {
+                // A real login - the session version it keeps is what the password change bumps
                 var trainer = mockTrainer.make(securityLevel = 10, autoLogin = true);
 
                 var event = postProfile(
@@ -148,7 +143,7 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                 expect(event.getPrivateValue("responseObj").success).toBeTrue();
 
                 // The password change bumped the session version - this session kept up with it
-                mockTrainer.refresh(trainer.getId());
+                mockTrainer.refresh(trainer.id);
                 setup();
                 execute(route = "/mypokedex");
                 expect(auth.isLoggedIn()).toBeTrue();
@@ -156,44 +151,42 @@ component extends="tests.resources.baseTest" asyncAll="false" {
 
             describe("Current password", () => {
                 it("Rejects changing your own password without your current password", () => {
-                    var trainer = mockTrainer.make(securityLevel = 10, autoLogin = true);
-                    var before  = trainer.getPassword();
+                    mockTrainer.actAs(sharedTrainer);
+                    var before = mockTrainer.getSaved(sharedTrainer.id).password;
 
-                    var event = postProfile(trainer, {password: "NewPass_#createUUID()#"});
+                    var event = postProfile(sharedTrainer, {password: "NewPass_#createUUID()#"});
                     expect(event.getPrivateValue("responseObj").success).toBeFalse();
                     expect(event.getPrivateValue("responseObj").message).toBe("Current password is incorrect.");
+                    // A validation failure, not a server error
+                    expect(event.getPrivateValue("responseObj").statusCode).toBe(400);
 
-                    entityReload(trainer);
-                    expect(trainer.getPassword()).toBe(before);
+                    expect(mockTrainer.getSaved(sharedTrainer.id).password).toBe(before);
                 });
 
                 it("Rejects changing your own password with the wrong current password", () => {
-                    var trainer = mockTrainer.make(securityLevel = 10, autoLogin = true);
-                    var before  = trainer.getPassword();
+                    mockTrainer.actAs(sharedTrainer);
+                    var before = mockTrainer.getSaved(sharedTrainer.id).password;
 
                     var event = postProfile(
-                        trainer,
+                        sharedTrainer,
                         {password: "NewPass_#createUUID()#", currentPassword: "NotMyPassword_1"}
                     );
                     expect(event.getPrivateValue("responseObj").success).toBeFalse();
 
-                    entityReload(trainer);
-                    expect(trainer.getPassword()).toBe(before);
+                    expect(mockTrainer.getSaved(sharedTrainer.id).password).toBe(before);
                 });
 
                 it("Rejects changing your own email without your current password", () => {
-                    var trainer = mockTrainer.make(securityLevel = 10, autoLogin = true);
-                    var email   = trainer.getEmail();
+                    mockTrainer.actAs(sharedTrainer);
 
-                    var event = postProfile(trainer, {email: "changed_#createUUID()#@example.com"});
+                    var event = postProfile(sharedTrainer, {email: "changed_#createUUID()#@example.com"});
                     expect(event.getPrivateValue("responseObj").success).toBeFalse();
 
-                    entityReload(trainer);
-                    expect(trainer.getEmail()).toBe(email);
+                    expect(mockTrainer.getSaved(sharedTrainer.id).email).toBe(sharedTrainer.email);
                 });
 
                 it("Lets you change your own email with your current password", () => {
-                    var trainer  = mockTrainer.make(securityLevel = 10, autoLogin = true);
+                    var trainer  = mockTrainer.makeSignedIn();
                     var newEmail = lCase("changed_#left(createUUID().replace("-", "", "all"), 10)#@example.com");
 
                     var event = postProfile(trainer, {email: newEmail, currentPassword: mockTrainer.getMockPassword()});
@@ -201,74 +194,60 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                         event.getPrivateValue("responseObj").message
                     );
 
-                    entityReload(trainer);
-                    expect(trainer.getEmail()).toBe(newEmail);
+                    expect(mockTrainer.getSaved(trainer.id).email).toBe(newEmail);
+                    // The new email has to be verified before the account can be used again
+                    expect(event.getPrivateValue("responseObj").reverify).toBeTrue();
+                    expect(mockTrainer.getSaved(trainer.id).verified).toBeFalse();
                 });
 
                 it("Doesn't ask for it when nothing sensitive changes", () => {
-                    var trainer = mockTrainer.make(securityLevel = 10, autoLogin = true);
-
-                    var event = postProfile(trainer);
-                    expect(event.getPrivateValue("responseObj").success).toBeTrue();
+                    var res = postProfile(mockTrainer.makeSignedIn()).getPrivateValue("responseObj");
+                    expect(res.success).toBeTrue(res.message);
+                    expect(res.reverify).toBeFalse();
                 });
             });
 
             it("Rejects a regular user taking another trainer's username", () => {
-                var trainer = mockTrainer.make(securityLevel = 10, autoLogin = true);
+                mockTrainer.actAs(sharedTrainer);
 
-                var event = postProfile(trainer, {username: otherTrainer.getUsername()});
+                var event = postProfile(sharedTrainer, {username: otherTrainer.username});
                 expect(event.getPrivateValue("responseObj").success).toBeFalse();
+                // Caught by validation - the 409 is only for a username taken between validation and the update
+                expect(event.getPrivateValue("responseObj").statusCode).toBe(400);
             });
 
-            it("Rejects a regular user setting their own security level", () => {
-                var trainer = mockTrainer.make(securityLevel = 10, autoLogin = true);
-
-                // cbSecure().secureWhen -> NotAuthorized (error.onException turns it into a 403)
-                expect(() => postProfile(trainer, {securityLevel: "60", verified: "on"})).toThrow("NotAuthorized");
-
-                entityReload(trainer);
-                expect(trainer.getSecurityLevel()).toBe(10);
-            });
-
-            // Each admin only field on its own - the test above sends two, so it would still pass if either check were removed
+            // Each admin only field on its own, so removing any one check fails a test
+            // cbSecure().secureWhen -> NotAuthorized (error.onException turns it into a 403)
             describe("Admin only fields (secureWhen)", () => {
                 it("Rejects a regular user setting only their security level", () => {
-                    var trainer = mockTrainer.make(securityLevel = 10, autoLogin = true);
+                    mockTrainer.actAs(sharedTrainer);
 
-                    expect(() => postProfile(trainer, {securityLevel: "60"})).toThrow("NotAuthorized");
+                    expect(() => postProfile(sharedTrainer, {securityLevel: "60"})).toThrow("NotAuthorized");
 
-                    entityReload(trainer);
-                    expect(trainer.getSecurityLevel()).toBe(10);
+                    expect(mockTrainer.getSaved(sharedTrainer.id).securitylevel).toBe(10);
                 });
 
                 it("Rejects a regular user setting only their verified flag", () => {
-                    var trainer = mockTrainer.make(securityLevel = 10, autoLogin = true);
+                    mockTrainer.actAs(sharedTrainer);
 
-                    expect(() => postProfile(trainer, {verified: "off"})).toThrow("NotAuthorized");
+                    expect(() => postProfile(sharedTrainer, {verified: "off"})).toThrow("NotAuthorized");
 
-                    entityReload(trainer);
-                    expect(trainer.getVerified()).toBeTrue();
+                    expect(mockTrainer.getSaved(sharedTrainer.id).verified).toBeTrue();
                 });
 
                 it("Rejects a regular user setting only their friendcode", () => {
-                    var trainer    = mockTrainer.make(securityLevel = 10, autoLogin = true);
-                    var friendcode = trainer.getFriendcode();
+                    mockTrainer.actAs(sharedTrainer);
 
-                    expect(() => postProfile(trainer, {friendcode: mockTrainer.makeFriendcode()})).toThrow("NotAuthorized");
+                    expect(() => postProfile(sharedTrainer, {friendcode: mockTrainer.makeFriendcode()})).toThrow("NotAuthorized");
 
-                    entityReload(trainer);
-                    expect(trainer.getFriendcode()).toBe(friendcode);
+                    expect(mockTrainer.getSaved(sharedTrainer.id).friendcode).toBe(sharedTrainer.friendcode);
                 });
 
                 it("Rejects a regular user changing another trainer's account details", () => {
-                    var target = mockTrainer.make(securityLevel = 10, autoLogin = false);
-                    extraTrainerIds.append(target.getId());
-                    var username = target.getUsername();
-                    var email    = target.getEmail();
-                    mockTrainer.make(securityLevel = 10, autoLogin = true);
+                    mockTrainer.actAs(sharedTrainer);
 
                     expect(() => postProfile(
-                        target,
+                        otherTrainer,
                         {
                             username: "HIJACK_#left(createUUID().replace("-", "", "all"), 10)#",
                             email   : "hijack_#createUUID()#@example.com",
@@ -276,16 +255,15 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                         }
                     )).toThrow("NotAuthorized");
 
-                    entityReload(target);
-                    expect(target.getUsername()).toBe(username);
-                    expect(target.getEmail()).toBe(email);
+                    var row = mockTrainer.getSaved(otherTrainer.id);
+                    expect(row.username).toBe(otherTrainer.username);
+                    expect(row.email).toBe(otherTrainer.email);
                 });
 
                 it("Lets an admin set another trainer's security level, verified flag, and friendcode", () => {
-                    var target = mockTrainer.make(securityLevel = 10, autoLogin = false);
-                    extraTrainerIds.append(target.getId());
+                    var target     = mockTrainer.make(securityLevel = 10, autoLogin = false);
                     var friendcode = mockTrainer.makeFriendcode();
-                    mockTrainer.make(securityLevel = 50, autoLogin = true);
+                    mockTrainer.actAs(sharedAdmin);
 
                     var event = postProfile(
                         target,
@@ -299,23 +277,23 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                         event.getPrivateValue("responseObj").message
                     );
 
-                    entityReload(target);
-                    expect(target.getSecurityLevel()).toBe(50);
-                    expect(target.getVerified()).toBeFalse();
-                    expect(target.getFriendcode()).toBe(friendcode);
+                    var row = mockTrainer.getSaved(target.id);
+                    expect(row.securitylevel).toBe(50);
+                    expect(row.verified).toBeFalse();
+                    expect(row.friendcode).toBe(friendcode);
                 });
             });
 
             it("Rejects an admin setting a friendcode that belongs to another trainer", () => {
-                var trainer = mockTrainer.make(securityLevel = 50, autoLogin = true);
+                mockTrainer.actAs(sharedAdmin);
 
-                var event = postProfile(trainer, {friendcode: otherTrainer.getFriendcode()});
+                var event = postProfile(sharedAdmin, {friendcode: otherTrainer.friendcode});
                 expect(event.getPrivateValue("responseObj").success).toBeFalse();
             });
 
             describe("Settings", () => {
                 it("Lets a regular user save their own settings", () => {
-                    var trainer = mockTrainer.make(securityLevel = 10, autoLogin = true);
+                    var trainer = mockTrainer.makeSignedIn();
 
                     var event = postProfile(
                         trainer,
@@ -333,14 +311,13 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                     expect(settings.defaultPage).toBe("/mypokedex");
 
                     // The logged in trainer has the new settings on the next request
-                    mockTrainer.refresh(trainer.getId());
+                    mockTrainer.refresh(trainer.id);
                     expect(auth.getUser().getSettings().defaultRegion).toBe("Unova");
                 });
 
                 it("Lets an admin save another trainer's settings without changing their own", () => {
                     var target = mockTrainer.make(securityLevel = 10, autoLogin = false);
-                    extraTrainerIds.append(target.getId());
-                    var admin = mockTrainer.make(securityLevel = 50, autoLogin = true);
+                    mockTrainer.actAs(sharedAdmin);
 
                     var event = postProfile(
                         target,
@@ -358,23 +335,21 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                     expect(settings.defaultPage).toBe("/mypokedex");
 
                     // Admin's own settings and login are untouched
-                    expect(auth.getUserId()).toBe(admin.getId());
-                    expect(savedSettings(admin).defaultRegion).toBe("Kanto");
+                    expect(auth.getUserId()).toBe(sharedAdmin.id);
+                    expect(savedSettings(sharedAdmin).defaultRegion).toBe("Kanto");
                 });
 
                 it("Rejects a regular user saving another trainer's settings", () => {
-                    var target = mockTrainer.make(securityLevel = 10, autoLogin = false);
-                    extraTrainerIds.append(target.getId());
-                    mockTrainer.make(securityLevel = 10, autoLogin = true);
+                    mockTrainer.actAs(sharedTrainer);
 
-                    expect(() => postProfile(target, {defaultRegion: "Unova"})).toThrow("NotAuthorized");
-                    expect(savedSettings(target)).toBeEmpty();
+                    expect(() => postProfile(otherTrainer, {defaultRegion: "Unova"})).toThrow("NotAuthorized");
+                    expect(savedSettings(otherTrainer)).toBeEmpty();
                 });
             });
 
             describe("Edit profile form", () => {
                 it("Defaults to the logged in trainer's settings", () => {
-                    var trainer = mockTrainer.make(securityLevel = 10, autoLogin = true);
+                    var trainer = mockTrainer.makeSignedIn();
                     postProfile(
                         trainer,
                         {
@@ -384,7 +359,7 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                         }
                     );
 
-                    mockTrainer.refresh(trainer.getId());
+                    mockTrainer.refresh(trainer.id);
                     setup();
                     var selected = getSelectedSettings(get(route = "/trainer/editProfile", renderResults = true));
                     expect(selected.defaultView).toBe("shiny");
@@ -394,20 +369,22 @@ component extends="tests.resources.baseTest" asyncAll="false" {
 
                 it("Admin edit trainer defaults to the edited trainer's settings, not the admin's", () => {
                     var target = mockTrainer.make(securityLevel = 10, autoLogin = false);
-                    extraTrainerIds.append(target.getId());
-                    target.setSettings({
-                        defaultView  : "shiny",
-                        defaultRegion: "Unova",
-                        defaultPage  : "/mypokedex"
-                    });
-                    mockTrainer.make(securityLevel = 50, autoLogin = true);
+                    trainerService.updateSettings(
+                        target.id,
+                        {
+                            defaultView  : "shiny",
+                            defaultRegion: "Unova",
+                            defaultPage  : "/mypokedex"
+                        }
+                    );
+                    mockTrainer.actAs(sharedAdmin);
 
                     // Admin has the default settings
                     expect(auth.getUser().getSettings().defaultRegion).toBe("Kanto");
 
                     setup();
                     var selected = getSelectedSettings(
-                        get(route = "/admin/editTrainer/trainerid/#target.getId()#", renderResults = true)
+                        get(route = "/admin/editTrainer/trainerid/#target.id#", renderResults = true)
                     );
                     expect(selected.defaultView).toBe("shiny");
                     expect(selected.defaultRegion).toBe("Unova");
@@ -415,9 +392,7 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                 });
 
                 it("Admin edit trainer falls back to default settings when the trainer has none", () => {
-                    var target = mockTrainer.make(securityLevel = 10, autoLogin = false);
-                    extraTrainerIds.append(target.getId());
-                    var admin = mockTrainer.make(securityLevel = 50, autoLogin = true);
+                    var admin = mockTrainer.makeSignedIn(securityLevel = 50);
 
                     // Give the admin non-default settings so a fallback to the admin's session would be caught
                     postProfile(
@@ -428,11 +403,11 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                             defaultPage  : "/mypokedex"
                         }
                     );
-                    expect(savedSettings(target)).toBeEmpty();
+                    expect(savedSettings(otherTrainer)).toBeEmpty();
 
                     setup();
                     var selected = getSelectedSettings(
-                        get(route = "/admin/editTrainer/trainerid/#target.getId()#", renderResults = true)
+                        get(route = "/admin/editTrainer/trainerid/#otherTrainer.id#", renderResults = true)
                     );
                     expect(selected.defaultRegion).toBe(defaults.defaultRegion);
                     expect(selected.defaultPage).toBe(defaults.defaultPage);
@@ -443,14 +418,14 @@ component extends="tests.resources.baseTest" asyncAll="false" {
 
         describe("View profile", () => {
             afterEach(() => {
-                if(session.keyExists("mocktrainerid")) mockTrainer.delete();
+                mockTrainer.actAsGuest();
             });
 
             it("Sends a trainer who is not a friend back to their own profile", () => {
-                mockTrainer.make(securityLevel = 10, autoLogin = true);
+                mockTrainer.actAs(sharedTrainer);
 
                 setup();
-                var event = get(route = "/profile/#otherTrainerId#");
+                var event = get(route = "/profile/#otherTrainer.id#");
                 expect(event.getValue("relocate_URI", "")).toBe("/profile");
             });
         });

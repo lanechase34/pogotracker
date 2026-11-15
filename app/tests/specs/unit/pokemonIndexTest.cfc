@@ -4,6 +4,9 @@ component extends="tests.resources.baseTest" asyncAll="false" {
         super.beforeAll();
         pokemonService = getInstance("services.pokemon");
         appCache       = getCache("appCache");
+
+        // Built once for the suite, so it reflects the current data rather than whatever was cached before
+        appCache.clear("pokemon.getIndex");
     }
 
     function afterAll() {
@@ -16,10 +19,10 @@ component extends="tests.resources.baseTest" asyncAll="false" {
     private string function findSes(required boolean shiny, required boolean shadow) {
         var result = queryExecute(
             "
-                select ses
-                from pokemon
-                where costume = false and shiny = :shiny and shadow = :shadow
-                order by number asc
+                SELECT ses
+                FROM pokemon
+                WHERE costume = false AND shiny = :shiny AND shadow = :shadow
+                ORDER BY number ASC
             ",
             {shiny: {value: shiny, cfsqltype: "boolean"}, shadow: {value: shadow, cfsqltype: "boolean"}},
             {maxrows: 1}
@@ -31,38 +34,22 @@ component extends="tests.resources.baseTest" asyncAll="false" {
      * Fresh (uncached) detail info for a pokemon
      */
     private struct function freshDetailInfo(required string ses) {
-        pokemonService.clearDetailCache(ses = ses);
+        pokemonService.clearAllDetailCaches();
         return pokemonService.getDetailInfo(ses = ses);
     }
 
     function run() {
         describe("Pokedex index data", () => {
-            beforeEach(() => {
-                appCache.clear("pokemon.getIndex");
-            });
-
-            it("Includes every live non-costume pokemon exactly once", () => {
+            it("Lists every live non-costume pokemon exactly once (no costumes)", () => {
                 var index = pokemonService.getIndex();
                 expect(index).toBeArray().notToBeEmpty();
 
-                var allSes = [];
-                index.each((group) => allSes.append(group.pokemon.map((mon) => mon.ses), true));
-
-                var expected = queryExecute("select count(id) as count from pokemon where costume = false and live = true");
-                expect(allSes.len()).toBe(expected.count);
-
-                // No duplicates
-                var unique = {};
-                allSes.each((ses) => unique[ses] = true);
-                expect(unique.count()).toBe(allSes.len());
-            });
-
-            it("Lists exactly the live non-costume pokemon (no costumes)", () => {
+                // Sorted equality also covers the count and no duplicates
                 var indexSes = [];
-                pokemonService.getIndex().each((group) => indexSes.append(group.pokemon.map((mon) => mon.ses), true));
+                index.each((group) => indexSes.append(group.pokemon.map((mon) => mon.ses), true));
 
                 var expectedSes = valueArray(
-                    queryExecute("select ses from pokemon where costume = false and live = true"),
+                    queryExecute("SELECT ses FROM pokemon WHERE costume = false AND live = true"),
                     "ses"
                 );
 
@@ -76,10 +63,16 @@ component extends="tests.resources.baseTest" asyncAll="false" {
 
                 var firstGeneration = queryExecute(
                     "
-                        select g.region
-                        from generation g
-                        where exists (select 1 from pokemon p where p.generation = g.generation and p.costume = false and p.live = true)
-                        order by g.generation asc
+                        SELECT generation.region
+                        FROM generation
+                        WHERE EXISTS (
+                            SELECT 1
+                            FROM pokemon
+                            WHERE pokemon.generation = generation.generation
+                                AND pokemon.costume = false
+                                AND pokemon.live = true
+                        )
+                        ORDER BY generation.generation ASC
                     ",
                     {},
                     {maxrows: 1}
@@ -111,10 +104,10 @@ component extends="tests.resources.baseTest" asyncAll="false" {
             it("Orders pokemon by generation, number, then form", () => {
                 var expected = queryExecute(
                     "
-                        select ses
-                        from pokemon
-                        where costume = false and live = true
-                        order by generation asc, number asc, form asc
+                        SELECT ses
+                        FROM pokemon
+                        WHERE costume = false AND live = true
+                        ORDER BY generation ASC, number ASC, form ASC
                     ",
                     {},
                     {maxrows: 1}
@@ -134,6 +127,7 @@ component extends="tests.resources.baseTest" asyncAll="false" {
             });
 
             it("Is cached after the first call", () => {
+                appCache.clear("pokemon.getIndex");
                 expect(appCache.lookup("pokemon.getIndex")).toBeFalse();
                 pokemonService.getIndex();
                 expect(appCache.lookup("pokemon.getIndex")).toBeTrue();
@@ -142,7 +136,7 @@ component extends="tests.resources.baseTest" asyncAll="false" {
 
         describe("Pokemon detail title and meta description", () => {
             afterEach(() => {
-                pokemonService.clearDetailCache(ses = "1");
+                pokemonService.clearAllDetailCaches();
             });
 
             it("Title leads with the pokemon's name", () => {
@@ -164,7 +158,7 @@ component extends="tests.resources.baseTest" asyncAll="false" {
 
                 var info = freshDetailInfo(ses);
                 expect(info.metaDescription).toInclude("Shiny and shadow available.");
-                pokemonService.clearDetailCache(ses = ses);
+                pokemonService.clearAllDetailCaches();
             });
 
             it("Mentions only shiny when there is no shadow", () => {
@@ -174,7 +168,7 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                 var info = freshDetailInfo(ses);
                 expect(info.metaDescription).toInclude("Shiny available.");
                 expect(info.metaDescription).notToInclude("shadow available");
-                pokemonService.clearDetailCache(ses = ses);
+                pokemonService.clearAllDetailCaches();
             });
 
             it("Leaves out availability when neither shiny nor shadow exist", () => {
@@ -183,7 +177,7 @@ component extends="tests.resources.baseTest" asyncAll="false" {
 
                 var info = freshDetailInfo(ses);
                 expect(info.metaDescription).notToInclude("available.");
-                pokemonService.clearDetailCache(ses = ses);
+                pokemonService.clearAllDetailCaches();
             });
         });
     }

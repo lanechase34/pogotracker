@@ -38,8 +38,9 @@
                     <cfloop index="i" item="currRegion" array="#args.pokedexstats#">
                         <tr>
                             <td>#currRegion[3]#</td>
-                            <td>#numberFormat(currRegion[4] / currRegion[1], ",.00") * 100#% (#currRegion[4]# / #currRegion[1]#)</td>
-                            <td>#numberFormat(currRegion[5] / currRegion[2], ",.00") * 100#% (#currRegion[5]# / #currRegion[2]#)</td>
+                            <!--- A region with no live (or no shiny) pokemon yet shows 0% --->
+                            <td>#currRegion[1] ? numberFormat(currRegion[4] / currRegion[1], ",.00") * 100 : 0#% (#currRegion[4]# / #currRegion[1]#)</td>
+                            <td>#currRegion[2] ? numberFormat(currRegion[5] / currRegion[2], ",.00") * 100 : 0#% (#currRegion[5]# / #currRegion[2]#)</td>
                         </tr>
                     </cfloop>
                 </tbody>

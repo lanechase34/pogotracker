@@ -8,16 +8,18 @@ component singleton {
      * Count a hit against every rule of a rateLimits entry
      * Every rule is counted, even after one is over, so each window keeps an accurate total
      *
-     * @name    rateLimits entry - a handler.action, or a non event key like persist.login
-     * @ip      the user's ip
-     * @context values for rules scoped by fields other than ip (the rc)
+     * @name           rateLimits entry - a handler.action, or a non event key like persist.login
+     * @ip             the user's ip
+     * @context        values for rules scoped by fields other than ip (the rc)
+     * @afterRecaptcha true counts only the rules marked afterRecaptcha, false only the others
      *
      * @return false when any rule is over its limit
      */
     public boolean function allow(
         required string name,
         required string ip,
-        struct context = {}
+        struct context         = {},
+        boolean afterRecaptcha = false
     ) {
         if(!useRateLimiter || !rateLimits.keyExists(name)) {
             return true;
@@ -25,6 +27,10 @@ component singleton {
 
         var allowed = true;
         for(var rule in rateLimits[name].rules) {
+            if((rule.afterRecaptcha ?: false) != afterRecaptcha) {
+                continue;
+            }
+
             var key = buildKey(
                 currentEvent = name,
                 by           = listToArray(rule.by),
@@ -75,7 +81,7 @@ component singleton {
             );
 
             if(key.len()) {
-                clear(key = key);
+                clearCounter(key = key);
             }
         }
     }
@@ -120,7 +126,7 @@ component singleton {
      *
      * @key cache key
      */
-    public void function clear(required string key) {
+    public void function clearCounter(required string key) {
         lock name="ratelimit:#key#" type="exclusive" timeout="5" {
             cacheStorage.clear(key);
         }

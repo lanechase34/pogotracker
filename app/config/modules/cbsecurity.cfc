@@ -54,8 +54,9 @@ component {
              *  admin     : 50
              *  developer : 60
              *
-             * Failed checks are handled by interceptors/security.cfc (login redirect / 401 json, unverified -> /verify)
+             * Failed checks are handled by interceptors/security.cfc (login redirect / 401 json)
              * and otherwise fall through to the defaults below.
+             * Unverified trainers are sent to /verify earlier, by interceptors/guestOnly.cfc
              */
             firewall: {
                 autoLoadFirewall           : true,
@@ -65,8 +66,12 @@ component {
                 defaultAuthenticationAction: "redirect",
                 invalidAuthorizationEvent  : "error.unauthorized",
                 defaultAuthorizationAction : "override",
-                logs                       : {enabled: false}, // unauthorized access is already audited by error.unauthorized
-                rules                      : {
+                logs                       : {
+                    enabled   : true,
+                    table     : "cbsecurity_logs",
+                    autoCreate: true
+                },
+                rules: {
                     useRegex: true,
                     useSSL  : false,
                     defaults: {},

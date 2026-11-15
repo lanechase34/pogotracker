@@ -9,17 +9,13 @@ component extends="tests.resources.baseTest" asyncAll="false" {
 
         kanto = generationService.getFromRegion(region = "Kanto");
 
-        mockTrainer    = getInstance("tests.resources.mocktrainer");
-        mocktrainerids = []; // 1 - friend, 2 - trainer
-
         // Set up trainer + friend
-        friend = mockTrainer.make(securityLevel = 10, autoLogin = false);
-        mocktrainerids.append(session.mocktrainerid);
-        trainer = mockTrainer.make(securityLevel = 10, autoLogin = false);
-        mocktrainerids.append(session.mocktrainerid);
+        mockTrainer = getInstance("tests.resources.mockTrainer");
+        friend      = mockTrainer.make(securityLevel = 10, autoLogin = false);
+        trainer     = mockTrainer.make(securityLevel = 10, autoLogin = false);
 
         // Kanto costume pokemon (Party Hat Bulbasaur) - excluded from region trade plans
-        partyHatBulbasaur = pokemonService.get({
+        partyHatBulbasaur = pokemonService.findPokemon({
             number     : 1,
             name       : "Bulbasaur",
             gender     : "",
@@ -28,7 +24,7 @@ component extends="tests.resources.baseTest" asyncAll="false" {
         })[1];
 
         // Kanto normal pokemon not used in prior tests - used to confirm non-costume pokemon still appear
-        squirtle = pokemonService.get({
+        squirtle = pokemonService.findPokemon({
             number : 7,
             name   : "Squirtle",
             gender : "",
@@ -36,7 +32,7 @@ component extends="tests.resources.baseTest" asyncAll="false" {
         })[1];
 
         // Non-tradable mythical - verifies the tradable=true WHERE filter
-        mew = pokemonService.get({
+        mew = pokemonService.findPokemon({
             number : 151,
             name   : "Mew",
             gender : "",
@@ -46,9 +42,8 @@ component extends="tests.resources.baseTest" asyncAll="false" {
 
     function afterAll() {
         super.afterAll();
-        mocktrainerids.each((id) => {
-            mockTrainer.delete(id);
-        });
+        mockTrainer.deleteTrainer(friend.id);
+        mockTrainer.deleteTrainer(trainer.id);
     }
 
     function run() {
@@ -60,20 +55,20 @@ component extends="tests.resources.baseTest" asyncAll="false" {
 
             describe("Creating trade plan", () => {
                 it("Is empty to start", () => {
-                    trainerOnly = tradeService.findExclusive(
-                        leftTrainer  = trainer,
-                        rightTrainer = friend,
-                        shiny        = false,
-                        generation   = kanto
+                    var trainerOnly = tradeService.findExclusive(
+                        leftTrainerid  = trainer.id,
+                        rightTrainerid = friend.id,
+                        shiny          = false,
+                        generation     = kanto
                     );
                     expect(trainerOnly).toBeArray();
                     expect(trainerOnly.len()).toBe(0);
 
-                    friendOnly = tradeService.findExclusive(
-                        leftTrainer  = friend,
-                        rightTrainer = trainer,
-                        shiny        = false,
-                        generation   = kanto
+                    var friendOnly = tradeService.findExclusive(
+                        leftTrainerid  = friend.id,
+                        rightTrainerid = trainer.id,
+                        shiny          = false,
+                        generation     = kanto
                     );
                     expect(friendOnly).toBeArray();
                     expect(friendOnly.len()).toBe(0);
@@ -84,22 +79,22 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                     registerHelper(trainer, 1, "Bulbasaur", false);
 
                     // traineronly should now be 1 with Bulbasaur
-                    trainerOnly = tradeService.findExclusive(
-                        leftTrainer  = trainer,
-                        rightTrainer = friend,
-                        shiny        = false,
-                        generation   = kanto
+                    var trainerOnly = tradeService.findExclusive(
+                        leftTrainerid  = trainer.id,
+                        rightTrainerid = friend.id,
+                        shiny          = false,
+                        generation     = kanto
                     );
                     expect(trainerOnly).toBeArray();
                     expect(trainerOnly.len()).toBe(1);
-                    expect(trainerOnly[1].getName()).toBe("Bulbasaur");
+                    expect(trainerOnly[1].name).toBe("Bulbasaur");
 
                     // friendOnly should still be empty
-                    friendOnly = tradeService.findExclusive(
-                        leftTrainer  = friend,
-                        rightTrainer = trainer,
-                        shiny        = false,
-                        generation   = kanto
+                    var friendOnly = tradeService.findExclusive(
+                        leftTrainerid  = friend.id,
+                        rightTrainerid = trainer.id,
+                        shiny          = false,
+                        generation     = kanto
                     );
                     expect(friendOnly).toBeArray();
                     expect(friendOnly.len()).toBe(0);
@@ -111,25 +106,25 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                     registerHelper(friend, 4, "Charmander", false);
 
                     // trainerOnly should now be empty
-                    trainerOnly = tradeService.findExclusive(
-                        leftTrainer  = trainer,
-                        rightTrainer = friend,
-                        shiny        = false,
-                        generation   = kanto
+                    var trainerOnly = tradeService.findExclusive(
+                        leftTrainerid  = trainer.id,
+                        rightTrainerid = friend.id,
+                        shiny          = false,
+                        generation     = kanto
                     );
                     expect(trainerOnly).toBeArray();
                     expect(trainerOnly.len()).toBe(0);
 
                     // friendOnly should now be 1 with Charmander
-                    friendOnly = tradeService.findExclusive(
-                        leftTrainer  = friend,
-                        rightTrainer = trainer,
-                        shiny        = false,
-                        generation   = kanto
+                    var friendOnly = tradeService.findExclusive(
+                        leftTrainerid  = friend.id,
+                        rightTrainerid = trainer.id,
+                        shiny          = false,
+                        generation     = kanto
                     );
                     expect(friendOnly).toBeArray();
                     expect(friendOnly.len()).toBe(1);
-                    expect(friendOnly[1].getName()).toBe("Charmander");
+                    expect(friendOnly[1].name).toBe("Charmander");
                 });
 
                 it("Can generate shiny trade plan for both trainer and friend", () => {
@@ -138,26 +133,26 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                     registerHelper(friend, 4, "Charmander", true);
 
                     // trainerOnly should now be 1 with Shiny Bulbasaur
-                    trainerOnly = tradeService.findExclusive(
-                        leftTrainer  = trainer,
-                        rightTrainer = friend,
-                        shiny        = true,
-                        generation   = kanto
+                    var trainerOnly = tradeService.findExclusive(
+                        leftTrainerid  = trainer.id,
+                        rightTrainerid = friend.id,
+                        shiny          = true,
+                        generation     = kanto
                     );
                     expect(trainerOnly).toBeArray();
                     expect(trainerOnly.len()).toBe(1);
-                    expect(trainerOnly[1].getName()).toBe("Bulbasaur");
+                    expect(trainerOnly[1].name).toBe("Bulbasaur");
 
                     // friendOnly should now be 1 with Shiny Charmander
-                    friendOnly = tradeService.findExclusive(
-                        leftTrainer  = friend,
-                        rightTrainer = trainer,
-                        shiny        = true,
-                        generation   = kanto
+                    var friendOnly = tradeService.findExclusive(
+                        leftTrainerid  = friend.id,
+                        rightTrainerid = trainer.id,
+                        shiny          = true,
+                        generation     = kanto
                     );
                     expect(friendOnly).toBeArray();
                     expect(friendOnly.len()).toBe(1);
-                    expect(friendOnly[1].getName()).toBe("Charmander");
+                    expect(friendOnly[1].name).toBe("Charmander");
                 });
 
                 it("Can only generate trade plans without costumes when region is selected", () => {
@@ -172,18 +167,18 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                     );
                     registerHelper(trainer, 7, "Squirtle", false);
 
-                    trainerOnly = tradeService.findExclusive(
-                        leftTrainer  = trainer,
-                        rightTrainer = friend,
-                        shiny        = false,
-                        generation   = kanto
+                    var trainerOnly = tradeService.findExclusive(
+                        leftTrainerid  = trainer.id,
+                        rightTrainerid = friend.id,
+                        shiny          = false,
+                        generation     = kanto
                     );
 
                     // Normal Squirtle (#7) is exclusive to trainer and must appear
-                    expect(trainerOnly.filter((p) => p.getName() == "Squirtle").len()).toBe(1);
+                    expect(trainerOnly.filter((p) => p.name == "Squirtle").len()).toBe(1);
 
                     // No costume pokemon should be present regardless of number or tradability
-                    expect(trainerOnly.filter((p) => p.getCostume()).len()).toBe(0);
+                    expect(trainerOnly.filter((p) => p.costume).len()).toBe(0);
                 });
 
                 it("Can generate trade plans with costumes if the custom selected has costumes", () => {
@@ -200,52 +195,49 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                     registerHelper(trainer, 7, "Squirtle", false);
 
                     var customid = customService.create(
-                        trainer = trainer,
-                        name    = "Trade Test Custom #left(createUUID(), 20)#",
-                        public  = false
+                        trainerid = trainer.id,
+                        name      = "Trade Test Custom #left(createUUID(), 20)#",
+                        isPublic  = false
                     );
                     var custom = customService.getFromId(customid);
-                    customService.createCustomPokedex(
-                        custom  = custom,
-                        pokemon = [squirtle.getId(), partyHatBulbasaur.getId()]
-                    );
+                    customService.createCustomPokedex(custom = custom, pokemon = [squirtle.id, partyHatBulbasaur.id]);
 
                     // Friend has neither, so both are exclusive to trainer
-                    trainerOnly = tradeService.findExclusive(
-                        leftTrainer  = trainer,
-                        rightTrainer = friend,
-                        shiny        = false,
-                        custom       = custom
+                    var trainerOnly = tradeService.findExclusive(
+                        leftTrainerid  = trainer.id,
+                        rightTrainerid = friend.id,
+                        shiny          = false,
+                        custom         = custom
                     );
 
                     // Both entries must appear - costume pokemon are not suppressed in custom mode
                     expect(trainerOnly.len()).toBe(2);
-                    expect(trainerOnly.filter((p) => p.getName() == "Squirtle").len()).toBe(1);
-                    expect(trainerOnly.filter((p) => p.getCostume() && p.getCostumetype() == "Party Hat").len()).toBe(1);
+                    expect(trainerOnly.filter((p) => p.name == "Squirtle").len()).toBe(1);
+                    expect(trainerOnly.filter((p) => p.costume && p.costumetype == "Party Hat").len()).toBe(1);
 
-                    customService.delete(custom);
+                    customService.deleteCustom(custom);
                 });
 
                 it("Non-tradable pokemon are excluded from all trade plans", () => {
-                    expect(mew.getTradable()).toBeFalse();
+                    expect(mew.tradable).toBeFalse();
 
                     // Trainer registers non-tradable Mew; Squirtle is re-registered to ensure a tradable
                     // exclusive exists so the query is verifiably working
                     registerHelper(trainer, 151, "Mew", false);
                     registerHelper(trainer, 7, "Squirtle", false);
 
-                    trainerOnly = tradeService.findExclusive(
-                        leftTrainer  = trainer,
-                        rightTrainer = friend,
-                        shiny        = false,
-                        generation   = kanto
+                    var trainerOnly = tradeService.findExclusive(
+                        leftTrainerid  = trainer.id,
+                        rightTrainerid = friend.id,
+                        shiny          = false,
+                        generation     = kanto
                     );
 
                     // Mew must be absent - tradable=false filters it unconditionally
-                    expect(trainerOnly.filter((p) => p.getName() == "Mew").len()).toBe(0);
+                    expect(trainerOnly.filter((p) => p.name == "Mew").len()).toBe(0);
 
                     // Squirtle must appear - confirms the query is returning results, not silently empty
-                    expect(trainerOnly.filter((p) => p.getName() == "Squirtle").len()).toBe(1);
+                    expect(trainerOnly.filter((p) => p.name == "Squirtle").len()).toBe(1);
                 });
 
                 it("Custom trade plan excludes pokemon that both trainers have", () => {
@@ -262,77 +254,74 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                     registerHelper(friend, 7, "Squirtle", false);
 
                     var customid = customService.create(
-                        trainer = trainer,
-                        name    = "Mutual Test Custom #left(createUUID(), 20)#",
-                        public  = false
+                        trainerid = trainer.id,
+                        name      = "Mutual Test Custom #left(createUUID(), 20)#",
+                        isPublic  = false
                     );
                     var custom = customService.getFromId(customid);
-                    customService.createCustomPokedex(
-                        custom  = custom,
-                        pokemon = [squirtle.getId(), partyHatBulbasaur.getId()]
-                    );
+                    customService.createCustomPokedex(custom = custom, pokemon = [squirtle.id, partyHatBulbasaur.id]);
 
-                    trainerOnly = tradeService.findExclusive(
-                        leftTrainer  = trainer,
-                        rightTrainer = friend,
-                        shiny        = false,
-                        custom       = custom
+                    var trainerOnly = tradeService.findExclusive(
+                        leftTrainerid  = trainer.id,
+                        rightTrainerid = friend.id,
+                        shiny          = false,
+                        custom         = custom
                     );
 
                     // Squirtle is mutual - must not appear as exclusive
-                    expect(trainerOnly.filter((p) => p.getName() == "Squirtle").len()).toBe(0);
+                    expect(trainerOnly.filter((p) => p.name == "Squirtle").len()).toBe(0);
 
                     // Party Hat Bulbasaur is only held by trainer - must appear
                     expect(trainerOnly.len()).toBe(1);
-                    expect(trainerOnly[1].getCostume()).toBeTrue();
-                    expect(trainerOnly[1].getCostumetype()).toBe("Party Hat");
+                    expect(trainerOnly[1].costume).toBeTrue();
+                    expect(trainerOnly[1].costumetype).toBe("Party Hat");
 
-                    customService.delete(custom);
+                    customService.deleteCustom(custom);
                 });
 
                 it("Can generate a shiny trade plan using a custom pokedex", () => {
                     // Squirtle must be shiny-eligible for the pokemon.shiny=true WHERE clause to pass it through
-                    expect(squirtle.getShiny()).toBeTrue();
+                    expect(squirtle.shiny).toBeTrue();
 
                     // Trainer gets shiny Squirtle; friend gets caught-only Squirtle (no shiny)
                     registerHelper(trainer, 7, "Squirtle", true);
                     registerHelper(friend, 7, "Squirtle", false);
 
                     var customid = customService.create(
-                        trainer = trainer,
-                        name    = "Shiny Custom Test #left(createUUID(), 20)#",
-                        public  = false
+                        trainerid = trainer.id,
+                        name      = "Shiny Custom Test #left(createUUID(), 20)#",
+                        isPublic  = false
                     );
                     var custom = customService.getFromId(customid);
-                    customService.createCustomPokedex(custom = custom, pokemon = [squirtle.getId()]);
+                    customService.createCustomPokedex(custom = custom, pokemon = [squirtle.id]);
 
                     // Trainer has shiny Squirtle; friend's Squirtle is not shiny → exclusive to trainer
-                    trainerOnly = tradeService.findExclusive(
-                        leftTrainer  = trainer,
-                        rightTrainer = friend,
-                        shiny        = true,
-                        custom       = custom
+                    var trainerOnly = tradeService.findExclusive(
+                        leftTrainerid  = trainer.id,
+                        rightTrainerid = friend.id,
+                        shiny          = true,
+                        custom         = custom
                     );
                     expect(trainerOnly.len()).toBe(1);
-                    expect(trainerOnly[1].getName()).toBe("Squirtle");
+                    expect(trainerOnly[1].name).toBe("Squirtle");
 
                     // Friend has no shiny Squirtle → nothing exclusive from friend's side
-                    friendOnly = tradeService.findExclusive(
-                        leftTrainer  = friend,
-                        rightTrainer = trainer,
-                        shiny        = true,
-                        custom       = custom
+                    var friendOnly = tradeService.findExclusive(
+                        leftTrainerid  = friend.id,
+                        rightTrainerid = trainer.id,
+                        shiny          = true,
+                        custom         = custom
                     );
                     expect(friendOnly.len()).toBe(0);
 
-                    customService.delete(custom);
+                    customService.deleteCustom(custom);
                 });
             });
         });
     }
 
     public void function registerHelper(
-        required component trainer,
+        required struct trainer,
         required numeric number,
         required string name,
         boolean shiny      = false,
@@ -348,21 +337,21 @@ component extends="tests.resources.baseTest" asyncAll="false" {
         if(arguments.costume && arguments.costumetype.len()) {
             lookupParams.insert("costumetype", arguments.costumetype);
         }
-        var pokemon = pokemonService.get(lookupParams);
+        var pokemon = pokemonService.findPokemon(lookupParams);
 
         expect(pokemon).toBeArray();
         expect(pokemon.len()).toBe(1);
         pokemon = pokemon[1];
 
         pokedexService.register(
-            trainer     = arguments.trainer,
+            trainerid   = arguments.trainer.id,
             pokemon     = pokemon,
             caught      = !arguments.shiny,
             shiny       = arguments.shiny,
             hundo       = false,
             shadow      = false,
             shadowshiny = false
-        )
+        );
     }
 
 }

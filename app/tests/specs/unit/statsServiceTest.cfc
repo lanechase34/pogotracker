@@ -2,8 +2,8 @@ component extends="tests.resources.baseTest" asyncAll="false" {
 
     function beforeAll() {
         super.beforeAll();
-        mockTrainer = getInstance("tests.resources.mocktrainer");
-        trainer     = mockTrainer.make();
+        mockTrainer = getInstance("tests.resources.mockTrainer");
+        trainer     = mockTrainer.makeSignedIn(); // tracks stats through the handler
 
         currDate  = dateFormat(now(), "short");
         dayOfWeek = dayOfWeek(currDate);
@@ -14,7 +14,7 @@ component extends="tests.resources.baseTest" asyncAll="false" {
 
     function afterAll() {
         super.afterAll();
-        mockTrainer.delete();
+        mockTrainer.deleteTrainer();
     }
 
     function run() {
@@ -25,12 +25,12 @@ component extends="tests.resources.baseTest" asyncAll="false" {
             });
 
             it("Has no stats tracked for today", () => {
-                expect(statsService.getFromDay(trainer = trainer, suppliedDate = now())).toBeNull();
+                expect(statsService.getFromDay(trainerid = trainer.id, suppliedDate = now())).toBeNull();
             });
 
             it("Has no stats returned for range", () => {
-                getStats = statsService.get(
-                    trainer   = trainer,
+                var getStats = statsService.getStats(
+                    trainerid = trainer.id,
                     startDate = startDate,
                     endDate   = endDate
                 );
@@ -44,10 +44,10 @@ component extends="tests.resources.baseTest" asyncAll="false" {
             });
 
             it("Can track stats for today", () => {
-                event = post(
+                var event = post(
                     route  = "/stats/track",
                     params = {
-                        trainerid: trainer.getId(),
+                        trainerid: trainer.id,
                         xp       : 1,
                         caught   : 2,
                         spun     : 3,
@@ -61,19 +61,19 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                 expect(response.success).toBeTrue();
 
                 // Check stats were tracked
-                currStats = statsService.getFromDay(trainer = trainer, suppliedDate = now());
-                expect(currStats).toBeComponent();
-                expect(currStats.getXP()).toBe(1);
-                expect(currStats.getCaught()).toBe(2);
-                expect(currStats.getSpun()).toBe(3);
-                expect(currStats.getWalked()).toBe(4);
+                var currStats = statsService.getFromDay(trainerid = trainer.id, suppliedDate = now());
+                expect(currStats).toBeStruct();
+                expect(currStats.xp).toBe(1);
+                expect(currStats.caught).toBe(2);
+                expect(currStats.spun).toBe(3);
+                expect(currStats.walked).toBe(4);
             });
 
             it("Can get stats for the current week", () => {
                 // Create data for the current week
-                count = dateDiff("d", startDate, endDate);
-                for(var i = 0; i <= count; i++) {
-                    currDate = dateTimeFormat(dateAdd("d", i, startDate));
+                var dayCount = dateDiff("d", startDate, endDate);
+                for(var i = 0; i <= dayCount; i++) {
+                    var currDate = dateTimeFormat(dateAdd("d", i, startDate));
                     if(
                         dateDiff(
                             "d",
@@ -83,24 +83,22 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                     )
                         continue; // skip current day
 
-                    currStat = entityNew(
+                    testData.insertRow(
                         "stat",
                         {
-                            "created": currDate,
-                            "trainer": trainer,
-                            "xp"     : i + 1,
-                            "caught" : i + 2,
-                            "spun"   : i + 3,
-                            "walked" : i + 4
+                            created  : currDate,
+                            trainerid: trainer.id,
+                            xp       : i + 1,
+                            caught   : i + 2,
+                            spun     : i + 3,
+                            walked   : i + 4
                         }
                     );
-                    entitySave(currStat);
                 }
-                ormFlush();
 
                 // Load data for the curr week
-                getStats = statsService.get(
-                    trainer   = trainer,
+                var getStats = statsService.getStats(
+                    trainerid = trainer.id,
                     startDate = startDate,
                     endDate   = endDate
                 );
@@ -115,25 +113,39 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                 expect(getStats).toHaveKey("summary");
 
                 // Check the cache for key
-                cacheKey = "#trainer.getId()#|stats.getStats|startDate=#dateFormat(startDate, "short")#|endDate=#dateFormat(endDate, "short")#";
+                var cacheKey = "#trainer.id#|stats.getStats|startDate=#dateFormat(startDate, "short")#|endDate=#dateFormat(endDate, "short")#";
                 expect(getInstance("cachebox:trainerCache").get(cacheKey)).notToBeNull();
             });
 
             it("Can get the leaderboard", () => {
-                var stats = ["xp", "caught", "spun", "walked"];
-                stats.each((stat) => {
-                    leaderboard = statsService.getLeaderboard(date = now(), stat = stat);
+                for(var stat in ["xp", "caught", "spun", "walked"]) {
+                    var leaderboard = statsService.getLeaderboard(date = now(), stat = stat);
                     expect(leaderboard).toBeArray();
                     expect(leaderboard.len()).toBeGTE(1);
-                    found = false;
-                    leaderboard.each((row) => {
-                        if(row.username == trainer.getUsername()) {
-                            found = true;
-                            break;
-                        }
-                    });
-                    expect(found).toBeTrue();
-                });
+                    expect(leaderboard.some((row) => row.username == trainer.username)).toBeTrue();
+                }
+            });
+
+            it("Rejects a duplicate stat on the same day", () => {
+                // Today's stat was already tracked by "Can track stats for today"
+                expect(
+                    statsService.track(
+                        trainerid = trainer.id,
+                        xp        = 200,
+                        caught    = 2,
+                        spun      = 2,
+                        walked    = 2
+                    )
+                ).toBeFalse();
+
+                var today = statsService.getFromDay(trainerid = trainer.id, suppliedDate = now());
+                expect(today.xp).toBe(1);
+                expect(
+                    queryExecute(
+                        "SELECT COUNT(*) AS total FROM stat WHERE trainerid = :trainerid AND CAST(created AS date) = CURRENT_DATE",
+                        {trainerid: {value: trainer.id, cfsqltype: "integer"}}
+                    ).total
+                ).toBe(1);
             });
         });
     }

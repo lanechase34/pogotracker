@@ -14,7 +14,6 @@ component extends="base" {
 
     property name="async"          inject="asyncManager@coldbox";
     property name="pokedexService" inject="services.pokedex";
-    property name="friendService"  inject="services.friend";
     property name="medalService"   inject="services.medal";
     property name="statsService"   inject="services.stats";
     property name="trainerService" inject="services.trainer";
@@ -36,14 +35,15 @@ component extends="base" {
      * @rc.summary   (optional) t/f quick summary view 
      */
     function overview(event, rc, prc) secured="user" {
-        var currDate  = dateFormat(now(), "short");
-        var dayOfWeek = dayOfWeek(currDate);
+        var currDate = dateFormat(now(), "short");
+        var weekday  = dayOfWeek(currDate);
 
         rc.trainerid = rc?.trainerid ?: prc.oCurrentUser.getId();
-        rc.startDate = rc?.startDate ?: dateAdd("d", -(dayOfWeek - 1), currDate);
-        rc.endDate   = rc?.endDate ?: dateAdd("d", (7 - dayOfWeek), currDate);
+        rc.startDate = rc?.startDate ?: dateAdd("d", -(weekday - 1), currDate);
+        rc.endDate   = rc?.endDate ?: dateAdd("d", (7 - weekday), currDate);
         rc.summary   = rc?.summary ?: false;
 
+        // Your own stats, or a friend's
         if(hasValidationErrors(target = rc, constraints = "stats.overview")) {
             htmlValidationFailure(event = event, redirectEvent = "home");
             return;
@@ -51,29 +51,15 @@ component extends="base" {
 
         prc.trainerid = parseNumber(rc.trainerid);
         prc.myProfile = prc.trainerid == prc.oCurrentUser.getId();
-
-        // Validate viewing a friend's stat overview
-        if(
-            !prc.myProfile && !friendService.checkFriend(
-                trainerid = prc.oCurrentUser.getId(),
-                friendid  = prc.trainerid,
-                accepted  = true
-            )
-        ) {
-            htmlValidationFailure(event = event, redirectEvent = "home");
-            return;
-        }
-
         prc.startDate = parseDateTime(rc.startDate);
         prc.endDate   = parseDateTime(rc.endDate);
-        prc.trainer   = trainerService.getFromId(trainerid = prc.trainerid);
-        prc.stats     = statsService.get(
-            trainer   = prc.trainer,
+        prc.stats     = statsService.getStats(
+            trainerid = prc.trainerid,
             startDate = prc.startDate,
             endDate   = prc.endDate
         );
 
-        prc.trainerStatStruct = prc.trainer.getCurrentLevel();
+        prc.trainerStatStruct = trainerService.getCurrentLevel(trainerid = prc.trainerid);
 
         if(rc.summary) {
             event.setView(view = "/views/stats/summary", nolayout = true);
@@ -86,20 +72,15 @@ component extends="base" {
      * @rc.stat (optional) stat type, defaults to XP
      */
     function leaderboard(event, rc, prc) {
-        rc.epochdate = now().getTime();
-        rc.stat      = rc?.stat ?: "XP";
+        rc.stat = rc?.stat ?: "XP";
 
         if(hasValidationErrors(target = rc, constraints = "stats.leaderboard")) {
             htmlValidationFailure(event = event);
             return;
         }
 
-        prc.leaderboard = [];
-        prc.date        = dateAdd(
-            "s",
-            rc.epochdate / 1000,
-            dateConvert("utc2Local", "January 1 1970 00:00")
-        );
+        // The current month's leaderboard
+        prc.date        = now();
         prc.leaderboard = statsService.getLeaderboard(date = prc.date, stat = rc.stat);
 
         event.setView(
@@ -117,14 +98,14 @@ component extends="base" {
      * Track daily stats form
      */
     function trackForm(event, rc, prc) secured="user" {
-        prc.trainer    = prc.oCurrentUser;
-        prc.latestStat = prc.trainer.getLatestStat();
+        prc.trainerid  = prc.oCurrentUser.getId();
+        prc.latestStat = statsService.getLatestStat(trainerid = prc.trainerid);
         event.setView(
             view     = "/views/stats/modal/track",
             nolayout = true,
             args     = {
                 currDate  : now(),
-                trainer   : prc.trainer,
+                trainerid : prc.trainerid,
                 latestStat: isNull(prc.latestStat) ? "" : prc.latestStat
             }
         );
@@ -141,33 +122,29 @@ component extends="base" {
      */
     function track(event, rc, prc) secured="user" {
         rc.trainerid = rc?.trainerid ?: prc.oCurrentUser.getId();
+
         if(hasValidationErrors(target = rc, constraints = "stats.track")) {
             jsonValidationFailure(event = event, message = "Unable To Track Stats");
             return;
         }
 
         prc.trainerid = parseNumber(rc.trainerid);
-        prc.trainer   = trainerService.getFromId(prc.trainerid);
+        prc.xp        = parseNumber(rc.xp);
+        prc.caught    = parseNumber(rc.caught);
+        prc.spun      = parseNumber(rc.spun);
+        prc.walked    = parseNumber(rc.walked);
 
-        // Make sure user hasn't already tracked stats on this day
-        if(!isNull(statsService.getFromDay(trainer = prc.trainer, suppliedDate = now()))) {
+        var tracked = statsService.track(
+            trainerid = prc.trainerid,
+            xp        = prc.xp,
+            caught    = prc.caught,
+            spun      = prc.spun,
+            walked    = prc.walked
+        );
+        if(!tracked) {
             jsonValidationFailure(event = event, message = "Unable To Track Stats");
             return;
         }
-
-        prc.xp     = parseNumber(rc.xp);
-        prc.caught = parseNumber(rc.caught);
-        prc.spun   = parseNumber(rc.spun);
-        prc.walked = parseNumber(rc.walked);
-
-        statsService.track(
-            trainer = prc.trainer,
-            xp      = prc.xp,
-            caught  = prc.caught,
-            spun    = prc.spun,
-            walked  = prc.walked
-        );
-
 
         jsonOk(event = event);
     }
@@ -181,27 +158,20 @@ component extends="base" {
     function getPokedexStats(event, rc, prc) secured="user" {
         rc.trainerid = rc?.trainerid ?: prc.oCurrentUser.getId();
 
-        // Validate viewing a friend's pokedex stats
-        prc.trainerid = parseNumber(rc.trainerid);
-        prc.myProfile = prc.trainerid == prc.oCurrentUser.getId();
-        if(
-            !prc.myProfile && !friendService.checkFriend(
-                trainerid = prc.oCurrentUser.getId(),
-                friendid  = prc.trainerid,
-                accepted  = true
-            )
-        ) {
+        // Your own pokedex stats, or a friend's
+        if(hasValidationErrors(target = rc, constraints = "stats.friendStats")) {
             htmlValidationFailure(event = event);
             return;
         }
 
-        prc.trainer = trainerService.getFromId(trainerid = prc.trainerid);
+        prc.trainerid = parseNumber(rc.trainerid);
+        prc.myProfile = prc.trainerid == prc.oCurrentUser.getId();
 
         var results = async
             .all(
-                () => statsService.getPokedexStats(trainer = prc.trainer),
-                () => pokedexService.getMissingString(trainer = prc.trainer, shiny = false),
-                () => pokedexService.getMissingString(trainer = prc.trainer, shiny = true)
+                () => statsService.getPokedexStats(trainerid = prc.trainerid),
+                () => pokedexService.getMissingString(trainerid = prc.trainerid, shiny = false),
+                () => pokedexService.getMissingString(trainerid = prc.trainerid, shiny = true)
             )
             .get();
 
@@ -229,21 +199,14 @@ component extends="base" {
     function getMedalSummary(event, rc, prc) secured="user" {
         rc.trainerid = rc?.trainerid ?: prc.oCurrentUser.getId();
 
-        // Validate viewing a friend's pokedex stats
-        prc.trainerid = parseNumber(rc.trainerid);
-        if(
-            prc.trainerid != prc.oCurrentUser.getId() && !friendService.checkFriend(
-                trainerid = prc.oCurrentUser.getId(),
-                friendid  = prc.trainerid,
-                accepted  = true
-            )
-        ) {
+        // Your own medals, or a friend's
+        if(hasValidationErrors(target = rc, constraints = "stats.friendStats")) {
             htmlValidationFailure(event = event);
             return;
         }
 
-        prc.trainer       = trainerService.getFromId(trainerid = prc.trainerid);
-        prc.medalProgress = medalService.getProgress(trainer = prc.trainer);
+        prc.trainerid     = parseNumber(rc.trainerid);
+        prc.medalProgress = medalService.getProgress(trainerid = prc.trainerid);
 
         event.setView(
             view     = "/views/stats/medalsummary",
@@ -261,26 +224,20 @@ component extends="base" {
     function getMedalProgress(event, rc, prc) secured="user" {
         rc.trainerid = rc?.trainerid ?: prc.oCurrentUser.getId();
 
-        // Validate viewing a friend's pokedex stats
-        prc.trainerid = parseNumber(rc.trainerid);
-        if(
-            prc.trainerid != prc.oCurrentUser.getId() && !friendService.checkFriend(
-                prc.oCurrentUser.getId(),
-                prc.trainerid,
-                true
-            )
-        ) {
+        // Your own medals, or a friend's
+        if(hasValidationErrors(target = rc, constraints = "stats.friendStats")) {
             htmlValidationFailure(event = event);
             return;
         }
 
-        prc.trainer       = trainerService.getFromId(trainerid = prc.trainerid);
-        prc.medalProgress = medalService.getProgress(trainer = prc.trainer);
+        prc.trainerid     = parseNumber(rc.trainerid);
+        prc.medalProgress = medalService.getProgress(trainerid = prc.trainerid);
 
         event.setView(
             view     = "/views/stats/medalprogress",
             nolayout = true,
-            args     = {medalProgress: prc.medalProgress}
+            // A friend's medals are shown, not edited
+            args     = {medalProgress: prc.medalProgress, editable: prc.trainerid == prc.oCurrentUser.getId()}
         );
     }
 
@@ -297,13 +254,12 @@ component extends="base" {
             return;
         }
 
-        prc.trainer = prc.oCurrentUser;
-        prc.medal   = medalService.getFromId(id = rc.medal);
+        prc.medal = medalService.getFromId(id = parseNumber(rc.medal));
 
         medalService.trackProgress(
-            trainer = prc.trainer,
-            medal   = prc.medal,
-            current = rc.current
+            trainerid = prc.oCurrentUser.getId(),
+            medal     = prc.medal,
+            current   = parseNumber(rc.current)
         );
 
         jsonOk(event = event);
@@ -318,21 +274,14 @@ component extends="base" {
     function topDeltas(event, rc, prc) secured="user" {
         rc.trainerid = rc?.trainerid ?: prc.oCurrentUser.getId();
 
-        // Validate viewing a friend's deltas
-        prc.trainerid = parseNumber(rc.trainerid);
-        if(
-            prc.trainerid != prc.oCurrentUser.getId() && !friendService.checkFriend(
-                trainerid = prc.oCurrentUser.getId(),
-                friendid  = prc.trainerid,
-                accepted  = true
-            )
-        ) {
+        // Your own deltas, or a friend's
+        if(hasValidationErrors(target = rc, constraints = "stats.friendStats")) {
             htmlValidationFailure(event = event);
             return;
         }
 
-        prc.trainer   = trainerService.getFromId(trainerid = prc.trainerid);
-        prc.topDeltas = statsService.getTopDeltas(trainer = prc.trainer);
+        prc.trainerid = parseNumber(rc.trainerid);
+        prc.topDeltas = statsService.getTopDeltas(trainerid = prc.trainerid);
 
         event.setView(
             view     = "/views/stats/topdeltas",

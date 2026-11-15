@@ -1,10 +1,12 @@
-component extends="tests.resources.baseTest" asyncAll="true" {
+component extends="tests.resources.baseTest" asyncAll="false" {
 
     function beforeAll() {
         super.beforeAll();
+        inlineBackgroundLogs();
     }
 
     function afterAll() {
+        restoreBackgroundLogs();
         super.afterAll();
     }
 
@@ -19,24 +21,12 @@ component extends="tests.resources.baseTest" asyncAll="true" {
                 expect(dateDiff("s", now(), sysdate)).toBeBetween(0, 5);
             });
 
-            describe("Request Events", () => {
-                it("Fires on start", () => {
-                    var event = execute("main.onRequestStart");
-                });
-
-                it("Fires on end", () => {
-                    var event = execute("main.onRequestEnd");
-                });
-            });
-
-            describe("Test addition", () => {
-                it("Can add two numbers", () => {
-                    expect(sum(1, 2)).toBe(3);
-                });
-
-                it("Can add two negative numbers", () => {
-                    expect(sum(-1, -2)).toBe(-3);
-                });
+            it("Request start handler sets the request variables", () => {
+                var event = execute("main.onRequestStart");
+                expect(event.getPrivateValue("currEvent")).toBe("main.onrequeststart");
+                expect(event.getPrivateValue("canonicalURL")).toBe("#getController().getSetting("domain")#/");
+                expect(event.getPrivateValue("title")).toBe("");
+                expect(event.getPrivateValue("metaDescription")).toBe("");
             });
 
             it("Can handle exceptions", () => {
@@ -71,7 +61,7 @@ component extends="tests.resources.baseTest" asyncAll="true" {
                 // Verify bug is successfully logged
                 var bugCountBefore = globalFunctions.countBugLog();
 
-                var event1 = execute(event = "error.onException"); // logs bug and emails bug
+                execute(event = "error.onException"); // logs bug and emails bug
                 var event2 = execute(event = "error.displayException", renderResults = true); // generic error display only
                 expect(event2.getRenderedContent()).toInclude("Something Went Wrong");
 
@@ -79,10 +69,6 @@ component extends="tests.resources.baseTest" asyncAll="true" {
                 expect(bugCountAfter - bugCountBefore).toBe(1);
             });
         });
-    }
-
-    private function sum(a, b) {
-        return a + b;
     }
 
 }

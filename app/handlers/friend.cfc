@@ -28,13 +28,15 @@ component extends="base" secured="user" {
         }
 
         prc.friendrequestid = parseNumber(rc.friendrequestid);
-        prc.trainer         = prc.oCurrentUser;
         prc.accept          = booleanFormat(rc.accept);
         if(prc.accept) {
-            friendService.acceptFriendRequest(friendrequestid = prc.friendrequestid, trainer = prc.trainer);
+            friendService.acceptFriendRequest(
+                friendrequestid = prc.friendrequestid,
+                trainerid       = prc.oCurrentUser.getId()
+            );
         }
         else {
-            friendService.denyFriendRequest(friendrequestid = prc.friendrequestid);
+            friendService.denyFriendRequest(friendrequestid = prc.friendrequestid, trainerid = prc.oCurrentUser.getId());
         }
         jsonOk(event = event);
     }
@@ -43,8 +45,7 @@ component extends="base" secured="user" {
      * Friends list view
      */
     function getFriendsList(event, rc, prc) {
-        prc.trainer     = prc.oCurrentUser;
-        prc.friendsList = friendService.getFriendsList(trainer = prc.trainer);
+        prc.friendsList = friendService.getFriendsList(trainerid = prc.oCurrentUser.getId());
         event.setView(
             view     = "/views/friend/friendsList",
             nolayout = true,
@@ -76,9 +77,9 @@ component extends="base" secured="user" {
         }
 
         prc.responseObj.data = friendService.getFriendsToAdd(
-            trainer = prc.oCurrentUser,
-            search  = rc?.search ?: "",
-            page    = rc.page
+            trainerid = prc.oCurrentUser.getId(),
+            search    = rc?.search ?: "",
+            page      = rc.page
         );
         jsonOk(event = event, data = prc.responseObj.data);
     }
@@ -89,12 +90,12 @@ component extends="base" secured="user" {
      * View
      */
     function getFriendRequests(event, rc, prc) {
-        prc.trainer = prc.oCurrentUser;
+        prc.trainerid = prc.oCurrentUser.getId();
 
         var results = async
             .all(
-                () => friendService.getFriendRequests(trainer = prc.trainer),
-                () => friendService.getFriendsList(trainer = prc.trainer, accepted = false)
+                () => friendService.getFriendRequests(trainerid = prc.trainerid),
+                () => friendService.getFriendsList(trainerid = prc.trainerid, accepted = false)
             )
             .get();
 
@@ -116,12 +117,8 @@ component extends="base" secured="user" {
      */
     function sendFriendRequest(event, rc, prc) {
         rc.trainerid = rc?.trainerid ?: prc.oCurrentUser.getId();
-        // Validate and check friend doesn't exist already
-        if(
-            hasValidationErrors(target = rc, constraints = "friend.sendFriendRequest")
-            || val(rc.trainerid) == val(rc.friendid)
-            || friendService.checkFriend(trainerid = rc.trainerid, friendid = rc.friendid)
-        ) {
+        // Validate - not yourself, and no friend request between you yet
+        if(hasValidationErrors(target = rc, constraints = "friend.sendFriendRequest")) {
             jsonValidationFailure(event = event, message = "Invalid Friend Request");
             return;
         }
@@ -142,12 +139,11 @@ component extends="base" secured="user" {
             return;
         }
 
-        prc.trainer        = prc.oCurrentUser;
-        prc.friendRequests = friendService.getFriendRequests(prc.trainer);
+        prc.friendRequests = friendService.getFriendRequests(trainerid = prc.oCurrentUser.getId());
 
         prc.ago = "";
         if(prc.friendRequests.len()) {
-            prc.ago = dateDiff("n", prc.friendRequests[1][3], now());
+            prc.ago = dateDiff("n", prc.friendRequests[1].created, now());
             if(prc.ago > 60) {
                 prc.ago = "> 60"
             }
@@ -173,9 +169,9 @@ component extends="base" secured="user" {
         }
 
         prc.responseObj.data = friendService.searchFriendsList(
-            trainer = prc.oCurrentUser,
-            search  = rc?.search ?: "",
-            page    = rc.page
+            trainerid = prc.oCurrentUser.getId(),
+            search    = rc?.search ?: "",
+            page      = rc.page
         );
         jsonOk(event = event, data = prc.responseObj.data);
     }

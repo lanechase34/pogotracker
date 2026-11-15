@@ -275,35 +275,7 @@
 
 /*  Pokedex index  */
 
-/* Banner - mirrors .home-hero from home.css */
-.pokedex-hero {
-    background: linear-gradient(160deg, #212529 0%, #2c3038 100%);
-    border-radius: 0.75rem;
-    padding: 1.4rem 1.75rem;
-    color: #fff;
-    position: relative;
-    overflow: hidden;
-    border: 1px solid rgba(255, 255, 255, 0.06);
-    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.2);
-    margin-bottom: 1.25rem;
-}
-
-/* Pokeball watermark top-right */
-.pokedex-hero::before {
-    content: '';
-    position: absolute;
-    right: -20px;
-    top: -20px;
-    width: 200px;
-    height: 200px;
-    background: url('/includes/images/pokeball.svg') no-repeat center center;
-    background-size: contain;
-    opacity: 0.07;
-    filter: invert(1);
-    pointer-events: none;
-    user-select: none;
-}
-
+/* Banner - shared look with .home-hero in global.css */
 .pokedex-hero-title {
     position: relative;
     font-size: 1.45rem;
@@ -533,6 +505,7 @@
     display: inline-flex;
     flex-wrap: nowrap;
     align-items: center;
+    max-width: 100%;
     min-height: 50px;
     padding: 0.35rem 1rem;
     font-size: 0.85rem;
@@ -544,6 +517,7 @@
 
 .pokemon-breadcrumb .breadcrumb-item {
     display: flex;
+    flex-shrink: 0;
     align-items: center;
     white-space: nowrap;
 }
@@ -602,6 +576,12 @@
     gap: 0.3rem;
     font-weight: 700;
     color: var(--bs-dark);
+    flex-shrink: 1;
+    min-width: 0;
+}
+
+/* Long names truncate with an ellipsis - the text span is the box that clips, the flex item just shrinks */
+.pokemon-breadcrumb .breadcrumb-item.active > span:last-child {
     min-width: 0;
     /* Clip horizontally only - vertical clipping cuts off descenders (g, p, y) at line-height 1 */
     overflow: clip visible;
@@ -609,8 +589,15 @@
 }
 
 .pokemon-breadcrumb-number {
+    flex-shrink: 0;
     color: #6c757d;
     font-weight: 600;
+}
+
+/* Let the breadcrumb nav shrink below its content width so the trail can truncate */
+.pokemon-topbar > nav:first-child {
+    min-width: 0;
+    max-width: 100%;
 }
 
 .pokemon-topbar {

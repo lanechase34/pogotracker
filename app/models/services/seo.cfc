@@ -102,33 +102,33 @@ component singleton accessors="true" {
     /**
      * Blog post - BlogPosting + breadcrumb
      *
-     * @blog    blog orm entity
+     * @blog    blog struct from blogService (header, meta, excerpt, ogimage, created, updated, author)
      * @pageURL canonical url of the page
      */
-    public struct function getBlogPosting(required component blog, required string pageURL) {
-        var created = arguments.blog.getCreated();
-        var meta    = arguments.blog.getMeta();
+    public struct function getBlogPosting(required struct blog, required string pageURL) {
+        var created = arguments.blog.created ?: "";
+        var meta    = arguments.blog.meta ?: "";
 
         var posting = [
             "@type"           : "BlogPosting",
             "@id"             : "#arguments.pageURL###article",
             "mainEntityOfPage": arguments.pageURL,
-            "headline"        : left(arguments.blog.getHeader(), 110),
-            "description"     : !isNull(meta) && meta.len() ? meta : arguments.blog.getExcerpt(160),
-            "image"           : arguments.blog.getOgImage(),
+            "headline"        : left(arguments.blog.header, 110),
+            "description"     : meta.len() ? meta : left(arguments.blog.excerpt ?: "", 160),
+            "image"           : arguments.blog.ogimage ?: "",
             "publisher"       : ["@id": getOrganizationId()],
             "isPartOf"        : ["@id": getWebSiteId()]
         ];
-        if(!isNull(created)) {
-            // Resolve inside the guard - Lucee leaves a var undefined when assigned null
-            var modified             = arguments.blog.getUpdated() ?: created;
+
+        if(isDate(created)) {
+            var modified             = isDate(arguments.blog.updated ?: "") ? arguments.blog.updated : created;
             posting["datePublished"] = toISO8601(created);
             posting["dateModified"]  = toISO8601(modified);
         }
 
-        var trainer = arguments.blog.getTrainer();
-        if(!isNull(trainer)) {
-            posting["author"] = ["@type": "Person", "name": trainer.getUsername()];
+        var author = arguments.blog.author ?: {};
+        if(!author.isEmpty()) {
+            posting["author"] = ["@type": "Person", "name": author.username];
         }
         else {
             posting["author"] = ["@id": getOrganizationId()];
@@ -142,7 +142,7 @@ component singleton accessors="true" {
                     id    = "#arguments.pageURL###breadcrumb",
                     items = [
                         {name: "Home", url: "#getDomain()#/"},
-                        {name: arguments.blog.getHeader(), url: arguments.pageURL}
+                        {name: arguments.blog.header, url: arguments.pageURL}
                     ]
                 ),
                 getOrganization(),

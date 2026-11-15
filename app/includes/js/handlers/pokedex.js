@@ -1,9 +1,11 @@
 import { copyString, removeDuplicates, showSwapLabel } from 'copy';
+import { delegate } from 'display';
 import { escapeHtml } from 'escape';
-import { getWrapper, postWrapper } from 'fetch';
+import { getWrapper, postWrapper, RequestError, requestErrorMessage } from 'fetch';
+import { validatedPacket } from 'form';
 import { $loading, $loadingModal } from 'loading';
 import { getLocalStorage, setLocalStorage } from 'localstorage';
-import { confirmModal, submitHandler } from 'modals';
+import { appendLoadedModal, confirmModal, openLoadedModal, resetHandler, submitHandler } from 'modals';
 import { createMultiSelect } from 'multiselect';
 import { createCustomSearch } from 'search';
 import { createToast } from 'toast';
@@ -72,26 +74,13 @@ const pokedexStruct = {
     temp: { region: '', shiny: false },
 };
 
-const $pokedexLoading = {
-    customEdit: false,
-    customAdd: false,
-};
-
 function submitCustomPokedexModal(e, type, $form, $btn, $modal) {
-    const valid = $form.checkValidity();
-    $form.classList.add('was-validated');
-    if (!valid) {
-        e.preventDefault();
-        e.stopPropagation();
-        return;
-    }
+    /** @type {Record<string, FormDataEntryValue | FormDataEntryValue[] | boolean> | null} */
+    const packet = validatedPacket($form, e);
+    if (!packet) return;
 
-    const formData = new FormData($form);
-    /** @type {Record<string, FormDataEntryValue | FormDataEntryValue[] | boolean>} */
-    const packet = Object.fromEntries(formData.entries());
-
-    const pokemonList = formData.getAll('pokemon[]');
-    packet.pokemon = pokemonList;
+    // A multi-value field - fromEntries keeps only its last value
+    packet.pokemon = new FormData($form).getAll('pokemon[]');
     delete packet['pokemon[]'];
 
     if (
@@ -101,6 +90,7 @@ function submitCustomPokedexModal(e, type, $form, $btn, $modal) {
         return;
     }
 
+    const temp = $btn.innerHTML;
     submitHandler($modal, $btn);
 
     if ('public' in packet) {
@@ -109,11 +99,12 @@ function submitCustomPokedexModal(e, type, $form, $btn, $modal) {
         packet.public = false;
     }
 
-    Array.from(/** @type {NodeListOf<HTMLElement>} */ (document.querySelectorAll('.closeCustomForm'))).forEach(
-        (btn) => {
-            btn.style.display = 'none';
-        }
+    const $closeBtns = Array.from(
+        /** @type {NodeListOf<HTMLElement>} */ (document.querySelectorAll('.closeCustomForm'))
     );
+    $closeBtns.forEach((btn) => {
+        btn.style.display = 'none';
+    });
 
     return postWrapper({
         url: `/pokedex/${type}CustomPokedex`,
@@ -122,11 +113,26 @@ function submitCustomPokedexModal(e, type, $form, $btn, $modal) {
         packet: JSON.stringify(packet),
         responseType: 'json',
         dataHandler: (result) => {
+            if (!result.success) {
+                throw new RequestError(result.message);
+            }
             if (type === 'delete') {
                 window.location.reload();
             } else {
                 window.location.href = `/mycustompokedex/${result.data.id}`;
             }
+        },
+        errorHandler: (error) => {
+            // Hand the modal back so the trainer can fix the form, retry or close it
+            resetHandler($modal, $btn, temp);
+            $closeBtns.forEach((btn) => {
+                btn.style.display = '';
+            });
+            createToast(
+                `Couldn't ${type} the custom Pokedex. ${escapeHtml(requestErrorMessage(error))}`,
+                'danger',
+                'bi-exclamation-triangle'
+            );
         },
     });
 }
@@ -142,11 +148,7 @@ async function getCustomPokedexModal(type, customidLoad) {
         $loadingDiv: null,
         loading: '',
         dataHandler: (data) => {
-            const newDiv = document.createElement('div');
-            newDiv.innerHTML = data;
-            document.getElementById('loadedModal').appendChild(newDiv);
-
-            const $customPokedexModal = document.getElementById('customPokedexModal');
+            const $customPokedexModal = appendLoadedModal(data, 'customPokedexModal');
             globalModals.$customPokedexModal = new bootstrap.Modal($customPokedexModal, {});
             createMultiSelect(document.getElementById('pokemonList'), 'Select Pokemon', 100, true);
 
@@ -224,21 +226,20 @@ function registerAllConfirm() {
 function createEditEvent(count) {
     const $editCustomPokedexBtn = document.querySelectorAll(`.editCustomPokedex${count}`);
     Array.from($editCustomPokedexBtn).forEach((btn) => {
-        btn.addEventListener('click', async (evt) => {
-            if ($pokedexLoading.customEdit) return;
+        btn.addEventListener('click', (evt) => {
+            const editid = /** @type {HTMLElement} */ (evt.currentTarget).dataset.customid;
 
-            if (document.getElementById('customPokedexModal')) {
-                document.getElementById('customPokedexModal').remove();
-            }
-
-            $pokedexLoading.customEdit = true;
-            await getCustomPokedexModal('edit', /** @type {HTMLElement} */ (evt.currentTarget).dataset.customid);
-
-            document.getElementById('customPokedexModal').addEventListener('hidden.bs.modal', () => {
-                document.getElementById('customPokedexModal').remove();
+            // Always fetched fresh - an edit modal is removed once it closes
+            document.getElementById('customPokedexModal')?.remove();
+            openLoadedModal('customPokedexModal', async () => {
+                const loaded = await getCustomPokedexModal('edit', editid);
+                if (loaded) {
+                    document.getElementById('customPokedexModal').addEventListener('hidden.bs.modal', () => {
+                        document.getElementById('customPokedexModal').remove();
+                    });
+                }
+                return loaded;
             });
-            globalModals.$customPokedexModal.show();
-            $pokedexLoading.customEdit = false;
         });
     });
 }
@@ -321,6 +322,13 @@ async function switchCustomPokedex({ prerendered = false } = {}) {
 }
 
 /**
+ * Pending register requests per cell, so requests for one cell are sent in click order
+ *
+ * @type {WeakMap<HTMLElement, { tail: Promise<unknown>, sequence: number }>}
+ */
+const registerQueue = new WeakMap();
+
+/**
  * Mark a cell caught/not caught for the given view and update the register tally
  */
 function setCellCaught(cell, view, caught) {
@@ -338,49 +346,54 @@ function setCellCaught(cell, view, caught) {
  */
 async function register(cell) {
     const dataset = cell.dataset;
-    const body = {
-        pokemonid: dataset.id,
-        caught: dataset.caught,
-        shiny: dataset.shiny,
-        hundo: dataset.hundo,
-        shadow: dataset.shadow,
-        shadowshiny: dataset.shadowshiny,
-    };
 
     let currView = pokedexStruct.view;
     if (currView === 'costumeshiny') currView = 'shiny';
     if (currView === 'costume') currView = 'caught';
 
     // Depending on view, this flips that respective flag aka 'catch' / 'uncatch'
-    body[currView] = body[currView] === 'true' ? false : true;
+    // Only the flipped flag is sent, so a stale grid can't overwrite flags changed elsewhere (another tab/device)
+    const caught = dataset[currView] !== 'true';
+    const body = { pokemonid: dataset.id, [currView]: caught };
 
     // Always show positive feedback and process in the background
     // Update the cell's dataset, mark caught/remove caught, and update register tally
-    setCellCaught(cell, currView, body[currView]);
+    setCellCaught(cell, currView, caught);
 
-    await postWrapper({
-        url: '/pokedex/register',
-        $loadingBtn: null,
-        loading: '',
-        packet: JSON.stringify(body),
-        responseType: 'json',
-        dataHandler: (data) => {
-            if (!data.success) {
-                throw new Error(data.message);
-            }
-        },
-        errorHandler: () => {
-            // Save failed - undo the optimistic update so the grid reflects what's stored
-            setCellCaught(cell, currView, !body[currView]);
-            createToast(
-                `Couldn't save ${escapeHtml(dataset.name ?? 'that Pokemon')}. Please try again.`,
-                'danger',
-                'bi-exclamation-triangle'
-            );
-        },
-    });
+    // Requests for the same cell run one after another, so a quick catch/uncatch lands in click order
+    const queue = registerQueue.get(cell) ?? { tail: Promise.resolve(), sequence: 0 };
+    const sequence = ++queue.sequence;
+    registerQueue.set(cell, queue);
 
-    return body[currView];
+    const request = queue.tail.then(() =>
+        postWrapper({
+            url: '/pokedex/register',
+            $loadingBtn: null,
+            loading: '',
+            packet: JSON.stringify(body),
+            responseType: 'json',
+            dataHandler: (data) => {
+                if (!data.success) {
+                    throw new Error(data.message);
+                }
+            },
+            errorHandler: () => {
+                // Save failed - undo the optimistic update, unless a newer click on this cell has replaced it
+                if (sequence === queue.sequence && cell.dataset[currView] === String(caught)) {
+                    setCellCaught(cell, currView, !caught);
+                }
+                createToast(
+                    `Couldn't save ${escapeHtml(dataset.name ?? 'that Pokemon')}. Please try again.`,
+                    'danger',
+                    'bi-exclamation-triangle'
+                );
+            },
+        })
+    );
+    queue.tail = request;
+    await request;
+
+    return caught;
 }
 
 /**
@@ -394,16 +407,7 @@ function createRegisterEvent(container) {
     if (!container || container.dataset.registerBound === 'true') return;
     container.dataset.registerBound = 'true';
 
-    /** @returns {HTMLElement | null} */
-    const cellFrom = (/** @type {Event} */ evt) => {
-        const target = /** @type {Element} */ (evt.target);
-        const cell = target instanceof Element ? target.closest('.pokemonCell') : null;
-        return cell && container.contains(cell) ? /** @type {HTMLElement} */ (cell) : null;
-    };
-
-    container.addEventListener('mousedown', async (evt) => {
-        const cell = cellFrom(evt);
-        if (!cell) return;
+    delegate(container, 'mousedown', '.pokemonCell', async (evt, cell) => {
         evt.preventDefault();
         if (pokedexStruct.lock === 'false') {
             pokedexStruct.mousedown = true;
@@ -412,9 +416,8 @@ function createRegisterEvent(container) {
     });
 
     // mouseover/mouseout bubble - ignore moves between a cell's own children to mimic mouseenter/mouseleave
-    container.addEventListener('mouseover', (evt) => {
-        const cell = cellFrom(evt);
-        if (!cell || cell.contains(/** @type {Node | null} */ (evt.relatedTarget))) return;
+    delegate(container, 'mouseover', '.pokemonCell', (evt, cell) => {
+        if (cell.contains(/** @type {Node | null} */ (/** @type {MouseEvent} */ (evt).relatedTarget))) return;
         if (
             pokedexStruct.lock === 'false' &&
             pokedexStruct.mousedown &&
@@ -425,16 +428,14 @@ function createRegisterEvent(container) {
         }
     });
 
-    container.addEventListener('mouseout', (evt) => {
-        const cell = cellFrom(evt);
-        if (!cell || cell.contains(/** @type {Node | null} */ (evt.relatedTarget))) return;
+    delegate(container, 'mouseout', '.pokemonCell', (evt, cell) => {
+        if (cell.contains(/** @type {Node | null} */ (/** @type {MouseEvent} */ (evt).relatedTarget))) return;
         cell.classList.remove('registering');
     });
 
-    container.addEventListener('keydown', async (evt) => {
-        const cell = cellFrom(evt);
-        if (!cell) return;
-        if ((evt.key === ' ' || evt.key === 'Enter') && pokedexStruct.lock === 'false') {
+    delegate(container, 'keydown', '.pokemonCell', async (evt, cell) => {
+        const { key } = /** @type {KeyboardEvent} */ (evt);
+        if ((key === ' ' || key === 'Enter') && pokedexStruct.lock === 'false') {
             evt.preventDefault();
             await register(cell);
         }
@@ -556,6 +557,10 @@ function updateRegistered() {
 }
 
 async function registerAll() {
+    // Bootstrap ignores hide() while the show transition runs - a fast failure has to wait for it to finish
+    const $loadingModalEl = document.getElementById('loadingModal');
+    let loadingShown = false;
+    $loadingModalEl.addEventListener('shown.bs.modal', () => (loadingShown = true), { once: true });
     $loadingModal.show();
 
     return await postWrapper({
@@ -567,8 +572,23 @@ async function registerAll() {
             shiny: pokedexStruct.shiny,
         }),
         responseType: 'json',
-        dataHandler: () => {
+        dataHandler: (data) => {
+            if (!data.success) {
+                throw new RequestError(data.message);
+            }
             location.href = `/mypokedex/region/${pokedexStruct.region}/shiny/${pokedexStruct.shiny}`;
+        },
+        errorHandler: (error) => {
+            if (loadingShown) {
+                $loadingModal.hide();
+            } else {
+                $loadingModalEl.addEventListener('shown.bs.modal', () => $loadingModal.hide(), { once: true });
+            }
+            createToast(
+                `Couldn't register all. ${escapeHtml(requestErrorMessage(error))}`,
+                'danger',
+                'bi-exclamation-triangle'
+            );
         },
     });
 }
@@ -689,15 +709,9 @@ export const runtime = {
         switchCustomPokedex({ prerendered: true });
     },
     custompokedexlist: () => {
-        $addCustomPokedexBtn.addEventListener('click', async () => {
-            if ($pokedexLoading.customAdd) return;
-            if (!document.getElementById('customPokedexModal')) {
-                $pokedexLoading.customAdd = true;
-                await getCustomPokedexModal('add', '');
-            }
-            globalModals.$customPokedexModal.show();
-            $pokedexLoading.customAdd = false;
-        });
+        $addCustomPokedexBtn.addEventListener('click', () =>
+            openLoadedModal('customPokedexModal', () => getCustomPokedexModal('add', ''))
+        );
 
         fetchStruct.count = parseInt(document.getElementById('addCustomPokedex').dataset.count);
         createEditEvent(0);

@@ -75,9 +75,9 @@
                                     </button>
                                 </li>
                                 <li><hr class="dropdown-divider"></li>
-                                <cfif prc.currEvent EQ "pokedex.mycustompokedex" AND !isNull(prc.custom.getLink()) AND prc.custom.getLink().len()>
+                                <cfif prc.currEvent EQ "pokedex.mycustompokedex" AND len(prc.custom.link ?: "")>
                                     <li>
-                                        <a href="#prc.custom.getLink()#" target="_blank" class="dropdown-item" role="button">
+                                        <a href="#prc.custom.link#" target="_blank" class="dropdown-item" role="button">
                                             <i class="bi bi-link-45deg me-2"></i>Leekduck
                                         </a>
                                     </li>
@@ -121,8 +121,8 @@
                                     <i class="bi bi-list-check me-2"></i>Register All
                                 </button>
                             </cfif>
-                            <cfif prc.currEvent EQ "pokedex.mycustompokedex" AND !isNull(prc.custom.getLink()) AND prc.custom.getLink().len()>
-                                <a href="#prc.custom.getLink()#" target="_blank" class="btn btn-adjust btn-primary" role="button">
+                            <cfif prc.currEvent EQ "pokedex.mycustompokedex" AND len(prc.custom.link ?: "")>
+                                <a href="#prc.custom.link#" target="_blank" class="btn btn-adjust btn-primary" role="button">
                                     <i class="bi bi-link-45deg me-2"></i>Leekduck
                                 </a>
                             </cfif>
@@ -147,12 +147,13 @@
                         <button id="submitBlog" role="button" class="ms-auto btn btn-primary">
                             <i class="bi bi-pencil-fill me-2"></i>Write
                         </button>
-                    <cfelseif prc.currEvent EQ "stats.overview">
+                    <cfelseif prc.currEvent EQ "stats.overview" AND (prc.myProfile ?: false)>
+                        <!--- Tracking is only for your own stats - not on a friend's overview --->
                         <button id="trackStats" role="button" class="btn btn-primary" <cfif dateDiff("d", prc.trainerStatStruct.dateTracked, now()) LT 1>disabled</cfif>>
                             <i class="bi bi-graph-up me-2"></i>Track Stats
                         </button>
                     <cfelseif prc.currEvent EQ "blog.read" AND (prc?.oCurrentUser?.hasPermission("admin") ?: false)>
-                        <a href="/editblog/#encodeForHTML(prc.blog.getId())#" id="editBlog" role="button" class="btn btn-primary">
+                        <a href="/editblog/#encodeForHTML(prc.blog.id)#" id="editBlog" role="button" class="btn btn-primary">
                             <i class="bi bi-pencil-fill me-2"></i>Edit
                         </a>
                     <cfelseif listFindNoCase("home.home,pokemon.index,pokemon.detail", prc.currEvent)>
@@ -240,11 +241,6 @@
                         <i class="bi bi-graph-up me-2 navIcon"></i>Stats
                     </a>
                 </li>
-                <!--- <li class="nav-item d-flex">
-                    <a class="nav-link fs-6 w-100 iconHover text-start <cfif prc.currHandler EQ "pvp">active</cfif>" href="/pvp">
-                        <i class="bi bi-trophy me-2 navIcon"></i>PVP
-                    </a>
-                </li> --->
                 <cfif (prc?.oCurrentUser?.hasPermission("admin") ?: false)>
                     <li class="nav-item d-flex">
                         <a class="nav-link fs-6 w-100 iconHover text-start d-flex align-items-center <cfif prc.currHandler EQ "admin">active</cfif>" href="/admin">

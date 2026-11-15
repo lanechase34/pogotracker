@@ -2,14 +2,15 @@ component extends="tests.resources.baseTest" asyncAll="false" {
 
     function beforeAll() {
         super.beforeAll();
-        mockTrainer      = getInstance("tests.resources.mocktrainer");
+        inlineBackgroundLogs();
+        mockTrainer      = getInstance("tests.resources.mockTrainer");
         auth             = getInstance("authenticationService@cbauth");
         recaptchaService = getInstance("services.recaptcha");
         trainer          = mockTrainer.make(autoLogin = false);
 
         // Each gated action and a body that would otherwise be accepted
         gatedForms = {
-            "dologin" : {route: "/login/doLogin", params: {email: trainer.getEmail(), password: createUUID()}},
+            "dologin" : {route: "/login/doLogin", params: {email: trainer.email, password: createUUID()}},
             "register": {
                 route : "/login/register",
                 params: {
@@ -25,25 +26,13 @@ component extends="tests.resources.baseTest" asyncAll="false" {
     }
 
     function afterAll() {
-        mockTrainer.delete(trainer.getId());
+        mockTrainer.deleteTrainer(trainer.id);
+        restoreBackgroundLogs();
         super.afterAll();
     }
 
-    private void function storeResult(
-        required string action,
-        boolean valid      = true,
-        numeric secondsAgo = 0
-    ) {
-        session.recaptcha = {
-            token    : "token",
-            valid    : arguments.valid,
-            timestamp: dateAdd("s", -arguments.secondsAgo, now()),
-            action   : arguments.action
-        };
-    }
-
     private numeric function countFailedChecks() {
-        return ormExecuteQuery("select count(id) from audit where detail = 'Failed Recaptcha Check'", true);
+        return testData.countRows("audit", {detail: "Failed Recaptcha Check"});
     }
 
     private any function submit(required string action) {
@@ -73,35 +62,37 @@ component extends="tests.resources.baseTest" asyncAll="false" {
             });
 
             it("Rejects each gated form without a reCAPTCHA result", () => {
+                var expected = countFailedChecks();
                 for(var action in gatedForms) {
                     session.delete("recaptcha");
-                    var before = countFailedChecks();
 
                     expectRejected(submit(action), action);
-                    expect(countFailedChecks()).toBe(before + 1, action);
+                    expect(countFailedChecks()).toBe(++expected, action);
                 }
             });
 
             it("Rejects each gated form sent without a User-Agent", () => {
                 // No User-Agent fails the login preHandler's audit check, which must stop the request
-                // rather than skip the reCAPTCHA check below it
+                // A valid result gets it past the rateLimiter interceptor's reCAPTCHA check to that preHandler
                 var auditService = prepareMock(getInstance("services.audit"));
                 var originalUtil = auditService.$getProperty("utilService");
                 var blankAgent   = createMock("models.services.util")
                     .$("getUserAgent", "")
                     .$("getRequestIP", "127.0.0.1")
-                    .$("getReferer", "");
+                    .$("getReferer", "")
+                    // The mock has no AsyncManager or logger wired in - this spec only checks the gate, not the audit rows
+                    .$("runInBackground");
 
                 auditService.$property(propertyName = "utilService", mock = blankAgent);
                 try {
                     for(var action in gatedForms) {
-                        session.delete("recaptcha");
+                        globalFunctions.storeRecaptcha(action = action);
                         var event = submit(action);
 
                         expect(event.getValue("relocate_uri", "")).toBe("/unauthorized", action);
                         expect(auth.isLoggedIn()).toBeFalse(action);
                     }
-                    expect(entityLoad("trainer", {username: gatedForms.register.params.username})).toBeEmpty();
+                    expect(testData.countRows("trainer", {username: gatedForms.register.params.username})).toBe(0);
                 }
                 finally {
                     auditService.$property(propertyName = "utilService", mock = originalUtil);
@@ -110,33 +101,33 @@ component extends="tests.resources.baseTest" asyncAll="false" {
 
             it("Rejects a failed reCAPTCHA result", () => {
                 for(var action in gatedForms) {
-                    storeResult(action = action, valid = false);
+                    globalFunctions.storeRecaptcha(action = action, valid = false);
                     expectRejected(submit(action), action);
                 }
             });
 
             it("Rejects a result older than 30 seconds", () => {
                 for(var action in gatedForms) {
-                    storeResult(action = action, secondsAgo = 60);
+                    globalFunctions.storeRecaptcha(action = action, secondsAgo = 60);
                     expectRejected(submit(action), action);
                 }
             });
 
             it("Rejects a result for a different action", () => {
-                storeResult(action = "register");
+                globalFunctions.storeRecaptcha(action = "register");
                 expectRejected(submit("dologin"), "dologin");
             });
 
             it("Accepts a fresh result for the action", () => {
-                storeResult(action = "doLogin");
+                globalFunctions.storeRecaptcha(action = "doLogin");
                 var event = submit("dologin");
 
                 expect(event.getValue("relocate_uri")).toBe("/");
-                expect(auth.getUserId()).toBe(trainer.getId());
+                expect(auth.getUserId()).toBe(trainer.id);
             });
 
             it("Only accepts a result once", () => {
-                storeResult(action = "forgotPassword");
+                globalFunctions.storeRecaptcha(action = "forgotPassword");
                 submit("forgotpassword");
                 expect(getFlashScope().get("alert").message).toBe("Reset password email sent. Please check your email.");
 

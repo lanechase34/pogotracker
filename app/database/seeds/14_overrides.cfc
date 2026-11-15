@@ -5,12 +5,12 @@ component extends="base" {
 
         queryExecute(
             "
-            insert into overrides (name, override)
-            values (:name, cast(:override as jsonb))
+            INSERT INTO overrides (name, override)
+            VALUES (:name, CAST(:override AS jsonb))
             ",
             {
                 name    : {value: "envpokedexoverrides", cfsqltype: "varchar"},
-                override: {value: serializeJSON(pokedexOverrides), cfsqltype: "other"}
+                override: {value: serializeJSON(pokedexOverrides), cfsqltype: "varchar"}
             }
         );
     }

@@ -1,7 +1,5 @@
 component extends="base" {
 
-    property name="async"        inject="asyncManager@coldbox";
-    property name="auditService" inject="services.audit";
     property name="bugService"   inject="services.bug";
     property name="emailService" inject="services.email";
     property name="utilService"  inject="services.util";
@@ -10,43 +8,33 @@ component extends="base" {
     this.posthandler_only = "unauthorized,invalidHTTPMethod,notFound";
 
     /**
-     * Clear the current orm session so we know the audit will work
      * Set up audit object
      */
     function preHandler(event, rc, prc, action, eventArguments) {
-        ormClearSession(); // Clear the current session so we know the audit will work
-        prc.auditInfo = auditService.getAuditObj(
-            trainerid = (prc?.oCurrentUser?.getId() ?: -1),
-            referer   = rc?.referer ?: "",
-            event     = rc?.event ?: "NA"
-        );
+        setRequestAuditInfo(rc = rc, prc = prc);
     }
 
     /**
-     * Fire async promise to audit
+     * Audit the request
      */
     function postHandler(event, rc, prc, action, eventArguments) {
-        if(!validate(target = prc.auditInfo, constraints = "audit").hasErrors()) {
-            async.newFuture(() => {
-                auditService.audit(argumentCollection = prc.auditInfo);
-            });
-        }
+        auditService.audit(argumentCollection = prc.auditInfo);
     }
 
     /**
      * 403 Unauthorized events
      */
     function unauthorized(event, rc, prc) {
-        prc.auditInfo.event  = left(prc?.unauthorizedEvent ?: event.getFullPath(), 250);
+        prc.auditInfo.event  = prc?.unauthorizedEvent ?: event.getFullPath();
         prc.auditInfo.detail = "Unauthorized Event";
-        renderUnauthorized(event, prc);
+        renderUnauthorized(event = event, prc = prc);
     }
 
     /**
      * 405 Invalid HTTP Method
      */
     function invalidHTTPMethod(event, rc, prc) {
-        prc.auditInfo.event  = left(event.getFullPath(), 250);
+        prc.auditInfo.event  = event.getFullPath();
         prc.auditInfo.detail = "Invalid HTTP Method #event.getHTTPMethod()#";
 
         if(utilService.isJsonRequest()) {
@@ -73,7 +61,7 @@ component extends="base" {
                 // cbcsrf auto verifier - missing or stale token
             case "TokenNotFoundException":
             case "TokenMismatchException": {
-                denyException(event, rc, prc);
+                denyException(event = event, rc = rc, prc = prc);
                 return;
             }
             // Logged in trainer no longer exists - cbauth already dropped them from the session
@@ -83,13 +71,13 @@ component extends="base" {
             }
         }
 
-        reportBug(event, rc, prc);
+        reportBug(event = event, rc = rc, prc = prc);
 
         // fetch callers get json - relocating would hand them the html error page
         if(utilService.isJsonRequest()) {
             renderJson(
-                event,
-                {
+                event    = event,
+                response = {
                     success   : false,
                     message   : "Something went wrong. Please try again.",
                     statusCode: 500
@@ -99,7 +87,7 @@ component extends="base" {
         }
 
         // The error page failed too - relocating to it again would loop, errortemplate.cfm shows a static page instead
-        if(isExceptionPage(event)) {
+        if(isExceptionPage(event = event)) {
             return;
         }
 
@@ -133,7 +121,7 @@ component extends="base" {
      * 404 Not Found
      */
     function notFound(event, rc, prc) {
-        prc.auditInfo.event  = left(event.getFullPath(), 250);
+        prc.auditInfo.event  = event.getFullPath();
         prc.auditInfo.detail = "404 Not Found";
 
         // Page metadata
@@ -152,19 +140,15 @@ component extends="base" {
         try {
             prc.bugInfo = {
                 ip       : utilService.getRequestIP(),
-                event    : left(prc?.currentRoutedURL ?: event.getFullPath(), 250),
-                message  : left(prc.exception.getMessage(), 250),
+                event    : prc?.currentRoutedURL ?: event.getFullPath(),
+                message  : prc.exception.getMessage(),
                 stack    : prc.exception.getStackTrace(),
                 trainerid: (prc?.oCurrentUser?.getId() ?: -1)
             };
 
-            if(!validate(target = prc.bugInfo, constraints = "bug").hasErrors()) {
-                async.newFuture(() => {
-                    bugService.logBug(argumentCollection = prc.bugInfo);
-                });
-            }
+            bugService.logBug(argumentCollection = prc.bugInfo);
 
-            emailService.sendBug(prc.exception.getExceptionStruct(), rc);
+            emailService.sendBug(error = prc.exception.getExceptionStruct(), requestContext = rc);
         }
         catch(any e) {
             log.error(
@@ -193,12 +177,10 @@ component extends="base" {
     private void function denyException(event, rc, prc) {
         var auditInfo = auditService.getAuditObj(
             trainerid = (prc?.oCurrentUser?.getId() ?: -1),
-            event     = left(event.getCurrentEvent(), 250)
+            event     = event.getCurrentEvent()
         );
-        auditInfo.detail = left("Unauthorized: #prc.exception.getType()# #prc.exception.getMessage()#", 250);
-        async.newFuture(() => {
-            auditService.audit(argumentCollection = auditInfo);
-        });
+        auditInfo.detail = "Unauthorized: #prc.exception.getType()# #prc.exception.getMessage()#";
+        auditService.audit(argumentCollection = auditInfo);
 
         if(lCase(event.getCurrentHandler()) == "login" && !utilService.isJsonRequest()) {
             flash.put(
@@ -214,7 +196,7 @@ component extends="base" {
             return;
         }
 
-        renderUnauthorized(event, prc);
+        renderUnauthorized(event = event, prc = prc);
     }
 
     /**
@@ -223,8 +205,8 @@ component extends="base" {
     private void function renderUnauthorized(event, prc) {
         if(utilService.isJsonRequest()) {
             renderJson(
-                event,
-                {
+                event    = event,
+                response = {
                     success   : false,
                     message   : "You do not have permission to do that.",
                     statusCode: 403

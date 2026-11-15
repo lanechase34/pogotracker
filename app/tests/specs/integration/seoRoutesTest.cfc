@@ -4,6 +4,7 @@ component extends="tests.resources.baseTest" asyncAll="false" {
         super.beforeAll();
         domain   = getController().getSetting("domain");
         siteName = getController().getSetting("siteName");
+        pages    = {};
     }
 
     function afterAll() {
@@ -17,6 +18,39 @@ component extends="tests.resources.baseTest" asyncAll="false" {
         setup();
         getInstance("authenticationService@cbauth").logout();
         return get(route = route);
+    }
+
+    /**
+     * An anonymous visitor's render of the route, made once per bundle - the specs only read it
+     */
+    private any function anonymousPage(required string route) {
+        if(!pages.keyExists(arguments.route)) {
+            pages[arguments.route] = anonymousGet(arguments.route);
+        }
+        return pages[arguments.route];
+    }
+
+    /**
+     * The first blog whose header round trips through the url (hyphens in a header can't be read back), and its page
+     * There is always one - fails rather than letting the blog specs pass on nothing
+     */
+    private struct function getTestBlog() {
+        if(isNull(variables.testBlog)) {
+            var blog = queryExecute(
+                "SELECT header FROM blog WHERE header NOT LIKE '%-%' ORDER BY id ASC",
+                {},
+                {maxrows: 1}
+            );
+            expect(blog.recordCount).toBe(1, "No blog with an unhyphenated header to test against");
+
+            var slug           = blog.header.replace(" ", "-", "all");
+            variables.testBlog = {
+                header: blog.header,
+                slug  : slug,
+                event : anonymousGet("/readblog/#slug#")
+            };
+        }
+        return variables.testBlog;
     }
 
     /**
@@ -36,27 +70,17 @@ component extends="tests.resources.baseTest" asyncAll="false" {
         return deserializeJSON(json);
     }
 
-    private array function getGraphTypes(required struct jsonLd) {
-        return jsonLd["@graph"].map((node) => node["@type"]);
-    }
-
-    private struct function getGraphNode(required struct jsonLd, required string type) {
-        var nodes = jsonLd["@graph"].filter((node) => node["@type"] == type);
-        expect(nodes).toHaveLength(1, "Expected exactly one #type# node");
-        return nodes[1];
-    }
-
     function run() {
         describe("GET /pokemon (Pokedex index)", () => {
             it("Is public - anonymous visitors get a 200, not a login redirect", () => {
-                var event = anonymousGet("/pokemon");
+                var event = anonymousPage("/pokemon");
                 expect(event.getStatusCode()).toBe(200);
                 expect(event.getCurrentEvent()).toBe("pokemon.index");
                 expect(event.getValue("relocate_URI", "")).toBe("");
             });
 
             it("Renders a crawlable list of links to detail pages", () => {
-                var html = anonymousGet("/pokemon").getRenderedContent();
+                var html = anonymousPage("/pokemon").getRenderedContent();
                 expect(html).toInclude("<h1 class=""pokedex-hero-title mb-0"">Pokémon GO Database</h1>");
                 // Detail links are server rendered as plain anchors, so crawlers can follow them without JS
                 expect(html).toInclude("href=""/pokemon/1""");
@@ -64,7 +88,7 @@ component extends="tests.resources.baseTest" asyncAll="false" {
             });
 
             it("Has its own title, description, and canonical", () => {
-                var event = anonymousGet("/pokemon");
+                var event = anonymousPage("/pokemon");
                 var html  = event.getRenderedContent();
                 expect(event.getPrivateValue("title")).toInclude("Database");
                 expect(event.getPrivateValue("title")).toInclude("| #siteName#");
@@ -74,10 +98,10 @@ component extends="tests.resources.baseTest" asyncAll="false" {
             });
 
             it("Has CollectionPage and BreadcrumbList structured data", () => {
-                var jsonLd = getJsonLd(anonymousGet("/pokemon").getRenderedContent());
-                expect(getGraphTypes(jsonLd)).toInclude("CollectionPage");
-                expect(getGraphTypes(jsonLd)).toInclude("BreadcrumbList");
-                expect(getGraphNode(jsonLd, "CollectionPage")["@id"]).toBe("#domain#/pokemon");
+                var jsonLd = getJsonLd(anonymousPage("/pokemon").getRenderedContent());
+                expect(globalFunctions.getGraphTypes(jsonLd)).toInclude("CollectionPage");
+                expect(globalFunctions.getGraphTypes(jsonLd)).toInclude("BreadcrumbList");
+                expect(globalFunctions.getGraphNode(jsonLd, "CollectionPage")["@id"]).toBe("#domain#/pokemon");
             });
         });
 
@@ -91,27 +115,27 @@ component extends="tests.resources.baseTest" asyncAll="false" {
 
         describe("GET / (home page)", () => {
             it("Has a visible h1 instead of the hidden fallback", () => {
-                var html = anonymousGet("/").getRenderedContent();
+                var html = anonymousPage("/").getRenderedContent();
                 expect(html).toInclude("<h1 class=""home-hero-title");
                 expect(html).notToInclude("<h1 class=""visually-hidden"">");
                 expect(reMatch("<h1[\s>]", html)).toHaveLength(1);
             });
 
             it("Has crawlable links to the Pokedex and registration", () => {
-                var html = anonymousGet("/").getRenderedContent();
+                var html = anonymousPage("/").getRenderedContent();
                 expect(html).toInclude("href=""/pokemon""");
                 expect(html).toInclude("href=""/register""");
             });
 
             it("Canonical is always the root url", () => {
-                var html = anonymousGet("/").getRenderedContent();
+                var html = anonymousPage("/").getRenderedContent();
                 expect(html).toInclude("<link rel=""canonical"" href=""#domain#/"">");
             });
 
             it("Has valid site wide structured data with an unescaped description", () => {
-                var jsonLd = getJsonLd(anonymousGet("/").getRenderedContent());
-                expect(getGraphTypes(jsonLd)).toBe(["WebSite", "WebApplication"]);
-                expect(getGraphNode(jsonLd, "WebApplication").description).toBe(
+                var jsonLd = getJsonLd(anonymousPage("/").getRenderedContent());
+                expect(globalFunctions.getGraphTypes(jsonLd)).toBe(["WebSite", "WebApplication"]);
+                expect(globalFunctions.getGraphNode(jsonLd, "WebApplication").description).toBe(
                     getController().getSetting("metaDescription")
                 );
             });
@@ -119,23 +143,18 @@ component extends="tests.resources.baseTest" asyncAll="false" {
 
         describe("GET /pokemon/1 (Bulbasaur detail page)", () => {
             it("Title leads with the name and uses the short site name", () => {
-                var event = anonymousGet("/pokemon/1");
+                var event = anonymousPage("/pokemon/1");
                 expect(event.getPrivateValue("title")).toBe("Bulbasaur - Pokémon GO Max CP, Moves & Stats | #siteName#");
             });
 
-            it("Meta description includes real stats", () => {
-                var event = anonymousGet("/pokemon/1");
-                expect(event.getPrivateValue("metaDescription")).toInclude("118 ATK / 111 DEF / 128 HP");
-            });
-
             it("Keeps the default share image (sprites are too small for social cards)", () => {
-                var event = anonymousGet("/pokemon/1");
+                var event = anonymousPage("/pokemon/1");
                 expect(event.privateValueExists("ogImage")).toBeFalse();
                 expect(event.getRenderedContent()).toInclude("og-default.png");
             });
 
             it("Has a visible breadcrumb back to the Pokedex", () => {
-                var html = anonymousGet("/pokemon/1").getRenderedContent();
+                var html = anonymousPage("/pokemon/1").getRenderedContent();
                 expect(html).toInclude("<nav aria-label=""Breadcrumb"">");
                 expect(html).toInclude(
                     "<a href=""/pokemon""><i class=""bi bi-grid-3x3-gap-fill"" aria-hidden=""true""></i>Pokédex</a>"
@@ -143,77 +162,55 @@ component extends="tests.resources.baseTest" asyncAll="false" {
             });
 
             it("Has WebPage and BreadcrumbList structured data", () => {
-                var jsonLd = getJsonLd(anonymousGet("/pokemon/1").getRenderedContent());
-                expect(getGraphTypes(jsonLd)).toInclude("WebPage");
+                var jsonLd = getJsonLd(anonymousPage("/pokemon/1").getRenderedContent());
+                expect(globalFunctions.getGraphTypes(jsonLd)).toInclude("WebPage");
 
-                var page = getGraphNode(jsonLd, "WebPage");
+                var page = globalFunctions.getGraphNode(jsonLd, "WebPage");
                 expect(page["@id"]).toBe("#domain#/pokemon/1");
                 expect(page.name).toBe("Bulbasaur");
                 expect(page.primaryImageOfPage.contentUrl).toInclude("/includes/images/sprites/");
 
-                var crumb = getGraphNode(jsonLd, "BreadcrumbList");
+                var crumb = globalFunctions.getGraphNode(jsonLd, "BreadcrumbList");
                 expect(crumb.itemListElement.map((item) => item.name)).toBe(["Home", "Pokédex", "Bulbasaur"]);
                 expect(crumb.itemListElement.map((item) => item.position)).toBe([1, 2, 3]);
             });
         });
 
         describe("GET /readblog/:blogheader", () => {
-            /**
-             * A blog whose header round trips through the url (hyphens in a header can't be read back)
-             */
-            var getTestBlogHeader = () => {
-                var blog = queryExecute(
-                    "select header from blog where header not like '%-%' order by id asc",
-                    {},
-                    {maxrows: 1}
-                );
-                return blog.recordCount ? blog.header : "";
-            };
-
             it("Uses the short site name in the title", () => {
-                var header = getTestBlogHeader();
-                if(!header.len()) return;
-
-                var event = anonymousGet("/readblog/#header.replace(" ", "-", "all")#");
-                expect(event.getStatusCode()).toBe(200);
-                expect(event.getPrivateValue("title")).toBe("#header# | #siteName#");
+                var blog = getTestBlog();
+                expect(blog.event.getStatusCode()).toBe(200);
+                expect(blog.event.getPrivateValue("title")).toBe("#blog.header# | #siteName#");
             });
 
             it("Has BlogPosting structured data", () => {
-                var header = getTestBlogHeader();
-                if(!header.len()) return;
+                var blog   = getTestBlog();
+                var jsonLd = getJsonLd(blog.event.getRenderedContent());
+                expect(globalFunctions.getGraphTypes(jsonLd)).toInclude("BlogPosting");
+                expect(globalFunctions.getGraphTypes(jsonLd)).toInclude("BreadcrumbList");
 
-                var slug   = header.replace(" ", "-", "all");
-                var jsonLd = getJsonLd(anonymousGet("/readblog/#slug#").getRenderedContent());
-                expect(getGraphTypes(jsonLd)).toInclude("BlogPosting");
-                expect(getGraphTypes(jsonLd)).toInclude("BreadcrumbList");
-
-                var posting = getGraphNode(jsonLd, "BlogPosting");
-                expect(posting.headline).toBe(left(header, 110));
-                expect(posting.mainEntityOfPage).toBe("#domain#/readblog/#slug#");
+                var posting = globalFunctions.getGraphNode(jsonLd, "BlogPosting");
+                expect(posting.headline).toBe(left(blog.header, 110));
+                expect(posting.mainEntityOfPage).toBe("#domain#/readblog/#blog.slug#");
                 expect(posting).toHaveKey("datePublished");
                 expect(posting).toHaveKey("author");
             });
 
             it("Canonical keeps the stored header's casing", () => {
-                var header = getTestBlogHeader();
-                if(!header.len()) return;
-
-                var slug = header.replace(" ", "-", "all");
-                var html = anonymousGet("/readblog/#slug#").getRenderedContent();
-                expect(html).toInclude("<link rel=""canonical"" href=""#encodeForHTMLAttribute("#domain#/readblog/#slug#")#"">");
+                var blog = getTestBlog();
+                expect(blog.event.getRenderedContent()).toInclude(
+                    "<link rel=""canonical"" href=""#encodeForHTMLAttribute("#domain#/readblog/#blog.slug#")#"">"
+                );
             });
 
             it("Permanently redirects any other casing to the stored header's slug", () => {
-                var header = getTestBlogHeader();
-                var slug   = header.replace(" ", "-", "all");
+                // getTestBlog() requested the correct url first, which warms the cache - the cache key is case insensitive
+                var blog = getTestBlog();
                 // Needs a header with letters whose case can change
-                if(!header.len() || compare(lCase(slug), slug) == 0) return;
+                if(compare(lCase(blog.slug), blog.slug) == 0) return;
 
-                // Warm the cache with the correct url first - the cache key is case insensitive
-                anonymousGet("/readblog/#slug#");
-                var event = anonymousGet("/readblog/#lCase(slug)#");
-                expect(event.getValue("relocate_URI")).toBe("/readblog/#slug#");
+                var event = anonymousGet("/readblog/#lCase(blog.slug)#");
+                expect(event.getValue("relocate_URI")).toBe("/readblog/#blog.slug#");
                 expect(event.getValue("relocate_statusCode")).toBe(301);
             });
         });

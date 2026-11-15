@@ -2,7 +2,7 @@ component extends="tests.resources.baseTest" asyncAll="false" {
 
     function beforeAll() {
         super.beforeAll();
-        mockTrainer = getInstance("tests.resources.mocktrainer");
+        mockTrainer = getInstance("tests.resources.mockTrainer");
         requestStub = getInstance("tests.resources.requestStub");
 
         personas = {
@@ -18,7 +18,7 @@ component extends="tests.resources.baseTest" asyncAll="false" {
     }
 
     function afterAll() {
-        personas.each((name, trainer) => mockTrainer.delete(trainer.getId()));
+        personas.each((name, trainer) => mockTrainer.deleteTrainer(trainer.id));
         super.afterAll();
     }
 
@@ -57,7 +57,7 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                     event   : "home.home",
                     expected: {
                         guest     : "allowed",
-                        unverified: "verify", // unverified trainers can only verify or log out (interceptors/guestonly.cfc)
+                        unverified: "verify", // unverified trainers can only verify or log out (interceptors/guestOnly.cfc)
                         user      : "allowed",
                         admin     : "allowed",
                         developer : "allowed"
@@ -85,6 +85,18 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                         user      : "relocated to /",
                         admin     : "relocated to /",
                         developer : "relocated to /"
+                    }
+                },
+                {
+                    name    : "contact form",
+                    route   : "/contact",
+                    event   : "home.contactForm",
+                    expected: {
+                        guest     : "login",
+                        unverified: "verify",
+                        user      : "allowed",
+                        admin     : "allowed",
+                        developer : "allowed"
                     }
                 },
                 {
@@ -192,19 +204,14 @@ component extends="tests.resources.baseTest" asyncAll="false" {
 
         describe("Permission changes", () => {
             afterEach(() => {
-                if(session.keyExists("mocktrainerid")) mockTrainer.delete();
+                if(session.keyExists("mocktrainerid")) mockTrainer.deleteTrainer();
             });
 
             it("Demoting a trainer takes effect on their next request", () => {
-                setup();
-                var admin = mockTrainer.make(securityLevel = 50);
+                var admin = mockTrainer.makeSignedIn(securityLevel = 50);
                 expect(outcome(execute(route = "/admin"), "admin.index")).toBe("allowed");
 
-                queryExecute(
-                    "update trainer set securitylevel = 10 where id = :id",
-                    {id: {value: admin.getId(), cfsqltype: "integer"}}
-                );
-                mockTrainer.refresh(admin.getId());
+                mockTrainer.updateSaved(admin.id, {securitylevel: 10});
 
                 setup();
                 expect(outcome(execute(route = "/admin"), "admin.index")).toBe("403");

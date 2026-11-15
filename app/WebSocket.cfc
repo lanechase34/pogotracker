@@ -85,7 +85,7 @@ component extends="modules.socketbox.models.WebSocketSTOMP" hint="WebSocket Endp
             var trainer = application.wsAuth.getUser();
 
             // A session signed out by a password change can't subscribe either
-            if(!application.wsSession.isCurrentVersion(trainer)) {
+            if(!application.wsSession.isCurrentVersion(trainer.getSessionVersion())) {
                 application.wsLog.warn("WebSocket authorization failed - stale session version for trainer: ""#trainer.getId()#""");
                 return false;
             }

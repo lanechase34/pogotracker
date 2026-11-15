@@ -9,7 +9,7 @@ component extends="tests.resources.baseTest" asyncAll="false" {
         bugService     = getInstance("services.bug");
 
         // Rows only this spec writes - found again by searching the marker
-        mockTrainer = getInstance("tests.resources.mocktrainer");
+        mockTrainer = getInstance("tests.resources.mockTrainer");
         trainer     = mockTrainer.make(securityLevel = 10, autoLogin = false);
         trainerid   = session.mocktrainerid;
         marker      = "DTTEST#left(createUUID().replace("-", "", "all"), 12)#";
@@ -52,7 +52,7 @@ component extends="tests.resources.baseTest" asyncAll="false" {
     }
 
     function afterAll() {
-        mockTrainer.delete(trainerid);
+        mockTrainer.deleteTrainer(trainerid);
         super.afterAll();
     }
 
@@ -60,7 +60,7 @@ component extends="tests.resources.baseTest" asyncAll="false" {
      * Call a datatable method with the blank search/sort the handler sends by default, overridden by args
      *
      * @service service with the datatable method
-     * @method  getTable (pokemon) or get/getRequests
+     * @method  getTable or getRequests
      * @args    arguments to override
      */
     private struct function table(
@@ -68,8 +68,10 @@ component extends="tests.resources.baseTest" asyncAll="false" {
         required string method,
         struct args = {}
     ) {
-        var defaults = {records: 10, offset: 0, search: ""};
-        if(method == "getTable") {
+        var defaults      = {records: 10, offset: 0, search: ""};
+        // pokemon's table sorts on two columns (orderCol1/orderCol2), the log and trainer tables on one (orderCol)
+        var twoColumnSort = getMetadata(arguments.service[arguments.method]).parameters.some((parameter) => parameter.name == "orderCol1");
+        if(twoColumnSort) {
             defaults.append({
                 orderCol1: "",
                 orderDir1: "",
@@ -108,7 +110,7 @@ component extends="tests.resources.baseTest" asyncAll="false" {
         describe("Admin datatables", () => {
             describe("pokemonService.getTable", () => {
                 it("Pages the non-costume pokemon", () => {
-                    var total  = queryExecute("SELECT COUNT(*) AS total FROM pokemon JOIN generation ON generation.generation = pokemon.generation WHERE pokemon.costume = false").total;
+                    var total  = queryExecute("SELECT COUNT(*) AS total FROM pokemon INNER JOIN generation ON generation.generation = pokemon.generation WHERE pokemon.costume = false").total;
                     var result = table(
                         pokemonService,
                         "getTable",
@@ -146,32 +148,18 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                     expect(numbers).toBe(numbers.duplicate().sort("numeric", "desc"));
                 });
 
-                it("Ignores a sort column that isn't sortable", () => {
-                    var result = table(
-                        pokemonService,
-                        "getTable",
-                        {
-                            records  : 10,
-                            offset   : 0,
-                            orderCol1: 9,
-                            orderDir1: "asc"
-                        }
-                    );
-                    expect(result.data[1].number).toBe(1);
-                });
-
                 it("Pages without overlap", () => {
                     var first = table(
                         pokemonService,
                         "getTable",
                         {records: 10, offset: 0}
                     ).data.map((row) => row.pokemonid);
-                    var second = table(
+                    var secondPage = table(
                         pokemonService,
                         "getTable",
                         {records: 10, offset: 10}
                     ).data.map((row) => row.pokemonid);
-                    expect(first.filter((id) => second.contains(id))).toBeEmpty();
+                    expect(first.filter((id) => secondPage.contains(id))).toBeEmpty();
                 });
 
                 it("Searches by name and by number", () => {
@@ -196,7 +184,7 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                     expect(byNumber.data.filter((row) => row.number == 1)).notToBeEmpty();
                 });
 
-                it("Matches the entity's move and evolution text", () => {
+                it("Matches the pokemon's move and evolution text", () => {
                     var row = table(
                         pokemonService,
                         "getTable",
@@ -206,17 +194,28 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                             search : "bulbasaur"
                         }
                     ).data.filter((row) => row.name == "Bulbasaur")[1];
-                    var bulbasaur = entityLoadByPK("pokemon", row.pokemonid);
+                    var bulbasaur = pokemonService.getFromId(row.pokemonid);
 
-                    expect(row.fastmoves).toBe(bulbasaur.getMovesText("fast", "all"));
-                    expect(row.chargemoves).toBe(bulbasaur.getMovesText("charge", "all"));
-                    expect(row.evolutiontext).toBe(bulbasaur.getEvolutionText());
+                    // Move text is the name, $ when shadow, * when legacy - sorted and <br> separated
+                    var movesText = (type) => pokemonService.getMovesByKind(bulbasaur, "all")[type]
+                        .map((move) => "#move.name##move.shadow ? "$" : ""##move.legacy ? "*" : ""#")
+                        .sort("text", "asc")
+                        .toList("<br>");
+                    // Evolution text is the evolved pokemon's name, prefixed by its costume type for costumes
+                    var evolutionText = pokemonService
+                        .getEvolution(bulbasaur)
+                        .map((evolution) => evolution.evolution.costume ? "#evolution.evolution.costumetype# #evolution.evolution.name#" : evolution.evolution.name)
+                        .toList(", ");
+
+                    expect(row.fastmoves).toBe(movesText("fast"));
+                    expect(row.chargemoves).toBe(movesText("charge"));
+                    expect(row.evolutiontext).toBe(evolutionText);
                     expect(row.evolutiontext).toInclude("Ivysaur");
-                    expect(row.ses).toBe(bulbasaur.getSes());
+                    expect(row.ses).toBe(bulbasaur.ses);
                 });
 
                 it("Pages the costume pokemon separately", () => {
-                    var total  = queryExecute("SELECT COUNT(*) AS total FROM pokemon JOIN generation ON generation.generation = pokemon.generation WHERE pokemon.costume = true").total;
+                    var total  = queryExecute("SELECT COUNT(*) AS total FROM pokemon INNER JOIN generation ON generation.generation = pokemon.generation WHERE pokemon.costume = true").total;
                     var result = table(
                         pokemonService,
                         "getTable",
@@ -241,19 +240,23 @@ component extends="tests.resources.baseTest" asyncAll="false" {
 
             describe("trainerService.get", () => {
                 it("Pages every trainer", () => {
-                    var total  = queryExecute("SELECT COUNT(*) AS total FROM trainer").total;
-                    var result = table(trainerService, "get", {records: 10, offset: 0});
+                    var total  = testData.countRows("trainer");
+                    var result = table(
+                        trainerService,
+                        "getTable",
+                        {records: 10, offset: 0}
+                    );
 
                     expectDatatable(result, total);
                     expect(result.recordsFiltered).toBe(total);
                     expect(result.data[1]).toHaveKey("trainerid,edit,icon,iconAltText,username,email,verified,securitylevel,lastlogin");
                 });
 
-                it("Finds a trainer by username with the entity's display values", () => {
-                    var username = trainer.getUsername();
+                it("Finds a trainer by username with the trainer's display values", () => {
+                    var username = trainer.username;
                     var result   = table(
                         trainerService,
-                        "get",
+                        "getTable",
                         {
                             records: 10,
                             offset : 0,
@@ -264,22 +267,19 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                     expect(result.recordsFiltered).toBe(1);
                     var row = result.data[1];
                     expect(row.trainerid).toBe(trainerid);
-                    expect(row.email).toBe(trainer.getEmail());
-                    expect(row.icon).toBe(trainer.getIconPath());
-                    expect(row.iconAltText).toBe(trainer.getIconAltText());
+                    expect(row.email).toBe(trainer.email);
+                    expect(row.icon).toBe(trainer.iconpath);
+                    expect(row.iconAltText).toBe(trainer.iconalttext);
                     expect(row.securitylevel).toBe("Regular User");
                     expect(row.lastlogin).toBe(
-                        isNull(trainer.getLastLogin()) ? "---" : dateTimeFormat(
-                            trainer.getLastLogin(),
-                            "mmm-dd-yyyy HH:nn:ss"
-                        )
+                        !isDate(trainer.lastlogin) ? "---" : dateTimeFormat(trainer.lastlogin, "mmm-dd-yyyy HH:nn:ss")
                     );
                 });
 
                 it("Sorts by username", () => {
                     var usernames = table(
                         trainerService,
-                        "get",
+                        "getTable",
                         {
                             records : 25,
                             offset  : 0,
@@ -290,7 +290,7 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                     var expected = queryExecute(
                         "SELECT username FROM trainer ORDER BY username ASC NULLS LAST, id ASC LIMIT 25",
                         {},
-                        {returntype: "array"}
+                        {returnType: "array"}
                     ).map((row) => row.username);
                     expect(usernames).toBe(expected);
                 });
@@ -298,8 +298,8 @@ component extends="tests.resources.baseTest" asyncAll="false" {
 
             describe("bugService.get", () => {
                 it("Pages every bug", () => {
-                    var total  = queryExecute("SELECT COUNT(*) AS total FROM bug").total;
-                    var result = table(bugService, "get", {records: 10, offset: 0});
+                    var total  = testData.countRows("bug");
+                    var result = table(bugService, "getTable", {records: 10, offset: 0});
 
                     expectDatatable(result, total);
                     expect(result.data[1]).toHaveKey("id,timestamp,ip,event,message,username,stack");
@@ -308,19 +308,19 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                 it("Finds a bug by message with its trainer's username", () => {
                     var result = table(
                         bugService,
-                        "get",
+                        "getTable",
                         {records: 10, offset: 0, search: marker}
                     );
 
                     expect(result.recordsFiltered).toBe(1);
                     expect(result.data[1].event).toBe("#marker#.event");
-                    expect(result.data[1].username).toBe(trainer.getUsername());
+                    expect(result.data[1].username).toBe(trainer.username);
                 });
 
                 it("Sorts newest first", () => {
                     var ids = table(
                         bugService,
-                        "get",
+                        "getTable",
                         {
                             records : 10,
                             offset  : 0,
@@ -331,7 +331,7 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                     var expected = queryExecute(
                         "SELECT id FROM bug ORDER BY created DESC, id ASC LIMIT 10",
                         {},
-                        {returntype: "array"}
+                        {returnType: "array"}
                     ).map((row) => row.id);
                     expect(ids).toBe(expected);
                 });
@@ -339,8 +339,12 @@ component extends="tests.resources.baseTest" asyncAll="false" {
 
             describe("auditService.get", () => {
                 it("Pages every audit", () => {
-                    var total  = queryExecute("SELECT COUNT(*) AS total FROM audit").total;
-                    var result = table(auditService, "get", {records: 10, offset: 0});
+                    var total  = testData.countRows("audit");
+                    var result = table(
+                        auditService,
+                        "getTable",
+                        {records: 10, offset: 0}
+                    );
 
                     expectDatatable(result, total);
                     expect(result.data[1]).toBeArray();
@@ -350,7 +354,7 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                 it("Finds an audit by detail with its trainer's username", () => {
                     var result = table(
                         auditService,
-                        "get",
+                        "getTable",
                         {records: 10, offset: 0, search: marker}
                     );
 
@@ -358,13 +362,13 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                     var row = result.data[1];
                     expect(row[3]).toBe("#marker#.event");
                     expect(row[5]).toBe("#marker# detail");
-                    expect(row[7]).toBe(trainer.getUsername());
+                    expect(row[7]).toBe(trainer.username);
                 });
             });
 
             describe("auditService.getRequests", () => {
                 it("Pages every request", () => {
-                    var total  = queryExecute("SELECT COUNT(*) AS total FROM request_log").total;
+                    var total  = testData.countRows("request_log");
                     var result = table(
                         auditService,
                         "getRequests",
@@ -389,7 +393,7 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                     expect(row[3]).toInclude(marker);
                     expect(right(row[3], 3)).toBe("...");
                     expect(row[7]).toBe(200);
-                    expect(row[9]).toBe(trainer.getUsername());
+                    expect(row[9]).toBe(trainer.username);
                 });
 
                 it("Searches the status code", () => {

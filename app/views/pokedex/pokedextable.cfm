@@ -8,41 +8,39 @@
     <cfset total = 0/>
     <cfloop index="i" item="currEntry" array="#args.pokedex#">
         <cfif 
-            (args.pokedexView == "costumeshiny" && currEntry[1].getShiny()) ||
-            (args.pokedexView == "costume" && currEntry[1].getLive()) ||
-            (args.pokedexView == "shadowshiny" && currEntry[1].getShadowShiny()) ||
-            (args.pokedexView == "shadow" && currEntry[1].getShadow()) ||
-            (args.pokedexView == "shiny" && currEntry[1].getShiny()) ||
-            (args.pokedexView == "caught" && currEntry[1].getLive())
+            (args.pokedexView == "costumeshiny" && currEntry.shiny) ||
+            (args.pokedexView == "costume" && currEntry.live) ||
+            (args.pokedexView == "shadowshiny" && currEntry.shadowshiny) ||
+            (args.pokedexView == "shadow" && currEntry.shadow) ||
+            (args.pokedexView == "shiny" && currEntry.shiny) ||
+            (args.pokedexView == "caught" && currEntry.live)
         >
             <cfset total++/>
-            <cfset caught = !isNull(currEntry[2]) && (
-                    (args.pokedexView == "costumeshiny" && currEntry[2].getShiny()) ||
-                    (args.pokedexView == "costume" && currEntry[2].getCaught()) ||
-                    (args.pokedexView == "shadowshiny" && currEntry[2].getShadowShiny()) ||
-                    (args.pokedexView == "shadow" && currEntry[2].getShadow()) ||
-                    (args.pokedexView == "shiny" && currEntry[2].getShiny()) || 
-                    (args.pokedexView == "hundo" && currEntry[2].getHundo()) || 
-                    (args.pokedexView == "caught" && currEntry[2].getCaught())
+            <cfset caught = currEntry.registered && (
+                    (args.pokedexView == "costumeshiny" && currEntry.dex_shiny) ||
+                    (args.pokedexView == "costume" && currEntry.dex_caught) ||
+                    (args.pokedexView == "shadowshiny" && currEntry.dex_shadowshiny) ||
+                    (args.pokedexView == "shadow" && currEntry.dex_shadow) ||
+                    (args.pokedexView == "shiny" && currEntry.dex_shiny) || 
+                    (args.pokedexView == "hundo" && currEntry.dex_hundo) || 
+                    (args.pokedexView == "caught" && currEntry.dex_caught)
                 )
             />
             <cfif caught><cfset registered++></cfif>
             <div class="col d-flex justify-content-center align-items-center col-6 col-sm-6 col-md-4 col-lg-3 col-xl-2 col-xxl-1 pokemonCell <cfif caught>caught</cfif><cfif args.shadow> shadowCell</cfif> parent pokemon-entry"
-                data-id="#currEntry[1].getId()#"
-                data-number="#currEntry[1].getNumber()#"
-                data-name="#currEntry[1].getName()#"
-                data-form="#currEntry[1].getForm()#"
-                data-gender="#currEntry[1].getGender()#"
-                data-tradable="#currEntry[1].getTradable()#"
-                data-caught="#!isNull(currEntry[2]) ? currEntry[2].getCaught() : false#"
-                data-shiny="#!isNull(currEntry[2]) ? currEntry[2].getShiny() : false#"
-                data-hundo="#!isNull(currEntry[2]) ? currEntry[2].getHundo() : false#"
-                data-shadow="#!isNull(currEntry[2]) ? currEntry[2].getShadow() : false#"
-                data-shadowshiny="#!isNull(currEntry[2]) ? currEntry[2].getShadowShiny() : false#"
-                title="#encodeForHTMLAttribute("#currEntry[1].getName()##currEntry[1].getCostume() ? ' #currEntry[1].getCostumeType()#' : ''#")#"
+                data-id="#currEntry.id#"
+                data-number="#currEntry.number#"
+                data-name="#currEntry.name#"
+                data-form="#booleanFormat(currEntry.form)#"
+                data-caught="#booleanFormat(currEntry.dex_caught)#"
+                data-shiny="#booleanFormat(currEntry.dex_shiny)#"
+                data-hundo="#booleanFormat(currEntry.dex_hundo)#"
+                data-shadow="#booleanFormat(currEntry.dex_shadow)#"
+                data-shadowshiny="#booleanFormat(currEntry.dex_shadowshiny)#"
+                title="#encodeForHTMLAttribute("#currEntry.name##currEntry.costume ? ' #currEntry.costumetype#' : ''#")#"
                 role="checkbox"
                 aria-checked="#caught ? 'true' : 'false'#"
-                aria-label="#encodeForHTMLAttribute("#currEntry[1].getName()##currEntry[1].getCostume() ? ' #currEntry[1].getCostumeType()#' : ''#")#"
+                aria-label="#encodeForHTMLAttribute("#currEntry.name##currEntry.costume ? ' #currEntry.costumetype#' : ''#")#"
                 tabindex="0"
             >
                 <img 
@@ -51,19 +49,19 @@
                     height="#getSetting('pokemonIconSize')#"
                     decoding="async"
                     <cfif i GT 10>loading="lazy"</cfif> 
-                    src="/includes/images/<cfif args.shiny>shinysprites<cfelse>sprites</cfif>/#currEntry[1].getSprite()##getSetting('imageExtension')#"
+                    src="/includes/images/<cfif args.shiny>shinysprites<cfelse>sprites</cfif>/#currEntry.sprite##getSetting('imageExtension')#"
                 >
 
                 <p class="mt-1 mb-0 small fw-semibold text-center text-capitalize">
-                    <cfif currEntry[1].getCostume()>
-                        <span class="d-block fw-normal text-muted lh-1 costume-base-name">#currEntry[1].getName()#</span>
-                        #currEntry[1].getCostumeType()#
+                    <cfif currEntry.costume>
+                        <span class="d-block fw-normal text-muted lh-1 costume-base-name">#currEntry.name#</span>
+                        #currEntry.costumetype#
                     <cfelse>
-                        #currEntry[1].getName()#
+                        #currEntry.name#
                     </cfif>
                 </p>
 
-                <span class="dex-number">#currEntry[1].getNumber()#</span>
+                <span class="dex-number">#currEntry.number#</span>
             </div>
         </cfif>
     </cfloop>

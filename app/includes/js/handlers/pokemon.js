@@ -1,3 +1,4 @@
+import { debounce } from 'display';
 import { getWrapper } from 'fetch';
 import { createPokemonSearch } from 'search';
 
@@ -177,14 +178,12 @@ const createPokedexFilter = ($input, $sections, $links, refreshActive, refreshHe
         refreshActive();
     };
 
-    let timer = 0;
-    $input.addEventListener('input', () => {
-        clearTimeout(timer);
-        timer = window.setTimeout(apply, 120);
-    });
+    const debouncedApply = debounce(apply, 120);
+    $input.addEventListener('input', () => debouncedApply());
     $input.addEventListener('keydown', (e) => {
         if (e.key === 'Escape' && $input.value) {
             $input.value = '';
+            debouncedApply.cancel();
             apply();
         }
     });

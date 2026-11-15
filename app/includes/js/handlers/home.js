@@ -1,6 +1,6 @@
 import { $blogListDiv, getBlogs } from 'blog';
 import { getWrapper } from 'fetch';
-import { $loading } from 'loading';
+import { $loading, addLoadMoreButton } from 'loading';
 import { createPokemonSearch } from 'search';
 import { $leaderboardDiv, getLeaderboard } from 'stats';
 
@@ -31,7 +31,6 @@ async function getNews() {
 
 function showLoadMoreButton($list, { url, itemSelector }) {
     const count = parseInt($list.dataset.count);
-    const loadMoreHtml = '<i class="bi bi-arrow-down-circle me-2"></i>Load More';
 
     // Only show load more button if we retrieved the maximum count and are within the max offset
     const canLoadMore = (returned) => {
@@ -41,39 +40,31 @@ function showLoadMoreButton($list, { url, itemSelector }) {
 
     if (!canLoadMore($list.querySelectorAll(itemSelector).length)) return;
 
-    const $btn = document.createElement('button');
-    $btn.type = 'button';
-    $btn.className = 'btn btn-outline-dark w-100 mt-2';
-    $btn.innerHTML = loadMoreHtml;
+    addLoadMoreButton(
+        $list,
+        async () => {
+            const offset = $list.querySelectorAll(itemSelector).length;
+            // A failed page keeps the button for a retry
+            let more = true;
 
-    $btn.addEventListener('click', async () => {
-        $btn.disabled = true;
-        $btn.innerHTML =
-            '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Loading...';
+            await getWrapper({
+                url: `${url}/offset/${offset}`,
+                dataHandler: (data) => {
+                    // Parsed off the page - only the items are moved into the list
+                    const newDiv = document.createElement('div');
+                    newDiv.innerHTML = data;
+                    const $newItems = newDiv.querySelectorAll(itemSelector);
+                    $list.append(...$newItems);
 
-        const offset = $list.querySelectorAll(itemSelector).length;
+                    more = canLoadMore($newItems.length);
+                },
+            });
 
-        await getWrapper({
-            url: `${url}/offset/${offset}`,
-            dataHandler: (data) => {
-                const newDiv = document.createElement('div');
-                newDiv.innerHTML = data;
-                const $newItems = newDiv.querySelectorAll(itemSelector);
-                $list.append(...$newItems);
-
-                if (canLoadMore($newItems.length)) {
-                    $btn.disabled = false;
-                    $btn.innerHTML = loadMoreHtml;
-                } else {
-                    $btn.remove();
-                }
-
-                resizeHomeCards();
-            },
-        });
-    });
-
-    $list.after($btn);
+            return more;
+        },
+        // After the button is gone, so the card is measured at its final height
+        { onSettled: resizeHomeCards }
+    );
 }
 
 async function getEvents() {

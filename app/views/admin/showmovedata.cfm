@@ -32,13 +32,13 @@
     <tbody>
         <cfloop index="i" item="currMove" array="#prc.fastMoves#">
             <tr>
-                <td>#currMove.getName()#</td>
-                <td>#currMove.getType()#</td>
-                <td>#currMove.getDamage()#</td>
-                <td>#currMove.getEnergy()#</td>
-                <td>#currMove.getTurns()#</td>
-                <td>#currMove.getDamagePerTurn()#</td>
-                <td>#currMove.getEnergyPerTurn()#</td>
+                <td>#currMove.name#</td>
+                <td>#currMove.type#</td>
+                <td>#currMove.damage#</td>
+                <td>#currMove.energy#</td>
+                <td>#currMove.turns#</td>
+                <td>#currMove.damageperturn#</td>
+                <td>#currMove.energyperturn#</td>
             </tr>
         </cfloop>
     </tbody>
@@ -60,12 +60,12 @@
     <tbody>
         <cfloop index="i" item="currMove" array="#prc.chargeMoves#">
             <tr>
-                <td>#currMove.getName()#</td>
-                <td>#currMove.getType()#</td>
-                <td>#currMove.getDamage()#</td>
-                <td>#currMove.getEnergy()#</td>
-                <td>#currMove.getDamagePerEnergy()#</td>
-                <td>#currMove.getBuff()#</td>
+                <td>#currMove.name#</td>
+                <td>#currMove.type#</td>
+                <td>#currMove.damage#</td>
+                <td>#currMove.energy#</td>
+                <td>#currMove.damageperenergy#</td>
+                <td>#currMove.buff#</td>
             </tr>
         </cfloop>
     </tbody>

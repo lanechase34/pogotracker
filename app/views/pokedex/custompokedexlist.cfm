@@ -6,22 +6,22 @@
             <div class="card h-100 w-100 shadow-sm">        
                 <div class="d-flex flex-column card-body">
                     <h5 class="card-title">
-                        #encodeForHTML(currCustom.getName())#
+                        #encodeForHTML(currCustom.name)#
                     </h5>
                     <div class="mt-auto">
                         <p class="card-text text-muted m-0">
                             <i class="bi bi-person-circle me-1"></i>
-                            #currCustom.getTrainer().getUsername()#
+                            #encodeForHTML(currCustom.username)#
                         </p>
                         <p class="text-muted">
                             <i class="bi bi-calendar3 me-1"></i>
-                            #currCustom.getFormattedBegins()#<cfif !isNull(currCustom.getEnds())> - #currCustom.getFormattedEnds()#</cfif>
+                            #currCustom.formattedbegins#<cfif isDate(currCustom.ends ?: "")> - #currCustom.formattedends#</cfif>
                         </p>
                         <div class="row p-0">
                             <div class="btn-group" role="group">
-                                <a href="/mycustompokedex/#currCustom.getId()#" class="mt-auto btn btn-dark w-100">View</a>
-                                <cfif currCustom.getTrainer().getId() EQ args.trainer.getId()>
-                                    <button class="editCustomPokedex#args.offset# mt-auto btn btn-warning w-100" type="button" data-customid="#encodeForHTML(currCustom.getId())#">
+                                <a href="/mycustompokedex/#currCustom.id#" class="mt-auto btn btn-dark w-100">View</a>
+                                <cfif currCustom.trainerid EQ args.trainerid>
+                                    <button class="editCustomPokedex#args.offset# mt-auto btn btn-warning w-100" type="button" data-customid="#encodeForHTML(currCustom.id)#">
                                         <i class="bi bi-wrench me-1"></i>Edit
                                     </button>
                                 </cfif>

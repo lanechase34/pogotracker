@@ -1,4 +1,4 @@
-component extends="coldbox.system.Interceptor" {
+component extends="baseInterceptor" {
 
     function configure() {
     }

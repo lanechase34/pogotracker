@@ -10,17 +10,10 @@
         <div class="tableDiv">
             <table class="table table-hover table-sm mb-0">
                 <cfloop index="i" item="currFriend" array="#args.friendsList#">
-                    <tr class="trainerRow" data-profilelink="/profile/#currFriend[1].getId()#">
-                        <td class="align-middle" style="width: 56px;">
-                            <img
-                                class="profileIcon"
-                                src="#encodeForHTMLAttribute(currFriend[1].getIconPath())#"
-                                alt="#encodeForHTMLAttribute(currFriend[1].getIconAltText())#"
-                            >
-                        </td>
-                        <td class="align-middle profileLink">#encodeForHTML(currFriend[1].getUsername())#</td>
+                    <tr class="trainerRow" data-profilelink="/profile/#currFriend.id#">
+                        #view(view = "/views/friend/fragment/trainerCells", args = {trainer: currFriend, nameClass: "profileLink"})#
                         <td class="align-middle text-end">
-                            <cfif currFriend[2]>
+                            <cfif currFriend.accepted>
                                 <span class="badge text-bg-success">Accepted</span>
                             <cfelse>
                                 <span class="badge text-bg-secondary">Pending</span>

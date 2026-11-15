@@ -3,28 +3,60 @@ component extends="coldbox.system.testing.BaseInterceptorTest" interceptor="inte
     function beforeAll() {
         super.beforeAll();
 
-        // Init inteceptor
-        super.setup();
-
-        // Mock inteceptor dependencies
-        mockAsync        = createEmptyMock("coldbox.system.async.AsyncManager");
+        // Mock interceptor dependencies
         mockAuditService = createEmptyMock(className = "models.services.audit");
         mockUtilService  = createEmptyMock(className = "models.services.util");
         mockConcurrency  = {slowRequests: []};
 
         // Mock audit settings - copied fresh into mockAuditSettings before each spec so overrides don't leak
-        defaultAuditSettings = {
-            urlpathLength       : 500,
-            methodLength        : 10,
-            agentLength         : 250,
-            refererLength       : 250,
-            slowRequestThreshold: 1000,
-            maxSlowRequests     : 25
-        };
+        defaultAuditSettings = {slowRequestThreshold: 1000, maxSlowRequests: 25};
     }
 
     function afterAll() {
         super.afterAll();
+    }
+
+    /**
+     * Run preProcess on the interceptor with the shared mocks
+     */
+    private function announcePreProcess() {
+        interceptor.preProcess(
+            event  = mockRequestContext,
+            data   = {},
+            buffer = "",
+            rc     = rc,
+            prc    = prc
+        );
+    }
+
+    /**
+     * Run postProcess on the interceptor with the shared mocks
+     */
+    private function announcePostProcess() {
+        interceptor.postProcess(event = mockRequestContext, rc = rc, prc = prc);
+    }
+
+    /**
+     * Fill the slow request log with entryCount entries
+     *
+     * @entryCount Number of entries to add
+     * @prefix     urlpath prefix, suffixed with the entry number
+     * @time       Timestamp of every entry
+     */
+    private function fillSlowRequests(
+        required numeric entryCount,
+        string prefix = "/api/old",
+        date time     = now()
+    ) {
+        for(var i = 1; i <= arguments.entryCount; i++) {
+            mockConcurrency.slowRequests.append({
+                urlpath  : "#arguments.prefix##i#",
+                method   : "GET",
+                delta    : 1100,
+                trainerid: i,
+                time     : arguments.time
+            });
+        }
     }
 
     function run() {
@@ -33,7 +65,6 @@ component extends="coldbox.system.testing.BaseInterceptorTest" interceptor="inte
                 setup();
 
                 // Reset mocks before each test
-                mockAsync.$reset();
                 mockAuditService.$reset();
                 mockUtilService.$reset();
 
@@ -42,7 +73,6 @@ component extends="coldbox.system.testing.BaseInterceptorTest" interceptor="inte
                 mockAuditSettings            = duplicate(defaultAuditSettings);
 
                 // Inject dependencies
-                interceptor.$property(propertyName = "async", mock = mockAsync);
                 interceptor.$property(propertyName = "concurrency", mock = mockConcurrency);
                 interceptor.$property(propertyName = "REQUEST_LOG_SETTINGS", mock = mockAuditSettings);
                 interceptor.$property(propertyName = "LOG_REQUESTS", mock = true);
@@ -50,13 +80,11 @@ component extends="coldbox.system.testing.BaseInterceptorTest" interceptor="inte
                 interceptor.$property(propertyName = "auditService", mock = mockAuditService);
                 interceptor.$property(propertyName = "utilService", mock = mockUtilService);
 
-                // Mock event and data objects
+                // Mock event object
                 mockRequestContext = createEmptyMock("coldbox.system.web.context.RequestContext");
 
-                mockData   = {};
-                mockBuffer = "";
-                rc         = {};
-                prc        = {};
+                rc  = {};
+                prc = {};
 
                 // Setup default mock responses
                 mockUtilService.$("getRequestIP", "192.168.1.100");
@@ -65,33 +93,16 @@ component extends="coldbox.system.testing.BaseInterceptorTest" interceptor="inte
                 mockUtilService.$("isJsonRequest", true);
                 mockRequestContext.$("getFullPath", "/api/v1/users");
                 mockRequestContext.$("getHTTPMethod", "GET");
-
-                // Mock async future
-                var mockFuture = createEmptyMock(className = "coldbox.system.async.tasks.Future");
-                mockAsync.$("newFuture", mockFuture);
-
-                // Mock log request func
                 mockAuditService.$("logRequest");
             });
 
             describe("configure()", () => {
                 it("Should configure all settings in one call", () => {
-                    var customSettings = {
-                        urlpathLength       : 100,
-                        methodLength        : 5,
-                        agentLength         : 50,
-                        refererLength       : 100,
-                        slowRequestThreshold: 500,
-                        maxSlowRequests     : 10
-                    };
+                    var customSettings = {slowRequestThreshold: 500, maxSlowRequests: 10};
                     interceptor.$property(propertyName = "REQUEST_LOG_SETTINGS", mock = customSettings);
 
                     interceptor.configure();
 
-                    expect(interceptor.$getProperty("URLPATH_LENGTH")).toBe(100);
-                    expect(interceptor.$getProperty("METHOD_LENGTH")).toBe(5);
-                    expect(interceptor.$getProperty("AGENT_LENGTH")).toBe(50);
-                    expect(interceptor.$getProperty("REFERER_LENGTH")).toBe(100);
                     expect(interceptor.$getProperty("SLOW_REQUEST_THRESHOLD")).toBe(500);
                     expect(interceptor.$getProperty("MAX_SLOW_REQUESTS")).toBe(10);
                 });
@@ -99,18 +110,13 @@ component extends="coldbox.system.testing.BaseInterceptorTest" interceptor="inte
 
             describe("preProcess()", () => {
                 beforeEach(() => {
-                    // Configure interceptor before each test
                     interceptor.configure();
                 });
 
-                it("Should initialize prc.requestAudit with correct structure", () => {
-                    interceptor.preProcess(
-                        event  = mockRequestContext,
-                        data   = mockData,
-                        buffer = mockBuffer,
-                        rc     = rc,
-                        prc    = prc
-                    );
+                it("Should build prc.requestAudit from the request", () => {
+                    var beforeTick = getTickCount();
+                    announcePreProcess();
+                    var afterTick = getTickCount();
 
                     expect(prc).toHaveKey("requestAudit");
                     expect(prc.requestAudit).toBeStruct();
@@ -122,215 +128,41 @@ component extends="coldbox.system.testing.BaseInterceptorTest" interceptor="inte
                     expect(prc.requestAudit).toHaveKey("referer");
                     expect(prc.requestAudit).toHaveKey("statuscode");
                     expect(prc.requestAudit).toHaveKey("trainerid");
-                });
 
-                it("Should set IP from utilService", () => {
-                    interceptor.preProcess(
-                        event  = mockRequestContext,
-                        data   = mockData,
-                        buffer = mockBuffer,
-                        rc     = rc,
-                        prc    = prc
-                    );
-
-                    // Calls utilService.getRequestIP()
                     expect(mockUtilService.$once("getRequestIP")).toBeTrue();
                     expect(prc.requestAudit.ip).toBe("192.168.1.100");
-                });
 
-                it("Should set urlpath from event.getFullPath()", () => {
-                    interceptor.preProcess(
-                        event  = mockRequestContext,
-                        data   = mockData,
-                        buffer = mockBuffer,
-                        rc     = rc,
-                        prc    = prc
-                    );
-
-                    // Calls event.getFullPath()
                     expect(mockRequestContext.$once("getFullPath")).toBeTrue();
                     expect(prc.requestAudit.urlpath).toBe("/api/v1/users");
-                });
 
-                it("Should truncate urlpath to URLPATH_LENGTH", () => {
-                    var longPath = repeatString("a", 600);
-                    mockRequestContext.$("getFullPath", longPath);
-
-                    interceptor.preProcess(
-                        event  = mockRequestContext,
-                        data   = mockData,
-                        buffer = mockBuffer,
-                        rc     = rc,
-                        prc    = prc
-                    );
-
-                    expect(len(prc.requestAudit.urlpath)).toBe(500);
-                });
-
-                it("Should set method from event.getHTTPMethod()", () => {
-                    mockRequestContext.$("getHTTPMethod", "POST");
-
-                    interceptor.preProcess(
-                        event  = mockRequestContext,
-                        data   = mockData,
-                        buffer = mockBuffer,
-                        rc     = rc,
-                        prc    = prc
-                    );
-
-                    // Calls event.getHTTPMethod()
                     expect(mockRequestContext.$once("getHTTPMethod")).toBeTrue();
-                    expect(prc.requestAudit.method).toBe("POST");
-                });
-
-                it("Should truncate method to METHOD_LENGTH", () => {
-                    mockRequestContext.$("getHTTPMethod", "VERYLONGMETHOD");
-
-                    interceptor.preProcess(
-                        event  = mockRequestContext,
-                        data   = mockData,
-                        buffer = mockBuffer,
-                        rc     = rc,
-                        prc    = prc
-                    );
-
-                    expect(len(prc.requestAudit.method)).toBe(10);
-                    expect(prc.requestAudit.method).toBe("VERYLONGME");
-                });
-
-                it("Should set start time using getTickCount()", () => {
-                    var beforeTick = getTickCount();
-
-                    interceptor.preProcess(
-                        event  = mockRequestContext,
-                        data   = mockData,
-                        buffer = mockBuffer,
-                        rc     = rc,
-                        prc    = prc
-                    );
-
-                    var afterTick = getTickCount();
+                    expect(prc.requestAudit.method).toBe("GET");
 
                     expect(prc.requestAudit.start).toBeGTE(beforeTick);
                     expect(prc.requestAudit.start).toBeLTE(afterTick);
-                });
 
-                it("Should set agent from utilService.getUserAgent()", () => {
-                    interceptor.preProcess(
-                        event  = mockRequestContext,
-                        data   = mockData,
-                        buffer = mockBuffer,
-                        rc     = rc,
-                        prc    = prc
-                    );
-
-                    // Calls utilService.getUserAgent()
                     expect(mockUtilService.$once("getUserAgent")).toBeTrue();
                     expect(prc.requestAudit.agent).toBe("Mozilla/5.0 Test Browser");
-                });
 
-                it("Should use 'Unknown' when cgi.http_user_agent does not exist", () => {
-                    mockUtilService.$("getUserAgent", "Unknown");
-
-                    interceptor.preProcess(
-                        event  = mockRequestContext,
-                        data   = mockData,
-                        buffer = mockBuffer,
-                        rc     = rc,
-                        prc    = prc
-                    );
-
-                    expect(mockUtilService.$once("getUserAgent")).toBeTrue();
-                    expect(prc.requestAudit.agent).toBe("Unknown");
-                });
-
-                it("Should truncate agent to AGENT_LENGTH", () => {
-                    mockUtilService.$("getUserAgent", repeatString("b", 300))
-
-                    interceptor.preProcess(
-                        event  = mockRequestContext,
-                        data   = mockData,
-                        buffer = mockBuffer,
-                        rc     = rc,
-                        prc    = prc
-                    );
-
-                    expect(mockUtilService.$once("getUserAgent")).toBeTrue();
-                    expect(len(prc.requestAudit.agent)).toBe(250);
-                });
-
-                it("Should set referer from utilService.getReferer()", () => {
-                    interceptor.preProcess(
-                        event  = mockRequestContext,
-                        data   = mockData,
-                        buffer = mockBuffer,
-                        rc     = rc,
-                        prc    = prc
-                    );
-
-                    // Calls utilService.getReferer()
                     expect(mockUtilService.$once("getReferer")).toBeTrue();
                     expect(prc.requestAudit.referer).toBe("https://pogotracker.app");
-                });
-
-                it("Should use empty string when cgi.http_referer does not exist", () => {
-                    mockUtilService.$("getUserAgent", "");
-
-                    interceptor.preProcess(
-                        event  = mockRequestContext,
-                        data   = mockData,
-                        buffer = mockBuffer,
-                        rc     = rc,
-                        prc    = prc
-                    );
-
-                    expect(mockUtilService.$once("getReferer")).toBeTrue();
-                    expect(prc.requestAudit.agent).toBe("");
-                });
-
-                it("Should truncate agent to REFERER_LENGTH", () => {
-                    mockUtilService.$("getReferer", repeatString("b", 300))
-
-                    interceptor.preProcess(
-                        event  = mockRequestContext,
-                        data   = mockData,
-                        buffer = mockBuffer,
-                        rc     = rc,
-                        prc    = prc
-                    );
-
-                    expect(mockUtilService.$once("getReferer")).toBeTrue();
-                    expect(len(prc.requestAudit.referer)).toBe(250);
-                });
-
-                it("Should initialize statuscode as -1", () => {
-                    interceptor.preProcess(
-                        event  = mockRequestContext,
-                        data   = mockData,
-                        buffer = mockBuffer,
-                        rc     = rc,
-                        prc    = prc
-                    );
 
                     expect(prc.requestAudit.statuscode).toBe(-1);
+                    expect(prc.requestAudit.trainerid).toBe(-1);
                 });
 
-                it("Should initialize trainerid as -1", () => {
-                    interceptor.preProcess(
-                        event  = mockRequestContext,
-                        data   = mockData,
-                        buffer = mockBuffer,
-                        rc     = rc,
-                        prc    = prc
-                    );
+                it("Should use an empty referer when the request has none", () => {
+                    mockUtilService.$("getReferer", "");
 
-                    expect(prc.requestAudit.trainerid).toBe(-1);
+                    announcePreProcess();
+
+                    expect(mockUtilService.$once("getReferer")).toBeTrue();
+                    expect(prc.requestAudit.referer).toBe("");
                 });
             });
 
             describe("postProcess()", () => {
                 beforeEach(() => {
-                    // Configure interceptor
                     interceptor.configure();
 
                     // Setup prc.requestAudit as if preProcess ran
@@ -345,7 +177,6 @@ component extends="coldbox.system.testing.BaseInterceptorTest" interceptor="inte
                         trainerid : 123
                     };
 
-                    // Mock responseObj
                     prc.responseObj = {
                         success   : false,
                         message   : "",
@@ -355,16 +186,15 @@ component extends="coldbox.system.testing.BaseInterceptorTest" interceptor="inte
 
                 it("Should do nothing when preProcess never ran (the request failed before it)", () => {
                     prc.delete("requestAudit");
-                    interceptor.$property(propertyName = "LOG_REQUESTS", mock = true);
 
-                    interceptor.postProcess(event = mockRequestContext, rc = rc, prc = prc);
+                    announcePostProcess();
 
                     expect(prc).notToHaveKey("requestAudit");
-                    expect(mockAsync.$never("newFuture")).toBeTrue();
+                    expect(mockAuditService.$never("logRequest")).toBeTrue();
                 });
 
                 it("Should calculate delta from start time", () => {
-                    interceptor.postProcess(event = mockRequestContext, rc = rc, prc = prc);
+                    announcePostProcess();
 
                     expect(prc.requestAudit).toHaveKey("delta");
                     expect(prc.requestAudit.delta).toBeGTE(0);
@@ -377,24 +207,25 @@ component extends="coldbox.system.testing.BaseInterceptorTest" interceptor="inte
                     });
 
                     it("Should set statuscode from prc.responseObj", () => {
-                        interceptor.postProcess(event = mockRequestContext, rc = rc, prc = prc);
+                        announcePostProcess();
 
                         expect(prc.requestAudit.statuscode).toBe(210);
                     });
 
-                    it("Should use -1 for statuscode when response does not exist", () => {
+                    it("Should use -1 for statuscode and an empty response when responseObj does not exist", () => {
                         structDelete(prc, "responseObj");
 
-                        interceptor.postProcess(event = mockRequestContext, rc = rc, prc = prc);
+                        announcePostProcess();
 
                         expect(prc.requestAudit.statuscode).toBe(-1);
+                        expect(prc.requestAudit.response).toBe("{}");
                     });
 
                     it("Should use the entire serialized responseObj for response", () => {
                         prc.responseObj.success = true;
                         prc.responseObj.message = "this will be serialized";
 
-                        interceptor.postProcess(event = mockRequestContext, rc = rc, prc = prc);
+                        announcePostProcess();
 
                         expect(prc.requestAudit.response).toInclude("""success"":true");
                         expect(prc.requestAudit.response).toInclude("""message"":""this will be serialized""");
@@ -413,22 +244,21 @@ component extends="coldbox.system.testing.BaseInterceptorTest" interceptor="inte
                     it("Should set statuscode from prc.statuscode", () => {
                         prc.statuscode = 87;
 
-                        interceptor.postProcess(event = mockRequestContext, rc = rc, prc = prc);
+                        announcePostProcess();
 
                         expect(prc.requestAudit.statuscode).toBe(87);
                     });
 
                     it("Should set statuscode from event.getStatusCode() if prc.statuscode does not exist", () => {
-                        prc.delete("statuscode");
                         mockRequestContext.$("getStatusCode", 71);
 
-                        interceptor.postProcess(event = mockRequestContext, rc = rc, prc = prc);
+                        announcePostProcess();
 
                         expect(prc.requestAudit.statuscode).toBe(71);
                     });
 
                     it("Should use -1 if prc.statuscode and event.getStatusCode() do not exist", () => {
-                        interceptor.postProcess(event = mockRequestContext, rc = rc, prc = prc);
+                        announcePostProcess();
 
                         expect(prc.requestAudit.statuscode).toBe(-1);
                     });
@@ -437,44 +267,31 @@ component extends="coldbox.system.testing.BaseInterceptorTest" interceptor="inte
                         mockRequestContext.$("getCurrentLayout", "mockLayout");
                         mockRequestContext.$("getCurrentView", "mockView");
 
-                        interceptor.postProcess(event = mockRequestContext, rc = rc, prc = prc);
+                        announcePostProcess();
 
                         expect(prc.requestAudit.response).toInclude("""layout"":""mockLayout""");
                         expect(prc.requestAudit.response).toInclude("""view"":""mockView""");
                     });
 
                     it("Should skip audit if both current layout and current view are empty", () => {
-                        mockRequestContext.$("getCurrentLayout", "");
-                        mockRequestContext.$("getCurrentView", "");
+                        announcePostProcess();
 
-                        interceptor.postProcess(event = mockRequestContext, rc = rc, prc = prc);
-
-                        expect(mockAsync.$never("newFuture")).toBeTrue();
+                        expect(mockAuditService.$never("logRequest")).toBeTrue();
                     });
                 });
 
                 it("Should call auditService.logRequest() when LOG_REQUESTS is true", () => {
-                    interceptor.$property(propertyName = "LOG_REQUESTS", mock = true);
+                    announcePostProcess();
 
-                    interceptor.postProcess(event = mockRequestContext, rc = rc, prc = prc);
-
-                    expect(mockAsync.$once("newFuture")).toBeTrue();
+                    expect(mockAuditService.$once("logRequest")).toBeTrue();
                 });
 
                 it("Should not call auditService.logRequest() when LOG_REQUESTS is false", () => {
                     interceptor.$property(propertyName = "LOG_REQUESTS", mock = false);
 
-                    interceptor.postProcess(event = mockRequestContext, rc = rc, prc = prc);
+                    announcePostProcess();
 
-                    expect(mockAsync.$never("newFuture")).toBeTrue();
-                });
-
-                it("Should not add to slowRequests when delta is below threshold", () => {
-                    prc.requestAudit.start = getTickCount() - 500; // 500ms delta
-
-                    interceptor.postProcess(event = mockRequestContext, rc = rc, prc = prc);
-
-                    expect(arrayLen(mockConcurrency.slowRequests)).toBe(0);
+                    expect(mockAuditService.$never("logRequest")).toBeTrue();
                 });
 
                 it("Should not add to slowRequests when delta equals threshold", () => {
@@ -482,30 +299,18 @@ component extends="coldbox.system.testing.BaseInterceptorTest" interceptor="inte
                     prc.requestAudit.start = 0;
                     interceptor.$("tick", 1000);
 
-                    interceptor.postProcess(event = mockRequestContext, rc = rc, prc = prc);
+                    announcePostProcess();
 
                     expect(prc.requestAudit.delta).toBe(1000);
                     expect(arrayLen(mockConcurrency.slowRequests)).toBe(0);
                 });
 
-                it("Should add to slowRequests when delta exceeds threshold", () => {
-                    prc.requestAudit.start = getTickCount() - 1500; // 1500ms delta
-
-                    interceptor.postProcess(event = mockRequestContext, rc = rc, prc = prc);
-
-                    expect(arrayLen(mockConcurrency.slowRequests)).toBe(1);
-                    expect(mockConcurrency.slowRequests[1]).toHaveKey("urlpath");
-                    expect(mockConcurrency.slowRequests[1]).toHaveKey("method");
-                    expect(mockConcurrency.slowRequests[1]).toHaveKey("delta");
-                    expect(mockConcurrency.slowRequests[1]).toHaveKey("trainerid");
-                    expect(mockConcurrency.slowRequests[1]).toHaveKey("time");
-                });
-
-                it("Should populate slowRequest with correct data", () => {
+                it("Should add the request details to slowRequests when delta exceeds threshold", () => {
                     prc.requestAudit.start = getTickCount() - 1500;
 
-                    interceptor.postProcess(event = mockRequestContext, rc = rc, prc = prc);
+                    announcePostProcess();
 
+                    expect(arrayLen(mockConcurrency.slowRequests)).toBe(1);
                     var slowReq = mockConcurrency.slowRequests[1];
                     expect(slowReq.urlpath).toBe("/api/test");
                     expect(slowReq.method).toBe("POST");
@@ -517,252 +322,104 @@ component extends="coldbox.system.testing.BaseInterceptorTest" interceptor="inte
                 it("Should respect custom SLOW_REQUEST_THRESHOLD setting", () => {
                     mockAuditSettings.slowRequestThreshold = 500;
                     interceptor.configure();
-                    prc.requestAudit.start = getTickCount() - 600; // 600ms delta
+                    prc.requestAudit.start = getTickCount() - 600;
 
-                    interceptor.postProcess(event = mockRequestContext, rc = rc, prc = prc);
+                    announcePostProcess();
 
                     expect(arrayLen(mockConcurrency.slowRequests)).toBe(1);
                 });
 
                 it("Should filter out requests older than 24 hour", () => {
-                    var twentySixHoursAgo = dateAdd("h", -26, now());
-                    var thirtyMinsAgo     = dateAdd("n", -30, now());
-
-                    mockConcurrency.slowRequests = [
-                        {
-                            urlpath  : "/old1",
-                            method   : "GET",
-                            delta    : 1100,
-                            trainerid: 1,
-                            time     : twentySixHoursAgo
-                        },
-                        {
-                            urlpath  : "/old2",
-                            method   : "POST",
-                            delta    : 1200,
-                            trainerid: 2,
-                            time     : twentySixHoursAgo
-                        },
-                        {
-                            urlpath  : "/recent",
-                            method   : "GET",
-                            delta    : 1300,
-                            trainerid: 3,
-                            time     : thirtyMinsAgo
-                        }
-                    ];
-
+                    fillSlowRequests(entryCount = 2, time = dateAdd("h", -26, now()));
+                    mockConcurrency.slowRequests.append({
+                        urlpath  : "/recent",
+                        method   : "GET",
+                        delta    : 1300,
+                        trainerid: 3,
+                        time     : dateAdd("n", -30, now())
+                    });
                     prc.requestAudit.start = getTickCount() - 1500;
 
-                    interceptor.postProcess(event = mockRequestContext, rc = rc, prc = prc);
-                    // Should have recent + new = 2 items
+                    announcePostProcess();
+
+                    // recent + new
                     expect(arrayLen(mockConcurrency.slowRequests)).toBe(2);
                     expect(mockConcurrency.slowRequests[1].urlpath).toBe("/recent");
                     expect(mockConcurrency.slowRequests[2].urlpath).toBe("/api/test");
                 });
 
-                it("Should enforce MAX_SLOW_REQUESTS limit", () => {
-                    // Fill with exactly MAX_SLOW_REQUESTS (25)
-                    for(var i = 1; i <= 25; i++) {
-                        arrayAppend(
-                            mockConcurrency.slowRequests,
-                            {
-                                urlpath  : "/api/old#i#",
-                                method   : "GET",
-                                delta    : 1100,
-                                trainerid: i,
-                                time     : now()
-                            }
-                        );
-                    }
-
+                it("Should drop the oldest entry when the log is at MAX_SLOW_REQUESTS", () => {
+                    fillSlowRequests(entryCount = 25);
                     prc.requestAudit.start = getTickCount() - 1500;
 
-                    interceptor.postProcess(event = mockRequestContext, rc = rc, prc = prc);
+                    announcePostProcess();
 
                     expect(arrayLen(mockConcurrency.slowRequests)).toBe(25);
-                    expect(mockConcurrency.slowRequests[1].urlpath).toBe("/api/old2"); // First removed
-                    expect(mockConcurrency.slowRequests[25].urlpath).toBe("/api/test"); // New added
+                    expect(mockConcurrency.slowRequests[1].urlpath).toBe("/api/old2");
+                    expect(mockConcurrency.slowRequests[25].urlpath).toBe("/api/test");
                 });
 
-                it("Should respect custom MAX_SLOW_REQUESTS setting", () => {
+                it("Should trim multiple entries down to a custom MAX_SLOW_REQUESTS", () => {
                     mockAuditSettings.maxSlowRequests = 5;
                     interceptor.configure();
 
-                    // Fill with 5 slow requests
-                    for(var i = 1; i <= 5; i++) {
-                        arrayAppend(
-                            mockConcurrency.slowRequests,
-                            {
-                                urlpath  : "/api/old#i#",
-                                method   : "GET",
-                                delta    : 1100,
-                                trainerid: i,
-                                time     : now()
-                            }
-                        );
-                    }
-
+                    // 2 over the limit - the 3 oldest go to make room for the new one
+                    fillSlowRequests(entryCount = 7);
                     prc.requestAudit.start = getTickCount() - 1500;
 
-                    interceptor.postProcess(event = mockRequestContext, rc = rc, prc = prc);
+                    announcePostProcess();
 
                     expect(arrayLen(mockConcurrency.slowRequests)).toBe(5);
-                    expect(mockConcurrency.slowRequests[1].urlpath).toBe("/api/old2"); // First removed
-                    expect(mockConcurrency.slowRequests[5].urlpath).toBe("/api/test"); // New added
-                });
-
-                it("Should remove multiple old entries when over MAX_SLOW_REQUESTS", () => {
-                    // Fill with 27 requests (2 over the default limit of 25)
-                    for(var i = 1; i <= 27; i++) {
-                        arrayAppend(
-                            mockConcurrency.slowRequests,
-                            {
-                                urlpath  : "/api/old#i#",
-                                method   : "GET",
-                                delta    : 1100,
-                                trainerid: i,
-                                time     : now()
-                            }
-                        );
-                    }
-
-                    prc.requestAudit.start = getTickCount() - 1500;
-
-                    interceptor.postProcess(event = mockRequestContext, rc = rc, prc = prc);
-
-                    expect(arrayLen(mockConcurrency.slowRequests)).toBe(25);
-                    // Should have removed 3 oldest (old1, old2, old3) to make room
                     expect(mockConcurrency.slowRequests[1].urlpath).toBe("/api/old4");
+                    expect(mockConcurrency.slowRequests[5].urlpath).toBe("/api/test");
                 });
 
                 it("Should handle both filtering and size enforcement together", () => {
-                    var twentySixHoursAgo = dateAdd("h", -26, now());
-
-                    // Add 20 old entries (will be filtered)
-                    for(var i = 1; i <= 20; i++) {
-                        arrayAppend(
-                            mockConcurrency.slowRequests,
-                            {
-                                urlpath  : "/old#i#",
-                                method   : "GET",
-                                delta    : 1100,
-                                trainerid: i,
-                                time     : twentySixHoursAgo
-                            }
-                        );
-                    }
-
-                    // Add 10 recent entries (will be kept)
-                    for(var i = 1; i <= 10; i++) {
-                        arrayAppend(
-                            mockConcurrency.slowRequests,
-                            {
-                                urlpath  : "/recent#i#",
-                                method   : "GET",
-                                delta    : 1100,
-                                trainerid: i,
-                                time     : now()
-                            }
-                        );
-                    }
-
+                    fillSlowRequests(
+                        entryCount = 20,
+                        prefix     = "/old",
+                        time       = dateAdd("h", -26, now())
+                    );
+                    fillSlowRequests(entryCount = 10, prefix = "/recent");
                     prc.requestAudit.start = getTickCount() - 1500;
 
-                    interceptor.postProcess(event = mockRequestContext, rc = rc, prc = prc);
-                    // Should have 10 recent + 1 new = 11 total
+                    announcePostProcess();
+
+                    // 10 recent + 1 new
                     expect(arrayLen(mockConcurrency.slowRequests)).toBe(11);
                     expect(mockConcurrency.slowRequests[11].urlpath).toBe("/api/test");
                 });
             });
 
             describe("Integration Tests", () => {
-                it("Should handle complete request lifecycle with slow request", () => {
+                beforeEach(() => {
                     interceptor.configure();
-                    interceptor.$property(propertyName = "LOG_REQUESTS", mock = true);
+                });
 
+                it("Should handle complete request lifecycle with slow request", () => {
                     prc.oCurrentUser = createStub().$("getId", 456);
-                    mockResponse     = createStub();
-                    mockResponse.$("getStatusCode", 200);
-                    mockResponse.$("getMessagesString", "Operation completed");
-                    prc.response = mockResponse;
 
-                    // Act - preProcess
-                    interceptor.preProcess(
-                        event  = mockRequestContext,
-                        data   = mockData,
-                        buffer = mockBuffer,
-                        rc     = rc,
-                        prc    = prc
-                    );
-
-                    // Simulate slow request
+                    announcePreProcess();
                     prc.requestAudit.start = getTickCount() - 2000;
+                    announcePostProcess();
 
-                    // Act - postProcess
-                    interceptor.postProcess(event = mockRequestContext, rc = rc, prc = prc);
-
-                    // Assert
                     expect(prc.requestAudit.trainerid).toBe(456);
                     expect(prc.requestAudit.delta).toBeGT(1000);
-                    expect(mockAsync.$once("newFuture")).toBeTrue();
+                    expect(mockAuditService.$once("logRequest")).toBeTrue();
                     expect(arrayLen(mockConcurrency.slowRequests)).toBe(1);
                 });
 
                 it("Should handle complete request lifecycle with fast request", () => {
-                    interceptor.configure();
-                    interceptor.$property(propertyName = "LOG_REQUESTS", mock = true);
-
                     prc.oCurrentUser = createStub().$("getId", 789);
-                    mockResponse     = createStub();
-                    mockResponse.$("getStatusCode", 200);
-                    mockResponse.$("getMessagesString", "Quick response");
-                    prc.response = mockResponse;
 
-                    // Act - preProcess
-                    interceptor.preProcess(
-                        event  = mockRequestContext,
-                        data   = mockData,
-                        buffer = mockBuffer,
-                        rc     = rc,
-                        prc    = prc
-                    );
-
-                    // Simulate fast request (100ms)
+                    announcePreProcess();
                     prc.requestAudit.start = getTickCount() - 100;
+                    announcePostProcess();
 
-                    // Act - postProcess
-                    interceptor.postProcess(event = mockRequestContext, rc = rc, prc = prc);
-
-                    // Assert
                     expect(prc.requestAudit.trainerid).toBe(789);
                     expect(prc.requestAudit.delta).toBeLT(1000);
-                    expect(mockAsync.$once("newFuture")).toBeTrue();
+                    expect(mockAuditService.$once("logRequest")).toBeTrue();
                     expect(arrayLen(mockConcurrency.slowRequests)).toBe(0);
-                });
-
-                it("Should handle request with no response object", () => {
-                    interceptor.configure();
-                    interceptor.$property(propertyName = "LOG_REQUESTS", mock = false);
-
-                    prc.oCurrentUser = createStub().$("getId", 999);
-
-                    // Act - preProcess
-                    interceptor.preProcess(
-                        event  = mockRequestContext,
-                        data   = mockData,
-                        buffer = mockBuffer,
-                        rc     = rc,
-                        prc    = prc
-                    );
-
-                    // Act - postProcess (no response)
-                    interceptor.postProcess(event = mockRequestContext, rc = rc, prc = prc);
-
-                    // Assert
-                    expect(prc.requestAudit.statuscode).toBe(-1);
-                    expect(prc.requestAudit.response).toBe("{}");
-                    expect(mockAsync.$never("newFuture")).toBeTrue();
                 });
             });
         });

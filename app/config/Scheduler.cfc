@@ -5,6 +5,7 @@ component {
     property name="bugService"     inject="provider:services.bug";
     property name="emailService"   inject="provider:services.email";
     property name="persistService" inject="provider:services.persist";
+    property name="pokemonService" inject="provider:services.pokemon";
 
     /**
 	 * Configure the ColdBox Scheduler
@@ -36,6 +37,17 @@ component {
             })
             .call(() => {
                 adminService.buildPokemonData();
+
+                // rerender and cache the database page
+                var indexContentCacheTimeout = pokemonService.getCacheTime() * 15;
+                runEvent(
+                    event                  = "pokemon.indexContent",
+                    private                = true,
+                    prePostExempt          = true,
+                    cache                  = true,
+                    cacheTimeout           = indexContentCacheTimeout,
+                    cacheLastAccessTimeout = indexContentCacheTimeout
+                );
             })
             .onFailure((task, exception) => {
                 callbackOnFailure(task, exception);
@@ -133,28 +145,13 @@ component {
                 callbackOnFailure(task, exception);
             })
             .everyHour();
-
-        // Healthcheck
-        task("healthcheck")
-            .call(() => {
-                runRoute("/healthCheck");
-            })
-            .onFailure((task, exception) => {
-                callbackOnFailure(task, exception);
-            })
-            .onSuccess((task, results) => {
-                callbackOnSuccess(task);
-            })
-            .delay(60, "minutes")
-            .every(60, "minutes")
-            .onEnvironment("development");
     }
 
     function callbackOnFailure(required struct task, struct exception = {}) {
         task.overviewStruct.detail = "Task Failure";
         auditService.audit(argumentCollection = task.overviewStruct);
 
-        task.overviewStruct.message = left(exception?.message ?: "Unknown Error Message", 250);
+        task.overviewStruct.message = exception?.message ?: "Unknown Error Message";
         task.overviewStruct.stack   = exception?.stackTrace ?: "Unknown Stack Trace";
         bugService.logBug(argumentCollection = task.overviewStruct);
 
@@ -164,36 +161,6 @@ component {
     function callbackOnSuccess(required struct task) {
         task.overviewStruct.detail = "Task Success";
         auditService.audit(argumentCollection = task.overviewStruct);
-    }
-
-    /**
-	 * Called before the scheduler is going to be shutdown
-	 */
-    function onShutdown() {
-    }
-
-    /**
-	 * Called after the scheduler has registered all schedules
-	 */
-    function onStartup() {
-    }
-
-    /**
-	 * Called whenever ANY task fails
-	 *
-	 * @task      The task that got executed
-	 * @exception The ColdFusion exception object
-	 */
-    function onAnyTaskError(required task, required exception) {
-    }
-
-    /**
-	 * Called whenever ANY task succeeds
-	 *
-	 * @task   The task that got executed
-	 * @result The result (if any) that the task produced
-	 */
-    function onAnyTaskSuccess(required task, result) {
     }
 
     /**
@@ -209,15 +176,6 @@ component {
             detail : "",
             agent  : "Scheduled Task User"
         };
-    }
-
-    /**
-	 * Called after ANY task runs
-	 *
-	 * @task   The task that got executed
-	 * @result The result (if any) that the task produced
-	 */
-    function afterAnyTask(required task, result) {
     }
 
 }

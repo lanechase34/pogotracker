@@ -31,7 +31,7 @@
                         <div class="input-group">
                             <span class="input-group-text"><i class="bi bi-key" aria-hidden="true"></i></span>
                             <div class="form-floating">
-                                <input name="password" type="password" class="form-control" id="inputPassword" placeholder="Password" value="" minlength="12" maxlength="50" autocomplete="current-password" required>
+                                <input name="password" type="password" class="form-control" id="inputPassword" placeholder="Password" value="" minlength="10" maxlength="50" autocomplete="current-password" required>
                                 <label for="inputPassword">Password</label>
                             </div>
                             <div class="invalid-feedback">

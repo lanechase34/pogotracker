@@ -1,7 +1,6 @@
 component extends="base" {
 
     property name="async"             inject="asyncManager@coldbox";
-    property name="auditService"      inject="services.audit";
     property name="blogService"       inject="services.blog";
     property name="cache"             inject="cachebox:appCache";
     property name="generationService" inject="services.generation";
@@ -12,15 +11,10 @@ component extends="base" {
     this.prehandler_only = "warmup";
 
     /**
-     * Clear the current orm session so we know the audit will work
      * Set up audit object
      */
     function preHandler(event, rc, prc, action, eventArguments) {
-        prc.auditInfo = auditService.getAuditObj(
-            trainerid = (prc?.oCurrentUser?.getId() ?: -1),
-            referer   = rc?.referer ?: "",
-            event     = rc?.event ?: "NA"
-        );
+        setRequestAuditInfo(rc = rc, prc = prc);
     }
 
     function warmup(event, rc, prc) {
@@ -45,20 +39,38 @@ component extends="base" {
             var results = async
                 .newFuture()
                 .all(
+                    // Blog pages as the app requests them
                     () => {
-                        return blogService.get(4, 0);
+                        // Home server render, and the blog sidebar on mobile
+                        return blogService.getBlogs(pageSize = 6, offset = 0);
                     },
                     () => {
-                        return blogService.get(4, 8);
+                        // Blog sidebar on desktop
+                        return blogService.getBlogs(pageSize = 8, offset = 0);
                     },
                     () => {
-                        return blogService.get(4, 12);
+                        // Home desktop scroll fill, up to the max of 8
+                        return blogService.getBlogs(pageSize = 2, offset = 6);
                     },
                     () => {
-                        return blogService.get(4, 16);
+                        // First Load More click, mobile
+                        return blogService.getBlogs(pageSize = 6, offset = 6);
                     },
                     () => {
-                        return blogService.get(4, 4);
+                        // First Load More click, desktop
+                        return blogService.getBlogs(pageSize = 6, offset = 8);
+                    },
+                    () => {
+                        // Prime the cached Pokedex index body
+                        var indexContentCacheTimeout = pokemonService.getCacheTime() * 15;
+                        return runEvent(
+                            event                  = "pokemon.indexContent",
+                            private                = true,
+                            prePostExempt          = true,
+                            cache                  = true,
+                            cacheTimeout           = indexContentCacheTimeout,
+                            cacheLastAccessTimeout = indexContentCacheTimeout
+                        );
                     },
                     () => {
                         return blogService.getNews();
@@ -79,35 +91,21 @@ component extends="base" {
                         return pokemonService.getSearchArray();
                     },
                     () => {
-                        return statsService.getLeaderboard(now(), "xp");
+                        return statsService.getLeaderboard(date = now(), stat = "xp");
                     }
                 )
                 .get();
 
-            // Prime the cached Pokedex index body (views/pokemon/index) - same event/args so the cache key matches
-            var indexContentCacheTimeout = pokemonService.getCacheTime() * 15;
-            runEvent(
-                event                  = "pokemon.indexContent",
-                private                = true,
-                prePostExempt          = true,
-                cache                  = true,
-                cacheTimeout           = indexContentCacheTimeout,
-                cacheLastAccessTimeout = indexContentCacheTimeout
-            );
-
             setSetting("warmedUp", true);
             prc.auditInfo.event  = "main.warmup";
             prc.auditInfo.detail = "Successfully warmed up server in #getTickCount() - start#ms.";
-            async.newFuture(() => {
-                auditService.audit(argumentCollection = prc.auditInfo);
-            });
+            auditService.audit(argumentCollection = prc.auditInfo);
         }
 
         jsonOk(event = event, data = "Ok!");
     }
 
     function healthCheck(event, rc, prc) {
-        if(!getSetting("healthCheck")) throw("Failed health check");
         jsonOk(event = event, data = "Ok!");
     }
 

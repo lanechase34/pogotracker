@@ -48,45 +48,27 @@
             <div class="card-body py-4 px-4">
                 <div class="row align-items-center gy-3">
                     <div class="col-12 col-sm-auto text-center">
-                        <div class="pokemon-sprite-pair">
-                            <div class="pokemon-sprite-group">
-                                <img
-                                    class="pokemonIcon"
-                                    src="/includes/images/sprites/#prc.detail.pokemon.getSprite()##getSetting('imageExtension')#"
-                                    alt="#prc.detail.fullname# Sprite"
-                                    width="148"
-                                    height="148"
-                                >
-                                <span class="badge bg-dark text-white sprite-label">Normal</span>
-                            </div>
-                            <cfif prc.detail.pokemon.getShiny()>
-                            <div class="pokemon-sprite-group">
-                                <img
-                                    class="pokemonIcon"
-                                    src="/includes/images/shinysprites/#prc.detail.pokemon.getSprite()##getSetting('imageExtension')#"
-                                    alt="#prc.detail.fullname# Shiny Sprite"
-                                    width="148"
-                                    height="148"
-                                >
-                                <span class="badge bg-dark text-white sprite-label">&##x2728; Shiny</span>
-                            </div>
-                            </cfif>
-                        </div>
+                        #view(view = "/views/pokemon/fragment/spritePair", args = {
+                            sprite   : prc.detail.pokemon.sprite,
+                            shiny    : prc.detail.pokemon.shiny,
+                            normalAlt: "#prc.detail.fullname# Sprite",
+                            shinyAlt : "#prc.detail.fullname# Shiny Sprite"
+                        })#
                     </div>
                     <div class="col-12 col-sm text-center text-sm-start">
-                        <p class="pokemon-hero-number mb-0">No.&nbsp;#prc.detail.pokemon.getNumber()#</p>
+                        <p class="pokemon-hero-number mb-0">No.&nbsp;#prc.detail.pokemon.number#</p>
                         <h1 class="pokemon-hero-name">#prc.detail.fullname#</h1>
                         <div class="pokemon-types justify-content-center justify-content-sm-start">
                             <img
                                 class="typeIcon"
-                                src="#prc.detail.pokemon.getType1Img()#"
-                                alt="#prc.detail.pokemon.getType1()# type"
+                                src="#prc.detail.pokemon.type1img#"
+                                alt="#prc.detail.pokemon.type1# type"
                             >
-                            <cfif prc.detail.pokemon.getType2().len()>
+                            <cfif prc.detail.pokemon.type2.len()>
                                 <img
                                     class="typeIcon"
-                                    src="#prc.detail.pokemon.getType2Img()#"
-                                    alt="#prc.detail.pokemon.getType2()# type"
+                                    src="#prc.detail.pokemon.type2img#"
+                                    alt="#prc.detail.pokemon.type2# type"
                                 >
                             </cfif>
                         </div>
@@ -151,17 +133,17 @@
                     #view(
                         view="/views/pokemon/fragment/statrow",
                         nolayout=true,
-                        args={stat: "Attack", value: "#prc.detail.pokemon.getAttack()# ATK", color: "bg-danger", percent: prc.detail.statPercentages.attack}
+                        args={stat: "Attack", value: "#prc.detail.pokemon.attack# ATK", color: "bg-danger", percent: prc.detail.statPercentages.attack}
                     )#
                     #view(
                         view="/views/pokemon/fragment/statrow",
                         nolayout=true,
-                        args={stat: "Defense", value: "#prc.detail.pokemon.getDefense()# DEF", color: "bg-warning", percent: prc.detail.statPercentages.defense}
+                        args={stat: "Defense", value: "#prc.detail.pokemon.defense# DEF", color: "bg-warning", percent: prc.detail.statPercentages.defense}
                     )#
                     #view(
                         view="/views/pokemon/fragment/statrow",
                         nolayout=true,
-                        args={stat: "Stamina", value: "#prc.detail.pokemon.getHP()# HP", color: "bg-success", percent: prc.detail.statPercentages.hp}
+                        args={stat: "Stamina", value: "#prc.detail.pokemon.hp# HP", color: "bg-success", percent: prc.detail.statPercentages.hp}
                     )#
                 </div>
             </div>
@@ -177,7 +159,7 @@
                 <i class="bi bi-arrow-right-circle"></i> Evolutions
             </h2>
             <div class="card-body card-body-table">
-                <cfif prc.detail.baseStage.getEvolution().len()>
+                <cfif prc.detail.evolutionChain.len()>
                 <div class="tableDiv">
                 <table class="table align-middle text-center mb-0">
                     <thead class="table-light">
@@ -188,14 +170,8 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <cfloop index="i" item="firstStage" array="#prc.detail.baseStage.getEvolution()#">
-                            #view(view="/views/pokemon/fragment/evolutionrow", nolayout=true, args={evolution: firstStage})#
-                            <cfloop index="j" item="secondStage" array="#firstStage.getEvolution().getEvolution()#">
-                                #view(view="/views/pokemon/fragment/evolutionrow", nolayout=true, args={evolution: secondStage})#
-                                <cfloop index="k" item="thirdStage" array="#secondStage.getEvolution().getEvolution()#">
-                                    #view(view="/views/pokemon/fragment/evolutionrow", nolayout=true, args={evolution: thirdStage})#
-                                </cfloop>
-                            </cfloop>
+                        <cfloop index="i" item="currEvolution" array="#prc.detail.evolutionChain#">
+                            #view(view="/views/pokemon/fragment/evolutionrow", nolayout=true, args={evolution: currEvolution})#
                         </cfloop>
                     </tbody>
                 </table>
@@ -216,7 +192,7 @@
             </h2>
             <div class="card-body card-body-table">
                 <cfloop list="fast,charge" item="moveType">
-                <cfset moves = prc.detail.pokemon.getMoves(moveType, "normal")>
+                <cfset moves = prc.detail.moves[moveType]>
                 <p class="moves-section-label text-muted">#moveType == "fast" ? "Fast" : "Charge"# Moves</p>
                 <cfif moves.len()>
                 <div class="tableDiv">
@@ -229,7 +205,7 @@
                     </thead>
                     <tbody>
                         <cfloop index="i" item="currMove" array="#moves#">
-                            #view(view="/views/pokemon/fragment/moverow", nolayout=true, args={move: currMove.getMove()})#
+                            #view(view="/views/pokemon/fragment/moverow", nolayout=true, args={move: currMove})#
                         </cfloop>
                     </tbody>
                 </table>
@@ -263,7 +239,7 @@
                             <tbody id="eventRows">
                                 #view(view='/views/pokemon/fragment/eventrows', args={
                                     events: prc.detail.events,
-                                    ses   : prc.detail.pokemon.getSes(),
+                                    ses   : prc.detail.pokemon.ses,
                                     offset: 5,
                                     limit : 5
                                 })#
@@ -320,33 +296,16 @@
                 <div class="d-flex flex-wrap gap-3 justify-content-center justify-content-sm-start">
                     <cfloop index="i" item="costume" array="#prc.detail.costumes#">
                     <div class="pokemon-entry costume-entry">
-                        <div class="pokemon-sprite-pair">
-                            <div class="pokemon-sprite-group">
-                                <img
-                                    class="costumeIcon"
-                                    src="/includes/images/sprites/#costume.getSprite()##getSetting('imageExtension')#"
-                                    alt="#costume.getCostumeType()# Normal Sprite"
-                                    width="110"
-                                    height="110"
-                                    loading="lazy"
-                                >
-                                <span class="badge bg-dark text-white sprite-label">Normal</span>
-                            </div>
-                            <cfif costume.getShiny()>
-                            <div class="pokemon-sprite-group">
-                                <img
-                                    class="costumeIcon"
-                                    src="/includes/images/shinysprites/#costume.getSprite()##getSetting('imageExtension')#"
-                                    alt="#costume.getCostumeType()# Shiny Sprite"
-                                    width="110"
-                                    height="110"
-                                    loading="lazy"
-                                >
-                               <span class="badge bg-dark text-white sprite-label">&##x2728; Shiny</span>
-                            </div>
-                            </cfif>
-                        </div>
-                        <p class="mt-2 mb-0 small fw-semibold text-center text-capitalize">#costume.getCostumeType()#</p>
+                        #view(view = "/views/pokemon/fragment/spritePair", args = {
+                            sprite   : costume.sprite,
+                            shiny    : costume.shiny,
+                            normalAlt: "#costume.costumetype# Normal Sprite",
+                            shinyAlt : "#costume.costumetype# Shiny Sprite",
+                            iconClass: "costumeIcon",
+                            size     : 110,
+                            lazy     : true
+                        })#
+                        <p class="mt-2 mb-0 small fw-semibold text-center text-capitalize">#costume.costumetype#</p>
                     </div>
                     </cfloop>
                 </div>
@@ -365,11 +324,11 @@
                 <i class="bi bi-check2-circle"></i> Availability
             </h2>
             <cfset availability = [
-                {label: "Normal",       value: prc.detail.pokemon.getLive(),        yes: "Available", no: "Unavailable"},
-                {label: "Shiny",        value: prc.detail.pokemon.getShiny(),       yes: "Available", no: "Unavailable"},
-                {label: "Shadow",       value: prc.detail.pokemon.getShadow(),      yes: "Available", no: "Unavailable"},
-                {label: "Shiny Shadow", value: prc.detail.pokemon.getShadowShiny(), yes: "Available", no: "Unavailable"},
-                {label: "Tradable",     value: prc.detail.pokemon.getTradable(),    yes: "Yes",       no: "No"}
+                {label: "Normal",       value: prc.detail.pokemon.live,        yes: "Available", no: "Unavailable"},
+                {label: "Shiny",        value: prc.detail.pokemon.shiny,       yes: "Available", no: "Unavailable"},
+                {label: "Shadow",       value: prc.detail.pokemon.shadow,      yes: "Available", no: "Unavailable"},
+                {label: "Shiny Shadow", value: prc.detail.pokemon.shadowshiny, yes: "Available", no: "Unavailable"},
+                {label: "Tradable",     value: prc.detail.pokemon.tradable,    yes: "Yes",       no: "No"}
             ]>
             <ul class="list-group list-group-flush">
                 <cfloop array="#availability#" item="avail">
@@ -393,35 +352,35 @@
             </h2>
             <div class="card-body mx-1">
                 <form action="/pokemon/updateDetail" name="pokemonDetailForm" method="post" id="pokemonDetailForm" class="needs-validation p-0 m-0" novalidate>
-                    <input type="hidden" name="pokemonid" value="#prc.detail.pokemon.getId()#"/>
+                    <input type="hidden" name="pokemonid" value="#prc.detail.pokemon.id#"/>
                     <div class="row d-flex">
                         <div class="col-12 mb-1">
                             <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" role="switch" id="liveSwitch" name="liveSwitch" <cfif prc.detail.pokemon.getLive()>checked</cfif>>
+                                <input class="form-check-input" type="checkbox" role="switch" id="liveSwitch" name="liveSwitch" <cfif prc.detail.pokemon.live>checked</cfif>>
                                 <label class="form-check-label" for="liveSwitch">Live</label>
                             </div>
                         </div>
                         <div class="col-12 mb-1">
                             <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" role="switch" id="shinySwitch" name="shinySwitch" <cfif prc.detail.pokemon.getShiny()>checked</cfif>>
+                                <input class="form-check-input" type="checkbox" role="switch" id="shinySwitch" name="shinySwitch" <cfif prc.detail.pokemon.shiny>checked</cfif>>
                                 <label class="form-check-label" for="shinySwitch">Shiny</label>
                             </div>
                         </div>
                         <div class="col-12 mb-1">
                             <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" role="switch" id="shadowSwitch" name="shadowSwitch" <cfif prc.detail.pokemon.getShadow()>checked</cfif>>
+                                <input class="form-check-input" type="checkbox" role="switch" id="shadowSwitch" name="shadowSwitch" <cfif prc.detail.pokemon.shadow>checked</cfif>>
                                 <label class="form-check-label" for="shadowSwitch">Shadow</label>
                             </div>
                         </div>
                         <div class="col-12 mb-1">
                             <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" role="switch" id="shinyShadowSwitch" name="shinyShadowSwitch" <cfif prc.detail.pokemon.getShadowShiny()>checked</cfif>>
+                                <input class="form-check-input" type="checkbox" role="switch" id="shinyShadowSwitch" name="shinyShadowSwitch" <cfif prc.detail.pokemon.shadowshiny>checked</cfif>>
                                 <label class="form-check-label" for="shinyShadowSwitch">Shiny Shadow</label>
                             </div>
                         </div>
                         <div class="col-12 mb-1">
                             <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" role="switch" id="tradableSwitch" name="tradableSwitch" <cfif prc.detail.pokemon.getTradable()>checked</cfif>>
+                                <input class="form-check-input" type="checkbox" role="switch" id="tradableSwitch" name="tradableSwitch" <cfif prc.detail.pokemon.tradable>checked</cfif>>
                                 <label class="form-check-label" for="tradableSwitch">Tradable</label>
                             </div>
                         </div>

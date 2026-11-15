@@ -1,9 +1,12 @@
 import { createAlert } from 'alert';
 import { copyString } from 'copy';
+import { delegate } from 'display';
 import { escapeHtml } from 'escape';
-import { getWrapper, postWrapper } from 'fetch';
+import { getWrapper, HandledError, postWrapper, RequestError, requestErrorMessage } from 'fetch';
+import { validatedPacket } from 'form';
 import { $loading, $loadingCard, $submitBtn } from 'loading';
-import { resetHandler, submitHandler } from 'modals';
+import { appendLoadedModal, openLoadedModal, resetHandler, submitHandler } from 'modals';
+import { createToast } from 'toast';
 
 export const $leaderboardDiv = document.getElementById('leaderboardDiv');
 
@@ -16,11 +19,7 @@ const chartStruct = {
     statLineChart: null,
 };
 const $chartLabel = document.getElementById('chartLabel');
-const lineColor = '#0d6efd'; //'#333333'; //'rgb(75, 192, 192)';
-
-const $statsLoading = {
-    trackStats: false,
-};
+const lineColor = '#0d6efd';
 
 const STAT_UNITS = {
     walked: ' km',
@@ -38,16 +37,8 @@ export async function getLeaderboard($div) {
 }
 
 export function initStatsTracker() {
-    $trackStatsBtn.addEventListener('click', async () => {
-        if ($statsLoading.trackStats) return;
-
-        if (!document.getElementById('trackStatsModal')) {
-            $statsLoading.trackStats = true;
-            await getTrackStats();
-        }
-        globalModals.$trackStatsModal.show();
-        $statsLoading.trackStats = false;
-    });
+    // Only on your own profile and overview
+    $trackStatsBtn?.addEventListener('click', () => openLoadedModal('trackStatsModal', getTrackStats));
 }
 
 export async function getSummaryStats(trainerid, $div, $profilerow) {
@@ -176,26 +167,14 @@ async function getTrackStats() {
         $loadingDiv: null,
         loading: $loading,
         dataHandler: (data) => {
-            const newDiv = document.createElement('div');
-            newDiv.innerHTML = data;
-            document.getElementById('loadedModal').appendChild(newDiv);
-            const $trackStatsModal = document.getElementById('trackStatsModal');
+            const $trackStatsModal = appendLoadedModal(data, 'trackStatsModal');
             globalModals.$trackStatsModal = new bootstrap.Modal($trackStatsModal, {});
             const $trackStatsForm = /** @type {HTMLFormElement} */ (document.getElementById('trackStatsForm'));
             const $submitTrackStatsForm = document.getElementById('submitTrackStatsForm');
 
             $submitTrackStatsForm.addEventListener('click', async (evt) => {
-                const valid = $trackStatsForm.checkValidity();
-                $trackStatsForm.classList.add('was-validated');
-
-                if (!valid) {
-                    evt.preventDefault();
-                    evt.stopPropagation();
-                    return;
-                }
-
-                const formData = new FormData($trackStatsForm);
-                const packet = Object.fromEntries(formData.entries());
+                const packet = validatedPacket($trackStatsForm, evt);
+                if (!packet) return;
 
                 // Warn if any entered value is lower than the latest tracked stat
                 if (!$submitTrackStatsForm.dataset.confirmed) {
@@ -245,8 +224,12 @@ async function getTrackStats() {
 }
 
 async function getMedalProgress($medalProgressDivToLoad) {
+    // Set on a friend's overview - their medals, read only
+    const trainerid = /** @type {HTMLInputElement | null} */ (document.getElementById('trainerid'))?.value;
     return await getWrapper({
-        url: '/stats/getMedalProgress',
+        url: trainerid
+            ? `/stats/getMedalProgress/trainerid/${encodeURIComponent(trainerid)}`
+            : '/stats/getMedalProgress',
         $loadingDiv: $medalProgressDivToLoad,
         loading: $loading,
         dataHandler: (data) => {
@@ -255,21 +238,16 @@ async function getMedalProgress($medalProgressDivToLoad) {
             // One listener each for every .medalInput - focusout is the bubbling version of blur
             if ($medalProgressDivToLoad.dataset.medalBound !== 'true') {
                 $medalProgressDivToLoad.dataset.medalBound = 'true';
-                const medalInputFrom = (/** @type {Event} */ evt) =>
-                    /** @type {HTMLInputElement | null} */ (
-                        /** @type {HTMLElement} */ (evt.target).closest('.medalInput')
-                    );
 
-                $medalProgressDivToLoad.addEventListener('focusout', (evt) => {
-                    const $input = medalInputFrom(evt);
-                    if ($input && validateMedalInput($input)) {
-                        trackMedalProgress($input);
+                delegate($medalProgressDivToLoad, 'focusout', '.medalInput', (evt, $input) => {
+                    const $medalInput = /** @type {HTMLInputElement} */ ($input);
+                    if (validateMedalInput($medalInput)) {
+                        trackMedalProgress($medalInput);
                     }
                 });
-                $medalProgressDivToLoad.addEventListener('input', (evt) => {
-                    const $input = medalInputFrom(evt);
-                    if ($input) validateMedalInput($input);
-                });
+                delegate($medalProgressDivToLoad, 'input', '.medalInput', (evt, $input) =>
+                    validateMedalInput(/** @type {HTMLInputElement} */ ($input))
+                );
             }
         },
     });
@@ -357,10 +335,20 @@ async function submitTrackStats(packet, $btn, $modal) {
                     'bi-exclamation-diamond-fill',
                     escapeHtml(data.message)
                 );
-                resetHandler($modal);
-                throw new Error(data.message);
+                throw new HandledError();
             }
             location.reload();
+        },
+        errorHandler: (error) => {
+            if (!(error instanceof HandledError)) {
+                createAlert(
+                    document.getElementById('statAlert'),
+                    'danger',
+                    'bi-exclamation-diamond-fill',
+                    escapeHtml(requestErrorMessage(error))
+                );
+            }
+            resetHandler($modal);
         },
     });
 }
@@ -388,7 +376,7 @@ async function trackMedalProgress($input) {
     const medal = $parentRow.dataset.id;
     const value = $input.value.trim();
 
-    return await postWrapper({
+    const saved = await postWrapper({
         url: '/stats/trackMedalProgress',
         $loadingBtn: null,
         loading: '',
@@ -396,7 +384,7 @@ async function trackMedalProgress($input) {
         responseType: 'json',
         dataHandler: (data) => {
             if (!data.success) {
-                throw new Error(data.message);
+                throw new RequestError(data.message);
             }
 
             // Update progress bar
@@ -421,11 +409,19 @@ async function trackMedalProgress($input) {
                     $medalImg.classList.add('bronzeMedal');
                 }
             }
-
-            // Re-enable the input
-            $input.disabled = false;
+        },
+        errorHandler: (error) => {
+            createToast(
+                `Couldn't save medal progress. ${escapeHtml(requestErrorMessage(error))}`,
+                'danger',
+                'bi-exclamation-triangle'
+            );
         },
     });
+
+    // Re-enable the input whether or not the save went through, so it can be retried
+    $input.disabled = false;
+    return saved;
 }
 
 /**

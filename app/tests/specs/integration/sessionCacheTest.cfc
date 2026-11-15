@@ -2,7 +2,7 @@ component extends="tests.resources.baseTest" asyncAll="false" {
 
     function beforeAll() {
         super.beforeAll();
-        mockTrainer    = getInstance("tests.resources.mocktrainer");
+        mockTrainer    = getInstance("tests.resources.mockTrainer");
         auth           = getInstance("authenticationService@cbauth");
         trainerService = getInstance("services.trainer");
         requestStorage = getInstance("RequestStorage@cbstorages");
@@ -10,7 +10,7 @@ component extends="tests.resources.baseTest" asyncAll="false" {
 
     function afterAll() {
         super.afterAll();
-        if(session.keyExists("mocktrainerid")) mockTrainer.delete();
+        if(session.keyExists("mocktrainerid")) mockTrainer.deleteTrainer();
     }
 
     /**
@@ -18,25 +18,24 @@ component extends="tests.resources.baseTest" asyncAll="false" {
      */
     private void function nextRequest() {
         requestStorage.delete("cbauth__user");
-        ormClearSession();
         setup();
     }
 
     function run() {
         describe("Trainer cache", () => {
             afterEach(() => {
-                if(session.keyExists("mocktrainerid")) mockTrainer.delete();
+                if(session.keyExists("mocktrainerid")) mockTrainer.deleteTrainer();
             });
 
             it("Tracking a stat updates the trainer's level on their next request", () => {
-                var trainer = mockTrainer.make();
-                expect(auth.getUser().getCurrentLevel().totalxp).toBe(""); // memoized: no stats yet
+                var trainer = mockTrainer.makeSignedIn();
+                expect(trainerService.getCurrentLevel(auth.getUser().getId()).totalxp).toBe(""); // cached: no stats yet
 
                 setup();
                 post(
                     route  = "/stats/track",
                     params = {
-                        trainerid: trainer.getId(),
+                        trainerid: trainer.id,
                         xp       : 123456,
                         caught   : 1,
                         spun     : 1,
@@ -45,23 +44,23 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                 );
 
                 nextRequest();
-                expect(auth.getUser().getCurrentLevel().totalxp).toBe(numberFormat(123456, ","));
+                expect(trainerService.getCurrentLevel(auth.getUser().getId()).totalxp).toBe(numberFormat(123456, ","));
             });
 
             it("An admin's edit of another trainer is seen by that trainer's next request", () => {
                 var target = mockTrainer.make(autoLogin = false);
-                var cached = trainerService.getFromId(target.getId()); // warm the cache
-                var admin  = mockTrainer.make(securityLevel = 50);
-                var name   = "EDIT_#left(createUUID().replace("-", "", "all"), 10)#";
+                trainerService.getFromId(target.id); // warm the cache
+                var admin = mockTrainer.makeSignedIn(securityLevel = 50);
+                var name  = "EDIT_#left(createUUID().replace("-", "", "all"), 10)#";
 
                 setup();
                 post(
                     route  = "/trainer/updateProfile",
                     params = {
-                        trainerid    : target.getId(),
+                        trainerid    : target.id,
                         username     : name,
-                        email        : target.getEmail(),
-                        icon         : target.getIcon(),
+                        email        : target.email,
+                        icon         : target.icon,
                         password     : "",
                         defaultView  : "normal",
                         defaultRegion: "Kanto",
@@ -70,18 +69,17 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                 );
 
                 nextRequest();
-                expect(trainerService.getFromId(target.getId()).getUsername()).toBe(name);
+                expect(trainerService.getFromId(target.id).username).toBe(name);
 
-                mockTrainer.delete(admin.getId());
-                mockTrainer.delete(target.getId());
+                mockTrainer.deleteTrainer(admin.id);
+                mockTrainer.deleteTrainer(target.id);
             });
 
             it("A trainer deleted mid session is treated as a guest", () => {
-                var trainer   = mockTrainer.make(autoLogin = false);
-                var trainerid = trainer.getId();
-                mockTrainer.actAs(trainer);
+                var trainer   = mockTrainer.makeSignedIn();
+                var trainerid = trainer.id;
 
-                queryExecute("delete from trainer where id = :id", {id: {value: trainerid, cfsqltype: "integer"}});
+                queryExecute("DELETE FROM trainer WHERE id = :id", {id: {value: trainerid, cfsqltype: "integer"}});
                 mockTrainer.refresh(trainerid);
 
                 setup();
@@ -100,24 +98,23 @@ component extends="tests.resources.baseTest" asyncAll="false" {
         describe("After login redirect", () => {
             afterEach(() => {
                 session.delete("linkedEvent");
-                if(session.keyExists("mocktrainerid")) mockTrainer.delete();
+                if(session.keyExists("mocktrainerid")) mockTrainer.deleteTrainer();
             });
 
             it("Never redirects to another host", () => {
-                for(var target in ["//evil.com/x", "/\evil.com/x", "\\evil.com/x"]) {
-                    var trainer = mockTrainer.make(autoLogin = false);
+                var trainer = mockTrainer.make(autoLogin = false);
 
+                for(var target in ["//evil.com/x", "/\evil.com/x", "\\evil.com/x"]) {
+                    mockTrainer.actAsGuest();
                     session.linkedEvent = target;
                     mockTrainer.login(trainer = trainer, relocate_uri = "/evil.com/x");
-
-                    mockTrainer.delete(trainer.getId());
                 }
             });
 
             it("Falls back to the trainer's default page", () => {
                 var trainer = mockTrainer.make(autoLogin = false);
-                trainer.setSettings({defaultPage: "/mypokedex"});
-                mockTrainer.refresh(trainer.getId());
+                getInstance("services.trainer").updateSettings(trainer.id, {defaultPage: "/mypokedex"});
+                mockTrainer.refresh(trainer.id);
 
                 mockTrainer.login(trainer = trainer, relocate_uri = "/mypokedex");
             });

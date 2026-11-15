@@ -1,8 +1,7 @@
 component singleton accessors="true" {
 
-    property name="pagination"     inject="services.pagination";
-    property name="trainerService" inject="services.trainer";
-    property name="utilService"    inject="services.util";
+    property name="pagination"  inject="services.pagination";
+    property name="utilService" inject="services.util";
 
     property name="datatableCols" type="array";
 
@@ -19,6 +18,8 @@ component singleton accessors="true" {
 
     /**
      * Log a new bug including exception stack trace
+     * Values are cut to their column widths here
+     * Fire and forget - the insert runs in the background and a failure is only logged
      */
     public void function logBug(
         required string ip,
@@ -27,43 +28,52 @@ component singleton accessors="true" {
         required string stack,
         numeric trainerid = -1
     ) {
-        var bug = entityNew(
-            "bug",
-            {
-                "ip"     : arguments.ip,
-                "event"  : arguments.event,
-                "message": arguments.message,
-                "stack"  : arguments.stack
+        var params = {
+            ip       : {value: left(arguments.ip, 128), cfsqltype: "varchar"},
+            event    : {value: left(arguments.event, 250), cfsqltype: "varchar"},
+            message  : {value: left(arguments.message, 256), cfsqltype: "varchar"},
+            stack    : {value: arguments.stack, cfsqltype: "varchar"},
+            trainerid: {
+                value    : arguments.trainerid,
+                cfsqltype: "integer",
+                null     : arguments.trainerid <= 0
             }
+        };
+
+        utilService.runInBackground(
+            task = () => {
+                queryExecute(
+                    "
+                    INSERT INTO bug (ip, event, message, stack, trainerid)
+                    VALUES (:ip, :event, :message, :stack, (SELECT id FROM trainer WHERE id = :trainerid))
+                    ",
+                    params
+                );
+            },
+            failure = "Failed to log bug #params.event.value#"
         );
-
-        if(arguments.trainerid > 0) {
-            var trainer = trainerService.getFromId(arguments.trainerid);
-            bug.setTrainer(trainer);
-        }
-
-        entitySave(bug);
-        ormFlush();
         return;
     }
 
     /**
      * Datatable GET for bug log table
      */
-    public struct function get(
+    public struct function getTable(
         required numeric records,
         required numeric offset,
         required string search   = "",
         required string orderCol = "",
-        required string orderDir = ""
+        required string orderDir = "",
+        string range             = "all"
     ) {
-        var fromSQL     = "FROM bug LEFT JOIN trainer ON trainer.id = bug.trainerid";
-        var whereSQL    = "";
-        var whereParams = {};
-        if(search.len()) {
-            whereSQL           = "WHERE #pagination.searchSQL(["bug.event", "bug.message", "trainer.username"])#";
-            whereParams.search = {value: utilService.likeContains(search), cfsqltype: "varchar"};
-        }
+        var fromSQL = "FROM bug LEFT JOIN trainer ON trainer.id = bug.trainerid";
+        var filters = pagination.buildFilters(
+            searchColumns = ["bug.event", "bug.message", "trainer.username"],
+            search        = search,
+            dateColumn    = "bug.created",
+            range         = range
+        );
+        var whereSQL = filters.whereSQL;
 
         var orderBy = pagination.orderBy(
             columns     = getDatatableCols(),
@@ -76,10 +86,11 @@ component singleton accessors="true" {
             records       = records,
             offset        = offset,
             fromSQL       = fromSQL,
-            baseWhere     = "",
+            baseWhere     = filters.baseWhere,
             whereSQL      = whereSQL,
-            whereParams   = whereParams,
-            totalCacheKey = "bug.totalRecords",
+            baseParams    = filters.baseParams,
+            whereParams   = filters.whereParams,
+            totalCacheKey = pagination.rangeCacheKey("bug.totalRecords", range),
             cacheMinutes  = 5,
             fetchRows     = (pageParams) => queryExecute(
                 "
@@ -93,7 +104,7 @@ component singleton accessors="true" {
                 OFFSET :offset
                 ",
                 pageParams,
-                {returntype: "array"}
+                {returnType: "array"}
             )
         );
 

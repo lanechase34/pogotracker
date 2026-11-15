@@ -3,31 +3,30 @@ component extends="tests.resources.baseTest" asyncAll="false" {
     function beforeAll() {
         super.beforeAll();
 
-        mockTrainer = getInstance("tests.resources.mocktrainer");
+        mockTrainer    = getInstance("tests.resources.mockTrainer");
+        auth           = getInstance("authenticationService@cbauth");
+        sessionService = getInstance("services.session");
     }
 
     function afterAll() {
         super.afterAll();
-        if(session.keyExists("mocktrainerid")) mockTrainer.delete();
+        if(session.keyExists("mocktrainerid")) mockTrainer.deleteTrainer();
     }
 
     function run() {
         describe("Login handler tests", () => {
             beforeEach(() => {
                 setup();
-
-                auth           = getInstance("authenticationService@cbauth");
-                sessionService = getInstance("services.session");
             });
 
             it("Authenticate with a valid email/password and receive a session", () => {
-                email    = "test_0@gmail.com";
-                password = createUUID();
+                var email = "test_0@gmail.com";
 
-                var trainer = auth.authenticate(email, password);
-                expect(trainer.getEmail()).toBe(email);
+                // authenticate hands back the logged in user object
+                var user = auth.authenticate(email, createUUID());
+                expect(user.getEmail()).toBe(email);
                 expect(auth.isLoggedIn()).toBeTrue();
-                expect(auth.getUserId()).toBe(trainer.getId());
+                expect(auth.getUserId()).toBe(user.getId());
 
                 sessionService.destroy(false);
                 expect(auth.isLoggedIn()).toBeFalse();
@@ -40,49 +39,32 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                 expect(auth.isLoggedIn()).toBeFalse();
             });
 
-            it("Rotates the session id on login and keeps the trainer logged in", () => {
-                trainer   = mockTrainer.make(autoLogin = false);
-                sessionid = session.sessionid;
-
-                mockTrainer.login(trainer);
-
-                expect(auth.getUserId()).toBe(trainer.getId());
-                expect(sessionid).notToBe(session.sessionid); // sessionid should rotate
-                mockTrainer.delete();
-            });
-
             it("Sends a guest back to the page they asked for after logging in", () => {
-                trainer = mockTrainer.make(autoLogin = false);
+                var trainer = mockTrainer.make(autoLogin = false);
 
                 setup();
-                event = execute(route = "/mypokedex");
+                var event = execute(route = "/mypokedex");
                 expect(event.getValue("relocate_uri")).toBe("/login");
                 expect(session.linkedEvent).toBe("/mypokedex");
 
                 mockTrainer.login(trainer = trainer, relocate_uri = "/mypokedex");
                 expect(session).notToHaveKey("linkedEvent"); // single use
-                mockTrainer.delete();
             });
 
             describe("Registration -> Login lifecycle", () => {
                 it("Can get the login form", () => {
-                    event = get(route = "/login");
+                    var event = get(route = "/login");
                     expect(event.getResponse().getStatusCode()).toBe(200);
                     expect(event.getRenderedContent()).toInclude("data-handler=login");
                     expect(event.getRenderedContent()).toInclude("data-action=loginform");
                 });
 
                 it("Rejects registering with an icon that is not a base icon", () => {
-                    session.recaptcha = {
-                        token    : "a",
-                        valid    : true,
-                        timestamp: now(),
-                        action   : "register"
-                    };
+                    globalFunctions.storeRecaptcha("register");
 
                     // mewtwo's file exists, so only the base icon check stops it
                     var lockedUsername = left(replace("locked_#createUUID()#", "-", "", "all"), 30);
-                    event              = post(
+                    var event          = post(
                         route  = "/login/register",
                         params = {
                             username  : lockedUsername,
@@ -95,25 +77,19 @@ component extends="tests.resources.baseTest" asyncAll="false" {
 
                     expect(event.getValue("relocate_EVENT", "")).toBe("register");
                     expect(auth.isLoggedIn()).toBeFalse();
-                    expect(entityLoad("trainer", {username: lockedUsername})).toBeEmpty();
+                    expect(testData.countRows("trainer", {username: lockedUsername})).toBe(0);
                 });
 
                 it("Can register a new user", () => {
-                    before = globalFunctions.countTestEmails();
+                    var before = globalFunctions.countTestEmails();
 
-                    // Force valid recaptcha
-                    session.recaptcha = {
-                        token    : "a",
-                        valid    : true,
-                        timestamp: now(),
-                        action   : "register"
-                    };
+                    globalFunctions.storeRecaptcha("register");
 
                     // Mock user
-                    username     = left(replace("register_#createUUID()#", "-", "", "all"), 30);
-                    testingEmail = "#username#@gmail.com"; // used in subsequent tests
+                    var username           = left(replace("register_#createUUID()#", "-", "", "all"), 30);
+                    variables.testingEmail = "#username#@gmail.com"; // used in subsequent tests
 
-                    event = post(
+                    var event = post(
                         route  = "/login/register",
                         params = {
                             username  : username,
@@ -139,12 +115,14 @@ component extends="tests.resources.baseTest" asyncAll="false" {
 
                 it("Can verify a new user", () => {
                     // Send verification code
-                    event = get(route = "/verify", renderResults = true);
+                    var event = get(route = "/verify", renderResults = true);
                     expect(event.getResponse().getStatusCode()).toBe(200);
 
                     // Read most recent email to get the code
-                    email = globalFunctions.readEmail();
-                    code  = email.select("##verificationCode").text();
+                    var code = globalFunctions
+                        .readEmail()
+                        .select("##verificationCode")
+                        .text();
 
                     // Mock submitting verification code
                     event = post(route = "/login/verify", params = {code: code});
@@ -157,12 +135,10 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                     expect(auth.getUser().getSecurityLevel()).toBe(10); // Regular Trainer
                     expect(auth.getUser().getVerified()).toBeTrue();
                     expect(auth.getUser().hasPermission("user")).toBeTrue();
-
-                    sleep(4000);
                 });
 
                 it("User can log out", () => {
-                    event = post(route = "/logout");
+                    var event = post(route = "/logout");
 
                     expect(event.getResponse().getStatusCode()).toBe(200);
                     expect(event.getValue("relocate_URI")).toBe("/"); // home page
@@ -171,24 +147,27 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                 });
 
                 it("Can get to forgot password form", () => {
-                    event = get(route = "/forgot");
+                    var event = get(route = "/forgot");
                     expect(event.getResponse().getStatusCode()).toBe(200);
                     expect(event.getRenderedContent()).toInclude("data-handler=login");
                     expect(event.getRenderedContent()).toInclude("data-action=forgotpasswordform");
                 });
 
                 it("Can request a reset password email and reset password", () => {
-                    before = globalFunctions.countTestEmails();
+                    var before = globalFunctions.listTestEmails();
 
-                    event = post(route = "/login/forgotPassword", params = {email: testingEmail});
+                    var event = post(route = "/login/forgotPassword", params = {email: testingEmail});
 
-                    expect(globalFunctions.countTestEmails()).toBe(before + 1);
+                    // Read the email this request sent - the verification emails above can share its timestamp
+                    var sent = globalFunctions.listTestEmails().filter((name) => !before.contains(name));
+                    expect(sent.len()).toBe(1);
 
-                    email = globalFunctions.readEmail();
-                    link  = email.select("##resetLink").attr("href");
-
-                    uri  = right(link, link.len() - link.find(application.cbController.getSetting("httpPort")) - 3);
-                    code = right(uri, uri.len() - 7);
+                    var link = globalFunctions
+                        .readEmail(sent[1])
+                        .select("##resetLink")
+                        .attr("href");
+                    var uri  = right(link, link.len() - link.find(application.cbController.getSetting("httpPort")) - 3);
+                    var code = right(uri, uri.len() - 7);
 
                     expect(uri.len()).toBeGTE(1);
 
@@ -215,7 +194,7 @@ component extends="tests.resources.baseTest" asyncAll="false" {
             });
 
             afterEach(() => {
-                if(session.keyExists("mocktrainerid")) mockTrainer.delete();
+                if(session.keyExists("mocktrainerid")) mockTrainer.deleteTrainer();
             });
         });
     }

@@ -6,18 +6,18 @@ component extends="base" {
             (name, pokemon) => {
                 pokemon.moves.each((move) => {
                     // Select the pokemon id and move id, insert pokemonmove record
-                    var pokemonQb = qb.newQuery();
-                    var pokemon   = pokemonQb
+                    var pokemonQB = qb.newQuery();
+                    var pokemon   = pokemonQB
                         .from("pokemon")
-                        .where("number", {value: pokemon.number, cfsqltype: "numeric"})
-                        .andWhere("name", {value: toUTF8(pokemon.name), cfsqltype: "varchar"})
+                        .where("number", {value: pokemon.number, cfsqltype: "integer"})
+                        .andWhere("name", {value: pokemon.name, cfsqltype: "varchar"})
                         .andWhere("gender", {value: pokemon.gender, cfsqltype: "varchar"})
                         .first();
 
-                    var moveQb     = qb.newQuery();
-                    var moveRecord = moveQb
+                    var moveQB     = qb.newQuery();
+                    var moveRecord = moveQB
                         .from("move")
-                        .where("nameid", {value: toUTF8(move.nameid), cfsqltype: "varchar"})
+                        .where("nameid", {value: move.nameid, cfsqltype: "varchar"})
                         .first();
 
                     if(pokemon.keyExists("id") && moveRecord.keyExists("id")) {

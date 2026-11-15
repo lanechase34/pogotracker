@@ -1,10 +1,12 @@
 component extends="coldbox.system.EventHandler" {
 
+    property name="auditService" inject="services.audit";
+
     /**
      * Allow HEAD wherever GET is allowed so crawlers, link checkers, and uptime monitors don't get a 405
      * Runs after the child handler's pseudo-constructor has set this.allowedMethods
      */
-    function init() {
+    public any function init() {
         super.init();
 
         for(var action in this.allowedMethods) {
@@ -18,9 +20,20 @@ component extends="coldbox.system.EventHandler" {
     }
 
     /**
+     * The request's audit object (prc.auditInfo) - the current trainer, the referer and the event
+     */
+    public void function setRequestAuditInfo(required struct rc, required struct prc) {
+        prc.auditInfo = auditService.getAuditObj(
+            trainerid = (prc?.oCurrentUser?.getId() ?: -1),
+            referer   = rc?.referer ?: "",
+            event     = rc?.event ?: "NA"
+        );
+    }
+
+    /**
      * Generic JSON render
      */
-    function renderJson(required any event, required struct response) {
+    public void function renderJson(required any event, required struct response) {
         event.renderData(
             type       = "json",
             data       = response,
@@ -31,10 +44,10 @@ component extends="coldbox.system.EventHandler" {
     /**
      * JSON validation failure (400)
      */
-    function jsonValidationFailure(required any event, string message = "Invalid request") {
+    public void function jsonValidationFailure(required any event, string message = "Invalid request") {
         renderJson(
-            event,
-            {
+            event    = event,
+            response = {
                 success   : false,
                 message   : message,
                 statusCode: 400
@@ -45,10 +58,10 @@ component extends="coldbox.system.EventHandler" {
     /**
      * JSON not found failure (404)
      */
-    function jsonNotFound(required any event, string message = "Resource not found") {
+    public void function jsonNotFound(required any event, string message = "Resource not found") {
         renderJson(
-            event,
-            {
+            event    = event,
+            response = {
                 success   : false,
                 message   : message,
                 statusCode: 404
@@ -59,10 +72,10 @@ component extends="coldbox.system.EventHandler" {
     /**
      * JSON success helper (200)
      */
-    function jsonOk(required any event, any data = {}) {
+    public void function jsonOk(required any event, any data = {}) {
         renderJson(
-            event,
-            {
+            event    = event,
+            response = {
                 success   : true,
                 statusCode: 200,
                 data      : data
@@ -73,12 +86,14 @@ component extends="coldbox.system.EventHandler" {
     /**
      * HTML validation failure
      * Redirects or shows blank fragment depending on use case
+     * The blank fragment is for fetched fragments - it carries an error status so the caller reports the failure
      */
-    function htmlValidationFailure(
+    public void function htmlValidationFailure(
         required any event,
         string redirectEvent = "",
         string redirectUri   = "",
-        string view          = "/views/fragment/blank"
+        string view          = "/views/fragment/blank",
+        numeric statusCode   = 400
     ) {
         if(len(redirectEvent)) {
             relocate(event = redirectEvent);
@@ -87,6 +102,7 @@ component extends="coldbox.system.EventHandler" {
             relocate(uri = redirectUri);
         }
         else {
+            event.setHTTPHeader(statusCode = statusCode);
             event.setView(view = view, nolayout = true);
         }
     }
@@ -94,7 +110,7 @@ component extends="coldbox.system.EventHandler" {
     /**
      * HTML not found (404)
      */
-    function htmlNotFound(required any event, string view = "/views/fragment/404") {
+    public void function htmlNotFound(required any event, string view = "/views/fragment/404") {
         event.setHTTPHeader(statusCode = 404);
         event.setView(view = view);
     }
@@ -102,7 +118,7 @@ component extends="coldbox.system.EventHandler" {
     /**
      * Runs validation and returns true if errors exist
      */
-    boolean function hasValidationErrors(required any target, required string constraints) {
+    public boolean function hasValidationErrors(required any target, required string constraints) {
         var validation = validate(target = target, constraints = constraints);
         return validation.hasErrors();
     }
@@ -110,7 +126,7 @@ component extends="coldbox.system.EventHandler" {
     /**
      * Safe deserializeJSON wrapper
      */
-    function safeDeserializeJSON(required string json, any fallback = "") {
+    public any function safeDeserializeJSON(required string json, any fallback = "") {
         try {
             return deserializeJSON(json);
         }

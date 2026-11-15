@@ -28,38 +28,43 @@
                     <tbody>
                         <cfloop index="i" item="currMedal" array="#args.medalProgress#">
                             <tr
-                                data-name="#currMedal[1].getName()#"
-                                data-id="#currMedal[1].getId()#"
-                                data-bronze="#currMedal[1].getBronze()#"
-                                data-silver="#currMedal[1].getSilver()#"
-                                data-gold="#currMedal[1].getGold()#"
-                                data-platinum="#currMedal[1].getPlatinum()#"
+                                data-name="#currMedal.name#"
+                                data-id="#currMedal.id#"
+                                data-bronze="#currMedal.bronze#"
+                                data-silver="#currMedal.silver#"
+                                data-gold="#currMedal.gold#"
+                                data-platinum="#currMedal.platinum#"
                             >
                                 <td class="align-middle text-center">
                                     <img
-                                        id="#currMedal[1].getId()#icon"
-                                        alt="#currMedal[1].getAltText()#"
-                                        src="/includes/images/medals/#currMedal[1].getName()##getSetting('imageExtension')#"
+                                        id="#currMedal.id#icon"
+                                        alt="#currMedal.alttext#"
+                                        src="/includes/images/medals/#currMedal.name##getSetting('imageExtension')#"
                                         loading="lazy"
-                                        class="medalIcon <cfif!isNull(currMedal[2])>#currMedal[2].getCurrentMedal()#Medal</cfif>"
+                                        class="medalIcon <cfif currMedal.tracked>#currMedal.tier#Medal</cfif>"
                                     />
                                 </td>
                                 <td class="align-middle">
-                                    #currMedal[1].getName()#
+                                    #currMedal.name#
                                 </td>
                                 <td class="align-middle">
-                                    <input
-                                        type="text"
-                                        value="#!isNull(currMedal[2]) ? currMedal[2].getCurrent() : ''#"
-                                        inputmode="numeric"
-                                        pattern="[0-9\s]"
-                                        id="input#currMedal[1].getName()#"
-                                        class="form-control medalInput"
-                                    >
-                                    <div class="invalid-feedback">Please provide a numeric value</div>
+                                    <cfif args.editable>
+                                        <input
+                                            type="text"
+                                            value="#currMedal.tracked ? currMedal.current : ''#"
+                                            inputmode="numeric"
+                                            pattern="[0-9\s]"
+                                            id="input#currMedal.name#"
+                                            class="form-control medalInput"
+                                            aria-label="#encodeForHTMLAttribute(currMedal.name)# count"
+                                        >
+                                        <div class="invalid-feedback">Please provide a numeric value</div>
+                                    <cfelse>
+                                        #currMedal.tracked ? numberFormat(currMedal.current, ",") : "--"#
+                                    </cfif>
                                 </td>
                                 <td class="align-middle">
-                                    <cfset currProgress = !isNull(currMedal[2]) ? (currMedal[2].getCurrent() / currMedal[1].getPlatinum()) * 100 : 0/>
+                                    <cfset currProgress = currMedal.tracked ? (currMedal.current / currMedal.platinum) * 100 : 0/>
                                     <div
                                         class="progress medalProgressBar"
                                         role="progressbar"
@@ -67,7 +72,7 @@
                                         aria-valuemin="0"
                                         aria-valuemax="100"
                                     >
-                                        <div id="#currMedal[1].getId()#progressBar" class="progress-bar" style="width: #currProgress#%"></div>
+                                        <div id="#currMedal.id#progressBar" class="progress-bar" style="width: #currProgress#%"></div>
                                     </div>
                                 </td>
                             </tr>

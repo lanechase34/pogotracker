@@ -2,119 +2,169 @@ component singleton accessors="true" {
 
     property name="trainerCache"      inject="cachebox:trainerCache";
     property name="generationService" inject="services.generation";
+    property name="statsService"      inject="services.stats";
     property name="utilService"       inject="services.util";
+
+    // A pokedex grid row: the pokemon's columns, then the trainer's registration of it
+    // registered is false (and every dex_ flag false) when the trainer has no entry for the pokemon
+    variables.REGISTERED_SELECT = "
+        SELECT pokemon.id, pokemon.number, pokemon.name, pokemon.gender, pokemon.form, pokemon.formtype,
+            pokemon.live, pokemon.shiny, pokemon.shadow, pokemon.shadowshiny, pokemon.tradable, pokemon.mega,
+            pokemon.giga, pokemon.costume, COALESCE(pokemon.costumetype, '') AS costumetype, pokemon.sprite,
+            pokemon.generation, pokemon.ses,
+            pokedex.id IS NOT NULL AS registered,
+            COALESCE(pokedex.caught, false) AS dex_caught,
+            COALESCE(pokedex.shiny, false) AS dex_shiny,
+            COALESCE(pokedex.hundo, false) AS dex_hundo,
+            COALESCE(pokedex.shadow, false) AS dex_shadow,
+            COALESCE(pokedex.shadowshiny, false) AS dex_shadowshiny
+        FROM pokemon
+        LEFT JOIN pokedex ON pokedex.pokemonid = pokemon.id AND pokedex.trainerid = :trainerid
+    ";
+    variables.REGISTERED_ORDER = "
+        ORDER BY pokemon.generation ASC, pokemon.number ASC, pokemon.costume ASC, pokemon.costumetype ASC,
+            pokemon.form ASC, pokemon.name ASC
+    ";
 
     /**
      * Get registered pokemon for a trainer
      * for a region/mega and whether to include forms
+     * Each row is a REGISTERED_SELECT row
      */
     public array function getRegistered(
-        required component trainer,
-        string region   = "",
-        boolean form    = false,
-        boolean mega    = false,
-        boolean shadow  = false,
-        boolean giga    = false,
-        boolean costume = false
+        required numeric trainerid,
+        string region          = "",
+        boolean alternateForms = false,
+        boolean mega           = false,
+        boolean shadow         = false,
+        boolean giga           = false,
+        boolean costume        = false
     ) {
-        var cacheKey   = "#arguments.trainer.getId()#|pokedex.getRegistered|region=#arguments.region#|form=#arguments.form#|mega=#arguments.mega#|shadow=#arguments.shadow#|giga=#arguments.giga#|costume=#arguments.costume#";
-        var registered = trainerCache.get(cacheKey);
-        if(isNull(registered)) {
-            var whereClause = "WHERE pokemon.costume = :costume AND pokemon.mega = :mega AND pokemon.giga = :giga";
-            var params      = {
-                "trainer": arguments.trainer,
-                "costume": arguments.costume,
-                "mega"   : arguments.mega,
-                "giga"   : arguments.giga
-            };
+        // The closure's own arguments scope hides these, so it reads them from here
+        var filters = {
+            trainerid     : arguments.trainerid,
+            region        : arguments.region,
+            alternateForms: arguments.alternateForms,
+            mega          : arguments.mega,
+            shadow        : arguments.shadow,
+            giga          : arguments.giga,
+            costume       : arguments.costume
+        };
+        return trainerCache.getOrSet(
+            getRegisteredCacheKey(argumentCollection = filters),
+            () => {
+                var whereClause = "WHERE pokemon.costume = :costume AND pokemon.mega = :mega AND pokemon.giga = :giga";
+                var params      = {
+                    trainerid: {value: filters.trainerid, cfsqltype: "integer"},
+                    costume  : {value: filters.costume, cfsqltype: "boolean"},
+                    mega     : {value: filters.mega, cfsqltype: "boolean"},
+                    giga     : {value: filters.giga, cfsqltype: "boolean"}
+                };
 
-            if(arguments.region.len()) {
-                whereClause &= " AND pokemon.generation = :generation";
-                params.insert("generation", generationService.getFromRegion(arguments.region));
-            }
-            if(arguments.form) {
-                whereClause &= " AND pokemon.form = :form";
-                params.insert("form", arguments.form);
-            }
-            if(arguments.shadow) {
-                whereClause &= " AND pokemon.shadow = :shadow";
-                params.insert("shadow", arguments.shadow);
-            }
+                if(filters.region.len()) {
+                    var generation = generationService.getFromRegion(filters.region);
+                    whereClause &= " AND pokemon.generation = :generation";
+                    params.generation = {
+                        value    : isNull(generation) ? -1 : generation.generation,
+                        cfsqltype: "decimal",
+                        scale    : 1
+                    };
+                }
+                if(filters.alternateForms) {
+                    whereClause &= " AND pokemon.form = true";
+                }
+                if(filters.shadow) {
+                    whereClause &= " AND pokemon.shadow = true";
+                }
 
-            registered = ormExecuteQuery(
-                "
-                from pokemon as pokemon
-                left outer join pokemon.pokedex as pokedex with pokedex.trainer = :trainer
-                #whereClause#
-                order by pokemon.generation asc, pokemon.number asc, pokemon.costume asc, pokemon.costumetype asc, pokemon.form asc, pokemon.name asc
-                ",
-                params
-            );
-
-            trainerCache.set(cacheKey, registered, 10, 10);
-        }
-
-        return registered;
+                return queryExecute(
+                    "#variables.REGISTERED_SELECT# #whereClause# #variables.REGISTERED_ORDER#",
+                    params,
+                    {returnType: "array"}
+                );
+            },
+            10,
+            10
+        );
     }
 
     /**
      * Register a pokemon for a trainer
+     * Only the flags that are passed are written
      */
     public void function register(
-        required component trainer,
-        required component pokemon,
-        required boolean caught,
-        required boolean shiny,
-        required boolean hundo,
-        required boolean shadow,
-        required boolean shadowshiny
+        required numeric trainerid,
+        required struct pokemon,
+        boolean caught,
+        boolean shiny,
+        boolean hundo,
+        boolean shadow,
+        boolean shadowshiny
     ) {
-        var values = {
-            "caught"     : arguments.caught,
-            "shiny"      : arguments.shiny,
-            "hundo"      : arguments.hundo,
-            "shadow"     : arguments.shadow,
-            "shadowshiny": arguments.shadowshiny
+        var params = {
+            trainerid: {value: arguments.trainerid, cfsqltype: "integer"},
+            pokemonid: {value: arguments.pokemon.id, cfsqltype: "integer"}
         };
-
-        var entry = entityLoad(
-            "pokedex",
-            {"trainer": arguments.trainer, "pokemon": arguments.pokemon},
-            true
-        );
-
-        // If we haven't registered this pokemon, create a new record
-        if(isNull(entry)) {
-            var properties        = duplicate(values);
-            properties["trainer"] = arguments.trainer;
-            properties["pokemon"] = arguments.pokemon;
-            entry                 = entityNew("pokedex", properties);
+        for(
+            var flag in [
+                "caught",
+                "shiny",
+                "hundo",
+                "shadow",
+                "shadowshiny"
+            ]
+        ) {
+            var passed   = !isNull(arguments[flag]);
+            params[flag] = {
+                value    : passed ? (arguments[flag] ? true : false) : false,
+                cfsqltype: "boolean",
+                null     : !passed
+            };
         }
+
+        var updateSQL = "
+            UPDATE pokedex
+            SET caught = COALESCE(:caught, caught),
+                shiny = COALESCE(:shiny, shiny),
+                hundo = COALESCE(:hundo, hundo),
+                shadow = COALESCE(:shadow, shadow),
+                shadowshiny = COALESCE(:shadowshiny, shadowshiny)
+            WHERE trainerid = :trainerid
+                AND pokemonid = :pokemonid
+            RETURNING id
+        ";
+
         // Update the already registered values
-        else {
-            entry.setCaught(values.caught);
-            entry.setShiny(values.shiny);
-            entry.setHundo(values.hundo);
-            entry.setShadow(values.shadow);
-            entry.setShadowShiny(values.shadowshiny);
-        }
+        var written = queryExecute(updateSQL, params);
 
-        try {
-            entitySave(entry);
-            ormFlush();
-        }
-        catch(any e) {
-            if(utilService.getUniqueViolation(e) != "unq_pokedex_trainerid_pokemonid") {
-                throw(object = e);
+        // Not registered yet - one row per trainer + pokemon (unq_pokedex_trainerid_pokemonid)
+        if(!written.recordCount) {
+            written = queryExecute(
+                "
+                INSERT INTO pokedex (trainerid, pokemonid, caught, shiny, hundo, shadow, shadowshiny)
+                VALUES (
+                    :trainerid,
+                    :pokemonid,
+                    COALESCE(:caught, false),
+                    COALESCE(:shiny, false),
+                    COALESCE(:hundo, false),
+                    COALESCE(:shadow, false),
+                    COALESCE(:shadowshiny, false)
+                )
+                ON CONFLICT (trainerid, pokemonid) DO NOTHING
+                RETURNING id
+                ",
+                params
+            );
+
+            // Another request inserted the row since the update - apply this request's flags on top
+            if(!written.recordCount) {
+                written = queryExecute(updateSQL, params);
+                if(!written.recordCount) return;
             }
-
-            // Another request (double submit) inserted this entry between our load and insert - the first write stands
-            // Hibernate can't continue a session after a failed statement, so it is cleared
-            ormClearSession();
-            return;
         }
 
-        clearPokedexCache(trainerid = arguments.trainer.getId(), region = arguments.pokemon.getGeneration().getRegion());
+        clearPokedexCache(trainerid = arguments.trainerid, region = arguments.pokemon.region);
         return;
     }
 
@@ -123,7 +173,7 @@ component singleton accessors="true" {
      * Existing entries are flipped with a single UPDATE, missing entries are added with a single INSERT ... SELECT
      */
     public void function registerAll(
-        required component trainer,
+        required numeric trainerid,
         required string region,
         required boolean shiny
     ) {
@@ -133,10 +183,10 @@ component singleton accessors="true" {
         // Column is never user supplied, only one of two literals
         var flag   = arguments.shiny ? "shiny" : "caught";
         var params = {
-            trainerid : {value: arguments.trainer.getId(), cfsqltype: "integer"},
+            trainerid : {value: arguments.trainerid, cfsqltype: "integer"},
             // pokemon.generation references generation.generation (e.g. 3, 2.5), not generation.id
             generation: {
-                value    : generation.getGeneration(),
+                value    : generation.generation,
                 cfsqltype: "decimal",
                 scale    : 1
             }
@@ -150,35 +200,39 @@ component singleton accessors="true" {
             #arguments.shiny ? "AND pokemon.shiny = true" : ""#
         ";
 
-        // Existing entries that are not yet caught/shiny
-        queryExecute(
-            "
-            UPDATE pokedex
-            SET #flag# = true, updated = now()
-            WHERE trainerid = :trainerid
-                AND #flag# = false
-                AND pokemonid IN (SELECT pokemon.id FROM pokemon WHERE #eligibleWhere#)
-            ",
-            params
-        );
-
-        // Pokemon with no entry yet - the other columns take the table defaults, same as the entity defaults
-        // ON CONFLICT: unq_pokedex_trainerid_pokemonid already has the row (e.g. a double submit) - leave it be
         var insertParams    = duplicate(params);
         insertParams.caught = {value: !arguments.shiny, cfsqltype: "boolean"};
         insertParams.shiny  = {value: arguments.shiny, cfsqltype: "boolean"};
-        queryExecute(
-            "
-            INSERT INTO pokedex (trainerid, pokemonid, caught, shiny, created, updated)
-            SELECT :trainerid, pokemon.id, :caught, :shiny, now(), now()
-            FROM pokemon
-            WHERE #eligibleWhere#
-            ON CONFLICT (trainerid, pokemonid) DO NOTHING
-            ",
-            insertParams
-        );
 
-        clearPokedexCache(trainerid = arguments.trainer.getId(), region = generation.getRegion());
+        // created/updated come from the table defaults and the set_updated() trigger
+        transaction {
+            // Existing entries that are not yet caught/shiny
+            queryExecute(
+                "
+                UPDATE pokedex
+                SET #flag# = true
+                WHERE trainerid = :trainerid
+                    AND #flag# = false
+                    AND pokemonid IN (SELECT pokemon.id FROM pokemon WHERE #eligibleWhere#)
+                ",
+                params
+            );
+
+            // Pokemon with no entry yet - the other columns take the table defaults
+            // ON CONFLICT: unq_pokedex_trainerid_pokemonid already has the row (e.g. a double submit) - leave it be
+            queryExecute(
+                "
+                INSERT INTO pokedex (trainerid, pokemonid, caught, shiny)
+                SELECT :trainerid, pokemon.id, :caught, :shiny
+                FROM pokemon
+                WHERE #eligibleWhere#
+                ON CONFLICT (trainerid, pokemonid) DO NOTHING
+                ",
+                insertParams
+            );
+        }
+
+        clearPokedexCache(trainerid = arguments.trainerid, region = generation.region);
         return;
     }
 
@@ -202,92 +256,148 @@ component singleton accessors="true" {
         trainerCache.clearByKeySnippet(trainerKey & "pokedex\.getCustomRegistered\|", true);
 
         // Clear trainer's pokedex stats cache
-        trainerCache.clear("#arguments.trainerid#|stats.getPokedexStats");
+        statsService.clearPokedexStatsCache(arguments.trainerid);
 
         // Strings
-        trainerCache.clear("#arguments.trainerid#|pokedex.getMissingString");
+        trainerCache.clear(getMissingStringCacheKey(arguments.trainerid));
+    }
+
+    /**
+     * Clear every trainer's cached registered list for one custom pokedex
+     * Anchored on the end of the key so custom 1 doesn't also clear custom 12, 13...
+     *
+     * @customid custom pk
+     */
+    public void function clearCustomRegisteredCache(required numeric customid) {
+        trainerCache.clearByKeySnippet("\|pokedex\.getCustomRegistered\|custom=#arguments.customid#$", true);
     }
 
     /**
      * Get registered pokemon for a trainer under a custom set
+     * Each row is a REGISTERED_SELECT row
      */
-    public array function getCustomRegistered(required component trainer, required component custom) {
-        var cacheKey         = "#arguments.trainer.getId()#|pokedex.getCustomRegistered|custom=#arguments.custom.getId()#";
-        var customRegistered = trainerCache.get(cacheKey);
-        if(isNull(customRegistered)) {
-            customRegistered = ormExecuteQuery(
+    public array function getCustomRegistered(required numeric trainerid, required struct custom) {
+        var forTrainerid = arguments.trainerid;
+        var customid     = arguments.custom.id;
+        return trainerCache.getOrSet(
+            getCustomRegisteredCacheKey(trainerid = forTrainerid, customid = customid),
+            () => queryExecute(
                 "
-                from pokemon as pokemon
-                left outer join pokemon.pokedex as pokedex with pokedex.trainer = :trainer
-                inner join pokemon.custompokedex as custompokedex
-                where custompokedex.custom = :custom
-                order by pokemon.generation asc, pokemon.number asc, pokemon.costume asc, pokemon.costumetype asc, pokemon.form asc, pokemon.name asc
+                #variables.REGISTERED_SELECT#
+                INNER JOIN custompokedex ON custompokedex.pokemonid = pokemon.id
+                WHERE custompokedex.customid = :customid
+                #variables.REGISTERED_ORDER#
                 ",
-                {"trainer": arguments.trainer, "custom": arguments.custom}
-            );
-
-            trainerCache.set(cacheKey, customRegistered, 10, 10);
-        }
-
-        return customRegistered;
+                {
+                    trainerid: {value: forTrainerid, cfsqltype: "integer"},
+                    customid : {value: customid, cfsqltype: "integer"}
+                },
+                {returnType: "array"}
+            ),
+            10,
+            10
+        );
     }
 
     /**
      * Create string of missing pokemon for the trainer
      *
-     * @trainer trainer cfc
-     * @shiny   t/f
+     * @trainerid trainer pk
+     * @shiny     t/f
      *
      * @return search string to use in pokemon go, uses the pokemon's number/name, with '+' for evolution line
      */
-    public string function getMissingString(required component trainer, required boolean shiny) {
-        var cacheKey       = "#arguments.trainer.getId()#|pokedex.getMissingString";
-        var missingStrings = trainerCache.get(cacheKey);
+    public string function getMissingString(required numeric trainerid, required boolean shiny) {
+        var forTrainerid   = arguments.trainerid;
+        var missingStrings = trainerCache.getOrSet(
+            getMissingStringCacheKey(forTrainerid),
+            () => {
+                var q = queryExecute(
+                    "
+                    SELECT
+                        COALESCE(STRING_AGG(
+                            CASE WHEN (pokedex.caught IS NOT true AND pokemon.live = true)
+                            THEN
+                                CASE WHEN pokemon.form
+                                THEN CAST(pokemon.number AS text)
+                                ELSE '+' || pokemon.name
+                                END
+                            END
+                            , ',' ORDER BY pokemon.number ASC), ''
+                        ) AS missingCaught,
+                        COALESCE(STRING_AGG(
+                            CASE WHEN (pokedex.shiny IS NOT true AND pokemon.shiny = true)
+                            THEN
+                                CASE WHEN pokemon.form
+                                THEN CAST(pokemon.number AS text)
+                                ELSE '+' || pokemon.name
+                                END
+                            END
+                            , ',' ORDER BY pokemon.number ASC), ''
+                        ) AS missingShiny
+                    FROM pokemon
+                    LEFT JOIN pokedex ON pokedex.pokemonid = pokemon.id AND pokedex.trainerid = :trainerid
+                    WHERE pokemon.costume = false
+                        AND pokemon.mega = false
+                        AND pokemon.giga = false
+                        AND pokemon.number <> 201 -- exclude unown
+                        AND pokemon.tradable = true
+                    ",
+                    {trainerid: {value: forTrainerid, cfsqltype: "integer"}}
+                );
 
-        if(isNull(missingStrings)) {
-            var q = queryExecute(
-                "
-                select
-                    coalesce(string_agg(
-                        case when (d.caught is not true and p.live = true)
-                        then
-                            case when p.form
-                            then cast(p.number as text)
-                            else '+' || p.name
-                            end
-                        end
-                        , ',' order by p.number asc), ''
-                    ) as missingCaught,
-                    coalesce(string_agg(
-                        case when (d.shiny is not true and p.shiny = true)
-                        then
-                            case when p.form
-                            then cast(p.number as text)
-                            else '+' || p.name
-                            end
-                        end
-                        , ',' order by p.number asc), ''
-                    ) as missingShiny
-                from pokemon p
-                left outer join pokedex d on p.id = d.pokemonid and d.trainerid = :trainerid
-                where p.costume = false
-                    and p.mega = false
-                    and p.giga = false
-                    and p.number != 201 -- exclude unown
-                    and p.tradable = true
-            ",
-                {trainerid: {value: arguments.trainer.getId(), cfsqltype: "integer"}}
-            );
-
-            missingStrings = {
-                caught: utilService.removeDuplicates(q.missingCaught),
-                shiny : "shiny&#utilService.removeDuplicates(q.missingShiny)#"
-            };
-
-            trainerCache.set(cacheKey, missingStrings, 10, 10);
-        }
+                return {
+                    caught: utilService.dedupeList(q.missingCaught),
+                    shiny : "shiny&#utilService.dedupeList(q.missingShiny)#"
+                };
+            },
+            10,
+            10
+        );
 
         return arguments.shiny ? missingStrings.shiny : missingStrings.caught;
+    }
+
+    /**
+     * Cache key for the rows getRegistered loads
+     *
+     * @trainerid      trainer pk
+     * @region         region, empty for every region
+     * @alternateForms forms only
+     * @mega           mega pokemon
+     * @shadow         shadow pokemon only
+     * @giga           gigantamax pokemon
+     * @costume        costume pokemon
+     */
+    private string function getRegisteredCacheKey(
+        required numeric trainerid,
+        required string region,
+        required boolean alternateForms,
+        required boolean mega,
+        required boolean shadow,
+        required boolean giga,
+        required boolean costume
+    ) {
+        return "#arguments.trainerid#|pokedex.getRegistered|region=#arguments.region#|form=#arguments.alternateForms#|mega=#arguments.mega#|shadow=#arguments.shadow#|giga=#arguments.giga#|costume=#arguments.costume#";
+    }
+
+    /**
+     * Cache key for the rows getCustomRegistered loads - clearCustomRegisteredCache matches its end
+     *
+     * @trainerid trainer pk
+     * @customid  custom pk
+     */
+    private string function getCustomRegisteredCacheKey(required numeric trainerid, required numeric customid) {
+        return "#arguments.trainerid#|pokedex.getCustomRegistered|custom=#arguments.customid#";
+    }
+
+    /**
+     * Cache key for the strings getMissingString loads
+     *
+     * @trainerid trainer pk
+     */
+    private string function getMissingStringCacheKey(required numeric trainerid) {
+        return "#arguments.trainerid#|pokedex.getMissingString";
     }
 
 }

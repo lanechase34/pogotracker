@@ -125,9 +125,9 @@ test.describe('Login page', () => {
             await expect(page.locator('#loginForm')).toHaveClass(/was-validated/);
         });
 
-        test('Enforces minlength of 12 on password', async ({ page }) => {
+        test('Enforces minlength of 10 on password', async ({ page }) => {
             const minlength = await page.locator('#inputPassword').getAttribute('minlength');
-            expect(minlength).toBe('12');
+            expect(minlength).toBe('10');
         });
 
         test('Enforces maxlength of 50 on password', async ({ page }) => {
@@ -195,7 +195,7 @@ test.describe('Login page', () => {
             await expect(page).toHaveURL('/login');
         });
 
-        test('Does not submit when password is shorter than 12 characters', async ({ page }) => {
+        test('Does not submit when password is shorter than 10 characters', async ({ page }) => {
             await page.locator('#inputEmail').fill('test@example.com');
             await page.locator('#inputPassword').fill('short');
             await page.locator('#submitForm').click();

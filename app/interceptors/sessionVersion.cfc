@@ -1,4 +1,4 @@
-component extends="coldbox.system.Interceptor" {
+component extends="baseInterceptor" {
 
     property name="authService"    inject="provider:authenticationService@cbauth";
     property name="sessionService" inject="provider:services.session";
@@ -7,7 +7,7 @@ component extends="coldbox.system.Interceptor" {
      * Keep the version the trainer logged in under - every login (form, registration, remember me)
      */
     function postLogin(event, data, buffer, rc, prc) {
-        sessionService.keepVersion(data.user);
+        sessionService.keepVersion(data.user.getSessionVersion());
     }
 
     /**
@@ -27,7 +27,7 @@ component extends="coldbox.system.Interceptor" {
             return;
         }
 
-        if(!sessionService.isCurrentVersion(trainer)) {
+        if(!sessionService.isCurrentVersion(trainer.getSessionVersion())) {
             authService.logout();
             sessionService.forgetVersion();
         }

@@ -2,17 +2,24 @@ component extends="tests.resources.baseTest" asyncAll="false" {
 
     function beforeAll() {
         super.beforeAll();
-        pokemonService = getInstance("services.pokemon");
-        mockTrainer    = getInstance("tests.resources.mocktrainer");
+        pokemonService  = getInstance("services.pokemon");
+        pokedexService  = getInstance("services.pokedex");
+        mockTrainer     = getInstance("tests.resources.mockTrainer");
+        kantoGeneration = getInstance("services.generation").getFromRegion("Kanto").generation;
 
-        bulbasaur = pokemonService.get({
+        // Service calls only - no login needed
+        // trainer never registers anything, writer is only used by the specs that register
+        trainer = mockTrainer.make(autoLogin = false);
+        writer  = mockTrainer.make(autoLogin = false);
+
+        bulbasaur = pokemonService.findPokemon({
             number : 1,
             name   : "Bulbasaur",
             gender : "",
             costume: false
         })[1];
 
-        bulbasaurPartyHat = pokemonService.get({
+        bulbasaurPartyHat = pokemonService.findPokemon({
             number     : 1,
             name       : "Bulbasaur",
             gender     : "",
@@ -20,8 +27,8 @@ component extends="tests.resources.baseTest" asyncAll="false" {
             costumetype: "Party Hat"
         })[1];
 
-        // Torchic is Hoenn — used to verify region filter excludes non-Kanto
-        torchic = pokemonService.get({
+        // Torchic is Hoenn - used to verify region filter excludes non-Kanto
+        torchic = pokemonService.findPokemon({
             number : 255,
             name   : "Torchic",
             gender : "",
@@ -29,301 +36,289 @@ component extends="tests.resources.baseTest" asyncAll="false" {
         })[1];
 
         // Shadow-eligible pokemon (pokemon.shadow=true means it has a shadow form)
-        victreebel = pokemonService.get({number: 71, shadow: true})[1];
+        victreebel = pokemonService.findPokemon({number: 71, shadow: true})[1];
 
-        // Mega pokemon (mega=true on the entity)
-        megaGengar = pokemonService.get({number: 94, mega: true})[1];
+        // Mega pokemon (pokemon.mega=true)
+        megaGengar = pokemonService.findPokemon({number: 94, mega: true})[1];
 
-        // Giga pokemon (giga=true on the entity)
-        gigaCharizard = pokemonService.get({number: 6, giga: true})[1];
+        // Giga pokemon (pokemon.giga=true)
+        gigaCharizard = pokemonService.findPokemon({number: 6, giga: true})[1];
 
-        // Form variant pokemon (form=true on the entity)
-        deerlingSpring = pokemonService.get({number: 585, form: true})[1];
+        // Form variant pokemon (pokemon.form=true)
+        deerlingSpring = pokemonService.findPokemon({number: 585, form: true})[1];
     }
 
     function afterAll() {
         super.afterAll();
+        mockTrainer.deleteTrainer(writer.id);
+        mockTrainer.deleteTrainer(trainer.id);
     }
 
     function run() {
         describe("pokedexService.getRegistered", () => {
-            beforeEach(() => {
-                setup();
-                pokedexService = getInstance("services.pokedex");
-                trainer        = mockTrainer.make(autoLogin = false);
-            });
-
-            afterEach(() => {
-                mockTrainer.delete();
-            });
-
             it("Default call excludes costume, mega, and giga pokemon", () => {
-                registered = pokedexService.getRegistered(
-                    trainer = trainer,
-                    form    = false,
-                    mega    = false,
-                    shadow  = false,
-                    giga    = false
+                var registered = pokedexService.getRegistered(
+                    trainerid      = trainer.id,
+                    alternateForms = false,
+                    mega           = false,
+                    shadow         = false,
+                    giga           = false
                 );
 
-                allIds = registered.map((entry) => entry[1].getId());
+                var allIds = registered.map((entry) => entry.id);
 
                 // Normal pokemon should be present
-                expect(allIds).toContain(bulbasaur.getId());
+                expect(allIds).toContain(bulbasaur.id);
 
                 // Costume, mega, and giga variants are excluded by the WHERE clause
-                expect(allIds).notToContain(bulbasaurPartyHat.getId());
-                expect(allIds).notToContain(megaGengar.getId());
-                expect(allIds).notToContain(gigaCharizard.getId());
+                expect(allIds).notToContain(bulbasaurPartyHat.id);
+                expect(allIds).notToContain(megaGengar.id);
+                expect(allIds).notToContain(gigaCharizard.id);
             });
 
             it("Unregistered pokemon have a null pokedex entry", () => {
-                registered = pokedexService.getRegistered(
-                    trainer = trainer,
-                    region  = "Kanto",
-                    form    = false,
-                    mega    = false,
-                    shadow  = false,
-                    giga    = false
+                var registered = pokedexService.getRegistered(
+                    trainerid      = trainer.id,
+                    region         = "Kanto",
+                    alternateForms = false,
+                    mega           = false,
+                    shadow         = false,
+                    giga           = false
                 );
 
-                bulbasaurEntry = registered.filter((entry) => entry[1].getId() == bulbasaur.getId());
+                var bulbasaurEntry = registered.filter((entry) => entry.id == bulbasaur.id);
                 expect(bulbasaurEntry).toBeArray();
                 expect(bulbasaurEntry.len()).toBe(1);
-                expect(bulbasaurEntry[1]).toBeArray();
-                expect(len(bulbasaurEntry[1])).toBe(2);
-                expect(isNull(bulbasaurEntry[1][2])).toBeTrue();
-            });
-
-            it("Registered pokemon have a populated entry with correct caught and shiny status", () => {
-                pokedexService.register(
-                    trainer     = trainer,
-                    pokemon     = bulbasaur,
-                    caught      = true,
-                    shiny       = true,
-                    hundo       = false,
-                    shadow      = false,
-                    shadowshiny = false
-                );
-
-                registered = pokedexService.getRegistered(
-                    trainer = trainer,
-                    region  = "Kanto",
-                    form    = false,
-                    mega    = false,
-                    shadow  = false,
-                    giga    = false
-                );
-
-                bulbasaurEntry = registered.filter((entry) => entry[1].getId() == bulbasaur.getId());
-                expect(bulbasaurEntry[1][2]).notToBeNull();
-                expect(bulbasaurEntry[1][2].getCaught()).toBeTrue();
-                expect(bulbasaurEntry[1][2].getShiny()).toBeTrue();
+                expect(bulbasaurEntry[1]).toBeStruct();
+                expect(bulbasaurEntry[1].registered).toBeFalse();
+                expect(bulbasaurEntry[1].dex_caught).toBeFalse();
+                expect(bulbasaurEntry[1].dex_shiny).toBeFalse();
             });
 
             it("Filters results to the given region only", () => {
-                registered = pokedexService.getRegistered(
-                    trainer = trainer,
-                    region  = "Kanto",
-                    form    = false,
-                    mega    = false,
-                    shadow  = false,
-                    giga    = false
+                var registered = pokedexService.getRegistered(
+                    trainerid      = trainer.id,
+                    region         = "Kanto",
+                    alternateForms = false,
+                    mega           = false,
+                    shadow         = false,
+                    giga           = false
                 );
 
-                allIds = registered.map((entry) => entry[1].getId());
+                var allIds = registered.map((entry) => entry.id);
 
                 // Kanto pokemon should appear
-                expect(allIds).toContain(bulbasaur.getId());
+                expect(allIds).toContain(bulbasaur.id);
 
                 // Hoenn pokemon should be absent
-                expect(allIds).notToContain(torchic.getId());
+                expect(allIds).notToContain(torchic.id);
 
                 // Every result should belong to Kanto
                 registered.each((entry) => {
-                    expect(entry[1].getGeneration().getRegion()).toBe("Kanto");
+                    expect(entry.generation).toBe(kantoGeneration);
                 });
             });
 
             it("costume=true returns only costume pokemon", () => {
-                registered = pokedexService.getRegistered(
-                    trainer = trainer,
-                    region  = "Kanto",
-                    form    = false,
-                    mega    = false,
-                    shadow  = false,
-                    giga    = false,
-                    costume = true
+                var registered = pokedexService.getRegistered(
+                    trainerid      = trainer.id,
+                    region         = "Kanto",
+                    alternateForms = false,
+                    mega           = false,
+                    shadow         = false,
+                    giga           = false,
+                    costume        = true
                 );
 
-                allIds = registered.map((entry) => entry[1].getId());
+                var allIds = registered.map((entry) => entry.id);
 
                 // Costume variant should be present
-                expect(allIds).toContain(bulbasaurPartyHat.getId());
+                expect(allIds).toContain(bulbasaurPartyHat.id);
 
                 // Normal variant should be absent
-                expect(allIds).notToContain(bulbasaur.getId());
+                expect(allIds).notToContain(bulbasaur.id);
 
                 // All results must be costume
                 registered.each((entry) => {
-                    expect(entry[1].getCostume()).toBeTrue();
+                    expect(entry.costume).toBeTrue();
                 });
             });
 
             it("mega=true returns only mega pokemon", () => {
-                registered = pokedexService.getRegistered(
-                    trainer = trainer,
-                    region  = "Kanto",
-                    form    = false,
-                    mega    = true,
-                    shadow  = false,
-                    giga    = false
+                var registered = pokedexService.getRegistered(
+                    trainerid      = trainer.id,
+                    region         = "Kanto",
+                    alternateForms = false,
+                    mega           = true,
+                    shadow         = false,
+                    giga           = false
                 );
 
-                allIds = registered.map((entry) => entry[1].getId());
+                var allIds = registered.map((entry) => entry.id);
 
                 // Mega Gengar should be present
-                expect(allIds).toContain(megaGengar.getId());
+                expect(allIds).toContain(megaGengar.id);
 
                 // Normal Bulbasaur should be absent
-                expect(allIds).notToContain(bulbasaur.getId());
+                expect(allIds).notToContain(bulbasaur.id);
 
                 // All results must be mega
                 registered.each((entry) => {
-                    expect(entry[1].getMega()).toBeTrue();
+                    expect(entry.mega).toBeTrue();
                 });
             });
 
             it("giga=true returns only giga pokemon", () => {
-                registered = pokedexService.getRegistered(
-                    trainer = trainer,
-                    region  = "Kanto",
-                    form    = false,
-                    mega    = false,
-                    shadow  = false,
-                    giga    = true
+                var registered = pokedexService.getRegistered(
+                    trainerid      = trainer.id,
+                    region         = "Kanto",
+                    alternateForms = false,
+                    mega           = false,
+                    shadow         = false,
+                    giga           = true
                 );
 
-                allIds = registered.map((entry) => entry[1].getId());
+                var allIds = registered.map((entry) => entry.id);
 
                 // Giga Charizard should be present
-                expect(allIds).toContain(gigaCharizard.getId());
+                expect(allIds).toContain(gigaCharizard.id);
 
                 // Normal Bulbasaur should be absent
-                expect(allIds).notToContain(bulbasaur.getId());
+                expect(allIds).notToContain(bulbasaur.id);
 
                 // All results must be giga
                 registered.each((entry) => {
-                    expect(entry[1].getGiga()).toBeTrue();
+                    expect(entry.giga).toBeTrue();
                 });
             });
 
             it("shadow=true returns only shadow-eligible pokemon", () => {
-                registered = pokedexService.getRegistered(
-                    trainer = trainer,
-                    form    = false,
-                    mega    = false,
-                    shadow  = true,
-                    giga    = false
+                var registered = pokedexService.getRegistered(
+                    trainerid      = trainer.id,
+                    alternateForms = false,
+                    mega           = false,
+                    shadow         = true,
+                    giga           = false
                 );
 
-                allIds = registered.map((entry) => entry[1].getId());
+                var allIds = registered.map((entry) => entry.id);
 
                 // Shadow-eligible pokemon should be present
-                expect(allIds).toContain(victreebel.getId());
+                expect(allIds).toContain(victreebel.id);
 
                 // All results must have shadow=true
                 registered.each((entry) => {
-                    expect(entry[1].getShadow()).toBeTrue();
+                    expect(entry.shadow).toBeTrue();
                 });
             });
 
             it("form=true returns only form variant pokemon", () => {
-                registered = pokedexService.getRegistered(
-                    trainer = trainer,
-                    form    = true,
-                    mega    = false,
-                    shadow  = false,
-                    giga    = false
+                var registered = pokedexService.getRegistered(
+                    trainerid      = trainer.id,
+                    alternateForms = true,
+                    mega           = false,
+                    shadow         = false,
+                    giga           = false
                 );
 
-                allIds = registered.map((entry) => entry[1].getId());
+                var allIds = registered.map((entry) => entry.id);
 
                 // Form variant should be present
-                expect(allIds).toContain(deerlingSpring.getId());
+                expect(allIds).toContain(deerlingSpring.id);
 
                 // Normal Bulbasaur (not a form) should be absent
-                expect(allIds).notToContain(bulbasaur.getId());
+                expect(allIds).notToContain(bulbasaur.id);
 
                 // All results must be form variants
                 registered.each((entry) => {
-                    expect(entry[1].getForm()).toBeTrue();
+                    expect(entry.form).toBeTrue();
                 });
             });
 
             it("Results are ordered by generation, number, form, name", () => {
-                registered = pokedexService.getRegistered(
-                    trainer = trainer,
-                    form    = false,
-                    mega    = false,
-                    shadow  = false,
-                    giga    = false
+                var registered = pokedexService.getRegistered(
+                    trainerid      = trainer.id,
+                    alternateForms = false,
+                    mega           = false,
+                    shadow         = false,
+                    giga           = false
                 );
 
                 // First result should be the lowest generation and lowest number
-                firstEntry = registered[1][1];
-                lastEntry  = registered[registered.len()][1];
+                var firstEntry = registered[1];
+                var lastEntry  = registered[registered.len()];
 
-                expect(firstEntry.getGeneration().getGeneration()).toBeLTE(lastEntry.getGeneration().getGeneration());
-                expect(firstEntry.getNumber()).toBeLTE(lastEntry.getNumber());
+                expect(firstEntry.generation).toBeLTE(lastEntry.generation);
+                expect(firstEntry.number).toBeLTE(lastEntry.number);
             });
 
-            it("Registrations are isolated per trainer and do not affect other trainers", () => {
-                trainerAId = trainer.getId();
-                trainerB   = mockTrainer.make(autoLogin = false);
-                trainerBId = trainerB.getId();
+            // Each spec registers what it asserts on, so they hold in any order
+            describe("After registering", () => {
+                it("Registered pokemon have a populated entry with correct caught and shiny status", () => {
+                    pokedexService.register(
+                        trainerid   = writer.id,
+                        pokemon     = bulbasaur,
+                        caught      = true,
+                        shiny       = true,
+                        hundo       = false,
+                        shadow      = false,
+                        shadowshiny = false
+                    );
 
-                // Register Bulbasaur for trainer A only
-                pokedexService.register(
-                    trainer     = trainer,
-                    pokemon     = bulbasaur,
-                    caught      = true,
-                    shiny       = false,
-                    hundo       = false,
-                    shadow      = false,
-                    shadowshiny = false
-                );
+                    var registered = pokedexService.getRegistered(
+                        trainerid      = writer.id,
+                        region         = "Kanto",
+                        alternateForms = false,
+                        mega           = false,
+                        shadow         = false,
+                        giga           = false
+                    );
 
-                // Trainer B should see Bulbasaur as unregistered
-                registeredForB = pokedexService.getRegistered(
-                    trainer = trainerB,
-                    region  = "Kanto",
-                    form    = false,
-                    mega    = false,
-                    shadow  = false,
-                    giga    = false
-                );
+                    var bulbasaurEntry = registered.filter((entry) => entry.id == bulbasaur.id);
+                    expect(bulbasaurEntry[1].registered).toBeTrue();
+                    expect(bulbasaurEntry[1].dex_caught).toBeTrue();
+                    expect(bulbasaurEntry[1].dex_shiny).toBeTrue();
+                });
 
-                bulbasaurEntryForB = registeredForB.filter((entry) => entry[1].getId() == bulbasaur.getId());
-                expect(isNull(bulbasaurEntryForB[1][2])).toBeTrue();
+                it("Registrations are isolated per trainer and do not affect other trainers", () => {
+                    // Register Bulbasaur for the writer only
+                    pokedexService.register(
+                        trainerid   = writer.id,
+                        pokemon     = bulbasaur,
+                        caught      = true,
+                        shiny       = false,
+                        hundo       = false,
+                        shadow      = false,
+                        shadowshiny = false
+                    );
 
-                // Trainer A should still see Bulbasaur as registered
-                registeredForA = pokedexService.getRegistered(
-                    trainer = trainer,
-                    region  = "Kanto",
-                    form    = false,
-                    mega    = false,
-                    shadow  = false,
-                    giga    = false
-                );
+                    // The other trainer should see Bulbasaur as unregistered
+                    var registeredForOther = pokedexService.getRegistered(
+                        trainerid      = trainer.id,
+                        region         = "Kanto",
+                        alternateForms = false,
+                        mega           = false,
+                        shadow         = false,
+                        giga           = false
+                    );
 
-                bulbasaurEntryForA = registeredForA.filter((entry) => entry[1].getId() == bulbasaur.getId());
-                expect(bulbasaurEntryForA[1][2]).notToBeNull();
-                expect(bulbasaurEntryForA[1][2].getCaught()).toBeTrue();
+                    var bulbasaurEntryForOther = registeredForOther.filter((entry) => entry.id == bulbasaur.id);
+                    expect(bulbasaurEntryForOther[1].registered).toBeFalse();
 
-                // Clean up trainer B and restore session so afterEach can clean up trainer A
-                mockTrainer.delete(trainerBId);
-                session.mocktrainerid = trainerAId;
+                    // The writer should still see Bulbasaur as registered
+                    var registeredForWriter = pokedexService.getRegistered(
+                        trainerid      = writer.id,
+                        region         = "Kanto",
+                        alternateForms = false,
+                        mega           = false,
+                        shadow         = false,
+                        giga           = false
+                    );
+
+                    var bulbasaurEntryForWriter = registeredForWriter.filter((entry) => entry.id == bulbasaur.id);
+                    expect(bulbasaurEntryForWriter[1].registered).toBeTrue();
+                    expect(bulbasaurEntryForWriter[1].dex_caught).toBeTrue();
+                });
             });
         });
     }

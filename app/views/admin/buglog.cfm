@@ -1,4 +1,5 @@
 <cfoutput>
+#view("/views/admin/fragment/logRange")#
 <div class="mt-3">
 <table id="bugLog" class="table table-striped table-bordered table-hover align-middle">
     <thead>

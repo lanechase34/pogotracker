@@ -49,24 +49,25 @@ component singleton accessors="true" {
     /**
      * Adds a persist cookie for a user logging in
      *
-     * @trainer The trainer entity to add cookie to
+     * @trainerid pk of the trainer to add the cookie for
      */
-    public void function addCookie(required component trainer) {
+    public void function addCookie(required numeric trainerid) {
         var persistCookie = generateCookie();
         setBrowserCookie(persistCookie, getPersistDuration());
 
-        var persist = entityNew(
-            "persist",
+        var rightNow = now();
+        queryExecute(
+            "
+            INSERT INTO persist (cookie, agent, lastused, lastrotated, trainerid)
+            VALUES (:cookie, :agent, :rightNow, :rightNow, :trainerid)
+            ",
             {
-                cookie     : hashCookie(persistCookie),
-                agent      : left(utilService.getUserAgent(), 512),
-                lastused   : now(),
-                lastrotated: now()
+                cookie   : {value: hashCookie(persistCookie), cfsqltype: "varchar"},
+                agent    : {value: left(utilService.getUserAgent(), 512), cfsqltype: "varchar"},
+                rightNow : {value: rightNow, cfsqltype: "timestamp"},
+                trainerid: {value: arguments.trainerid, cfsqltype: "integer"}
             }
         );
-        persist.setTrainer(arguments.trainer);
-        entitySave(persist);
-        ormFlush();
         return;
     }
 
@@ -75,33 +76,32 @@ component singleton accessors="true" {
      * Only rotates if the row still holds the cookie it was loaded with - when concurrent requests race,
      * one rotates and sets the new cookie, the rest leave the browser's cookie alone
      *
-     * @persist The persist entity to rotate
+     * @persist The persist row to rotate (needs its id and cookie)
      *
      * @return true if this request rotated the cookie
      */
-    public boolean function rotateCookie(required component persist) {
+    public boolean function rotateCookie(required struct persist) {
         var newPersistCookie = generateCookie();
         var rightNow         = now();
 
         var rotated = queryExecute(
             "
-            update persist
-            set previouscookie = cookie,
+            UPDATE persist
+            SET previouscookie = cookie,
                 cookie         = :newCookie,
                 lastrotated    = :rightNow,
-                lastused       = :rightNow,
-                updated        = :rightNow
-            where id = :id
-                and cookie = :currentCookie
-            returning id
+                lastused       = :rightNow
+            WHERE id = :id
+                AND cookie = :currentCookie
+            RETURNING id
             ",
             {
                 newCookie    : {value: hashCookie(newPersistCookie), cfsqltype: "varchar"},
                 rightNow     : {value: rightNow, cfsqltype: "timestamp"},
-                id           : {value: arguments.persist.getId(), cfsqltype: "integer"},
-                currentCookie: {value: arguments.persist.getCookie(), cfsqltype: "varchar"}
+                id           : {value: arguments.persist.id, cfsqltype: "integer"},
+                currentCookie: {value: arguments.persist.cookie, cfsqltype: "varchar"}
             },
-            {returntype: "array"}
+            {returnType: "array"}
         );
 
         if(!rotated.len()) {
@@ -125,51 +125,68 @@ component singleton accessors="true" {
         };
 
         var hashedCookie = hashCookie(arguments.persistCookie);
-        var persist      = ormExecuteQuery(
+        var rows         = queryExecute(
             "
-            from persist
-            where agent = :agent
-                and (cookie = :cookie or previouscookie = :cookie)
+            SELECT persist.id, persist.created, persist.updated, persist.cookie, persist.agent, persist.lastused,
+                persist.lastrotated, persist.previouscookie, persist.trainerid, trainer.email
+            FROM persist
+            INNER JOIN trainer ON trainer.id = persist.trainerid
+            WHERE persist.agent = :agent
+                AND (persist.cookie = :cookie OR persist.previouscookie = :cookie)
+            LIMIT 1
             ",
-            {cookie: hashedCookie, agent: left(utilService.getUserAgent(), 512)},
-            true
+            {
+                cookie: {value: hashedCookie, cfsqltype: "varchar"},
+                agent : {value: left(utilService.getUserAgent(), 512), cfsqltype: "varchar"}
+            },
+            {returnType: "array"}
         );
 
-        if(isNull(persist)) return result;
+        if(!rows.len()) return result;
+        var persist = rows[1];
 
         // Enforce expiry here too - the cleanup task only runs hourly
         if(
-            (!isNull(persist.getCreated()) && dateDiff("d", persist.getCreated(), now()) >= getPersistDuration()) ||
-            (!isNull(persist.getLastUsed()) && dateDiff("d", persist.getLastUsed(), now()) >= getPersistUse())
+            (!isNull(persist.created) && dateDiff("d", persist.created, now()) >= getPersistDuration()) ||
+            (!isNull(persist.lastused) && dateDiff("d", persist.lastused, now()) >= getPersistUse())
         ) {
-            entityDelete(persist);
-            ormFlush();
+            deletePersist(persist.id);
             return result;
         }
 
-        if(persist.getCookie() != hashedCookie) {
+        if(persist.cookie != hashedCookie) {
             // The cookie this row was rotated from - only good right after the rotation
-            if(dateDiff("s", persist.getLastRotated(), now()) > variables.ROTATION_GRACE) {
+            if(dateDiff("s", persist.lastrotated, now()) > variables.ROTATION_GRACE) {
                 // Reused after the grace window - one of the two holders is not the trainer, so revoke it for both
-                entityDelete(persist);
-                ormFlush();
+                deletePersist(persist.id);
                 return result;
             }
         }
-        else if(dateDiff("d", persist.getLastRotated(), now()) >= 1) {
+        else if(dateDiff("d", persist.lastrotated, now()) >= 1) {
             // Rotate the cookie once a day
             rotateCookie(persist);
         }
         else {
-            persist.setLastUsed(now());
-            entitySave(persist);
-            ormFlush();
+            queryExecute(
+                "UPDATE persist SET lastused = :rightNow WHERE id = :id",
+                {rightNow: {value: now(), cfsqltype: "timestamp"}, id: {value: persist.id, cfsqltype: "integer"}}
+            );
         }
 
         result.success   = true;
-        result.email     = persist.getTrainer().getEmail();
-        result.trainerid = persist.getTrainer().getId();
+        result.email     = persist.email;
+        result.trainerid = persist.trainerid;
         return result;
+    }
+
+    /**
+     * Delete one persist row
+     *
+     * @persistid persist pk
+     */
+    private void function deletePersist(required numeric persistid) {
+        queryExecute("DELETE FROM persist WHERE id = :id", {id: {value: arguments.persistid, cfsqltype: "integer"}});
+        return;
     }
 
     /**
@@ -200,7 +217,7 @@ component singleton accessors="true" {
             // Revoke server side so a copied cookie can't be replayed after logout
             // The browser may still hold the cookie the row was rotated from (the rotating response never reached it)
             queryExecute(
-                "delete from persist where cookie = :cookie or previouscookie = :cookie",
+                "DELETE FROM persist WHERE cookie = :cookie OR previouscookie = :cookie",
                 {cookie: {value: hashCookie(getCookie()), cfsqltype: "varchar"}}
             );
         }
@@ -215,7 +232,7 @@ component singleton accessors="true" {
      */
     public void function revokeAll(required numeric trainerid) {
         queryExecute(
-            "delete from persist where trainerid = :trainerid",
+            "DELETE FROM persist WHERE trainerid = :trainerid",
             {trainerid: {value: arguments.trainerid, cfsqltype: "integer"}}
         );
         return;
@@ -225,34 +242,25 @@ component singleton accessors="true" {
      * Hash the raw browser cookie the same way it is stored
      */
     private string function hashCookie(required string persistCookie) {
-        return hash(
-            arguments.persistCookie & variables.hashing.pepper,
-            variables.hashing.algorithm,
-            variables.hashing.encoding,
-            variables.hashing.iterations
-        );
+        return utilService.pepperedHash(arguments.persistCookie);
     }
 
     /**
      * Scheduled job to cleanup expired and unused
      */
     public void function cleanupCookies() {
-        // Delete cookies that were created > cookieDuration days ago
+        // Delete cookies created more than persistDuration days ago, or not used in persistUse days
+        var rightNow = now();
         queryExecute(
             "
-            delete from persist
-            where created <= :dateCheck
-        ",
-            {dateCheck: {value: dateAdd("d", -1 * getPersistDuration(), now()), cfsqltype: "timestamp"}}
-        );
-
-        // Delete cookies that have not been used in cookieUse days
-        queryExecute(
-            "
-            delete from persist
-            where lastused <= :dateCheck
-        ",
-            {dateCheck: {value: dateAdd("d", -1 * getPersistUse(), now()), cfsqltype: "timestamp"}}
+            DELETE FROM persist
+            WHERE created <= :createdBefore
+                OR lastused <= :usedBefore
+            ",
+            {
+                createdBefore: {value: dateAdd("d", -1 * getPersistDuration(), rightNow), cfsqltype: "timestamp"},
+                usedBefore   : {value: dateAdd("d", -1 * getPersistUse(), rightNow), cfsqltype: "timestamp"}
+            }
         );
 
         return;

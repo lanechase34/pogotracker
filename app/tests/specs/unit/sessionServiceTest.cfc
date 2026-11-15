@@ -11,7 +11,7 @@ component extends="tests.resources.baseTest" {
 
     function afterAll() {
         super.afterAll();
-        if(session.keyExists("mocktrainerid")) mockTrainer.delete();
+        if(session.keyExists("mocktrainerid")) mockTrainer.deleteTrainer();
     }
 
     function run() {
@@ -86,46 +86,39 @@ component extends="tests.resources.baseTest" {
                 });
 
                 it("Rotates the session id and stamps the last login", () => {
-                    trainer   = mockTrainer.make(autoLogin = false);
-                    trainerid = trainer.getId();
-                    sessionid = session.sessionid;
-                    before    = now();
+                    var trainerid = mockTrainer.make(autoLogin = false).id;
+                    var sessionid = session.sessionid;
+                    var before    = now();
 
                     // The row is written in a fire and forget future - run it inline so it's there to read
-                    var originalAsync = prepareMock(trainerService).$getProperty("async");
-                    trainerService.$property(propertyName = "async", mock = syncAsync());
-                    try {
-                        auth.login(trainerService.getFromId(trainerid));
-                    }
-                    finally {
-                        trainerService.$property(propertyName = "async", mock = originalAsync);
-                    }
+                    withSyncAsync(trainerService, () => {
+                        auth.login(getInstance("services.user").retrieveUserById(trainerid));
+                    });
 
                     expect(session.sessionid).notToBe(sessionid);
                     expect(auth.getUser().getLastLogin()).toBeGTE(before);
-                    ormClearSession();
-                    expect(entityLoadByPK("trainer", trainerid).getLastLogin()).notToBeNull();
+                    expect(mockTrainer.getSaved(trainerid).lastlogin).notToBeNull();
 
-                    mockTrainer.delete(trainerid);
+                    mockTrainer.deleteTrainer(trainerid);
                 });
 
                 it("Backfills missing settings with the defaults", () => {
-                    trainer   = mockTrainer.make(autoLogin = false);
-                    trainerid = trainer.getId();
+                    var trainer   = mockTrainer.make(autoLogin = false);
+                    var trainerid = trainer.id;
 
-                    trainer.setSettings({defaultRegion: "Unova"});
+                    trainerService.updateSettings(trainer.id, {defaultRegion: "Unova"});
                     mockTrainer.refresh(trainerid); // fresh load, not the instance holding the memo
-                    expect(trainerService.getFromId(trainerid).getSettings()).notToHaveKey("defaultPage");
+                    expect(trainerService.getFromId(trainerid).settings).notToHaveKey("defaultPage");
 
-                    auth.login(trainerService.getFromId(trainerid));
+                    auth.login(getInstance("services.user").retrieveUserById(trainerid));
 
                     mockTrainer.refresh(trainerid); // read back what was saved
-                    var settings = trainerService.getFromId(trainerid).getSettings();
+                    var settings = trainerService.getFromId(trainerid).settings;
                     expect(settings.defaultRegion).toBe("Unova"); // kept
                     expect(settings).toHaveKey("defaultPage"); // filled in
                     expect(settings).toHaveKey("defaultView");
 
-                    mockTrainer.delete(trainerid);
+                    mockTrainer.deleteTrainer(trainerid);
                 });
             });
 
@@ -136,9 +129,8 @@ component extends="tests.resources.baseTest" {
                 });
 
                 it("Clears the persist cookie on a full logout", () => {
-                    trainer   = mockTrainer.make();
-                    trainerid = trainer.getId();
-                    persistService.addCookie(trainer);
+                    var trainer = mockTrainer.makeSignedIn();
+                    persistService.addCookie(trainer.id);
                     expect(persistService.checkCookie()).toBeTrue();
 
                     sessionService.destroy(idle = false);
@@ -146,13 +138,12 @@ component extends="tests.resources.baseTest" {
                     expect(auth.isLoggedIn()).toBeFalse();
                     expect(persistService.checkCookie()).toBeFalse();
 
-                    mockTrainer.delete(trainerid);
+                    mockTrainer.deleteTrainer(trainer.id);
                 });
 
                 it("Preserves the persist cookie on an idle logout", () => {
-                    trainer   = mockTrainer.make();
-                    trainerid = trainer.getId();
-                    persistService.addCookie(trainer);
+                    var trainer = mockTrainer.makeSignedIn();
+                    persistService.addCookie(trainer.id);
                     expect(persistService.checkCookie()).toBeTrue();
 
                     sessionService.destroy(idle = true);
@@ -161,7 +152,7 @@ component extends="tests.resources.baseTest" {
                     expect(persistService.checkCookie()).toBeTrue();
 
                     persistService.deleteCookie(); // cleanup the preserved cookie
-                    mockTrainer.delete(trainerid);
+                    mockTrainer.deleteTrainer(trainer.id);
                 });
 
                 it("Does not throw when no trainer is logged in", () => {

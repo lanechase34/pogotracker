@@ -1,75 +1,110 @@
 component singleton accessors="true" {
 
-    property name="async"          inject="asyncManager@coldbox";
     property name="cache"          inject="cachebox:appCache";
     property name="trainerCache"   inject="cachebox:trainerCache";
     property name="trainerService" inject="services.trainer";
     property name="utilService"    inject="services.util";
 
+    // A stat row's columns
+    variables.STAT_COLUMNS = "id, created, updated, caught, spun, walked, xp, trainerid";
+
+    // The tracked stat columns, in the order getStats builds each day's values, deltas, totals and averages
+    variables.STAT_FIELDS = ["xp", "caught", "spun", "walked"];
+
     /**
      * Get stats for the supplied day
      * Returns null if no stats tracked
      */
-    public any function getFromDay(required component trainer, required date suppliedDate) {
-        return ormExecuteQuery(
+    public any function getFromDay(required numeric trainerid, required date suppliedDate) {
+        var rows = queryExecute(
             "
-            from stat as stat
-            where trainer = :trainer
-            and created >= :low and created < :high
-        ",
+            SELECT #variables.STAT_COLUMNS#
+            FROM stat
+            WHERE trainerid = :trainerid
+                AND created >= :low AND created < :high
+            ORDER BY created DESC
+            LIMIT 1
+            ",
             {
-                "trainer": arguments.trainer,
-                "low"    : utilService.makeLowDate(arguments.suppliedDate),
-                "high"   : utilService.makeHighDate(arguments.suppliedDate)
+                trainerid: {value: arguments.trainerid, cfsqltype: "integer"},
+                low      : {value: utilService.makeLowDate(arguments.suppliedDate), cfsqltype: "timestamp"},
+                high     : {value: utilService.makeHighDate(arguments.suppliedDate), cfsqltype: "timestamp"}
             },
-            true
+            {returnType: "array"}
         );
+        return utilService.firstRow(rows);
+    }
+
+    /**
+     * The trainer's most recent stat (by created date), null when they have none
+     *
+     * @trainerid trainer pk
+     */
+    public any function getLatestStat(required numeric trainerid) {
+        var latest = queryExecute(
+            "
+            SELECT #variables.STAT_COLUMNS#
+            FROM stat
+            WHERE trainerid = :trainerid
+            ORDER BY created DESC, id DESC
+            LIMIT 1
+            ",
+            {trainerid: {value: arguments.trainerid, cfsqltype: "integer"}},
+            {returnType: "array"}
+        );
+        return utilService.firstRow(latest);
     }
 
     /**
      * Inserts data to stats table
+     * One stat per trainer per day - returns false when today's is already tracked (e.g. a double submit)
      */
-    public void function track(
-        required component trainer,
+    public boolean function track(
+        required numeric trainerid,
         required numeric xp,
         required numeric caught,
         required numeric spun,
         required numeric walked
     ) {
-        var newStat = entityNew(
-            "stat",
+        var inserted = queryExecute(
+            "
+            INSERT INTO stat (trainerid, xp, caught, spun, walked)
+            VALUES (:trainerid, :xp, :caught, :spun, :walked)
+            ON CONFLICT DO NOTHING
+            RETURNING id
+            ",
             {
-                "trainer": arguments.trainer,
-                "xp"     : arguments.xp,
-                "caught" : arguments.caught,
-                "spun"   : arguments.spun,
-                "walked" : arguments.walked
+                trainerid: {value: arguments.trainerid, cfsqltype: "integer"},
+                xp       : {value: arguments.xp, cfsqltype: "bigint"},
+                caught   : {value: arguments.caught, cfsqltype: "integer"},
+                spun     : {value: arguments.spun, cfsqltype: "integer"},
+                walked   : {
+                    value    : arguments.walked,
+                    cfsqltype: "decimal",
+                    scale    : 2
+                }
             }
         );
-
-        entitySave(newStat);
-        ormFlush();
+        if(!inserted.recordCount) return false;
 
         // Clears the trainer's stat cache entries whenever they track stats
-        var trainerid = arguments.trainer.getId();
-        trainerCache.clearByKeySnippet("^#trainerid#\|stats\.getStats\|", true);
-        trainerCache.clear("#trainerid#|stats.getTopDeltas");
+        trainerCache.clearByKeySnippet(getStatsCacheSnippet(arguments.trainerid), true);
+        trainerCache.clear(getTopDeltasCacheKey(arguments.trainerid));
 
-        // Level is memoized on the trainer - reset this instance and drop the cached one
-        arguments.trainer.clearLevelMemo();
-        trainerService.clearCache(trainerid);
-        return;
+        // The cached trainer and their cached level are stale now
+        trainerService.clearCache(arguments.trainerid);
+        return true;
     }
 
     /**
      * Return struct of trainer's stats between start/end dates in format for line chart
      *
-     * @trainer   trainer
+     * @trainerid trainer pk
      * @startDate start
      * @endDate   end
      */
-    public struct function get(
-        required component trainer,
+    public struct function getStats(
+        required numeric trainerid,
         required date startDate,
         required date endDate
     ) {
@@ -90,8 +125,12 @@ component singleton accessors="true" {
                 dateDiff("d", arguments.startDate, arguments.endDate) + 1 == daysInYear(arguments.startDate)
             )
         ) {
-            cachekey = "#arguments.trainer.getId()#|stats.getStats|startDate=#dateFormat(arguments.startDate, "short")#|endDate=#dateFormat(arguments.endDate, "short")#";
-            stats    = trainerCache.get(cacheKey);
+            cacheKey = getStatsCacheKey(
+                trainerid = arguments.trainerid,
+                startDate = arguments.startDate,
+                endDate   = arguments.endDate
+            );
+            stats = trainerCache.get(cacheKey);
         }
 
         if(!cacheKey.len() || isNull(stats)) {
@@ -110,83 +149,62 @@ component singleton accessors="true" {
                 }
             };
 
-            var qStats = ormExecuteQuery(
+            var qStats = queryExecute(
                 "
-                from stat as stat
-                where trainer = :trainer
-                and created >= :startDate and created < :endDate
-                order by created asc
-            
-            ",
+                SELECT created, xp, caught, spun, walked
+                FROM stat
+                WHERE trainerid = :trainerid
+                    AND created >= :startDate AND created < :endDate
+                ORDER BY created ASC
+                ",
                 {
-                    "trainer"  : arguments.trainer,
-                    "startDate": utilService.makeLowDate(arguments.startDate),
-                    "endDate"  : utilService.makeHighDate(arguments.endDate)
-                }
+                    trainerid: {value: arguments.trainerid, cfsqltype: "integer"},
+                    startDate: {value: utilService.makeLowDate(arguments.startDate), cfsqltype: "timestamp"},
+                    endDate  : {value: utilService.makeHighDate(arguments.endDate), cfsqltype: "timestamp"}
+                },
+                {returnType: "array"}
             );
 
             qStats.each((currStats) => {
-                var currDate = dateFormat(currStats.getCreated(), "short");
+                var currDate = dateFormat(currStats.created, "short");
                 stats.labels.append(currDate);
                 stats.data.insert(currDate, {});
-                stats.data[currDate].xp = currStats.getXp();
-                stats.data[currDate].caught = currStats.getCaught();
-                stats.data[currDate].spun = currStats.getSpun();
-                stats.data[currDate].walked = currStats.getWalked();
+                for(var field in variables.STAT_FIELDS) {
+                    stats.data[currDate][field] = currStats[field];
+                }
             });
 
             // Calculate deltas
             for(var i = 1; i <= stats.labels.len(); i++) {
+                var currRow = stats.data[stats.labels[i]];
                 if(i == 1) {
                     // first date can't calculate deltas
-                    stats.data[stats.labels[i]].deltaxp = "--";
-                    stats.data[stats.labels[i]].deltacaught = "--";
-                    stats.data[stats.labels[i]].deltaspun = "--";
-                    stats.data[stats.labels[i]].deltawalked = "--";
+                    for(var field in variables.STAT_FIELDS) {
+                        currRow["delta#field#"] = "--";
+                    }
                 }
                 else {
+                    var prevRow  = stats.data[stats.labels[i - 1]];
                     var currDiff = dateDiff("d", stats.labels[i - 1], stats.labels[i]);
-                    stats.data[stats.labels[i]].deltaxp = round(
-                        (stats.data[stats.labels[i]].xp - stats.data[stats.labels[i - 1]].xp) / currDiff,
-                        1
-                    );
-                    stats.data[stats.labels[i]].deltacaught = round(
-                        (stats.data[stats.labels[i]].caught - stats.data[stats.labels[i - 1]].caught) / currDiff,
-                        1
-                    );
-                    stats.data[stats.labels[i]].deltaspun = round(
-                        (stats.data[stats.labels[i]].spun - stats.data[stats.labels[i - 1]].spun) / currDiff,
-                        1
-                    );
-                    stats.data[stats.labels[i]].deltawalked = round(
-                        (stats.data[stats.labels[i]].walked - stats.data[stats.labels[i - 1]].walked) / currDiff,
-                        1
-                    );
+                    for(var field in variables.STAT_FIELDS) {
+                        currRow["delta#field#"] = round((currRow[field] - prevRow[field]) / currDiff, 1);
+                    }
                 }
             }
 
             // Calculate summary stats
             if(stats.labels.len() >= 2) {
-                // Totals for range
-                stats.summary.totalxp     = stats.data[stats.labels[stats.labels.len()]].xp - stats.data[stats.labels[1]].xp;
-                stats.summary.totalcaught = stats.data[stats.labels[stats.labels.len()]].caught - stats.data[
-                    stats.labels[1]
-                ].caught;
-                stats.summary.totalspun   = stats.data[stats.labels[stats.labels.len()]].spun - stats.data[stats.labels[1]].spun;
-                stats.summary.totalwalked = stats.data[stats.labels[stats.labels.len()]].walked - stats.data[
-                    stats.labels[1]
-                ].walked;
+                var firstLabel  = stats.labels[1];
+                var lastLabel   = stats.labels[stats.labels.len()];
+                var firstRow    = stats.data[firstLabel];
+                var lastRow     = stats.data[lastLabel];
+                var daysTracked = dateDiff("d", firstLabel, lastLabel) + 1;
 
-                // Average for range
-                var daysTracked = dateDiff(
-                    "d",
-                    stats.labels[1],
-                    stats.labels[stats.labels.len()]
-                ) + 1;
-                stats.summary.avgxp     = round(stats.summary.totalxp / daysTracked, 1);
-                stats.summary.avgcaught = round(stats.summary.totalcaught / daysTracked, 1);
-                stats.summary.avgspun   = round(stats.summary.totalspun / daysTracked, 1);
-                stats.summary.avgwalked = round(stats.summary.totalwalked / daysTracked, 1);
+                // Totals and averages for range
+                for(var field in variables.STAT_FIELDS) {
+                    stats.summary["total#field#"] = lastRow[field] - firstRow[field];
+                    stats.summary["avg#field#"]   = round(stats.summary["total#field#"] / daysTracked, 1);
+                }
             }
 
             if(cacheKey.len()) {
@@ -204,165 +222,216 @@ component singleton accessors="true" {
      * @stat stat to rank (xp/caught/spun/walked)
      */
     public array function getLeaderboard(required date date, string stat = "xp") {
-        var cacheKey    = "stats.getLeaderboard|date=#year(arguments.date)#-#month(arguments.date)#|stat=#arguments.stat#";
-        var leaderboard = cache.get(cacheKey);
+        var forDate = arguments.date;
+        var forStat = arguments.stat;
+        return cache.getOrSet(
+            "stats.getLeaderboard|date=#year(forDate)#-#month(forDate)#|stat=#forStat#",
+            () => {
+                var low         = createDateTime(year(forDate), month(forDate), 1, 0, 0, 0);
+                // Start of next month
+                var high        = dateAdd("m", 1, low);
+                var daysElapsed = dateDiff("d", low, forDate) + 1;
 
-        if(isNull(leaderboard)) {
-            var low = createDateTime(
-                year(arguments.date),
-                month(arguments.date),
-                1,
-                0,
-                0,
-                0
-            );
-            var high        = dateAdd("s", -1, dateAdd("m", 1, low));
-            var daysElapsed = dateDiff("d", low, arguments.date) + 1;
+                var column = lCase(forStat);
 
-            var trainerDeltas = ormExecuteQuery(
-                "
-                select trainer.username, max(stat.#lCase(arguments.stat)#) - min(stat.#lCase(arguments.stat)#) as delta
-                from trainer as trainer
-                left outer join trainer.stat as stat with stat.created >= :low and stat.created <= :high
-                where trainer.verified = true
-                and trainer.username is not null
-                group by trainer.id, trainer.username
-                having count(stat) > 1
-                order by max(stat.#lCase(arguments.stat)#) - min(stat.#lCase(arguments.stat)#) desc
-                ",
-                {"low": low, "high": high},
-                {maxResults: 10}
-            );
+                var trainerDeltas = queryExecute(
+                    "
+                    SELECT trainer.username, MAX(stat.#column#) - MIN(stat.#column#) AS delta
+                    FROM trainer
+                    INNER JOIN stat ON stat.trainerid = trainer.id AND stat.created >= :low AND stat.created < :high
+                    WHERE trainer.verified = true
+                    GROUP BY trainer.id, trainer.username
+                    HAVING COUNT(stat.id) > 1
+                    ORDER BY delta DESC
+                    LIMIT 10
+                    ",
+                    {low: {value: low, cfsqltype: "timestamp"}, high: {value: high, cfsqltype: "timestamp"}},
+                    {returnType: "array"}
+                );
 
-            leaderboard = trainerDeltas.map((trainer) => {
-                return {username: trainer[1], delta: !isNull(trainer[2]) ? (trainer[2] / daysElapsed) : "--"};
-            });
+                var leaderboard = trainerDeltas.map((trainer) => {
+                    return {
+                        username: trainer.username,
+                        delta   : !isNull(trainer.delta) ? (trainer.delta / daysElapsed) : "--"
+                    };
+                });
 
-            leaderboard.sort((a, b) => {
-                if(a.delta == "--") return 1;
-                if(b.delta == "--") return -1;
-                return (a.delta - b.delta) > 0 ? -1 : 1;
-            });
+                // Highest delta first, "--" last
+                leaderboard.sort((a, b) => {
+                    var aMissing = a.delta == "--";
+                    var bMissing = b.delta == "--";
+                    if(aMissing || bMissing) return aMissing == bMissing ? 0 : (aMissing ? 1 : -1);
+                    return sgn(b.delta - a.delta);
+                });
 
-            cache.set(cacheKey, leaderboard, 15, 15);
-        }
-        return leaderboard;
+                return leaderboard;
+            },
+            15,
+            15
+        );
     }
 
     /**
      * For each region, get total number of caught and shiny pokemon
      * and total available pokemon and shiny pokemon
      */
-    public array function getPokedexStats(required component trainer) {
-        var cacheKey     = "#arguments.trainer.getId()#|stats.getPokedexStats";
-        var pokedexStats = trainerCache.get(cacheKey);
-
-        if(isNull(pokedexStats)) {
-            pokedexStats = ormExecuteQuery(
+    public array function getPokedexStats(required numeric trainerid) {
+        var forTrainerid = arguments.trainerid;
+        return trainerCache.getOrSet(
+            getPokedexStatsCacheKey(forTrainerid),
+            // [total, totalshiny, region, caught, shiny] per region - the view reads them by position
+            () => queryExecute(
                 "
-                select 
-                    sum(case when pokemon.live is true then 1 else 0 end) as total,
-                    sum(case when pokemon.shiny is true then 1 else 0 end) as totalshiny,
-                    pokemon.generation.region as region, 
-                    sum(case when pokedexC.id is null then 0 when pokemon.live is false then 0 else 1 end) as caught,
-                    sum(case when pokedexS.id is null then 0 when pokemon.shiny is false then 0 else 1 end) as shiny
-                from pokemon as pokemon
-                left outer join pokemon.pokedex as pokedexC with pokedexC.trainer = :trainer and pokedexC.caught = true
-                left outer join pokemon.pokedex as pokedexS with pokedexS.trainer = :trainer and pokedexS.shiny = true
-                where pokemon.mega = false 
-                    and pokemon.giga = false 
-                    and pokemon.costume = false
-                group by pokemon.generation.region, pokemon.generation.generation
-                order by pokemon.generation.generation asc
+                SELECT
+                    COUNT(*) FILTER (WHERE pokemon.live = true) AS total,
+                    COUNT(*) FILTER (WHERE pokemon.shiny = true) AS totalshiny,
+                    generation.region,
+                    COUNT(*) FILTER (WHERE pokedex.caught = true AND pokemon.live = true) AS caught,
+                    COUNT(*) FILTER (WHERE pokedex.shiny = true AND pokemon.shiny = true) AS shiny
+                FROM pokemon
+                INNER JOIN generation ON generation.generation = pokemon.generation
+                LEFT JOIN pokedex ON pokedex.pokemonid = pokemon.id AND pokedex.trainerid = :trainerid
+                WHERE pokemon.mega = false
+                    AND pokemon.giga = false
+                    AND pokemon.costume = false
+                GROUP BY generation.region, generation.generation
+                ORDER BY generation.generation ASC
                 ",
-                {"trainer": arguments.trainer}
-            );
+                {trainerid: {value: forTrainerid, cfsqltype: "integer"}},
+                {returnType: "array"}
+            ).map((row) => [
+                row.total,
+                row.totalshiny,
+                row.region,
+                row.caught,
+                row.shiny
+            ]),
+            10,
+            10
+        );
+    }
 
-            trainerCache.set(cacheKey, pokedexStats, 10, 10);
-        }
-
-        return pokedexStats;
+    /**
+     * Evict the trainer's cached pokedex stats so the next getPokedexStats reads the database
+     * Call after anything that changes the trainer's pokedex
+     *
+     * @trainerid trainer pk
+     */
+    public void function clearPokedexStatsCache(required numeric trainerid) {
+        trainerCache.clear(getPokedexStatsCacheKey(arguments.trainerid));
+        return;
     }
 
     /**
      * Get top n biggest single-day deltas for each stat type for the supplied trainer
      *
-     * @trainer trainer
-     * @reords  number of top records to retrieve
+     * @trainerid trainer pk
+     * @records   number of top records to retrieve
      *
      * @return struct of arrays in format: { xp: [{date, delta}, ...], caught: [...], spun: [...], walked: [...] }
      */
-    public struct function getTopDeltas(required component trainer, numeric records = 5) {
-        var cacheKey  = "#arguments.trainer.getId()#|stats.getTopDeltas";
-        var topDeltas = trainerCache.get(cacheKey);
+    public struct function getTopDeltas(required numeric trainerid, numeric records = 5) {
+        var forTrainerid = arguments.trainerid;
+        var recordLimit  = arguments.records;
+        return trainerCache.getOrSet(
+            getTopDeltasCacheKey(forTrainerid),
+            () => {
+                // Each day's delta per stat divided by the calendar days since the previous stat, then the top n of each stat
+                // The trainer's first stat has no previous one, so it has no delta
+                var rows = queryExecute(
+                    "
+                    SELECT ranked.stat, ranked.curr_date, ranked.delta
+                    FROM (
+                        SELECT stats.stat, deltas.curr_date, stats.delta,
+                            ROW_NUMBER() OVER (PARTITION BY stats.stat ORDER BY stats.delta DESC, deltas.curr_date ASC) AS position
+                        FROM (
+                            SELECT
+                                created AS curr_date,
+                                CAST(xp - LAG(xp) OVER byday AS numeric) AS xp_change,
+                                CAST(caught - LAG(caught) OVER byday AS numeric) AS caught_change,
+                                CAST(spun - LAG(spun) OVER byday AS numeric) AS spun_change,
+                                CAST(walked - LAG(walked) OVER byday AS numeric) AS walked_change,
+                                NULLIF(CAST(created AS date) - CAST(LAG(created) OVER byday AS date), 0) AS days
+                            FROM stat
+                            WHERE trainerid = :trainerid
+                            WINDOW byday AS (ORDER BY created ASC)
+                        ) AS deltas
+                        CROSS JOIN LATERAL (
+                            VALUES
+                                ('xp', ROUND(deltas.xp_change / deltas.days, 1)),
+                                ('caught', ROUND(deltas.caught_change / deltas.days, 1)),
+                                ('spun', ROUND(deltas.spun_change / deltas.days, 1)),
+                                ('walked', ROUND(deltas.walked_change / deltas.days, 1))
+                        ) AS stats (stat, delta)
+                        WHERE deltas.days IS NOT NULL
+                    ) AS ranked
+                    WHERE ranked.position <= :records
+                    ORDER BY ranked.stat ASC, ranked.position ASC
+                    ",
+                    {
+                        trainerid: {value: forTrainerid, cfsqltype: "integer"},
+                        records  : {value: recordLimit, cfsqltype: "integer"}
+                    },
+                    {returnType: "array"}
+                );
 
-        if(!isNull(topDeltas)) {
-            return topDeltas;
-        }
+                var topDeltas = {
+                    xp    : [],
+                    caught: [],
+                    spun  : [],
+                    walked: []
+                };
+                rows.each((row) => {
+                    topDeltas[row.stat].append({date: dateFormat(row.curr_date, "short"), delta: row.delta});
+                });
 
-        var qStats = queryExecute(
-            "
-            SELECT
-                curr_date,
-                xp_delta,
-                caught_delta,
-                spun_delta,
-                walked_delta
-            FROM (
-                SELECT
-                    created AS curr_date,
-                    ROUND(CAST(xp     - LAG(xp)     OVER (ORDER BY created) AS numeric) / NULLIF(CAST(DATE_PART('day', created - LAG(created) OVER (ORDER BY created)) AS numeric), 0), 1) AS xp_delta,
-                    ROUND(CAST(caught - LAG(caught) OVER (ORDER BY created) AS numeric) / NULLIF(CAST(DATE_PART('day', created - LAG(created) OVER (ORDER BY created)) AS numeric), 0), 1) AS caught_delta,
-                    ROUND(CAST(spun   - LAG(spun)   OVER (ORDER BY created) AS numeric) / NULLIF(CAST(DATE_PART('day', created - LAG(created) OVER (ORDER BY created)) AS numeric), 0), 1) AS spun_delta,
-                    ROUND(CAST(walked - LAG(walked) OVER (ORDER BY created) AS numeric) / NULLIF(CAST(DATE_PART('day', created - LAG(created) OVER (ORDER BY created)) AS numeric), 0), 1) AS walked_delta
-                FROM stat
-                WHERE trainerid = :trainerid
-            ) AS deltas
-            WHERE xp_delta     IS NOT NULL
-            AND   caught_delta IS NOT NULL
-            AND   spun_delta   IS NOT NULL
-            AND   walked_delta IS NOT NULL
-            ",
-            {trainerid: {value: arguments.trainer.getId(), cfsqltype: "integer"}}
+                return topDeltas;
+            },
+            60,
+            60
         );
+    }
 
-        var topDeltas = {
-            xp    : [],
-            caught: [],
-            spun  : [],
-            walked: []
-        };
-        var statKeys = topDeltas.keyArray();
+    /**
+     * Cache key for the stats getStats loads for a date range
+     *
+     * @trainerid trainer pk
+     * @startDate start
+     * @endDate   end
+     */
+    private string function getStatsCacheKey(
+        required numeric trainerid,
+        required date startDate,
+        required date endDate
+    ) {
+        return "#arguments.trainerid#|stats.getStats|startDate=#dateFormat(arguments.startDate, "short")#|endDate=#dateFormat(arguments.endDate, "short")#";
+    }
 
-        // For each stat, sort the full result set by that delta desc and take top 3
-        var futures = async
-            .all(
-                statKeys.map((stat) => {
-                    return () => {
-                        var sorted = queryExecute(
-                            "
-                            SELECT TOP :records curr_date, #stat#_delta AS delta
-                            FROM qStats
-                            ORDER BY #stat#_delta DESC
-                            ",
-                            {records: {value: records, cfsqltype: "integer"}},
-                            {dbtype: "query"}
-                        );
-                        return {stat: stat, rows: sorted};
-                    };
-                })
-            )
-            .get();
+    /**
+     * Regex matching every getStats cache key of the trainer (see getStatsCacheKey)
+     *
+     * @trainerid trainer pk
+     */
+    private string function getStatsCacheSnippet(required numeric trainerid) {
+        return "^#arguments.trainerid#\|stats\.getStats\|";
+    }
 
-        futures.each((result) => {
-            result.rows.each((row) => {
-                topDeltas[result.stat].append({date: dateFormat(row.curr_date, "short"), delta: row.delta});
-            });
-        });
+    /**
+     * Cache key for the pokedex stats getPokedexStats loads
+     *
+     * @trainerid trainer pk
+     */
+    private string function getPokedexStatsCacheKey(required numeric trainerid) {
+        return "#arguments.trainerid#|stats.getPokedexStats";
+    }
 
-        trainerCache.set(cacheKey, topDeltas, 60, 60);
-
-        return topDeltas;
+    /**
+     * Cache key for the top deltas getTopDeltas loads
+     *
+     * @trainerid trainer pk
+     */
+    private string function getTopDeltasCacheKey(required numeric trainerid) {
+        return "#arguments.trainerid#|stats.getTopDeltas";
     }
 
 }

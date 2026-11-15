@@ -11,6 +11,8 @@ component extends="base" secured="admin" {
         buildLevels       : "POST",
         auditLog          : "GET",
         getAudits         : "GET",
+        comments          : "GET",
+        getComments       : "GET",
         bugLog            : "GET",
         getBugs           : "GET",
         serverInfo        : "GET",
@@ -40,15 +42,18 @@ component extends="base" secured="admin" {
         getCacheData      : "GET"
     };
 
-    property name="accountService"    inject="services.account";
-    property name="auditService"      inject="services.audit";
+    // Time range each log table opens with
+    variables.defaultRanges = {audit: "30d", request: "7d", bug: "1y"};
+
     property name="adminService"      inject="services.admin";
     property name="bugService"        inject="services.bug";
     property name="medalService"      inject="services.medal";
     property name="moveService"       inject="services.move";
+    property name="pagination"        inject="services.pagination";
     property name="pokemonService"    inject="services.pokemon";
     property name="generationService" inject="services.generation";
     property name="trainerService"    inject="services.trainer";
+    property name="blogService"       inject="services.blog";
 
     function preHandler(event, rc, prc, action, eventArguments) {
         prc.title      = "Admin | #getSetting("title")#";
@@ -84,14 +89,14 @@ component extends="base" secured="admin" {
         }
 
         prc.responseObj.data = pokemonService.getTable(
-            rc.length,
-            rc.start,
-            rc["search[value]"],
-            rc["order[0][column]"],
-            rc["order[0][dir]"],
-            rc["order[1][column]"],
-            rc["order[1][dir]"],
-            rc.costume == "true"
+            records   = rc.length,
+            offset    = rc.start,
+            search    = rc["search[value]"],
+            orderCol1 = rc["order[0][column]"],
+            orderDir1 = rc["order[0][dir]"],
+            orderCol2 = rc["order[1][column]"],
+            orderDir2 = rc["order[1][dir]"],
+            costume   = rc.costume == "true"
         );
         prc.responseObj.data.draw  = rc.draw;
         prc.responseObj.statusCode = 200;
@@ -115,12 +120,12 @@ component extends="base" secured="admin" {
             return;
         }
 
-        prc.responseObj.data = trainerService.get(
-            rc.length,
-            rc.start,
-            rc["search[value]"],
-            rc["order[0][column]"],
-            rc["order[0][dir]"]
+        prc.responseObj.data = trainerService.getTable(
+            records  = rc.length,
+            offset   = rc.start,
+            search   = rc["search[value]"],
+            orderCol = rc["order[0][column]"],
+            orderDir = rc["order[0][dir]"]
         );
         prc.responseObj.data.draw  = rc.draw;
         prc.responseObj.statusCode = 200;
@@ -131,29 +136,38 @@ component extends="base" secured="admin" {
     function editTrainer(event, rc, prc) {
         param name="rc.trainerid" default="";
 
+        // Fetched into a modal - fail with a status, a relocate would hand the modal a whole page
         prc.validation = validate(target = rc, constraints = "editTrainer");
         if(prc.validation.hasErrors()) {
-            relocate(uri = "/");
+            htmlValidationFailure(event = event);
+            return;
         }
 
         prc.trainerid = parseNumber(rc.trainerid);
-        prc.trainer   = trainerService.getFromId(prc.trainerid);
+        try {
+            prc.trainer = trainerService.getFromId(trainerid = prc.trainerid);
+        }
+        catch(TrainerNotFound e) {
+            htmlValidationFailure(event = event, statusCode = 404);
+            return;
+        }
 
-        // Accounts that outrank you can't be edited (trainer.updateProfile enforces it too)
+        // Accounts that outrank you can't be edited
         if(
-            prc.trainer.getId() != prc.oCurrentUser.getId()
-            && val(prc.trainer.getSecurityLevel()) > val(prc.oCurrentUser.getSecurityLevel())
+            prc.trainer.id != prc.oCurrentUser.getId()
+            && val(prc.trainer.securitylevel) > val(prc.oCurrentUser.getSecurityLevel())
         ) {
-            relocate(uri = "/unauthorized");
+            htmlValidationFailure(event = event, statusCode = 403);
+            return;
         }
 
         prc.baseIcons      = trainerService.getIconMap();
-        prc.unlockedIcons  = prc.trainer.getUnlockedIcons();
-        prc.securityLevels = accountService.getAssignableLevels();
+        prc.unlockedIcons  = trainerService.getUnlockedIcons(trainerid = prc.trainer.id);
+        prc.securityLevels = trainerService.getAssignableLevels();
 
         // Use the edited trainer's settings, falling back to defaults for any missing keys
         prc.settings = duplicate(getSetting("defaultSettings"));
-        structAppend(prc.settings, prc.trainer.getSettings(), true);
+        structAppend(prc.settings, prc.trainer.settings, true);
 
         event.setView(
             view     = "/views/trainer/modal/editProfile",
@@ -185,7 +199,14 @@ component extends="base" secured="admin" {
         relocate("admin.index");
     }
 
-    function auditLog(event, rc, prc) {
+    /**
+     * Review blog comments - every post's, or one post's
+     *
+     * @rc.blogid (optional) open filtered to this blog
+     */
+    function comments(event, rc, prc) {
+        prc.blogs  = blogService.getHeaders();
+        prc.blogid = isValid("integer", rc?.blogid ?: "") ? parseNumber(rc.blogid) : 0;
     }
 
     /**
@@ -195,6 +216,49 @@ component extends="base" secured="admin" {
      * @rc        ['search[value]'] search box value
      * @rc        ['order[0][column]'] order column
      * @rc        ['order[0][dir]'] order direction
+     * @rc.blogid only this blog's comments - 0 for every blog
+     */
+    function getComments(event, rc, prc) {
+        param name="rc.draw"                default="1";
+        param name="rc.length"              default="25";
+        param name="rc.start"               default="0";
+        param name="rc['search[value]']"    default="";
+        param name="rc['order[0][column]']" default="";
+        param name="rc['order[0][dir]']"    default="";
+        param name="rc.blogid"              default="0";
+
+        if(hasValidationErrors(target = rc, constraints = "admin.getComments")) {
+            jsonValidationFailure(event = event);
+            return;
+        }
+
+        prc.responseObj.data = blogService.getCommentTable(
+            records  = rc.length,
+            offset   = rc.start,
+            search   = rc["search[value]"],
+            orderCol = rc["order[0][column]"],
+            orderDir = rc["order[0][dir]"],
+            blogid   = parseNumber(rc.blogid)
+        );
+        prc.responseObj.data.draw  = rc.draw;
+        prc.responseObj.statusCode = 200;
+
+        renderJson(event = event, response = prc.responseObj.data);
+    }
+
+    function auditLog(event, rc, prc) {
+        prc.ranges = pagination.getRanges();
+        prc.range  = defaultRanges.audit;
+    }
+
+    /**
+     * @rc.draw   updates with each ajax request
+     * @rc.length entries per page
+     * @rc.start  for pagination
+     * @rc        ['search[value]'] search box value
+     * @rc        ['order[0][column]'] order column
+     * @rc        ['order[0][dir]'] order direction
+     * @rc.range  time range, a key of pagination.getRanges
      */
     function getAudits(event, rc, prc) {
         param name="rc.draw"                default="1";
@@ -203,18 +267,20 @@ component extends="base" secured="admin" {
         param name="rc['search[value]']"    default="";
         param name="rc['order[0][column]']" default="";
         param name="rc['order[0][dir]']"    default="";
+        param name="rc.range"               default="#defaultRanges.audit#";
 
         if(hasValidationErrors(target = rc, constraints = "admin.getAudits")) {
             jsonValidationFailure(event = event);
             return;
         }
 
-        prc.responseObj.data = auditService.get(
-            rc.length,
-            rc.start,
-            rc["search[value]"],
-            rc["order[0][column]"],
-            rc["order[0][dir]"]
+        prc.responseObj.data = auditService.getTable(
+            records  = rc.length,
+            offset   = rc.start,
+            search   = rc["search[value]"],
+            orderCol = rc["order[0][column]"],
+            orderDir = rc["order[0][dir]"],
+            range    = rc.range
         );
         prc.responseObj.data.draw  = rc.draw;
         prc.responseObj.statusCode = 200;
@@ -223,6 +289,8 @@ component extends="base" secured="admin" {
     }
 
     function requestLog(event, rc, prc) {
+        prc.ranges = pagination.getRanges();
+        prc.range  = defaultRanges.request;
     }
 
     function getRequests(event, rc, prc) {
@@ -232,6 +300,7 @@ component extends="base" secured="admin" {
         param name="rc['search[value]']"    default="";
         param name="rc['order[0][column]']" default="";
         param name="rc['order[0][dir]']"    default="";
+        param name="rc.range"               default="#defaultRanges.request#";
 
         if(hasValidationErrors(target = rc, constraints = "admin.getRequests")) {
             jsonValidationFailure(event = event);
@@ -239,11 +308,12 @@ component extends="base" secured="admin" {
         }
 
         prc.responseObj.data = auditService.getRequests(
-            rc.length,
-            rc.start,
-            rc["search[value]"],
-            rc["order[0][column]"],
-            rc["order[0][dir]"]
+            records  = rc.length,
+            offset   = rc.start,
+            search   = rc["search[value]"],
+            orderCol = rc["order[0][column]"],
+            orderDir = rc["order[0][dir]"],
+            range    = rc.range
         );
         prc.responseObj.data.draw  = rc.draw;
         prc.responseObj.statusCode = 200;
@@ -252,6 +322,8 @@ component extends="base" secured="admin" {
     }
 
     function bugLog(event, rc, prc) {
+        prc.ranges = pagination.getRanges();
+        prc.range  = defaultRanges.bug;
     }
 
     function getBugs(event, rc, prc) {
@@ -261,18 +333,20 @@ component extends="base" secured="admin" {
         param name="rc['search[value]']"    default="";
         param name="rc['order[0][column]']" default="";
         param name="rc['order[0][dir]']"    default="";
+        param name="rc.range"               default="#defaultRanges.bug#";
 
         if(hasValidationErrors(target = rc, constraints = "admin.getBugs")) {
             jsonValidationFailure(event = event);
             return;
         }
 
-        prc.responseObj.data = bugService.get(
-            rc.length,
-            rc.start,
-            rc["search[value]"],
-            rc["order[0][column]"],
-            rc["order[0][dir]"]
+        prc.responseObj.data = bugService.getTable(
+            records  = rc.length,
+            offset   = rc.start,
+            search   = rc["search[value]"],
+            orderCol = rc["order[0][column]"],
+            orderDir = rc["order[0][dir]"],
+            range    = rc.range
         );
         prc.responseObj.data.draw  = rc.draw;
         prc.responseObj.statusCode = 200;
@@ -332,7 +406,7 @@ component extends="base" secured="admin" {
         }
 
         if(rc.pokemonJson.len() && isJSON(rc.pokemonJson) && isStruct(deserializeJSON(rc.pokemonJson))) {
-            adminService.addPokemon(deserializeJSON(rc.pokemonJson));
+            adminService.addPokemon(pokemon = deserializeJSON(rc.pokemonJson));
         }
 
         flash.put(
@@ -355,20 +429,14 @@ component extends="base" secured="admin" {
         param name="rc.scheduler" default="";
         param name="rc.name"      default="";
 
+        // Also checks the scheduler has that task
         if(hasValidationErrors(target = rc, constraints = "admin.runTask")) {
             jsonValidationFailure(event = event);
             return;
         }
 
         cfsetting(requestTimeout = 600);
-
-        try {
-            prc.responseObj.data = adminService.runTask(rc.scheduler, rc.name);
-        }
-        catch(TaskNotFound e) {
-            jsonNotFound(event = event, message = e.message);
-            return;
-        }
+        prc.responseObj.data = adminService.runTask(scheduler = rc.scheduler, name = rc.name);
 
         prc.responseObj.success    = true;
         prc.responseObj.statusCode = 200;
@@ -409,21 +477,16 @@ component extends="base" secured="admin" {
         param name="rc.offset"    default="0";
         param name="rc.direction" default="forward";
 
+        // Also checks the log is in the log list
         if(hasValidationErrors(target = rc, constraints = "admin.getLogChunk")) {
             jsonValidationFailure(event = event);
-            return;
-        }
-
-        var path = adminService.resolveLogPath(rc.filename);
-        if(!path.len()) {
-            jsonNotFound(event = event, message = "Log not found");
             return;
         }
 
         jsonOk(
             event = event,
             data  = adminService.readLogChunk(
-                path      = path,
+                path      = adminService.resolveLogPath(filename = rc.filename),
                 offset    = rc.offset,
                 direction = rc.direction
             )
@@ -444,14 +507,9 @@ component extends="base" secured="admin" {
         param name="rc.offset"    default="0";
         param name="rc.direction" default="forward";
 
+        // Also checks the log is in the log list
         if(hasValidationErrors(target = rc, constraints = "admin.searchLog")) {
             jsonValidationFailure(event = event);
-            return;
-        }
-
-        var path = adminService.resolveLogPath(rc.filename);
-        if(!path.len()) {
-            jsonNotFound(event = event, message = "Log not found");
             return;
         }
 
@@ -459,10 +517,10 @@ component extends="base" secured="admin" {
         jsonOk(
             event = event,
             data  = adminService.searchLog(
-                path      = path,
-                query     = rc.query,
-                offset    = rc.offset,
-                direction = rc.direction
+                path       = adminService.resolveLogPath(filename = rc.filename),
+                searchText = rc.query,
+                offset     = rc.offset,
+                direction  = rc.direction
             )
         );
     }
@@ -482,14 +540,14 @@ component extends="base" secured="admin" {
     function downloadLog(event, rc, prc) {
         param name="rc.filename" default="";
 
-        var path = adminService.resolveLogPath(rc.filename);
+        var path = adminService.resolveLogPath(filename = rc.filename);
         if(!path.len()) {
             htmlNotFound(event = event);
             return;
         }
 
         event.sendFile(
-            file       = adminService.snapshotLog(path),
+            file       = adminService.snapshotLog(path = path),
             name       = rc.filename,
             mimeType   = "text/plain",
             deleteFile = true

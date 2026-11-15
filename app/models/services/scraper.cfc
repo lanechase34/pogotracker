@@ -4,7 +4,6 @@ component singleton accessors="true" {
     property name="jsoup"        inject="javaloader:org.jsoup.Jsoup";
     property name="scraperHosts" inject="coldbox:setting:scraperHosts";
 
-    property name="proxies"    type="array";
     property name="retryCount" type="numeric";
     property name="userAgents" type="array";
 
@@ -28,8 +27,8 @@ component singleton accessors="true" {
      * Returns a random user agent
      */
     private string function getRandUserAgent() {
-        var rand = randRange(1, getUserAgents().len(), "SHA1PRNG");
-        return getUserAgents()[rand];
+        var agentIndex = randRange(1, getUserAgents().len(), "SHA1PRNG");
+        return getUserAgents()[agentIndex];
     }
 
     /**
@@ -85,18 +84,18 @@ component singleton accessors="true" {
      *
      * If returnJSON is true, return the format as json, otherwise jsoup object
      */
-    public any function getData(required string url, boolean returnJSON = false) {
-        checkAllowedUrl(arguments.url);
+    public any function getData(required string targetURL, boolean returnJSON = false) {
+        checkAllowedURL(arguments.targetURL);
 
-        var count    = 0;
+        var attempts = 0;
         var response = javacast("null", "");
-        while(count < getRetryCount() && isNull(response)) {
+        while(attempts < getRetryCount() && isNull(response)) {
             try {
                 var userAgent = getRandUserAgent();
                 var headers   = getRealisticHeaders(userAgent);
 
                 var doc = jsoup
-                    .connect(arguments.url)
+                    .connect(arguments.targetURL)
                     .ignoreContentType(true)
                     .followRedirects(true)
                     .referrer("https://www.google.com/")
@@ -108,21 +107,18 @@ component singleton accessors="true" {
 
                 // Redirects are followed, so check where we actually ended up before using the response
                 var result = doc.execute();
-                checkAllowedUrl(result.url().toString());
+                checkAllowedURL(result.url().toString());
 
                 response = arguments.returnJSON ? result.body() : result.parse();
             }
             catch(any e) {
-                auditService.audit(
-                    ip      = "localhost",
-                    event   = "scraperService.getData",
-                    referer = "",
-                    detail  = "Scraper attempt ###count + 1# failed for #arguments.url#: #e.message# - #e.detail#",
-                    agent   = ""
+                auditService.auditSystem(
+                    event  = "scraperService.getData",
+                    detail = "Scraper attempt ###attempts + 1# failed for #arguments.targetURL#: #e.message# - #e.detail#"
                 );
-                count += 1;
+                attempts += 1;
                 sleep(randRange(3000, 6000));
-                if(count == getRetryCount()) rethrow;
+                if(attempts == getRetryCount()) rethrow;
             }
         }
 
@@ -130,18 +126,41 @@ component singleton accessors="true" {
     }
 
     /**
-     * CFHTTP to download an image from the url and write to the destination
+     * CFHTTP to download an image from an allowed host and write it to the destination
+     * Throws ScraperDownloadFailed on a non 200 response
      */
-    public void function downloadImage(required string url, required string destination) {
-        checkAllowedUrl(arguments.url);
-
+    public void function downloadImage(required string targetURL, required string destination) {
+        checkAllowedURL(arguments.targetURL);
+        // Redirects are not followed, anything other than a 200 (including a 3xx) is a failure
         cfhttp(
-            url    = arguments.url,
-            result = "local.imgResult",
-            method = "GET"
+            url         = arguments.targetURL,
+            result      = "local.imgResult",
+            method      = "GET",
+            redirect    = false,
+            timeout     = 30,
+            getAsBinary = "yes"
         );
-        var img = imageNew(local.imgResult.filecontent);
-        img.write(arguments.destination);
+
+        if(val(local.imgResult.status_code ?: 0) != 200) {
+            throw(
+                type    = "ScraperDownloadFailed",
+                message = "Image download failed with status #local.imgResult.statusCode# for #arguments.targetURL#"
+            );
+        }
+
+        // Write next to the destination and move it into place, so a failed write never leaves a broken image behind
+        var finalPath = expandPath(arguments.destination);
+        var tempPath  = getDirectoryFromPath(finalPath) & "tmp-#createUUID()#.#listLast(finalPath, ".")#";
+        try {
+            imageNew(local.imgResult.filecontent).write(tempPath);
+            // Re-downloads (medal images) replace the existing file
+            if(fileExists(finalPath)) fileDelete(finalPath);
+            fileMove(tempPath, finalPath);
+        }
+        catch(any e) {
+            if(fileExists(tempPath)) fileDelete(tempPath);
+            rethrow;
+        }
         return;
     }
 
@@ -149,13 +168,13 @@ component singleton accessors="true" {
      * Only scrape http(s) urls on the allowed hosts (or their subdomains)
      * Stops admin supplied links from reaching internal addresses (localhost, metadata endpoints, etc)
      *
-     * @url url to check, throws if not allowed
+     * @targetURL url to check, throws if not allowed
      */
-    private void function checkAllowedUrl(required string url) {
+    private void function checkAllowedURL(required string targetURL) {
         var host = "";
         try {
             // URL (not URI) is as lenient as jsoup, ex: trailing whitespace
-            var parsed = createObject("java", "java.net.URL").init(trim(arguments.url));
+            var parsed = createObject("java", "java.net.URL").init(trim(arguments.targetURL));
             if(listFindNoCase("http,https", parsed.getProtocol() ?: "")) {
                 host = lCase(parsed.getHost() ?: "");
             }
@@ -168,7 +187,7 @@ component singleton accessors="true" {
         });
 
         if(!allowed) {
-            throw(type = "ScraperHostNotAllowed", message = "Scraping is not allowed for #arguments.url#");
+            throw(type = "ScraperHostNotAllowed", message = "Scraping is not allowed for #arguments.targetURL#");
         }
     }
 

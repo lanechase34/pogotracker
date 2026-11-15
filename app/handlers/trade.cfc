@@ -6,7 +6,6 @@ component extends="base" secured="user" {
     property name="customService"     inject="services.custom";
     property name="generationService" inject="services.generation";
     property name="tradeService"      inject="services.trade";
-    property name="trainerService"    inject="services.trainer";
 
     this.prehandler_only = "tradePlanForm";
 
@@ -36,53 +35,45 @@ component extends="base" secured="user" {
      */
     function tradePlan(event, rc, prc) {
         rc.region   = rc?.region ?: "";
-        rc.customid = rc?.customid ?: -1;
+        rc.customid = len(rc?.customid ?: "") ? rc.customid : -1;
         rc.shiny    = rc?.shiny ?: "off";
 
         prc.responseObj.type = "danger";
         prc.responseObj.data = "";
 
-        // Validation and make sure trainer is friends with target
+        // Validation - friends with target, exactly one of region or customid, and a custom pokedex you can see
         prc.validation = validate(target = rc, constraints = "trade.tradePlan");
-        if(
-            prc.validation.hasErrors() ||
-            (rc.region.len() && rc.customid > 0)
-        ) {
-            prc.responseObj.message = "Invalid Trade Plan.";
+        if(prc.validation.hasErrors()) {
+            prc.responseObj.message    = "Invalid Trade Plan.";
+            prc.responseObj.statusCode = 400;
         }
 
         if(!prc.responseObj.message.len()) {
-            prc.shiny   = rc.shiny == "on" ? true : false;
-            prc.trainer = prc.oCurrentUser;
-            prc.friend  = trainerService.getFromId(parseNumber(rc.friend));
+            prc.shiny     = rc.shiny == "on" ? true : false;
+            prc.trainerid = prc.oCurrentUser.getId();
+            prc.friendid  = parseNumber(rc.friend);
 
             prc.trainerOnlyArgs = {
-                leftTrainer : prc.trainer,
-                rightTrainer: prc.friend,
-                shiny       : prc.shiny
+                leftTrainerid : prc.trainerid,
+                rightTrainerid: prc.friendid,
+                shiny         : prc.shiny
             };
 
             prc.friendOnlyArgs = {
-                leftTrainer : prc.friend,
-                rightTrainer: prc.trainer,
-                shiny       : prc.shiny
+                leftTrainerid : prc.friendid,
+                rightTrainerid: prc.trainerid,
+                shiny         : prc.shiny
             };
 
             if(rc.region.len()) {
-                prc.generation                 = generationService.getFromRegion(rc.region);
+                prc.generation                 = generationService.getFromRegion(region = rc.region);
                 prc.trainerOnlyArgs.generation = prc.generation;
                 prc.friendOnlyArgs.generation  = prc.generation;
             }
             else {
-                // Check trainer access to custom pokedex
-                prc.custom = customService.get(parseNumber(rc.customid), prc.trainer);
-                if(!prc.custom.len()) {
-                    prc.responseObj.message = "Invalid Trade Plan.";
-                }
-                else {
-                    prc.trainerOnlyArgs.custom = prc.custom[1];
-                    prc.friendOnlyArgs.custom  = prc.custom[1];
-                }
+                prc.custom                 = customService.getFromId(id = parseNumber(rc.customid));
+                prc.trainerOnlyArgs.custom = prc.custom;
+                prc.friendOnlyArgs.custom  = prc.custom;
             }
         }
 
@@ -99,11 +90,13 @@ component extends="base" secured="user" {
 
             // Check if trade plan has pokemon
             if(!prc.tradePlan.trainerOnly.len() && !prc.tradePlan.friendOnly.len()) {
-                prc.responseObj.message = "No Pokemon Eligible For Trade Plan.";
-                prc.responseObj.type    = "warning";
+                // A valid request with nothing to trade - not an error
+                prc.responseObj.message    = "No Pokemon Eligible For Trade Plan.";
+                prc.responseObj.type       = "warning";
+                prc.responseObj.statusCode = 200;
             }
             else {
-                prc.header           = "#prc.shiny ? "Shiny - " : ""##rc.region.len() ? rc.region : encodeForHTML(prc.custom[1].getName())# Trade Plan";
+                prc.header           = "#prc.shiny ? "Shiny - " : ""##rc.region.len() ? rc.region : encodeForHTML(prc.custom.name)# Trade Plan";
                 prc.loop             = prc.tradePlan.trainerOnly.len() > prc.tradePlan.friendOnly.len() ? prc.tradePlan.trainerOnly.len() : prc.tradePlan.friendOnly.len();
                 prc.responseObj.data = view(
                     view = "/views/trade/tradeplan",

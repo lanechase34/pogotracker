@@ -1,19 +1,21 @@
 component extends="coldbox.system.testing.BaseTestCase" {
 
-    property name="accountService" inject="services.account";
-    property name="auth"           inject="authenticationService@cbauth";
-    property name="requestStorage" inject="RequestStorage@cbstorages";
-    property name="sessionService" inject="services.session";
-    property name="trainerService" inject="services.trainer";
-    property name="userService"    inject="services.user";
+    property name="accountService"  inject="services.account";
+    property name="auth"            inject="authenticationService@cbauth";
+    property name="globalFunctions" inject="tests.resources.globalFunctions";
+    property name="requestStorage"  inject="RequestStorage@cbstorages";
+    property name="sessionService"  inject="services.session";
+    property name="testData"        inject="tests.resources.testData";
+    property name="trainerService"  inject="services.trainer";
+    property name="userService"     inject="services.user";
 
-    // Every mock trainer's real password - for checks that skip impersonation (userService.checkPassword)
+    // Every mock trainer's real password - for checks that skip impersonation
     variables.MOCK_PASSWORD = "MockTrainer_Password1";
 
     /**
      * The password every mock trainer is registered with
      */
-    string function getMockPassword() {
+    public string function getMockPassword() {
         return variables.MOCK_PASSWORD;
     }
 
@@ -24,7 +26,7 @@ component extends="coldbox.system.testing.BaseTestCase" {
      * @autoLogin     log in through the login form after creating
      * @verified      verified trainers have permissions, unverified have none
      */
-    public component function make(
+    public struct function make(
         numeric securityLevel = 10,
         boolean autoLogin     = true,
         boolean verified      = true
@@ -39,11 +41,13 @@ component extends="coldbox.system.testing.BaseTestCase" {
             friendcode = makeFriendcode(),
             icon       = "charmander"
         );
-        trainer.setVerified(arguments.verified);
-        trainer.setSecurityLevel(arguments.securityLevel);
-        entitySave(trainer);
-        ormFlush();
-        trainerService.clearCache(trainer.getId());
+        testData.updateRow(
+            "trainer",
+            trainer.id,
+            {verified: arguments.verified, securitylevel: arguments.securityLevel}
+        );
+        refresh(trainer.id);
+        trainer = trainerService.getFromId(trainer.id);
 
         // A page a previous test was stopped at would otherwise be where this login lands
         session.delete("linkedEvent");
@@ -52,55 +56,65 @@ component extends="coldbox.system.testing.BaseTestCase" {
             login(trainer = trainer, relocate_uri = arguments.verified ? "/" : "/verify");
         }
         else {
-            setup();
-            execute(route = "/", renderResults = true);
             expect(auth.isLoggedIn()).toBeFalse();
         }
 
         setup();
-        session.mocktrainerid = trainer.getId();
+        session.mocktrainerid = trainer.id;
         return trainerService.getFromId(session.mocktrainerid);
+    }
+
+    /**
+     * Makes a mock user and acts as them, without going through the login form
+     *
+     * @securityLevel trainer's security level (10 regular, 50 admin, 60 developer)
+     * @verified      verified trainers have permissions, unverified have none
+     */
+    public struct function makeSignedIn(numeric securityLevel = 10, boolean verified = true) {
+        var trainer = make(
+            securityLevel = arguments.securityLevel,
+            autoLogin     = false,
+            verified      = arguments.verified
+        );
+        actAs(trainer);
+        return trainer;
     }
 
     /**
      * Deletes the mock user created
      * Deletes any associated data
      */
-    void function delete(numeric trainerid = session.mocktrainerid) {
-        var trainer = entityLoadByPK("trainer", arguments.trainerid);
+    public void function deleteTrainer(numeric trainerid = session.mocktrainerid) {
+        var owned = {trainerid: arguments.trainerid};
 
         // Attempt to delete the mock user from
         // May fail due to asynchronous db inserts/updates, if fails, just continue
         try {
-            ormExecuteQuery("delete from requestlog where trainer = :trainer", {trainer: trainer});
-            ormExecuteQuery("delete from audit where trainer = :trainer", {trainer: trainer});
-            ormExecuteQuery("delete from blog where trainer = :trainer", {trainer: trainer});
-            ormExecuteQuery("delete from bug where trainer = :trainer", {trainer: trainer});
-            ormExecuteQuery("delete from comment where trainer = :trainer", {trainer: trainer});
+            testData.deleteRows("request_log", owned);
+            testData.deleteRows("audit", owned);
+            testData.deleteRows("blog", owned);
+            testData.deleteRows("bug", owned);
+            testData.deleteRows("comment", owned);
 
-            ormExecuteQuery(
-                "delete from custompokedex where custom in (from custom where trainer = :trainer)",
-                {trainer: trainer}
+            queryExecute(
+                "DELETE FROM custompokedex WHERE customid IN (SELECT id FROM custom WHERE trainerid = :trainerid)",
+                {trainerid: {value: arguments.trainerid, cfsqltype: "integer"}}
             );
-            ormExecuteQuery("delete from custom where trainer = :trainer", {trainer: trainer});
+            testData.deleteRows("custom", owned);
 
-            ormExecuteQuery("delete from friend where trainer = :trainer", {trainer: trainer});
-            ormExecuteQuery("delete from friend where friend = :trainer", {trainer: trainer});
-            ormExecuteQuery("delete from persist where trainer = :trainer", {trainer: trainer});
-            ormExecuteQuery("delete from pokedex where trainer = :trainer", {trainer: trainer});
-            ormExecuteQuery("delete from stat where trainer = :trainer", {trainer: trainer});
+            testData.deleteRows("friend", owned);
+            testData.deleteRows("friend", {friendid: arguments.trainerid});
+            testData.deleteRows("persist", owned);
+            testData.deleteRows("pokedex", owned);
+            testData.deleteRows("stat", owned);
+            testData.deleteRows("trainermedal", owned);
 
-            // ormExecuteQuery('delete from team where trainer = :trainer', {trainer: trainer});
-            ormExecuteQuery("delete from trainermedal where trainer = :trainer", {trainer: trainer});
-
-            entityDelete(trainer);
-            ormFlush();
+            testData.deleteRows("trainer", {id: arguments.trainerid});
         }
         catch(any e) {
         }
 
-        ormClearSession();
-        trainerService.clearCache(arguments.trainerid);
+        refresh(arguments.trainerid);
 
         // Always clear session though
         sessionService.destroy(false);
@@ -112,18 +126,12 @@ component extends="coldbox.system.testing.BaseTestCase" {
      *
      * @relocate_uri where doLogin should send them
      */
-    void function login(required component trainer, string relocate_uri = "/") {
-        // Force valid recaptcha
-        session.recaptcha = {
-            token    : "a",
-            valid    : true,
-            timestamp: now(),
-            action   : "doLogin"
-        };
+    public void function login(required struct trainer, string relocate_uri = "/") {
+        globalFunctions.storeRecaptcha("doLogin");
 
         // Mock submitting login form - impersonation accepts any password in test, cbcsrf skips in test mode
         setup();
-        event = post(route = "/login/doLogin", params = {email: arguments.trainer.getEmail(), password: createUUID()});
+        var event = post(route = "/login/doLogin", params = {email: arguments.trainer.email, password: createUUID()});
 
         var response = event.getResponse();
         if(isStruct(response) && (response?.keyExists("statuscode") ?: false)) {
@@ -132,26 +140,30 @@ component extends="coldbox.system.testing.BaseTestCase" {
         else {
             expect(response.getStatusCode()).toBe(200);
         }
-        expect(event.getValue("relocate_uri")).toBe(arguments.relocate_uri);
+        expect(event.getValue("relocate_URI")).toBe(arguments.relocate_uri);
 
         // Verify cbauth has the trainer
         expect(auth.isLoggedIn()).toBeTrue();
-        expect(auth.getUserId()).toBe(arguments.trainer.getId());
-        expect(auth.getUser().getSecurityLevel()).toBe(arguments.trainer.getSecurityLevel());
+        expect(auth.getUserId()).toBe(arguments.trainer.id);
+        expect(auth.getUser().getSecurityLevel()).toBe(arguments.trainer.securitylevel);
     }
 
     /**
-     * Act as this trainer without going through the login form
+     * Act as this trainer without going through the login form - leave the trainer out (or pass null) to act as a guest
      * For tests that only need a logged in context
      */
-    void function actAs(required component trainer) {
-        auth.login(trainerService.getFromId(arguments.trainer.getId()));
+    public void function actAs(struct trainer) {
+        if(isNull(arguments.trainer)) {
+            actAsGuest();
+            return;
+        }
+        auth.login(userService.retrieveUserById(arguments.trainer.id));
     }
 
     /**
      * Act as a guest - logged out, but keeps the session (and session.mocktrainerid) around
      */
-    void function actAsGuest() {
+    public void function actAsGuest() {
         auth.logout();
     }
 
@@ -160,27 +172,85 @@ component extends="coldbox.system.testing.BaseTestCase" {
      * Use after changing a trainer directly in the database
      * (the test runner is one http request, so cbauth's per request user would otherwise stick)
      */
-    void function refresh(numeric trainerid = session?.mocktrainerid ?: -1) {
+    public void function refresh(numeric trainerid = session?.mocktrainerid ?: -1) {
         requestStorage.delete("cbauth__user");
         trainerService.clearCache(arguments.trainerid);
-        ormClearSession(); // else hibernate hands back the same stale entity within this request
+    }
+
+    /**
+     * The trainer's row as it is saved in the database right now
+     *
+     * @trainerid trainer pk
+     */
+    public struct function getSaved(required numeric trainerid) {
+        return testData.getRowById("trainer", arguments.trainerid);
+    }
+
+    /**
+     * Change columns on the trainer's row directly, then refresh so the next load sees them
+     *
+     * @trainerid trainer pk
+     * @data      column -> value
+     */
+    public void function updateSaved(required numeric trainerid, required struct data) {
+        testData.updateRow("trainer", arguments.trainerid, arguments.data);
+        refresh(arguments.trainerid);
+    }
+
+    /**
+     * Store a bcrypt hash of this password on the trainer, returns the hash
+     */
+    public string function setBcryptPassword(required struct trainer, required string password) {
+        var bcryptHash = getInstance("@BCrypt").hashPassword(password = arguments.password);
+
+        updateSaved(arguments.trainer.id, {password: bcryptHash, salt: ""});
+
+        return bcryptHash;
+    }
+
+    /**
+     * Store a pre-bcrypt (salted + peppered SHA) hash of this password on the trainer, returns the hash
+     */
+    public string function setLegacyPassword(required struct trainer, required string password) {
+        var env        = new coldbox.system.core.delegates.Env();
+        var salt       = createUUID();
+        var legacyHash = hash(
+            arguments.password & salt & env.getEnv("PEPPER"),
+            env.getEnv("ALGORITHM"),
+            "UTF-8",
+            env.getEnv("ITERATIONS")
+        );
+
+        updateSaved(arguments.trainer.id, {password: legacyHash, salt: salt});
+
+        return legacyHash;
+    }
+
+    /**
+     * Start from a fresh guest session: no trainer, a blank reCAPTCHA result (so checks never throw) and a new session id
+     */
+    public void function resetSession() {
+        sessionService.destroy(false);
+        globalFunctions.storeRecaptcha(action = "", valid = false);
+        session.sessionid = createUUID();
+        setup();
     }
 
     /**
      * Log out the mock trainer
      */
-    void function logout() {
-        var temp = session.mocktrainerid;
-        event    = post(route = "/logout");
+    public void function logout() {
+        var mockTrainerid = session.mocktrainerid;
+        var event         = post(route = "/logout");
         expect(event.getResponse().getStatusCode()).toBe(200);
         expect(event.getValue("relocate_URI")).toBe("/"); // home page
 
         expect(auth.isLoggedIn()).toBeFalse();
 
-        session.mocktrainerid = temp;
+        session.mocktrainerid = mockTrainerid;
     }
 
-    string function makeFriendcode() {
+    public string function makeFriendcode() {
         return "#left(randRange(1, 999999999999) & "00000000000", 12)#";
     }
 

@@ -33,14 +33,16 @@ component singleton accessors="true" {
      * @subject   Email subject
      * @message   Email content
      * @trainerid Trainer submitting the form
+     *
+     * @return false when the email failed to send - sent right away (not queued) so the trainer can be told to try again
      */
-    public void function sendContact(
+    public boolean function sendContact(
         required string email,
         required string subject,
         required string message,
         numeric trainerid = -1
     ) {
-        mailService
+        return !mailService
             .newMail(to: getContactEmail(), subject: "User Submitted Feedback")
             .setAdditionalInfoItem("audit", getAuditContext(event = "email.contact", trainerid = arguments.trainerid))
             .setView(
@@ -51,7 +53,8 @@ component singleton accessors="true" {
                     message: arguments.message
                 }
             )
-            .queue();
+            .send()
+            .hasErrors();
     }
 
     /**
@@ -92,8 +95,8 @@ component singleton accessors="true" {
         }
 
         if(isArray(arguments.data)) {
-            var depth = arguments.depth;
-            return arguments.data.map((item) => redactSensitive(item ?: "", depth + 1));
+            var childDepth = arguments.depth + 1;
+            return arguments.data.map((item) => redactSensitive(item ?: "", childDepth));
         }
 
         if(isStruct(arguments.data) && !isObject(arguments.data)) {
@@ -132,8 +135,10 @@ component singleton accessors="true" {
             .newMail(to: arguments.email, subject: "Reset POGO Tracker Password")
             .setAdditionalInfoItem("audit", getAuditContext(event = "email.resetPassword"))
             .setView(
-                view: "email/resetpassword",
-                args: {
+                view  : "email/resetpassword",
+                layout: "email",
+                args  : {
+                    title    : "Reset Your Password",
                     resetLink: arguments.resetLink,
                     expires  : arguments.expires,
                     lifespan : arguments.lifespan
@@ -160,8 +165,10 @@ component singleton accessors="true" {
             .newMail(to: arguments.email, subject: "POGO Tracker Verification Code")
             .setAdditionalInfoItem("audit", getAuditContext(event = "email.verificationCode"))
             .setView(
-                view: "email/verificationcode",
-                args: {
+                view  : "email/verificationcode",
+                layout: "email",
+                args  : {
+                    title           : "Verify Your Email",
                     email           : arguments.email,
                     verificationCode: arguments.verificationCode,
                     expires         : arguments.expires,

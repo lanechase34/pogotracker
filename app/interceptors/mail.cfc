@@ -1,6 +1,5 @@
-component extends="coldbox.system.Interceptor" {
+component extends="baseInterceptor" {
 
-    property name="async"        inject="asyncManager@coldbox";
     property name="auditService" inject="provider:services.audit";
     property name="bugService"   inject="provider:services.bug";
 
@@ -26,38 +25,28 @@ component extends="coldbox.system.Interceptor" {
             var bugDetail = {
                 ip       : "-1",
                 event    : "cbMailQueue",
-                message  : "Failed to send email",
-                stack    : data.result,
+                message  : "Failed to send email to #data.mail.getTo()#: #data.mail.getSubject()#",
+                // The send result is a struct (error flag + messages) - serialize it
+                stack    : serializeJSON(data.result),
                 trainerid: -1
             };
 
-            async.newFuture(() => {
-                bugService.logBug(argumentCollection = bugDetail);
-            });
+            bugService.logBug(argumentCollection = bugDetail);
         }
 
         try {
             // Audit and log on failure
             var context     = data.mail.getAdditionalInfoItem("audit", {});
             var auditDetail = {
-                ip     : context.ip ?: "-1",
-                event  : context.event ?: "email",
-                referer: context.referer ?: "",
-                agent  : context.agent ?: "",
-                detail : left(
-                    "#failed ? "Failed to email" : "Emailed"# #data.mail.getTo()#: #data.mail.getSubject()#",
-                    250
-                ),
+                ip       : context.ip ?: "-1",
+                event    : context.event ?: "email",
+                referer  : context.referer ?: "",
+                agent    : context.agent ?: "",
+                detail   : "#failed ? "Failed to email" : "Emailed"# #data.mail.getTo()#: #data.mail.getSubject()#",
                 trainerid: val(context.trainerid ?: -1)
             };
 
-            async
-                .newFuture(() => {
-                    auditService.audit(argumentCollection = auditDetail);
-                })
-                .onException((e) => {
-                    log.error("Failed to audit email: #e.message#", e);
-                });
+            auditService.audit(argumentCollection = auditDetail);
         }
         catch(any e) {
             log.error("Failed to audit email: #e.message#", e);

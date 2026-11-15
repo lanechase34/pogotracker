@@ -55,37 +55,45 @@ jobs:
       - name: Update code
         uses: burnett01/rsync-deployments@70ff22f5b4c2bb0e08d0bf20de693389e5552047 #v8
         # a - archive preserve permissions, ownership, and symbolic links, v - verbose, z - compress
+        # --delete-after removes server files that aren't in the deploy, once the new files are in place
+        #   exclude - server-owned: never sent, never deleted
+        #   P (protect) - sent, but files that only exist on the server are kept (admin tools download images, write assets)
+        #   H (hide) - dev only: never sent, and deleted from the server if a copy is there
         with:
-          switches: -avz --rsync-path="sudo rsync"
+          switches: -avz --delete-after --rsync-path="sudo rsync"
             --exclude='.env'
             --exclude='includes/uploads/'
-            --exclude='includes/.terser.json'
-            --exclude='includes/eslint.config.js'
-            --exclude='includes/.oxlintrc.json'
-            --exclude='includes/jsconfig.json'
-            --exclude='includes/knip.json'
-            --exclude='includes/package-lock.json'
-            --exclude='includes/package.json'
-            --exclude='includes/css/'
-            --exclude='includes/node_modules/'
-            --include='includes/build/js/modules/***'
-            --include='includes/js/vendor/***'
-            --exclude='includes/js/*'
-            --exclude='includes/tests/'
-            --exclude='includes/.eslintignore'
-            --exclude='includes/.prettierignore'
-            --exclude='includes/.prettierrc'
-            --exclude='includes/playwright.config.js'
-            --exclude='handlers/dev.cfc'
-            --exclude='views/dev/'
             --exclude='includes/sitemap.xml'
             --exclude='coldbox/'
+            --filter='P version.html'
+            --filter='P includes/images/***'
+            --filter='P includes/assets/***'
+            --include='includes/build/js/modules/***'
+            --include='includes/js/vendor/***'
             --include='config/modules/***'
             --exclude='modules/'
-            --exclude='tests/'
-            --exclude='database/seeds/'
-            --exclude='_testemails/'
-            --exclude='.cfformat.json'
+            --filter='H includes/.terser.json'
+            --filter='H includes/eslint.config.js'
+            --filter='H includes/.oxlintrc.json'
+            --filter='H includes/jsconfig.json'
+            --filter='H includes/knip.json'
+            --filter='H includes/package-lock.json'
+            --filter='H includes/package.json'
+            --filter='H includes/css/'
+            --filter='H includes/node_modules/'
+            --filter='H includes/js/*'
+            --filter='H includes/tests/'
+            --filter='H includes/scripts/'
+            --filter='H includes/.eslintignore'
+            --filter='H includes/.prettierignore'
+            --filter='H includes/.prettierrc'
+            --filter='H includes/playwright.config.js'
+            --filter='H handlers/dev.cfc'
+            --filter='H views/dev/'
+            --filter='H tests/'
+            --filter='H database/seeds/'
+            --filter='H _testemails/'
+            --filter='H .cfformat.json'
           path: ./app/
           remote_path: /var/www/wwwroot/pogotracker/
           remote_host: ${{ secrets.LIGHTSAIL_IP }}

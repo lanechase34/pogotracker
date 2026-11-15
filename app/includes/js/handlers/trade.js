@@ -18,17 +18,14 @@ async function getTradePlan($form, $btn, event) {
     $tradePlanAlert.innerHTML = '';
     $tradePlanDiv.innerHTML = '';
 
-    const temp = $btn.innerHTML;
-    $btn.innerHTML = $submitBtn;
-    $btn.disabled = true;
-
     const formData = new FormData($form);
     const packet = Object.fromEntries(formData.entries());
 
     await postWrapper({
         url: `/trade/tradePlan`,
-        $loadingBtn: null,
-        loading: '',
+        $loadingBtn: $btn,
+        loading: $submitBtn,
+        restoreOnSuccess: true,
         packet: JSON.stringify(packet),
         responseType: 'json',
         dataHandler: (data) => {
@@ -45,9 +42,6 @@ async function getTradePlan($form, $btn, event) {
             }
         },
     });
-
-    $btn.innerHTML = temp;
-    $btn.disabled = false;
 }
 
 export const runtime = {

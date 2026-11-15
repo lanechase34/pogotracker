@@ -1,3 +1,4 @@
+import { debounce } from 'display';
 import { escapeHtml } from 'escape';
 
 /**
@@ -163,7 +164,6 @@ class MultiSelect {
             option,
             text: option.querySelector('.multi-select-option-text').innerHTML.toLowerCase(),
         }));
-        let searchTimer = null;
         let filtered = false; // whether a search is hiding options
 
         /** @param {string} term */
@@ -174,6 +174,7 @@ class MultiSelect {
             });
             filtered = needle.length > 0;
         };
+        const debouncedSearch = debounce(applySearch, 50);
 
         // One delegated listener for every option. selectAll still works since option.click() bubbles here
         optionsElement.addEventListener('click', (event) => {
@@ -234,7 +235,7 @@ class MultiSelect {
                     `${this.selectedValues.length}/${this.options.max}`;
             }
             // Clear the search - only touch every option when a search was actually filtering them
-            clearTimeout(searchTimer);
+            debouncedSearch.cancel();
             if (searchElement && (searchElement.value.length || filtered)) {
                 searchElement.value = '';
                 applySearch('');
@@ -263,10 +264,7 @@ class MultiSelect {
         });
         headerElement.onclick = () => headerElement.classList.toggle('multi-select-header-active');
         if (searchElement && (this.options.search === true || this.options.search === 'true')) {
-            searchElement.oninput = () => {
-                clearTimeout(searchTimer);
-                searchTimer = setTimeout(() => applySearch(searchElement.value), 50);
-            };
+            searchElement.oninput = () => debouncedSearch(searchElement.value);
         }
         if (this.options.selectAll === true || this.options.selectAll === 'true') {
             const selectAllButton = /** @type {HTMLElement} */ (this.element.querySelector('.multi-select-all'));

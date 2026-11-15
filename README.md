@@ -46,46 +46,47 @@ The database container will automatically be seeded with dev data.
 
 1. Using `docker/.env.docker.example` as a template, populate `app/.env`
 
-2. Navigate to Docker dir
-
-    ```
-    cd docker
-    ```
-
-3. Start docker
-
-    ```
-    docker compose up -d
-    ```
-
-4. Verify app is running (this may be a few minutes on first start)
-    - **Health Check**: http://localhost:8083/healthcheck
-    - **App**: http://localhost:8083
-
-5. Stop containers by running
-
-    ```
-    docker compose down
-    ```
-
-6. Install NPM packages for formatting, linting frontend files
+2. Install NPM packages from root - the app is bind mounted, so this must run before the server starts
 
     ```bash
-    cd /app/includes
+    cd app/includes
     npm install
+    cd ../..
     ```
 
-7. Setup GitHooks from root
+3. Setup GitHooks from root
 
     ```bash
     npm install -g lefthook
     lefthook install
     ```
 
-8. Run the 'Post-checkout' GitHook
+4. Run the 'Post-checkout' GitHook
 
     ```bash
     lefthook run post-checkout
+    ```
+
+5. Navigate to Docker dir
+
+    ```
+    cd docker
+    ```
+
+6. Start docker
+
+    ```
+    docker compose up -d
+    ```
+
+7. Verify app is running (this may be a few minutes on first start)
+    - **Health Check**: http://localhost:8083/healthcheck
+    - **App**: http://localhost:8083
+
+8. Stop containers by running
+
+    ```
+    docker compose down
     ```
 
 ### Commands

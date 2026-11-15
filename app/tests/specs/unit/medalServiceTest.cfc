@@ -2,16 +2,20 @@ component extends="tests.resources.baseTest" asyncAll="false" {
 
     function beforeAll() {
         super.beforeAll();
-        mockTrainer = getInstance("tests.resources.mocktrainer");
-        trainer     = mockTrainer.make();
+        mockTrainer = getInstance("tests.resources.mockTrainer");
+        trainer     = mockTrainer.makeSignedIn(); // tracks medal progress through the handler
         testMedal   = left("Test Medal #createUUID()#", 50);
+
+        // Seeded medal the trainer medal lifecycle tracks progress against
+        medal      = testData.findRow("medal", {name: "Youngster"});
+        silverProg = medal.silver;
     }
 
     function afterAll() {
         super.afterAll();
-        mockTrainer.delete();
+        mockTrainer.deleteTrainer(trainer.id);
 
-        queryExecute("delete from medal where name like '%Test Medal%'");
+        queryExecute("DELETE FROM medal WHERE name LIKE '%Test Medal%'");
     }
 
     function run() {
@@ -22,21 +26,13 @@ component extends="tests.resources.baseTest" asyncAll="false" {
             });
 
             it("Can getAll medals", () => {
-                medals = medalService.getAll();
+                var medals = medalService.getAll();
                 expect(medals).toBeArray();
                 expect(medals.len()).toBeGT(1);
             });
 
-            it("Cam load medal by name", () => {
-                name  = "Ultra League Veteran";
-                medal = entityLoad("medal", {"name": name});
-                expect(medal).toBeArray();
-                expect(medal.len()).toBe(1);
-                expect(medal[1].getName()).toBe(name);
-            });
-
             it("Can create a new medal", () => {
-                medalProperties = {
+                var medalProperties = {
                     name        : testMedal,
                     description : "Testing",
                     bronze      : 1,
@@ -45,18 +41,16 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                     platinum    : 4,
                     displayOrder: 50
                 };
-                medalService.update(medalProperties);
-                ormFlush();
+                saveMedal(medalProperties);
 
                 // Load medal by name
-                medal = entityLoad("medal", {"name": medalProperties.name});
-                expect(medal).toBeArray();
-                expect(medal.len()).toBe(1);
-                expect(medal[1].getName()).toBe(medalProperties.name);
+                var saved = testData.findRows("medal", {name: medalProperties.name});
+                expect(saved.len()).toBe(1);
+                expect(saved[1].name).toBe(medalProperties.name);
             });
 
             it("Can update a medal", () => {
-                medalProperties = {
+                var medalProperties = {
                     name        : testMedal,
                     description : "Updated",
                     bronze      : 1,
@@ -65,46 +59,37 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                     platinum    : 4,
                     displayOrder: 50
                 };
-                medalService.update(medalProperties);
-                ormFlush();
+                saveMedal(medalProperties);
 
                 // Load medal by name
-                medal = entityLoad("medal", {"name": medalProperties.name});
-                expect(medal).toBeArray();
-                expect(medal.len()).toBe(1);
-                expect(medal[1].getDescription()).toBe("Updated");
+                var saved = testData.findRows("medal", {name: medalProperties.name});
+                expect(saved.len()).toBe(1);
+                expect(saved[1].description).toBe("Updated");
             });
 
             describe("Trainer medal lifecycle", () => {
-                it("Can get medal by name", () => {
-                    medal = entityLoad("medal", {"name": "Youngster"});
-                    expect(medal).toBeArray();
-                    expect(medal.len()).toBe(1);
-                    medal = medal[1];
-                    expect(medal.getName()).toBe("Youngster");
-                });
-
                 it("Can get no progress against medal", () => {
-                    medalProgress = medalService.getProgress(trainer);
+                    var medalProgress = medalService.getProgress(trainer.id);
                     expect(medalProgress).toBeArray();
 
-                    found = false;
-                    medalProgress.each((progress) => {
-                        if(progress[1].getName() == medal.getName()) {
-                            expect(isNull(progress[2])).toBeTrue();
+                    var found = false;
+                    for(var progress in medalProgress) {
+                        if(progress.name == medal.name) {
+                            expect(progress.tracked).toBeFalse();
+                            expect(progress.tier).toBe("");
                             found = true;
                             break;
                         }
-                    });
+                    }
 
                     expect(found).toBeTrue();
                 });
 
                 it("Can track progress against medal", () => {
-                    silverProg = medal.getSilver();
-                    data       = {medal: medal.getId(), current: silverProg};
-
-                    event = post(route = "/stats/trackMedalProgress", params = data);
+                    var event = post(
+                        route  = "/stats/trackMedalProgress",
+                        params = {medal: medal.id, current: silverProg}
+                    );
                     // Verify successful response
                     expect(event.getStatusCode()).toBe(200);
 
@@ -113,46 +98,62 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                 });
 
                 it("Can get new progress against medal", () => {
-                    medalProgress = medalService.getProgress(trainer);
+                    var medalProgress = medalService.getProgress(trainer.id);
                     expect(medalProgress).toBeArray();
 
-                    found = false;
-                    medalProgress.each((progress) => {
-                        if(progress[1].getId() == medal.getId()) {
+                    var found = false;
+                    for(var progress in medalProgress) {
+                        if(progress.id == medal.id) {
                             // Expect the amount to be the progress we just tracked
-                            expect(progress[2].getCurrent()).toBe(silverProg);
+                            expect(progress.tracked).toBeTrue();
+                            expect(progress.current).toBe(silverProg);
+                            expect(progress.tier).toBe("silver");
                             found = true;
                             break;
                         }
-                    });
+                    }
 
                     expect(found).toBeTrue();
                 });
-            })
+            });
 
             describe("Progress cache", () => {
                 beforeEach(() => {
                     trainerCache = getInstance("cachebox:trainerCache");
-                    cacheKey     = "#trainer.getId()#|medal.getProgress";
-                    trainerCache.clear(cacheKey);
+                    cacheKey     = "#trainer.id#|medal.getProgress";
+                    getInstance("services.medal").clearProgressCache(trainer.id);
                 });
 
                 afterEach(() => {
-                    trainerCache.clear(cacheKey);
+                    getInstance("services.medal").clearProgressCache(trainer.id);
                 });
 
                 it("Caches progress on first load", () => {
-                    expect(medalService.getProgress(trainer)).toBeArray();
+                    expect(medalService.getProgress(trainer.id)).toBeArray();
                     expect(trainerCache.get(cacheKey)).notToBeNull();
                 });
 
                 it("Returns the cached value instead of querying again", () => {
                     // A sentinel in the cache can only come back if the query is skipped
                     trainerCache.set(cacheKey, ["cached"], 10, 10);
-                    expect(medalService.getProgress(trainer)).toBe(["cached"]);
+                    expect(medalService.getProgress(trainer.id)).toBe(["cached"]);
                 });
             });
         });
+    }
+
+    /**
+     * Save a medal the way the medal data import does
+     *
+     * @medalProperties name, description, bronze, silver, gold, platinum, displayOrder
+     */
+    private void function saveMedal(required struct medalProperties) {
+        var properties   = duplicate(arguments.medalProperties);
+        var name         = properties.name;
+        properties.order = properties.displayOrder;
+        properties.delete("name");
+        properties.delete("displayOrder");
+        getInstance("services.admin").updateMedalData({"#name#": properties});
     }
 
 }

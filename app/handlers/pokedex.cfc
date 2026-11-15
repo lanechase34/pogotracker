@@ -22,7 +22,6 @@ component extends="base" secured="user" {
     property name="generationService" inject="services.generation";
     property name="pokedexService"    inject="services.pokedex";
     property name="pokemonService"    inject="services.pokemon";
-    property name="trainerService"    inject="services.trainer";
 
     this.prehandler_only = "myPokedex,myCustomPokedex,customPokedexList,myShadowPokedex";
 
@@ -34,6 +33,7 @@ component extends="base" secured="user" {
 
     /**
      * Registers/updates a pokemon to the trainer's pokedex
+     * Each flag is optional - only the flags sent are written, at least one is required
      *
      * @rc.pokemonid   the pokemon pk
      * @rc.caught      t/f
@@ -48,16 +48,15 @@ component extends="base" secured="user" {
             return;
         }
 
+        // Only the flags sent are written - validation ensures at least one was
+        var flags = rc.filter((key, value) => listFindNoCase("caught,shiny,hundo,shadow,shadowshiny", key) && len(value));
+
         // Passed input validation, go ahead and register this pokemon
-        prc.pokemon = pokemonService.getFromId(parseNumber(rc.pokemonid));
+        prc.pokemon = pokemonService.getFromId(pokemonid = parseNumber(rc.pokemonid));
         pokedexService.register(
-            prc.oCurrentUser,
-            prc.pokemon,
-            rc.caught,
-            rc.shiny,
-            rc.hundo,
-            rc.shadow,
-            rc.shadowshiny
+            argumentCollection = flags,
+            trainerid          = prc.oCurrentUser.getId(),
+            pokemon            = prc.pokemon
         );
         jsonOk(event = event);
     }
@@ -76,9 +75,9 @@ component extends="base" secured="user" {
         }
 
         pokedexService.registerAll(
-            trainer = prc.oCurrentUser,
-            region  = rc.region,
-            shiny   = rc.shiny
+            trainerid = prc.oCurrentUser.getId(),
+            region    = rc.region,
+            shiny     = rc.shiny
         );
         jsonOk(event = event);
     }
@@ -102,9 +101,9 @@ component extends="base" secured="user" {
         prc.trainerid        = prc.oCurrentUser.getId();
         // First grid is rendered with the page, JS only fetches on region/shiny switches
         prc.pokedexTableArgs = buildPokedexTableArgs(
-            trainer = trainerService.getFromId(trainerid = prc.trainerid),
-            region  = rc.region,
-            shiny   = rc.shiny
+            trainerid = prc.trainerid,
+            region    = rc.region,
+            shiny     = rc.shiny
         );
     }
 
@@ -135,19 +134,18 @@ component extends="base" secured="user" {
         }
 
         prc.trainerid = parseNumber(rc.trainerid);
-        prc.trainer   = trainerService.getFromId(trainerid = prc.trainerid);
 
         event.setView(
             view     = "/views/pokedex/pokedextable",
             nolayout = true,
             args     = buildPokedexTableArgs(
-                trainer = prc.trainer,
-                region  = rc.region,
-                form    = rc.form,
-                shiny   = rc.shiny,
-                hundo   = rc.hundo,
-                shadow  = rc.shadow,
-                costume = rc.costume
+                trainerid      = prc.trainerid,
+                region         = rc.region,
+                alternateForms = rc.form,
+                shiny          = rc.shiny,
+                hundo          = rc.hundo,
+                shadow         = rc.shadow,
+                costume        = rc.costume
             )
         );
     }
@@ -157,13 +155,13 @@ component extends="base" secured="user" {
      * Shared by getPokedex (region/view switches) and the pokedex pages, which render the first grid server side
      */
     private struct function buildPokedexTableArgs(
-        required component trainer,
-        string region   = "",
-        boolean form    = false,
-        boolean shiny   = false,
-        boolean hundo   = false,
-        boolean shadow  = false,
-        boolean costume = false
+        required numeric trainerid,
+        string region          = "",
+        boolean alternateForms = false,
+        boolean shiny          = false,
+        boolean hundo          = false,
+        boolean shadow         = false,
+        boolean costume        = false
     ) {
         var currRegion = arguments.region;
         var currShiny  = arguments.shiny;
@@ -198,13 +196,13 @@ component extends="base" secured="user" {
 
         return {
             pokedex: pokedexService.getRegistered(
-                trainer = arguments.trainer,
-                region  = currRegion,
-                form    = arguments.form,
-                mega    = mega,
-                shadow  = arguments.shadow,
-                giga    = giga,
-                costume = arguments.costume
+                trainerid      = arguments.trainerid,
+                region         = currRegion,
+                alternateForms = arguments.alternateForms,
+                mega           = mega,
+                shadow         = arguments.shadow,
+                giga           = giga,
+                costume        = arguments.costume
             ),
             pokedexView: pokedexView,
             shiny      : currShiny,
@@ -217,7 +215,7 @@ component extends="base" secured="user" {
      * Custom pokedex view
      *
      * @rc.trainerid (optional) defaults to current session
-     * @rc.customid  custom pk
+     * @rc.customid  custom pk, created by the trainer or public
      * @rc.shiny     t/f, defaults to session defaultView type
      */
     function myCustomPokedex(event, rc, prc) {
@@ -231,26 +229,17 @@ component extends="base" secured="user" {
 
         prc.trainerid = parseNumber(rc.trainerid);
         prc.customid  = parseNumber(rc.customid);
-        prc.trainer   = trainerService.getFromId(trainerid = prc.trainerid);
-        prc.custom    = customService.get(id = prc.customid, trainer = prc.trainer);
-
-        // Check trainer access to custom pokedex
-        if(!prc.custom.len()) {
-            htmlValidationFailure(event = event, redirectEvent = "pokedex.customPokedexList");
-            return;
-        }
-
-        prc.custom = prc.custom[1];
-        prc.name   = prc.custom.getName();
+        prc.custom    = customService.getFromId(id = prc.customid);
+        prc.name      = prc.custom.name;
 
         prc.header = "#encodeForHTML(prc.name)#";
 
         // First grid renders with the page
         prc.pokedexTableArgs = buildCustomPokedexTableArgs(
-            trainer = prc.trainer,
-            custom  = prc.custom,
-            shiny   = rc.shiny,
-            hundo   = false
+            trainerid = prc.trainerid,
+            custom    = prc.custom,
+            shiny     = rc.shiny,
+            hundo     = false
         );
     }
 
@@ -258,7 +247,7 @@ component extends="base" secured="user" {
      * Get all pokemon registered for the trainer IN the custom pokedex using the supplied criteria
      * Returns JSON
      *
-     * @rc.customid  custom pk
+     * @rc.customid  custom pk, created by the trainer or public
      * @rc.shiny     t/f
      * @rc.hundo     t/f
      * @rc.trainerid (optional) defaults to current session
@@ -272,26 +261,17 @@ component extends="base" secured="user" {
 
         prc.trainerid = parseNumber(rc.trainerid);
         prc.customid  = parseNumber(rc.customid);
-        prc.trainer   = trainerService.getFromId(trainerid = prc.trainerid);
-        prc.custom    = customService.get(id = prc.customid, trainer = prc.trainer);
-
-        // Check trainer access to custom pokedex
-        if(!prc.custom.len()) {
-            htmlValidationFailure(event = event, redirectEvent = "pokedex.customPokedexList");
-            return;
-        }
-
-        prc.custom = prc.custom[1];
-        prc.name   = prc.custom.getName();
+        prc.custom    = customService.getFromId(id = prc.customid);
+        prc.name      = prc.custom.name;
 
         event.setView(
             view     = "/views/pokedex/pokedextable",
             nolayout = true,
             args     = buildCustomPokedexTableArgs(
-                trainer = prc.trainer,
-                custom  = prc.custom,
-                shiny   = rc.shiny,
-                hundo   = rc.hundo
+                trainerid = prc.trainerid,
+                custom    = prc.custom,
+                shiny     = rc.shiny,
+                hundo     = rc.hundo
             )
         );
     }
@@ -301,13 +281,13 @@ component extends="base" secured="user" {
      * Shared by myCustomPokedex (first render) and getCustomPokedex (shiny toggle)
      */
     private struct function buildCustomPokedexTableArgs(
-        required component trainer,
-        required component custom,
+        required numeric trainerid,
+        required struct custom,
         boolean shiny = false,
         boolean hundo = false
     ) {
         return {
-            pokedex    : pokedexService.getCustomRegistered(trainer = arguments.trainer, custom = arguments.custom),
+            pokedex    : pokedexService.getCustomRegistered(trainerid = arguments.trainerid, custom = arguments.custom),
             pokedexView: arguments.shiny ? "shiny" : arguments.hundo ? "hundo" : "caught",
             shiny      : arguments.shiny,
             hundo      : arguments.hundo,
@@ -330,18 +310,18 @@ component extends="base" secured="user" {
         prc.count  = 10;
         prc.offset = parseNumber(rc.offset);
 
-        prc.trainer         = prc.oCurrentUser;
+        prc.trainerid       = prc.oCurrentUser.getId();
         prc.customPokedexes = customService.getMine(
-            trainer = prc.trainer,
-            offset  = prc.offset,
-            count   = prc.count
+            trainerid = prc.trainerid,
+            offset    = prc.offset,
+            pageSize  = prc.count
         );
 
         event.setView(
             view     = "/views/pokedex/custompokedexlist",
             nolayout = prc.offset > 0,
             args     = {
-                trainer        : prc.trainer,
+                trainerid      : prc.trainerid,
                 customPokedexes: prc.customPokedexes,
                 nextOffset     : prc.offset + prc.count,
                 offset         : prc.offset
@@ -378,10 +358,10 @@ component extends="base" secured="user" {
             return;
         }
 
-        prc.custom        = customService.get(parseNumber(rc.customid), prc.oCurrentUser)[1];
+        prc.custom        = customService.getFromId(id = parseNumber(rc.customid));
         prc.pokemon       = pokemonService.getAll();
-        prc.customPokedex = customService.getCustomPokedexIds(prc.custom.getId());
-        prc.header        = "Editing #encodeForHTML(prc.custom.getName())#";
+        prc.customPokedex = customService.getCustomPokedexIds(customid = prc.custom.id);
+        prc.header        = "Editing #encodeForHTML(prc.custom.name)#";
         event.setView(
             view     = "/views/pokedex/modal/custompokedexform",
             nolayout = true,
@@ -413,16 +393,13 @@ component extends="base" secured="user" {
         prc.public  = booleanFormat(rc.public);
         prc.pokemon = rc.pokemon;
 
-        // Create the custom entry
-        var customid = customService.create(
-            trainer = prc.oCurrentUser,
-            name    = prc.name,
-            public  = prc.public
+        // Create the custom entry and its pokemon together
+        var customid = customService.saveCustomPokedex(
+            trainerid = prc.oCurrentUser.getId(),
+            name      = prc.name,
+            isPublic  = prc.public,
+            pokemon   = prc.pokemon
         );
-        var custom = customService.getFromId(id = customid);
-
-        // Create the custom pokedex
-        customService.createCustomPokedex(custom = custom, pokemon = prc.pokemon);
 
         jsonOk(event = event, data = {id: customid});
     }
@@ -447,16 +424,14 @@ component extends="base" secured="user" {
         prc.pokemon  = rc.pokemon;
         prc.customid = parseNumber(rc.customid);
 
-        // Update the custom entry
-        customService.update(
-            customid = prc.customid,
-            name     = prc.name,
-            public   = prc.public
+        // Update the custom entry and its pokemon together
+        customService.saveCustomPokedex(
+            trainerid = prc.oCurrentUser.getId(),
+            name      = prc.name,
+            isPublic  = prc.public,
+            pokemon   = prc.pokemon,
+            customid  = prc.customid
         );
-        var custom = customService.getFromId(id = prc.customid);
-
-        // Update the custom pokedex
-        customService.createCustomPokedex(custom = custom, pokemon = prc.pokemon);
 
         jsonOk(event = event, data = {id: prc.customid});
     }
@@ -476,9 +451,9 @@ component extends="base" secured="user" {
 
         prc.trainerid        = prc.oCurrentUser.getId();
         prc.pokedexTableArgs = buildPokedexTableArgs(
-            trainer = trainerService.getFromId(trainerid = prc.trainerid),
-            shiny   = rc.shiny,
-            shadow  = true
+            trainerid = prc.trainerid,
+            shiny     = rc.shiny,
+            shadow    = true
         );
         prc.title           = "Shadow Pokedex | #getSetting("title")#";
         prc.metaDescription = "Track your Shadow Pokemon and Shiny Shadow Pokemon collection in the Pokedex.";
@@ -499,9 +474,9 @@ component extends="base" secured="user" {
 
         prc.trainerid        = prc.oCurrentUser.getId();
         prc.pokedexTableArgs = buildPokedexTableArgs(
-            trainer = trainerService.getFromId(trainerid = prc.trainerid),
-            shiny   = rc.shiny,
-            costume = true
+            trainerid = prc.trainerid,
+            shiny     = rc.shiny,
+            costume   = true
         );
         prc.title           = "Costume Pokedex | #getSetting("title")#";
         prc.metaDescription = "Track your Costume Pokemon and Shiny Costume Pokemon collection in the Pokedex.";
@@ -519,7 +494,7 @@ component extends="base" secured="user" {
         }
 
         // Passed input validation
-        customService.delete(custom = customService.getFromId(id = parseNumber(rc.customid)));
+        customService.deleteCustom(custom = customService.getFromId(id = parseNumber(rc.customid)));
         jsonOk(event = event);
     }
 
@@ -537,9 +512,9 @@ component extends="base" secured="user" {
 
         // Passed input validation
         prc.responseObj.data = customService.searchMyCustom(
-            trainer = prc.oCurrentUser,
-            search  = rc?.search ?: "",
-            page    = rc.page
+            trainerid = prc.oCurrentUser.getId(),
+            search    = rc?.search ?: "",
+            page      = rc.page
         );
         jsonOk(event = event, data = prc.responseObj.data);
     }

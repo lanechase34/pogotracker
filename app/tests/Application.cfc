@@ -10,30 +10,12 @@ component {
     this.mappings["/interceptors"] = rootPath & "interceptors";
     this.mappings["/testbox"]      = rootPath & "modules/testbox";
     this.mappings["/models"]       = rootPath & "models";
-    this.mappings["/services"]     = rootPath & "/services";
+    this.mappings["/services"]     = this.mappings["/models"] & "/services";
 
-    this.datasource  = "pogotracker";
-    this.ormEnabled  = true;
-    this.ormSettings = {
-        autoGenMap           : true,
-        autoManageSession    : false,
-        cacheProvider        : "ehcache",
-        cfclocation          : "/models/orm",
-        datasource           : "pogotracker",
-        dbcreate             : "none",
-        dialect              : "PostgreSQL",
-        eventHandling        : true,
-        eventHandler         : "models.orm.handler",
-        flushAtRequestEnd    : false,
-        logSQL               : false,
-        secondaryCacheEnabled: true,
-        useDBForMapping      : true
-    };
+    this.datasource = "pogotracker";
 
     public boolean function onRequestStart(targetPage) {
         setting requestTimeout="9999";
-
-        ormClearSession();
 
         request.coldBoxVirtualApp = new coldbox.system.testing.VirtualApp(appMapping = "/root");
         request.coldBoxVirtualApp.startup(true);

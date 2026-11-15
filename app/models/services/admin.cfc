@@ -13,7 +13,7 @@ component singleton accessors="true" {
     property name="pokemonService"    inject="services.pokemon";
     property name="schedulerService"  inject="coldbox:schedulerService";
     property name="scraperService"    inject="services.scraper";
-    property name="userService"       inject="services.user";
+    property name="trainerService"    inject="services.trainer";
     property name="utilService"       inject="services.util";
 
     property name="defaultCache"  inject="cachebox:default";
@@ -215,21 +215,22 @@ component singleton accessors="true" {
             getMaxThreads()
         );
 
-        var shadowData = deserializeJSON(fileRead("/includes/assets/shadowdata.json"));
+        var shadowData = deserializeJSON(fileRead("/includes/assets/shadowdata.json", "UTF-8"));
         // Web scraper is blocked in prod
         if(getShadowData()) {
-            shadowData      = {};
-            var shadowTable = shadowDoc
+            var savedShadowCount = shadowData.count();
+            shadowData           = {};
+            var shadowTable      = shadowDoc
                 .body()
                 .select("table.roundy.sortable")
                 .select("tbody > tr");
             shadowTable.each((tr, trindex) => {
                 var rowData = tr.select("td");
-                if(!rowData.len()) continue;
+                if(!rowData.len()) return;
                 var curr = {};
 
                 rowData.each((td, tdindex) => {
-                    if(tdindex > 3) break;
+                    if(tdindex > 3) return;
 
                     // number
                     if(tdindex == 1) {
@@ -275,6 +276,7 @@ component singleton accessors="true" {
                     shadowData.insert("SKIPPED#curr.name#", curr);
                 }
             });
+
             utilService.writeJsonFile(
                 path: "/includes/assets/shadowdata.json",
                 data: shadowData,
@@ -297,25 +299,29 @@ component singleton accessors="true" {
 
         // Map final stage -> mega/giga mon
         var specialEvolutionMap     = {};
-        var specialEvolutionPokemon = ormExecuteQuery(
-            "
-            from pokemon as pokemon
-            where pokemon.mega = true or pokemon.giga = true
-            "
+        var specialEvolutionPokemon = queryExecute(
+            "SELECT name, number, giga 
+            FROM pokemon 
+            WHERE mega = true 
+                OR giga = true 
+            ORDER BY id ASC
+            ",
+            {},
+            {returnType: "array"}
         );
         specialEvolutionPokemon.each((pokemon) => {
             // no regional forms have mega/giga. use number and name to get the form that should have the evolution added
-            var curr = listToArray(pokemon.getName(), " ");
+            var curr = listToArray(pokemon.name, " ");
 
             if(!specialEvolutionMap.keyExists(curr[2])) {
                 specialEvolutionMap[curr[2]] = [];
             }
             specialEvolutionMap[curr[2]].append({
-                condition: pokemon.getGiga() ? "Gigantamax Form" : "Mega Evolution",
-                number   : pokemon.getNumber(),
+                condition: pokemon.giga ? "Gigantamax Form" : "Mega Evolution",
+                number   : pokemon.number,
                 cost     : "",
                 gender   : "",
-                name     : pokemon.getName(),
+                name     : pokemon.name,
                 stage    : 0,
                 special  : true
             });
@@ -460,12 +466,7 @@ component singleton accessors="true" {
                     pokemon.sprite &= "-#pokemon.gender#";
                 }
 
-                if(pokemon.gender.len() && !findNoCase("Nidoran", pokemon.name)) {
-                    jsonPokedex.insert("#pokemon.name# #pokemon.gender#", pokemon);
-                }
-                else {
-                    jsonPokedex.insert(pokemon.name, pokemon);
-                }
+                jsonPokedex.insert(getOverrideKey(pokemon), pokemon);
             },
             true,
             getMaxThreads()
@@ -523,23 +524,25 @@ component singleton accessors="true" {
                 // Derive SES urls
                 pokemon.ses = createSes(pokemon);
 
-                // Clean up moves
-                pokemon.moves = pokemon.moves.map((move) => {
-                    // Mark which moves are shadow or legacy only
-                    // Clean up nameid
-                    var curr = {shadow: false, legacy: false};
-                    if(move.find("*")) {
-                        move        = left(move, move.len() - 1);
-                        curr.legacy = true;
-                    }
-                    else if(move.find("$")) {
-                        move        = left(move, move.len() - 1);
-                        curr.shadow = true;
-                    }
+                // Clean up moves - dynamax only plus moves (scraped or from an override) are dropped
+                pokemon.moves = pokemon.moves
+                    .filter((move) => !moveService.isDynamaxOnly(move))
+                    .map((move) => {
+                        // Mark which moves are shadow or legacy only
+                        // Clean up nameid
+                        var curr = {shadow: false, legacy: false};
+                        if(move.find("*")) {
+                            move        = left(move, move.len() - 1);
+                            curr.legacy = true;
+                        }
+                        else if(move.find("$")) {
+                            move        = left(move, move.len() - 1);
+                            curr.shadow = true;
+                        }
 
-                    curr.nameid = move;
-                    return curr;
-                });
+                        curr.nameid = move;
+                        return curr;
+                    });
 
                 // Clean up duplicate evos
                 var evoMap         = {};
@@ -565,10 +568,10 @@ component singleton accessors="true" {
         );
 
         if(getWriteJson()) {
-            fileWrite(
-                "#getRootPath()#/includes/assets/pokedex.json",
-                serializeJSON(jsonPokedex),
-                "UTF-8"
+            utilService.writeJsonFile(
+                path: "/includes/assets/pokedex.json",
+                data: jsonPokedex,
+                name: "pokedex"
             );
         }
 
@@ -580,7 +583,7 @@ component singleton accessors="true" {
     /**
      * Get all evolution data in this chain. The branching can occur at any point
      */
-    function processEvolutionChain(evoElement, evolutionData) {
+    private void function processEvolutionChain(required any evoElement, required struct evolutionData) {
         // Get direct children only (not nested ones)
         var directCards  = evoElement.select("> div.infocard");
         var directArrows = evoElement.select("> span.infocard-arrow");
@@ -678,12 +681,13 @@ component singleton accessors="true" {
                 }
             });
         }
+        return;
     }
 
     /**
      * Parses the evolution cost and the conditions that need to be met card
      */
-    function parseEvolutionCost(arrow, pokemonName) {
+    private struct function parseEvolutionCost(required any arrow, required string pokemonName) {
         var evolutionCondition = listToArray(arrow.select("small").text(), " (", false, true);
 
         var cost      = pokemonName == "Gholdengo" ? 999 : parseNumber(evolutionCondition[1]);
@@ -697,7 +701,7 @@ component singleton accessors="true" {
      * We need the current stage, the number, name, gender (if applicable)
      * Handles all the special cases of name
      */
-    function parseCardData(card, stage) {
+    private struct function parseCardData(required any card, required numeric stage) {
         var currData = {
             stage    : stage,
             number   : -1,
@@ -775,26 +779,34 @@ component singleton accessors="true" {
      * Updates the database using json pokedex
      */
     public void function updatePokemonData(required struct jsonPokedex) {
+        // Stop before writing anything if the scrape looks broken
+        checkScrapeRemovals(arguments.jsonPokedex);
+
         // Create missing generations
         generationService.createAll();
 
+        // Every move in one query, instead of a lookup per move per pokemon
+        var movesByNameId = moveService.getMovesByNameId();
+
         // Update pokemon / create if new pokemon
         jsonPokedex.each((name, pokemon) => {
-            var moves = []; // {move cfc, legacy t/f, shadow t/f}
+            var moves = []; // {move struct, legacy t/f, shadow t/f}
             pokemon.moves.each((move) => {
-                var curr = {shadow: move.shadow, legacy: move.legacy};
-                // Add move cfc
-                if(moveService.check(move.nameid)) {
-                    curr.move = moveService.get(move.nameid);
-                    moves.append(curr);
+                // Moves not in the database are skipped
+                if(movesByNameId.keyExists(move.nameid)) {
+                    moves.append({
+                        move  : movesByNameId[move.nameid],
+                        shadow: move.shadow,
+                        legacy: move.legacy
+                    });
                 }
             });
 
-            pokemonService.update(
+            pokemonService.upsertPokemon(
                 {
                     "number"     : pokemon.number,
                     "name"       : pokemon.name,
-                    "generation" : generationService.get(pokemon.generation),
+                    "generation" : pokemon.generation,
                     "gender"     : pokemon.gender,
                     "live"       : pokemon.live,
                     "shiny"      : pokemon.shiny,
@@ -822,18 +834,8 @@ component singleton accessors="true" {
             );
         });
 
-        // Updated pokemon are written here - a changed ses that collides fails
-        try {
-            ormFlush();
-        }
-        catch(any e) {
-            utilService.rethrowUniqueViolation(e);
-        }
-
         // Flush pokemon cache and rendered detail pages
-        cache.clearByKeySnippet("pokemon.");
-        templateCache.clearEvent("pokemon.detailContent");
-        templateCache.clearEvent("pokemon.indexContent");
+        pokemonService.clearAllCaches();
 
         // Cache the pokemon data
         pokemonService.getAll();
@@ -843,28 +845,40 @@ component singleton accessors="true" {
     }
 
     /**
+     * The key a pokemon has in the scraped pokedex, which is also its envpokedexoverrides key
+     * Gendered pokemon are "Name Gender" (Pikachu Male), except Nidoran whose name already carries the gender
+     *
+     * @pokemon struct with name and gender
+     */
+    public string function getOverrideKey(required struct pokemon) {
+        var gender = arguments.pokemon.gender ?: "";
+        if(gender.len() && !findNoCase("Nidoran", arguments.pokemon.name)) {
+            return "#arguments.pokemon.name# #gender#";
+        }
+        return arguments.pokemon.name;
+    }
+
+    /**
      * Reads the levels.json and adds levels to database
      * This will need revisited once level 80 has been added
      */
     public void function buildLevels() {
-        var levelMap   = deserializeJSON(fileRead("/includes/assets/levels.json"));
-        var currLevels = entityLoad("level");
-        if(currLevels.len() == levelMap.count()) {
+        var levelMap   = deserializeJSON(fileRead("/includes/assets/levels.json", "UTF-8"));
+        var levelCount = queryExecute("SELECT COUNT(*) AS total FROM level").total;
+        if(levelCount == levelMap.count()) {
             return;
         }
 
-        currLevels.each((level) => {
-            entityDelete(level);
-        });
-        ormFlush();
-
-
-        levelMap.each((key, value) => {
-            var currLevel = entityNew("level", {level: key, requiredxp: value});
-            entitySave(currLevel);
-        });
-
-        ormFlush();
+        // Replace every level in one transaction so readers never see a partial table
+        transaction {
+            queryExecute("DELETE FROM level");
+            levelMap.each((key, value) => {
+                queryExecute(
+                    "INSERT INTO level (level, requiredxp) VALUES (:level, :requiredxp)",
+                    {level: {value: key, cfsqltype: "integer"}, requiredxp: {value: value, cfsqltype: "bigint"}}
+                );
+            });
+        }
         return;
     }
 
@@ -904,12 +918,12 @@ component singleton accessors="true" {
         var order     = 1; // track the order to display
         var tableData = medalTable.select("tbody");
         tableData.each((tbody, bodyindex) => {
-            if(bodyindex == 2) continue; // unreleased medals
+            if(bodyindex == 2) return; // unreleased medals
 
             var bodyData = tbody.select("tr");
             bodyData.each((tr, trindex) => {
                 var rowData = tr.select("td");
-                if(!rowData.len()) continue;
+                if(!rowData.len()) return;
                 var curr = {order: order};
 
                 rowData.each((td, tdindex) => {
@@ -919,16 +933,12 @@ component singleton accessors="true" {
                         var imgSrc = td.select("a").attr("href");
                         if(!imgSrc.contains("https")) return;
 
-                        // Fetch the image blob
-                        cfhttp(
-                            url    = imgSrc,
-                            result = "local.imgResult",
-                            method = "GET"
+                        // Fetch the image through the scraper
+                        // The scraped name becomes the file name - path characters are stripped
+                        scraperService.downloadImage(
+                            targetURL   = imgSrc,
+                            destination = "/includes/images/medals/#reReplace(curr.name, "[\\/:*?""<>|]|\.\.", "", "all")#.webp"
                         );
-
-                        // CF make image object and write to disk
-                        var img = imageNew(local.imgResult.filecontent);
-                        img.write("/includes/images/medals/#curr.name#.webp");
                     }
                     // catch medals are all set values
                     else if(bodyIndex == 3 && tdindex > 3) {
@@ -964,10 +974,10 @@ component singleton accessors="true" {
         });
 
         if(getWriteJson()) {
-            fileWrite(
-                "#getRootPath()#/includes/assets/medals.json",
-                serializeJSON(jsonMedals),
-                "UTF-8"
+            utilService.writeJsonFile(
+                path: "/includes/assets/medals.json",
+                data: jsonMedals,
+                name: "medals"
             );
         }
 
@@ -982,7 +992,7 @@ component singleton accessors="true" {
     public void function updateMedalData(required struct jsonMedals) {
         // Update medals / create if new medal
         jsonMedals.each((name, medal) => {
-            medalService.update({
+            medalService.upsertMedal({
                 "name"        : name,
                 "description" : medal.description,
                 "bronze"      : medal.bronze,
@@ -993,9 +1003,8 @@ component singleton accessors="true" {
             });
         });
 
-        ormFlush();
 
-        cache.clear("medal.getAll");
+        medalService.clearAllCache();
         return;
     }
 
@@ -1004,7 +1013,7 @@ component singleton accessors="true" {
      */
     public void function buildMoveData() {
         var pvppokeData = "https://pvpoke.com/data/gamemaster.min.json";
-        var jsonData    = scraperService.getData(url = pvppokeData, returnJSON = true);
+        var jsonData    = scraperService.getData(targetURL = pvppokeData, returnJSON = true);
         var jsonMoves   = deserializeJSON(jsonData).moves;
 
 
@@ -1020,12 +1029,15 @@ component singleton accessors="true" {
             "archetype" : "Low Quality"
         });
 
+        // Dynamax only plus moves are never imported
+        jsonMoves = jsonMoves.filter((move) => !moveService.isDynamaxOnly(move.moveId));
         jsonMoves = refineMoveData(jsonMoves);
         if(getWriteJson()) {
-            fileWrite(
-                "#getRootPath()#/includes/assets/moves.json",
-                serializeJSON(jsonMoves),
-                "UTF-8"
+            utilService.writeJsonFile(
+                path    : "/includes/assets/moves.json",
+                data    : jsonMoves,
+                name    : "moves",
+                keyField: "nameid"
             );
         }
 
@@ -1085,13 +1097,10 @@ component singleton accessors="true" {
     private void function updateMoveData(required array jsonMoves) {
         // Update / create
         jsonMoves.each((move) => {
-            moveService.update(move);
+            moveService.upsertMove(move);
         });
 
-        ormFlush();
-
-        cache.clear("move.getAllFastMoves");
-        cache.clear("move.getAllChargeMoves");
+        moveService.clearCache();
         templateCache.clearEvent("pokemon.detailContent");
         return;
     }
@@ -1248,79 +1257,70 @@ component singleton accessors="true" {
 
         // Create custom pokedex if needed
         // Use link which contains year
-        var custom = ormExecuteQuery(
-            "
-            select custom
-            from custom as custom
-            where upper(custom.link) = :eventLink
-            ",
-            {eventLink: uCase(eventLink)},
-            true
-        );
+        var custom = customService.findByLink(eventLink);
 
         // Check if this event title already exists in db - if so, append the currYear to title
-        var checkName = ormExecuteQuery(
+        var checkName = queryExecute(
             "
-            select custom
-            from custom as custom
-            where upper(custom.link) != :eventLink
-            and upper(custom.name) = :eventTitle
+            SELECT 1
+            FROM custom
+            WHERE UPPER(link) IS DISTINCT FROM :eventLink
+                AND UPPER(name) = :eventTitle
+            LIMIT 1
             ",
-            {eventLink: uCase(eventLink), eventTitle: uCase(eventTitle)},
-            true
+            {
+                eventLink : {value: uCase(eventLink), cfsqltype: "varchar"},
+                eventTitle: {value: uCase(eventTitle), cfsqltype: "varchar"}
+            }
         );
 
-        if(!isNull(checkName)) {
+        if(checkName.recordCount) {
             eventTitle &= " #currYear#";
         }
 
         if(isNull(custom)) {
             var customid = customService.create(
-                trainer = userService.findByEmail(getSystemTrainer()),
-                name    = eventTitle,
-                public  = true,
-                begins  = begins,
-                ends    = ends,
-                link    = arguments.eventLink,
-                commday = isCommunityDay
+                trainerid = trainerService.findByEmail(getSystemTrainer()).id,
+                name      = eventTitle,
+                isPublic  = true,
+                begins    = begins,
+                ends      = ends,
+                link      = arguments.eventLink,
+                commday   = isCommunityDay
             );
             custom = customService.getFromId(customid);
 
-            auditService.audit(
-                ip      = "localhost",
-                event   = "adminService.createEvent",
-                referer = "",
-                detail  = "Created Event: #eventTitle#",
-                agent   = ""
-            );
+            auditService.auditSystem(event = "adminService.createEvent", detail = "Created Event: #eventTitle#");
         }
         else {
-            custom.setBegins(begins);
-            custom.setEnds(ends);
-            custom.setLink(arguments.eventLink);
-            entitySave(custom);
+            customService.updateEvent(
+                customid = custom.id,
+                begins   = begins,
+                ends     = ends,
+                link     = arguments.eventLink
+            );
         }
 
         // Begin event overrides
-        var overrides = getOverride(name = "enveventoverrides");
-        overrides
-            .filter((overrideEvent, value) => {
-                return overrideEvent == eventTitle;
-            })
-            .each((key, overrideSpawns) => {
-                overrideSpawns.each((pokemon, override) => {
-                    // 1 = add, 0 = delete
-                    if(override && !spawns.keyExists(pokemon)) {
-                        spawns.insert(pokemon, true);
-                    }
-                    else if(!override) {
-                        spawns.delete(pokemon);
-                    }
-                });
-            });
+        var overrideSpawns = getOverride(name = "enveventoverrides")[eventTitle] ?: {};
+        overrideSpawns.each((pokemon, override) => {
+            // 1 = add, 0 = delete
+            if(override && !spawns.keyExists(pokemon)) {
+                spawns.insert(pokemon, true);
+            }
+            else if(!override) {
+                spawns.delete(pokemon);
+            }
+        });
 
-        var pokemon = []; // Create array of pokemon ids
-        var map     = {}; // use map to not double enter pokemon
+        var pokemon    = []; // Create array of pokemon ids
+        var map        = {}; // use map to not double enter pokemon
+        var addPokemon = (mon) => {
+            var key = "#mon.name#|#mon.number#|#mon.gender#|#mon.costumetype#";
+            if(map.keyExists(key)) return;
+            pokemon.append(mon.id);
+            map.insert(key, true);
+        };
         spawns.each((name, value) => {
             var costumetype = "";
 
@@ -1338,7 +1338,7 @@ component singleton accessors="true" {
 
             var genderCheck = listToArray(name, " ");
             if(genderCheck.len() == 2 && (genderCheck[2] == "Male" || genderCheck[2] == "Female")) {
-                var currPokemon = pokemonService.get({
+                var currPokemon = pokemonService.findPokemon({
                     "name"       : genderCheck[1],
                     "gender"     : genderCheck[2],
                     "costume"    : costumetype.len(),
@@ -1346,60 +1346,28 @@ component singleton accessors="true" {
                 });
             }
             else {
-                var currPokemon = pokemonService.get({
+                var currPokemon = pokemonService.findPokemon({
                     "name"       : name,
                     "costume"    : costumetype.len(),
                     "costumetype": costumetype
                 });
             }
 
+            // The pokemon and everything it evolves into, except special evolutions
             currPokemon.each((curr) => {
-                if(!map.keyExists("#curr.getName()#|#curr.getNumber()#|#curr.getGender()#|#curr.getCostumeType()#")) {
-                    pokemon.append(curr.getId());
-                    map.insert("#curr.getName()#|#curr.getNumber()#|#curr.getGender()#|#curr.getCostumeType()#", true);
-                }
-
-                // Add its evolution(s)
-                curr.getEvolution()
-                    .each((evolution) => {
-                        // First stage
-                        var evolvedMon = evolution.getEvolution();
-
-                        if(
-                            !map.keyExists("#evolvedMon.getName()#|#evolvedMon.getNumber()#|#evolvedMon.getGender()#|#evolvedMon.getCostumeType()#") && !evolution.getSpecial()
-                        ) {
-                            pokemon.append(evolvedMon.getId());
-                            map.insert(
-                                "#evolvedMon.getName()#|#evolvedMon.getNumber()#|#evolvedMon.getGender()#|#evolvedMon.getCostumeType()#",
-                                true
-                            );
-                        }
-
-                        // Second stages
-                        evolvedMon
-                            .getEvolution()
-                            .each((twoEvolution) => {
-                                var twoEvolvedMon = twoEvolution.getEvolution();
-
-                                if(
-                                    !map.keyExists("#twoEvolvedMon.getName()#|#twoEvolvedMon.getNumber()#|#twoEvolvedMon.getGender()#|#twoEvolvedMon.getCostumeType()#") && !twoEvolution.getSpecial()
-                                ) {
-                                    pokemon.append(twoEvolvedMon.getId());
-                                    map.insert(
-                                        "#twoEvolvedMon.getName()#|#twoEvolvedMon.getNumber()#|#twoEvolvedMon.getGender()#|#twoEvolvedMon.getCostumeType()#",
-                                        true
-                                    );
-                                }
-                            })
-                    });
+                addPokemon(curr);
+                pokemonService
+                    .buildEvolutionChain(curr)
+                    .filter((evolution) => !evolution.special)
+                    .each((evolution) => addPokemon(evolution.evolution));
             });
         });
 
         // Update the spawns
         customService.createCustomPokedex(custom, pokemon);
 
-        // Only the entries changed - customService.create already cleared the lists if this event is new
-        customService.clearCustomRegisteredCache(custom.getId());
+        // Detail pages list the events a pokemon was featured in
+        pokemonService.clearAllDetailCaches();
         return;
     }
 
@@ -1466,16 +1434,7 @@ component singleton accessors="true" {
      * @name      Task name
      */
     public struct function runTask(required string scheduler, required string name) {
-        if(!schedulerService.hasScheduler(arguments.scheduler)) {
-            throw(type = "TaskNotFound", message = "Unknown scheduler: #arguments.scheduler#");
-        }
-
-        var taskScheduler = schedulerService.getSchedulers()[arguments.scheduler];
-        if(!taskScheduler.hasTask(arguments.name)) {
-            throw(type = "TaskNotFound", message = "Unknown task: #arguments.name#");
-        }
-
-        var task           = taskScheduler.getTaskRecord(arguments.name).task;
+        var task           = schedulerService.getSchedulers()[arguments.scheduler].getTaskRecord(arguments.name).task;
         var failuresBefore = task.getStats().totalFailures;
 
         // Exceptions are trapped by the task itself, so detect failure through the stats
@@ -1705,8 +1664,9 @@ component singleton accessors="true" {
 
         // Moves
         var moveLists = pokemonDoc.select("ul[class*=_movesList]");
-        moveLists.each((list) => {
-            list.select("li")
+        moveLists.each((moveList) => {
+            moveList
+                .select("li")
                 .each((item) => {
                     var curr = uCase(
                         replace(
@@ -1715,7 +1675,7 @@ component singleton accessors="true" {
                             "_"
                         )
                     );
-                    if(curr.len()) pokemon.moves.push(curr);
+                    if(curr.len() && !moveService.isDynamaxOnly(curr)) pokemon.moves.push(curr);
                 });
         });
 
@@ -1780,12 +1740,12 @@ component singleton accessors="true" {
         // Combine results - source names the folder each log lives in (zip subfolder)
         var logs = queryExecute(
             "
-            select name, size, type, dateLastModified, attributes, mode, directory, 'server' as source
-            from cbLogs
-            union
-            select name, size, type, dateLastModified, attributes, mode, directory, 'lucee' as source
-            from serverLogs
-            order by dateLastModified desc
+            SELECT name, size, type, dateLastModified, attributes, mode, directory, 'server' AS source
+            FROM cbLogs
+            UNION
+            SELECT name, size, type, dateLastModified, attributes, mode, directory, 'lucee' AS source
+            FROM serverLogs
+            ORDER BY dateLastModified DESC
         ",
             {},
             {dbtype: "query"}
@@ -1914,24 +1874,24 @@ component singleton accessors="true" {
     /**
      * Find the next or previous case-insensitive match in a log, scanning the file in 1MB chunks
      *
-     * @path      absolute log path from resolveLogPath
-     * @query     text to find
-     * @offset    forward: first byte a match may start at; backward: matches must start before this byte (-1 = end of file)
-     * @direction forward or backward
-     * @chunkSize bytes scanned per read
+     * @path       absolute log path from resolveLogPath
+     * @searchText text to find
+     * @offset     forward: first byte a match may start at; backward: matches must start before this byte (-1 = end of file)
+     * @direction  forward or backward
+     * @chunkSize  bytes scanned per read
      *
      * @return { found, offset, lineStart, size } - offset is the match's first byte, lineStart the first byte of its line
      */
     public struct function searchLog(
         required string path,
-        required string query,
+        required string searchText,
         numeric offset    = 0,
         string direction  = "forward",
         numeric chunkSize = 1048576
     ) {
         // Same one-char-per-byte form as the scanned text so match positions are byte offsets
         // Lowercasing latin-1 never changes a string's length, so positions survive it
-        var needle    = lCase(charsetEncode(charsetDecode(arguments.query, "utf-8"), "iso-8859-1"));
+        var needle    = lCase(charsetEncode(charsetDecode(arguments.searchText, "utf-8"), "iso-8859-1"));
         var needleLen = len(needle);
         var haystack  = "";
         var hit       = 0;
@@ -2193,34 +2153,35 @@ component singleton accessors="true" {
         // Pokemon detail pages - greatest() skips nulls, so a pokemon without moves/evolutions/costumes uses its own date
         var pokemonRows = queryExecute(
             "
-            select p.ses, p.name, p.sprite,
-                greatest(p.updated, m.updated, e.updated, c.updated) as lastmod
-            from pokemon p
-            left join (
-                select pokemonid, max(updated) as updated
-                from pokemonmove
-                group by pokemonid
-            ) m on m.pokemonid = p.id
-            left join (
-                select id, max(updated) as updated
-                from (
-                    select pokemonid as id, updated from evolution
-                    union all
-                    select evolutionid as id, updated from evolution
-                ) evo
-                group by id
-            ) e on e.id = p.id
-            left join (
-                select name, number, gender, max(updated) as updated
-                from pokemon
-                where costume = true and live = true
-                group by name, number, gender
-            ) c on c.name = p.name and c.number = p.number and c.gender = p.gender
-            where p.costume = false
-            order by p.generation asc, p.number asc, p.form asc, p.name asc
-        ",
+            SELECT pokemon.ses, pokemon.name, pokemon.sprite,
+                GREATEST(pokemon.updated, moves.updated, evolutions.updated, costumes.updated) AS lastmod
+            FROM pokemon
+            LEFT JOIN (
+                SELECT pokemonid, MAX(updated) AS updated
+                FROM pokemonmove
+                GROUP BY pokemonid
+            ) AS moves ON moves.pokemonid = pokemon.id
+            LEFT JOIN (
+                SELECT id, MAX(updated) AS updated
+                FROM (
+                    SELECT pokemonid AS id, updated FROM evolution
+                    UNION ALL
+                    SELECT evolutionid AS id, updated FROM evolution
+                ) AS evolutionsides
+                GROUP BY id
+            ) AS evolutions ON evolutions.id = pokemon.id
+            LEFT JOIN (
+                SELECT name, number, gender, MAX(updated) AS updated
+                FROM pokemon
+                WHERE costume = true
+                    AND live = true
+                GROUP BY name, number, gender
+            ) AS costumes ON costumes.name = pokemon.name AND costumes.number = pokemon.number AND costumes.gender = pokemon.gender
+            WHERE pokemon.costume = false
+            ORDER BY pokemon.generation ASC, pokemon.number ASC, pokemon.form ASC, pokemon.name ASC
+            ",
             {},
-            {returntype: "array"}
+            {returnType: "array"}
         );
 
         var newestPokemon = pokemonRows.reduce((newest, row) => {
@@ -2266,15 +2227,15 @@ component singleton accessors="true" {
         entries.append(
             queryExecute(
                 "
-                select header, coalesce(updated, created) as lastmod
-                from blog
-                order by created desc
-            ",
+                SELECT header, COALESCE(updated, created) AS lastmod
+                FROM blog
+                ORDER BY created DESC
+                ",
                 {},
-                {returntype: "array"}
+                {returnType: "array"}
             ).map((row) => {
                 return {
-                    loc       : "#domain#/readblog/#blogService.getSlug(row.header)#",
+                    loc       : "#domain##blogService.getReadPath(header = row.header)#",
                     lastmod   : w3cDate(row.lastmod),
                     changefreq: "monthly",
                     priority  : "0.7"
@@ -2313,7 +2274,7 @@ component singleton accessors="true" {
      * Builds the costume data
      */
     public void function buildCostumeData() {
-        var costumes = deserializeJSON(fileRead("/includes/assets/costumes.json"));
+        var costumes = deserializeJSON(fileRead("/includes/assets/costumes.json", "UTF-8"));
 
         if(getCostumeData()) {
             costumes = {};
@@ -2376,7 +2337,7 @@ component singleton accessors="true" {
                 var curr = extractCostumeData(item);
 
                 // Error in table on wiki side
-                if(!costumes.keyExists(curr.ses)) continue;
+                if(!costumes.keyExists(curr.ses)) return;
 
                 costumes[curr.ses].shinySpriteSrc = curr.imgSrc;
                 costumes[curr.ses].shinyGreyedOut = curr.greyedOut;
@@ -2397,7 +2358,7 @@ component singleton accessors="true" {
                     && normalSprite.startsWith("http")
                     && !fileExists("#getRootPath()##spritePath#")
                 ) {
-                    scraperService.downloadImage(url = normalSprite, destination = spritePath);
+                    scraperService.downloadImage(targetURL = normalSprite, destination = spritePath);
                 }
 
                 // Determine if this has a shiny
@@ -2416,7 +2377,7 @@ component singleton accessors="true" {
                     && shinySprite.startsWith("http")
                     && !fileExists("#getRootPath()##shinySpritePath#")
                 ) {
-                    scraperService.downloadImage(url = shinySprite, destination = shinySpritePath);
+                    scraperService.downloadImage(targetURL = shinySprite, destination = shinySpritePath);
                 }
 
                 costume.delete("spriteSrc");
@@ -2426,36 +2387,36 @@ component singleton accessors="true" {
 
             // Determine the evolution lines based on existing evolution and using the costume type
             costumes.each((key, costume) => {
-                var pokemon = pokemonService.get({
+                var pokemon = pokemonService.findPokemon({
                     name   : costume.name,
                     number : costume.number,
                     gender : costume.gender,
                     costume: false
                 });
 
-                if(!pokemon.len()) continue;
+                if(!pokemon.len()) return;
 
-                var evolutions = pokemon[1].getEvolution();
-                if(!evolutions.len()) continue;
+                var evolutions = pokemonService.getEvolution(pokemon[1]);
+                if(!evolutions.len()) return;
 
                 // Check if evolution(s) has the same costume type
                 evolutions.each((evolution) => {
-                    var evolvedMon = evolution.getEvolution();
+                    var evolvedMon = evolution.evolution;
 
                     // Search costume records
                     var evolvedCostume = costumes.filter((key, filterCostume) => {
                         return (
-                            filterCostume.name == evolvedMon.getName()
-                            && filterCostume.number == evolvedMon.getNumber()
-                            && filterCostume.gender == evolvedMon.getGender()
+                            filterCostume.name == evolvedMon.name
+                            && filterCostume.number == evolvedMon.number
+                            && filterCostume.gender == evolvedMon.gender
                             && filterCostume.costumeType == costume.costumeType // match base stage
-                            && !evolvedMon.getMega()
-                            && !evolvedMon.getGiga()
-                            && !evolvedMon.getFormType().len()
+                            && !evolvedMon.mega
+                            && !evolvedMon.giga
+                            && !evolvedMon.formtype.len()
                         );
                     });
 
-                    if(!evolvedCostume.count()) continue;
+                    if(!evolvedCostume.count()) return;
 
                     // Add to evolutions
                     evolvedCostume.each((key, eCostume) => {
@@ -2463,7 +2424,7 @@ component singleton accessors="true" {
                             condition  : "",
                             number     : eCostume.number,
                             gender     : eCostume.gender,
-                            cost       : evolution.getCost(),
+                            cost       : evolution.cost,
                             name       : eCostume.name,
                             special    : false,
                             costume    : true,
@@ -2620,13 +2581,13 @@ component singleton accessors="true" {
         // Create or replace in one statement - one row per name
         queryExecute(
             "
-            INSERT INTO overrides (name, override, created, updated)
-            VALUES (:name, cast(:override as jsonb), now(), now())
+            INSERT INTO overrides (name, override)
+            VALUES (:name, CAST(:override AS jsonb))
             ON CONFLICT (name) DO UPDATE SET override = excluded.override
             ",
             {
                 name    : {value: arguments.name, cfsqltype: "varchar"},
-                override: {value: serializeJSON(arguments.override), cfsqltype: "other"}
+                override: {value: serializeJSON(arguments.override), cfsqltype: "varchar"}
             }
         );
         return;
@@ -2638,13 +2599,16 @@ component singleton accessors="true" {
      * @name The key's name
      */
     public struct function getOverride(required string name) {
-        var overrideCfc = entityLoad("overrides", {name: name}, true);
+        var override = queryExecute(
+            "SELECT override FROM overrides WHERE name = :name",
+            {name: {value: arguments.name, cfsqltype: "varchar"}}
+        );
 
-        if(isNull(overrideCfc)) {
+        if(!override.recordCount) {
             return {};
         }
 
-        return overrideCfc.getOverride();
+        return deserializeJSON(override.override);
     }
 
 }

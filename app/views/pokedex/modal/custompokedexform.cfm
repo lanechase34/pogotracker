@@ -17,21 +17,21 @@
                 <form name="customPokedexForm" id="customPokedexForm" class="row needs-validation g-3" novalidate action="" method="post" autocomplete="off">
                     <input type="hidden" name="csrf" value="#csrfToken()#">
                     <cfif args.edit>
-                        <input type="hidden" id="inputCustomid" name="customid" value="#EncodeForHTML(args.custom.getId())#">
+                        <input type="hidden" id="inputCustomid" name="customid" value="#EncodeForHTML(args.custom.id)#">
                     </cfif>
                     <div class="col-12">
                         <label for="inputName" class="form-label">Name</label>
-                        <input type="text" class="form-control" id="inputName" name="name" value="<cfif args.edit>#encodeForHTML(args.custom.getName())#</cfif>" minlength="5" maxlength="100" required>
+                        <input type="text" class="form-control" id="inputName" name="name" value="<cfif args.edit>#encodeForHTML(args.custom.name)#</cfif>" minlength="5" maxlength="100" required>
                         <div class="invalid-feedback">
                             Please provide a valid name.
                         </div> 
                     </div>
                     <div class="col-12">
-                        <label for="pokemon" class="form-label">Pokemon</label>
+                        <label for="pokemonList" class="form-label">Pokemon</label>
                         <select id="pokemonList" class="form-control" name="pokemon" autocomplete="off" multiple>
                             <cfloop index="i" item="currPokemon" array="#args.pokemon#">
-                                <option value="#currPokemon.getId()#" <cfif args.edit AND args.customPokedex.keyExists(currPokemon.getId())>selected</cfif>>
-                                    #currPokemon.getFullname()#
+                                <option value="#currPokemon.id#" <cfif args.edit AND args.customPokedex.keyExists(currPokemon.id)>selected</cfif>>
+                                    #currPokemon.fullname#
                                 </option>
                             </cfloop>
                         </select>
@@ -42,7 +42,7 @@
                     <cfif prc.oCurrentUser.hasPermission("trusted")>
                         <div class="col-12">
                             <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="inputPublic" name="public" <cfif args.edit AND args.custom.getPublic()>checked</cfif>>
+                                <input class="form-check-input" type="checkbox" id="inputPublic" name="public" <cfif args.edit AND args.custom.public>checked</cfif>>
                                 <label class="form-check-label" for="inputPublic">Public</label>
                             </div>
                         </div>

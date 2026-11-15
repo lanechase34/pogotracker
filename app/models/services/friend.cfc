@@ -1,91 +1,112 @@
 component singleton accessors="true" {
 
+    property name="pagination"     inject="services.pagination";
     property name="trainerService" inject="services.trainer";
     property name="utilService"    inject="services.util";
 
     /**
      * Get friends list
+     * Each row: id, username, icon, iconpath, iconalttext (the friend) and accepted
      *
-     * @trainer  trainer
-     * @accepted include only accepted friend requests (T) or pending ones (F)
+     * @trainerid trainer pk
+     * @accepted  include only accepted friend requests (T) or pending ones (F)
      */
-    public array function getFriendsList(required component trainer, boolean accepted = true) {
-        return ormExecuteQuery(
+    public array function getFriendsList(required numeric trainerid, boolean accepted = true) {
+        return queryExecute(
             "
-            select friend.friend, friend.accepted
-            from friend as friend
-            where friend.trainer = :trainer
-            and friend.accepted = :accepted
-            order by friend.accepted desc, friend.friend.username asc
+            SELECT trainer.id, trainer.username, trainer.icon, friend.accepted
+            FROM friend
+            INNER JOIN trainer ON trainer.id = friend.friendid
+            WHERE friend.trainerid = :trainerid
+                AND friend.accepted = :accepted
+            ORDER BY friend.accepted DESC, trainer.username ASC
             ",
-            {"trainer": arguments.trainer, "accepted": arguments.accepted}
-        );
+            {
+                trainerid: {value: arguments.trainerid, cfsqltype: "integer"},
+                accepted : {value: arguments.accepted, cfsqltype: "boolean"}
+            },
+            {returnType: "array"}
+        ).map((row) => withIcon(row));
     }
 
     /**
      * Search for accepted friends from your friends list
      *
-     * @trainer  trainer
-     * @search   search tearm
-     * @page     current page
-     * @pageSize default 10 records
+     * @trainerid trainer pk
+     * @search    search tearm
+     * @page      current page
+     * @pageSize  default 10 records
      */
     public struct function searchFriendsList(
-        required component trainer,
+        required numeric trainerid,
         required string search,
         required numeric page,
         numeric pageSize = 10
     ) {
-        var fromWhere = "
-            from friend as friend
-            join friend.friend as trainer
-            where friend.trainer = :trainer
-                and friend.accepted = true
-                and #utilService.searchHQL(["trainer.username"])#
-        ";
-        var params = {trainer: trainer, search: utilService.likeContains(search)};
-
-        var trainers = ormExecuteQuery(
+        var trainers = queryExecute(
             "
-            select trainer
-            #fromWhere#
-            order by trainer.username asc, trainer.id asc
+            SELECT trainer.id, trainer.username, trainer.icon
+            FROM friend
+            INNER JOIN trainer ON trainer.id = friend.friendid
+            WHERE friend.trainerid = :trainerid
+                AND friend.accepted = true
+                AND #pagination.searchSQL(["trainer.username"])#
+            ORDER BY trainer.username ASC, trainer.id ASC
+            LIMIT :pageRows
+            OFFSET :offset
             ",
-            params,
-            {offset: (page - 1) * pageSize, maxResults: pageSize + 1}
+            pageParams(
+                arguments.trainerid,
+                arguments.search,
+                arguments.page,
+                arguments.pageSize
+            ),
+            {returnType: "array"}
         );
 
-        return toSelectPage(trainers, pageSize);
+        return pagination.toSelectPage(
+            trainers,
+            arguments.pageSize,
+            (trainer) => toSelectOption(trainer)
+        );
     }
 
     /**
-     * Select2 page from a query that fetched one row past the page - that extra row means there is another page
-     *
-     * @trainers up to pageSize + 1 trainer entities, in display order
-     * @pageSize rows per page
+     * Query params for a select2 page of trainers - the trainer, the search and the page (pagination.selectPageParams)
      */
-    private struct function toSelectPage(required array trainers, required numeric pageSize) {
-        var more = arguments.trainers.len() > arguments.pageSize;
-        if(more) {
-            arguments.trainers.deleteAt(arguments.trainers.len());
-        }
-        return {results: toSelectOptions(arguments.trainers), pagination: {more: more}};
+    private struct function pageParams(
+        required numeric trainerid,
+        required string search,
+        required numeric page,
+        required numeric pageSize
+    ) {
+        var params       = pagination.selectPageParams(arguments.page, arguments.pageSize);
+        params.trainerid = {value: arguments.trainerid, cfsqltype: "integer"};
+        params.search    = {value: utilService.likeContains(arguments.search), cfsqltype: "varchar"};
+        return params;
     }
 
     /**
-     * Select2 options for a page of trainers
+     * Select2 option for a trainer
      *
-     * @trainers trainer entities, in display order
+     * @trainer trainer row (id, username, icon)
      */
-    private array function toSelectOptions(required array trainers) {
-        return arguments.trainers.map((trainer) => {
-            return {
-                id  : trainer.getId(),
-                text: trainer.getUsername(),
-                img : trainer.getIcon(),
-                alt : trainer.getIconAltText()
-            };
-        });
+    private struct function toSelectOption(required struct trainer) {
+        return {
+            id  : arguments.trainer.id,
+            text: arguments.trainer.username,
+            img : arguments.trainer.icon,
+            alt : trainerService.buildIconAltText(arguments.trainer.icon)
+        };
+    }
+
+    /**
+     * Add the icon's path and alt text to a row with an icon column
+     */
+    private struct function withIcon(required struct row) {
+        arguments.row.iconpath    = trainerService.buildIconPath(arguments.row.icon);
+        arguments.row.iconalttext = trainerService.buildIconAltText(arguments.row.icon);
+        return arguments.row;
     }
 
     /**
@@ -93,79 +114,114 @@ component singleton accessors="true" {
      * Accepts friend request if there was already one pending decision
      */
     public void function sendFriendRequest(required numeric trainerid, required numeric friendid) {
-        var trainer = trainerService.getFromId(arguments.trainerid);
-        var friend  = trainerService.getFromId(arguments.friendid);
-
         // Check if a friend request already exists, automatically accept if so
-        var check = entityLoad("friend", {"trainer": friend, "friend": trainer});
-        if(check.len() && check.len() == 1) {
-            acceptFriendRequest(check[1].getId(), trainer);
-        }
-        // Create the friend request in pending status - a request already sent (double submit) is left as is
-        else {
-            queryExecute(
-                "
-                INSERT INTO friend (trainerid, friendid, accepted, created, updated)
-                VALUES (:trainerid, :friendid, false, now(), now())
-                ON CONFLICT (trainerid, friendid) DO NOTHING
-                ",
-                {
-                    trainerid: {value: trainer.getId(), cfsqltype: "integer"},
-                    friendid : {value: friend.getId(), cfsqltype: "integer"}
-                }
-            );
-        }
-        return;
-    }
-
-    /**
-     * Get friend requests needing action from trainer
-     */
-    public array function getFriendRequests(required component trainer) {
-        return ormExecuteQuery(
-            "
-            select friend.trainer, friend.id, friend.created
-            from friend as friend
-            where friend.friend = :trainer
-            and accepted = false
-            ",
-            {trainer: arguments.trainer}
+        var check = queryExecute(
+            "SELECT id FROM friend WHERE trainerid = :friendid AND friendid = :trainerid",
+            {
+                trainerid: {value: arguments.trainerid, cfsqltype: "integer"},
+                friendid : {value: arguments.friendid, cfsqltype: "integer"}
+            }
         );
-    }
 
-    /**
-     * Accept the friend request
-     * Makes a two way directional friend request
-     */
-    public void function acceptFriendRequest(required numeric friendrequestid, required component trainer) {
-        var friendRequest = entityLoadByPK("friend", arguments.friendrequestid);
-        friendRequest.setAccepted(true);
-        entitySave(friendRequest);
-        ormFlush();
+        // If the other trainer denied their request in the meantime, this becomes a new pending request instead
+        if(check.recordCount && acceptFriendRequest(check.id, arguments.trainerid)) {
+            return;
+        }
 
-        // The other direction - one row per pair
-        // If it exists already (both trainers sent a request at once, or a double accept) it is accepted instead of inserted twice
+        // Create the friend request in pending status - a request already sent (double submit) is left as is
         queryExecute(
             "
-            INSERT INTO friend (trainerid, friendid, accepted, created, updated)
-            VALUES (:trainerid, :friendid, true, now(), now())
-            ON CONFLICT (trainerid, friendid) DO UPDATE SET accepted = true
+            INSERT INTO friend (trainerid, friendid, accepted)
+            VALUES (:trainerid, :friendid, false)
+            ON CONFLICT (trainerid, friendid) DO NOTHING
             ",
             {
-                trainerid: {value: arguments.trainer.getId(), cfsqltype: "integer"},
-                friendid : {value: friendRequest.getTrainer().getId(), cfsqltype: "integer"}
+                trainerid: {value: arguments.trainerid, cfsqltype: "integer"},
+                friendid : {value: arguments.friendid, cfsqltype: "integer"}
             }
         );
         return;
     }
 
     /**
-     * Denies the pending friend request
+     * Get friend requests needing action from trainer, oldest first
+     * Each row: friendrequestid, created (when it was sent), and the sender's id, username, icon, iconpath, iconalttext
      */
-    public void function denyFriendRequest(required numeric friendrequestid) {
-        var friendRequest = entityLoadByPK("friend", arguments.friendrequestid);
-        entityDelete(friendRequest);
-        ormFlush();
+    public array function getFriendRequests(required numeric trainerid) {
+        return queryExecute(
+            "
+            SELECT friend.id AS friendrequestid, friend.created, trainer.id, trainer.username, trainer.icon
+            FROM friend
+            INNER JOIN trainer ON trainer.id = friend.trainerid
+            WHERE friend.friendid = :trainerid
+                AND friend.accepted = false
+            ORDER BY friend.created ASC, friend.id ASC
+            ",
+            {trainerid: {value: arguments.trainerid, cfsqltype: "integer"}},
+            {returnType: "array"}
+        ).map((row) => withIcon(row));
+    }
+
+    /**
+     * Accept the friend request sent to the trainer
+     * Makes a two way directional friend request
+     * Already accepted friendships are matched too, so a one sided friendship is repaired
+     *
+     * @return false when the request no longer exists (denied or withdrawn in the meantime)
+     */
+    public boolean function acceptFriendRequest(required numeric friendrequestid, required numeric trainerid) {
+        // Both directions or neither - a one sided friendship is never left behind
+        transaction {
+            var friendRequest = queryExecute(
+                "
+                UPDATE friend
+                SET accepted = true
+                WHERE id = :id
+                    AND friendid = :trainerid
+                RETURNING trainerid
+                ",
+                {
+                    id       : {value: arguments.friendrequestid, cfsqltype: "integer"},
+                    trainerid: {value: arguments.trainerid, cfsqltype: "integer"}
+                }
+            );
+
+            // The other direction - one row per pair
+            // If it exists already (both trainers sent a request at once, or a double accept) it is accepted instead of inserted twice
+            if(friendRequest.recordCount) {
+                queryExecute(
+                    "
+                    INSERT INTO friend (trainerid, friendid, accepted)
+                    VALUES (:trainerid, :friendid, true)
+                    ON CONFLICT (trainerid, friendid) DO UPDATE SET accepted = true
+                    ",
+                    {
+                        trainerid: {value: arguments.trainerid, cfsqltype: "integer"},
+                        friendid : {value: friendRequest.trainerid, cfsqltype: "integer"}
+                    }
+                );
+            }
+        }
+        return friendRequest.recordCount > 0;
+    }
+
+    /**
+     * Denies the pending friend request sent to the trainer
+     * An accepted friendship is never deleted here - if an accept wins the race, the deny does nothing
+     */
+    public void function denyFriendRequest(required numeric friendrequestid, required numeric trainerid) {
+        queryExecute(
+            "
+            DELETE FROM friend
+            WHERE id = :id
+                AND friendid = :trainerid
+                AND accepted = false
+            ",
+            {
+                id       : {value: arguments.friendrequestid, cfsqltype: "integer"},
+                trainerid: {value: arguments.trainerid, cfsqltype: "integer"}
+            }
+        );
         return;
     }
 
@@ -178,55 +234,59 @@ component singleton accessors="true" {
         required numeric friendid,
         boolean accepted = false
     ) {
-        var trainer = trainerService.getFromId(arguments.trainerid);
-        var friend  = trainerService.getFromId(arguments.friendid);
-
-        if(isNull(trainer) || isNull(friend)) {
-            return false;
-        }
-
-        var params = {"trainer": trainer, "friend": friend};
-        if(arguments.accepted) {
-            params.insert("accepted", arguments.accepted);
-        }
-
-        var validFriend = entityLoad("friend", params, true);
-
-        return !isNull(validFriend);
+        return queryExecute(
+            "
+            SELECT 1
+            FROM friend
+            WHERE trainerid = :trainerid
+                AND friendid = :friendid
+                #arguments.accepted ? "AND accepted = true" : ""#
+            ",
+            {
+                trainerid: {value: arguments.trainerid, cfsqltype: "integer"},
+                friendid : {value: arguments.friendid, cfsqltype: "integer"}
+            }
+        ).recordCount > 0;
     }
 
     /**
      * Return list of trainers the trainer can add
      */
     public struct function getFriendsToAdd(
-        required component trainer,
+        required numeric trainerid,
         required string search,
         required numeric page,
         numeric pageSize = 10
     ) {
         // Verified trainers this trainer has no friend row towards yet (accepted or pending)
-        var fromWhere = "
-            from trainer as trainer
-            where trainer != :trainer
-                and trainer.verified = true
-                and #utilService.searchHQL(["trainer.username"])#
-                and not exists (
-                    select friend.id from friend as friend where friend.trainer = :trainer and friend.friend = trainer
-                )
-        ";
-        var params = {trainer: trainer, search: utilService.likeContains(search)};
-
-        var trainers = ormExecuteQuery(
+        var trainers = queryExecute(
             "
-            select trainer
-            #fromWhere#
-            order by trainer.username asc, trainer.id asc
+            SELECT trainer.id, trainer.username, trainer.icon
+            FROM trainer
+            WHERE trainer.id <> :trainerid
+                AND trainer.verified = true
+                AND #pagination.searchSQL(["trainer.username"])#
+                AND NOT EXISTS (
+                    SELECT 1 FROM friend WHERE friend.trainerid = :trainerid AND friend.friendid = trainer.id
+                )
+            ORDER BY trainer.username ASC, trainer.id ASC
+            LIMIT :pageRows
+            OFFSET :offset
             ",
-            params,
-            {offset: (page - 1) * pageSize, maxResults: pageSize + 1}
+            pageParams(
+                arguments.trainerid,
+                arguments.search,
+                arguments.page,
+                arguments.pageSize
+            ),
+            {returnType: "array"}
         );
 
-        return toSelectPage(trainers, pageSize);
+        return pagination.toSelectPage(
+            trainers,
+            arguments.pageSize,
+            (trainer) => toSelectOption(trainer)
+        );
     }
 
 }

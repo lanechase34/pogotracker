@@ -25,7 +25,7 @@ component extends="base" {
 
         // First blog batch renders with the page
         prc.blogCount = 6;
-        prc.blogs     = blogService.get(count = prc.blogCount, offset = 0);
+        prc.blogs     = blogService.getBlogs(pageSize = prc.blogCount, offset = 0);
     }
 
     /**
@@ -47,12 +47,16 @@ component extends="base" {
             return;
         }
 
-        emailService.sendContact(
+        var sent = emailService.sendContact(
             email     = prc.oCurrentUser.getEmail(),
             subject   = rc.subject,
             message   = rc.message,
             trainerid = prc.oCurrentUser.getId()
         );
+        if(!sent) {
+            jsonValidationFailure(event = event, message = "Your message couldn't be sent. Please try again.");
+            return;
+        }
         jsonOk(event = event);
     }
 

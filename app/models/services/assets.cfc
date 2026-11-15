@@ -56,7 +56,7 @@ component singleton accessors="true" {
     // Entry modules loaded by a <script src> in a layout - preloadable but left out of the import map
     variables.entryModules = ["global": "/global"];
 
-    function init() {
+    public any function init() {
         variables.preloadMemo = {};
         variables.cssMemo     = {};
 
@@ -71,7 +71,7 @@ component singleton accessors="true" {
     /**
      * Build each module's URL (exactly as the import map serves it) and file on disk once the settings are injected
      */
-    function onDIComplete() {
+    public void function onDIComplete() {
         variables.modules = [:];
 
         var localModules = [:];
@@ -147,7 +147,7 @@ component singleton accessors="true" {
      * Dynamic import() calls are left alone so lazy modules stay lazy
      * URLs are the same ones getImportMapJSON serves so the browser reuses the preloaded copy
      *
-     * @entry   module the layout starts from (global or runtime)
+     * @entry   comma list of modules the layout imports directly (global or runtime, plus any its inline module script imports)
      * @handler current handler, skipped when it has no module - same check runtime.js makes against the import map
      */
     public array function getModulePreloads(required string entry, string handler = "") {
@@ -155,7 +155,9 @@ component singleton accessors="true" {
         if(variables.preloadMemo.keyExists(memoKey)) return variables.preloadMemo[memoKey];
 
         var found = [:]; // ordered name -> url
-        collectModule(arguments.entry, found);
+        for(var entryName in listToArray(arguments.entry)) {
+            collectModule(trim(entryName), found);
+        }
         if(arguments.handler.len()) collectModule(arguments.handler, found);
 
         var urls = found.reduce((result, name, moduleURL) => result.append(moduleURL), []);

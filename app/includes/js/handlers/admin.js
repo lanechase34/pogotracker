@@ -1,11 +1,15 @@
 import { createAlert } from 'alert';
 import { copyString } from 'copy';
+import { createEl, delegate } from 'display';
 import { escapeHtml } from 'escape';
-import { getWrapper, postWrapper } from 'fetch';
+import { getWrapper, postWrapper, RequestError, requestErrorMessage } from 'fetch';
+import { validatedPacket } from 'form';
 import { format, validate } from 'json';
 import { $submitBtn } from 'loading';
 import { getLocalStorage, setLocalStorage } from 'localstorage';
+import { appendLoadedModal, confirmModal, toggleCurrentPassword } from 'modals';
 import { startMetricsSocket, stopMetricsSocket } from 'socket';
+import { createToast } from 'toast';
 
 const $listTrainers = document.getElementById('listTrainers');
 const tables = {};
@@ -16,6 +20,7 @@ const $auditLog = document.getElementById('auditLog');
 const $requestLog = document.getElementById('requestLog');
 const $listPokemon = document.getElementById('listPokemon');
 const $bugLog = document.getElementById('bugLog');
+const $logRange = /** @type {HTMLSelectElement} */ (document.getElementById('logRange'));
 const $medalData = document.getElementById('medalData');
 const $cacheData = document.getElementById('cacheData');
 const $taskInfo = document.getElementById('taskInfo');
@@ -26,26 +31,15 @@ async function getEditTrainer(trainerid) {
         $loadingDiv: null,
         loading: '',
         dataHandler: (data) => {
-            const newDiv = document.createElement('div');
-            newDiv.innerHTML = data;
-            document.getElementById('loadedModal').appendChild(newDiv);
-            globalModals.$editProfileModal = new bootstrap.Modal(document.getElementById('editProfileModal'), {});
+            globalModals.$editProfileModal = new bootstrap.Modal(appendLoadedModal(data, 'editProfileModal'), {});
 
             const $editProfileForm = /** @type {HTMLFormElement} */ (document.getElementById('editProfileForm'));
             const $submitEditProfileForm = document.getElementById('submitEditProfileForm');
+            toggleCurrentPassword($editProfileForm);
 
             $submitEditProfileForm.addEventListener('click', async (evt) => {
-                const valid = $editProfileForm.checkValidity();
-                $editProfileForm.classList.add('was-validated');
-
-                if (!valid) {
-                    evt.preventDefault();
-                    evt.stopPropagation();
-                    return;
-                }
-
-                const formData = new FormData($editProfileForm);
-                const packet = Object.fromEntries(formData.entries());
+                const packet = validatedPacket($editProfileForm, evt);
+                if (!packet) return;
                 await updateProfile(packet, $submitEditProfileForm);
             });
         },
@@ -64,8 +58,11 @@ function initJsonEditor() {
     });
 
     saveBtn.addEventListener('click', () => {
+        // The page navigates on submit - one save per click
+        if (/** @type {HTMLButtonElement} */ (saveBtn).disabled) return;
         format(editor);
         if (validate(editor)) {
+            /** @type {HTMLButtonElement} */ (saveBtn).disabled = true;
             /** @type {HTMLFormElement} */ (document.getElementById('overridesForm')).submit();
         }
     });
@@ -75,16 +72,15 @@ function initJsonEditor() {
  * One listener on the trainer table for every .editTrainer button - survives DataTables redraws
  */
 function attachEditProfileHandler($table) {
-    $table.addEventListener('click', async (evt) => {
-        const $btn = /** @type {HTMLElement | null} */ (
-            /** @type {HTMLElement} */ (evt.target).closest('.editTrainer')
-        );
-        if (!$btn || !$table.contains($btn)) return;
-
+    delegate($table, 'click', '.editTrainer', async (evt, $btn) => {
         if (document.getElementById('editProfileModal')) {
             document.getElementById('editProfileModal').remove();
         }
-        await getEditTrainer($btn.dataset.trainerid);
+        // The previous trainer's instance points at the element just removed - never show it
+        globalModals.$editProfileModal = null;
+
+        // The wrapper toasts why it failed
+        if (!(await getEditTrainer($btn.dataset.trainerid))) return;
         globalModals.$editProfileModal.show();
     });
 }
@@ -94,6 +90,7 @@ async function updateProfile(packet, $btn) {
         url: '/trainer/updateProfile',
         $loadingBtn: $btn,
         loading: $submitBtn,
+        restoreOnSuccess: true,
         packet: JSON.stringify(packet),
         responseType: 'json',
         dataHandler: (data) => {
@@ -106,12 +103,18 @@ async function updateProfile(packet, $btn) {
                     escapeHtml(data.message),
                     0
                 );
-
-                $btn.innerHTML = 'Submit';
-                $btn.disabled = false;
             } else {
                 window.location.reload();
             }
+        },
+        errorHandler: (error) => {
+            createAlert(
+                document.getElementById('editProfileAlertDiv'),
+                'danger',
+                'bi-exclamation-diamond-fill',
+                escapeHtml(requestErrorMessage(error)),
+                0
+            );
         },
     });
 }
@@ -158,13 +161,6 @@ function buildRunTaskResult(response) {
     }
 
     return $wrapper;
-}
-
-function createEl(tag, className = '', text = null) {
-    const $el = document.createElement(tag);
-    if (className) $el.className = className;
-    if (text !== null) $el.textContent = text;
-    return $el;
 }
 
 /**
@@ -351,11 +347,14 @@ function buildBugDetail(bug) {
 
     $wrapper.appendChild(buildBugMeta(bug));
 
-    // The stored message is capped at 250 chars, prefer the full message from the trace
+    // The stored message is capped at 256 chars, prefer the full message from the trace
+    // Only when it parsed as an exception - a non-trace stack (e.g. a mail send result) falls back to the stored message
     const top = sections[0];
     const $alert = createEl('div', 'alert alert-danger');
     if (top?.type) $alert.appendChild(createEl('div', 'small font-monospace mb-1 text-break', top.type));
-    $alert.appendChild(createEl('div', 'bugExceptionMessage fw-semibold', top?.message || bug.message || 'No message'));
+    $alert.appendChild(
+        createEl('div', 'bugExceptionMessage fw-semibold', (top?.type && top.message) || bug.message || 'No message')
+    );
     $wrapper.appendChild($alert);
 
     // Deepest root cause's first app frame is usually where the problem really is
@@ -1228,13 +1227,37 @@ function initLogViewer() {
     }
 }
 
+/**
+ * Server side log table limited to the time range picked in $logRange
+ * The select sits beside the page length menu, and changing it reloads the table from the first page
+ * @param {HTMLElement} $table
+ * @param {Record<string, any>} options DataTable options - ajax.data is set here
+ * @returns {any} the DataTable
+ */
+function logTable($table, options) {
+    const dt = new DataTable($table, {
+        ...options,
+        ajax: {
+            ...options.ajax,
+            data: (d) => {
+                d.range = $logRange.value;
+                return d;
+            },
+        },
+        layout: { topStart: ['pageLength', $logRange] },
+    });
+
+    $logRange.addEventListener('change', () => dt.ajax.reload());
+    return dt;
+}
+
 export const runtime = {
     all: () => {},
     logviewer: () => {
         initLogViewer();
     },
     auditlog: () => {
-        new DataTable($auditLog, {
+        logTable($auditLog, {
             ajax: {
                 url: '/admin/getAudits',
                 type: 'GET',
@@ -1258,7 +1281,7 @@ export const runtime = {
         const $bugModalCopy = document.getElementById('bugModalCopy');
         let currentBug = null;
 
-        const dt = new DataTable($bugLog, {
+        const dt = logTable($bugLog, {
             ajax: {
                 url: '/admin/getBugs',
                 type: 'GET',
@@ -1290,10 +1313,7 @@ export const runtime = {
             scrollY: 'calc(100vh - 250px)',
         });
 
-        $bugLog.addEventListener('click', (evt) => {
-            const $btn = /** @type {HTMLElement} */ (evt.target).closest('.viewBug');
-            if (!$btn) return;
-
+        delegate($bugLog, 'click', '.viewBug', (evt, $btn) => {
             currentBug = dt.row($btn.closest('tr')).data();
             $bugModalId.textContent = `#${currentBug.id}`;
             $bugModalBody.replaceChildren(buildBugDetail(currentBug));
@@ -1303,6 +1323,89 @@ export const runtime = {
 
         $bugModalCopy.addEventListener('click', () => {
             if (currentBug) copyString([$bugModalCopy], currentBug.stack);
+        });
+    },
+    comments: () => {
+        const $commentsTable = document.getElementById('commentsTable');
+        const $commentBlog = /** @type {HTMLSelectElement} */ (document.getElementById('commentBlog'));
+
+        const dt = new DataTable($commentsTable, {
+            ajax: {
+                url: '/admin/getComments',
+                type: 'GET',
+                dataSrc: 'data',
+                data: (d) => {
+                    d.blogid = $commentBlog.value;
+                    return d;
+                },
+            },
+            columns: [
+                { data: 'created', render: DataTable.render.text() },
+                {
+                    data: 'blogheader',
+                    render: (data, type, full) =>
+                        `<a href="/readblog/${encodeURIComponent(full.blogslug)}" class="link-offset-2">${escapeHtml(data)}</a>`,
+                },
+                {
+                    data: 'username',
+                    render: (data, type, full) =>
+                        `${escapeHtml(data)}${full.commentbanned ? ' <span class="badge text-bg-danger">Banned</span>' : ''}`,
+                },
+                // Trainer written - always text, keeping its line breaks
+                {
+                    data: 'comment',
+                    orderable: false,
+                    className: 'adminCommentText text-break',
+                    render: DataTable.render.text(),
+                },
+                {
+                    data: 'commentid',
+                    orderable: false,
+                    searchable: false,
+                    className: 'text-center',
+                    render: (data) => `
+                        <button type="button" class="deleteComment btn btn-outline-danger btn-sm" data-commentid="${escapeHtml(data)}" title="Delete comment and ban its author from commenting">
+                            <i class="bi bi-trash"></i><span class="visually-hidden">Delete comment</span>
+                        </button>`,
+                },
+            ],
+            columnDefs: [{ targets: '_all', className: 'align-middle' }],
+            serverSide: true,
+            order: [[0, 'desc']],
+            pageLength: 25,
+            lengthMenu: [25, 50, 100],
+            layout: { topStart: ['pageLength', $commentBlog] },
+            scrollY: 'calc(100vh - 250px)',
+        });
+
+        $commentBlog.addEventListener('change', () => dt.ajax.reload());
+
+        delegate($commentsTable, 'click', '.deleteComment', (evt, $match) => {
+            const $btn = /** @type {HTMLButtonElement} */ ($match);
+
+            confirmModal(
+                'Delete this comment? Its author will be banned from commenting.',
+                '<i class="bi bi-trash me-1"></i>Delete',
+                async () => {
+                    await postWrapper({
+                        url: '/blog/deleteComment',
+                        $loadingBtn: $btn,
+                        loading: $submitBtn,
+                        packet: new URLSearchParams({ commentid: $btn.dataset.commentid }),
+                        responseType: 'json',
+                        dataHandler: (data) => {
+                            if (!data.success) throw new RequestError(data.message);
+                            createToast(
+                                'Comment deleted. Its author can no longer comment.',
+                                'success',
+                                'bi-check-square-fill'
+                            );
+                            // Stay on this page - the author's other rows pick up the banned badge
+                            dt.ajax.reload(null, false);
+                        },
+                    });
+                }
+            );
         });
     },
     listtrainers: () => {
@@ -1335,8 +1438,8 @@ export const runtime = {
                     searchable: false,
                     className: 'align-middle text-center',
                     render: (data, type, full) => `
-                            <button type="button" class="editTrainer btn btn-secondary" data-trainerid="${escapeHtml(full.trainerid)}">
-                                <i class="bi bi-wrench"></i>
+                            <button type="button" class="editTrainer btn btn-secondary" data-trainerid="${escapeHtml(full.trainerid)}" aria-label="Edit trainer">
+                                <i class="bi bi-wrench" aria-hidden="true"></i>
                             </button>
                         `,
                 },
@@ -1485,7 +1588,7 @@ export const runtime = {
         });
     },
     requestlog: () => {
-        new DataTable($requestLog, {
+        logTable($requestLog, {
             ajax: {
                 url: '/admin/getRequests',
                 type: 'GET',
@@ -1572,55 +1675,56 @@ export const runtime = {
          * Fetch cache data and update table, chart, and modal stats
          */
         async function updateCacheData() {
-            try {
-                const response = await fetch('/admin/getCacheData');
-                const data = await response.json();
+            await getWrapper({
+                url: '/admin/getCacheData',
+                responseType: 'json',
+                dataHandler: (data) => {
+                    cacheTable.clear().rows.add(data.data).draw(false);
 
-                cacheTable.clear().rows.add(data.data).draw(false);
+                    const appKeyCount = data.data.filter((d) => d.storage === 'appCache').length;
+                    const available = data.maxObjects - appKeyCount;
 
-                const appKeyCount = data.data.filter((d) => d.storage === 'appCache').length;
-                const available = data.maxObjects - appKeyCount;
-
-                if (!appCacheChart) {
-                    appCacheChart = new Chart(appCacheChartCanvas, {
-                        type: 'doughnut',
-                        data: {
-                            labels: ['Used', 'Available'],
-                            datasets: [
-                                {
-                                    label: 'appCache Keys',
-                                    data: [appKeyCount, available],
-                                    backgroundColor: ['rgba(255, 99, 132, 0.8)', 'rgba(54, 162, 235, 0.8)'],
-                                    hoverOffset: 4,
-                                    borderWidth: 0,
-                                },
-                            ],
-                        },
-                        options: {
-                            responsive: true,
-                            plugins: {
-                                legend: {
-                                    position: 'top',
-                                    labels: { color: '#000000' },
-                                },
+                    if (!appCacheChart) {
+                        appCacheChart = new Chart(appCacheChartCanvas, {
+                            type: 'doughnut',
+                            data: {
+                                labels: ['Used', 'Available'],
+                                datasets: [
+                                    {
+                                        label: 'appCache Keys',
+                                        data: [appKeyCount, available],
+                                        backgroundColor: ['rgba(255, 99, 132, 0.8)', 'rgba(54, 162, 235, 0.8)'],
+                                        hoverOffset: 4,
+                                        borderWidth: 0,
+                                    },
+                                ],
                             },
-                            maintainAspectRatio: false,
-                            cutout: '50%',
-                        },
-                    });
-                } else {
-                    appCacheChart.data.datasets[0].data = [appKeyCount, available];
-                    appCacheChart.update('none');
-                }
+                            options: {
+                                responsive: true,
+                                plugins: {
+                                    legend: {
+                                        position: 'top',
+                                        labels: { color: '#000000' },
+                                    },
+                                },
+                                maintainAspectRatio: false,
+                                cutout: '50%',
+                            },
+                        });
+                    } else {
+                        appCacheChart.data.datasets[0].data = [appKeyCount, available];
+                        appCacheChart.update('none');
+                    }
 
-                if (statLastReap) statLastReap.textContent = data.lastReapDateTime;
-                if (statHits) statHits.textContent = data.hits;
-                if (statMisses) statMisses.textContent = data.misses;
-                if (statEvictions) statEvictions.textContent = data.evictionCount;
-                if (statGC) statGC.textContent = data.garbageCollections;
-            } catch (e) {
-                console.error('Error fetching cache data', e);
-            }
+                    if (statLastReap) statLastReap.textContent = data.lastReapDateTime;
+                    if (statHits) statHits.textContent = data.hits;
+                    if (statMisses) statMisses.textContent = data.misses;
+                    if (statEvictions) statEvictions.textContent = data.evictionCount;
+                    if (statGC) statGC.textContent = data.garbageCollections;
+                },
+                // Polled every 10s - a missed refresh isn't worth a toast
+                errorHandler: (e) => console.error('Error fetching cache data', e),
+            });
         }
 
         updateCacheData();

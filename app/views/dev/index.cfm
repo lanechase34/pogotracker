@@ -8,9 +8,6 @@
                 <a href="/dev/forceError" class="list-group-item list-group-item-action d-flex gap-2 py-3">
                     <div class="d-flex gap-2 w-100 justify-content-between">Force Error</div>
                 </a>
-                <a href="/dev/ormReload" class="list-group-item list-group-item-action d-flex gap-2 py-3">
-                    <div class="d-flex gap-2 w-100 justify-content-between">ORM Reload</div>
-                </a>
                 <a href="/tests/runner.cfm" class="list-group-item list-group-item-action d-flex gap-2 py-3">
                     <div class="d-flex gap-2 w-100 justify-content-between">Run Testbox</div>
                 </a>
@@ -30,26 +27,14 @@
         </div>
         <div class="col-12 col-md-3 d-flex align-items-start mt-3">
             <div class="list-group w-100">
-                <a href="/dev/createBlog" class="list-group-item list-group-item-action d-flex gap-2 py-3">
-                    <div class="d-flex gap-2 w-100 justify-content-between">Create Blog</div>
-                </a>
-                <a href="/dev/createCPMultiplierJson" class="list-group-item list-group-item-action d-flex gap-2 py-3">
+                <a href="/dev/createCPMultiplierJSON" class="list-group-item list-group-item-action d-flex gap-2 py-3">
                     <div class="d-flex gap-2 w-100 justify-content-between">Create CP Multiplier Json</div>
                 </a>
                 <a href="/dev/createRandomBlogs" class="list-group-item list-group-item-action d-flex gap-2 py-3">
                     <div class="d-flex gap-2 w-100 justify-content-between">Create Random Blogs</div>
                 </a>
-                <a href="/dev/createRandomTeam" class="list-group-item list-group-item-action d-flex gap-2 py-3">
-                    <div class="d-flex gap-2 w-100 justify-content-between">Create Random Team</div>
-                </a>
-                <a href="/dev/createTestTrainer" class="list-group-item list-group-item-action d-flex gap-2 py-3">
-                    <div class="d-flex gap-2 w-100 justify-content-between">Create Test Trainers</div>
-                </a>
                 <a href="/dev/createUnownJson" class="list-group-item list-group-item-action d-flex gap-2 py-3">
                     <div class="d-flex gap-2 w-100 justify-content-between">Create Unown Json</div>
-                </a>
-                <a href="/dev/registerRandomPokemon" class="list-group-item list-group-item-action d-flex gap-2 py-3">
-                    <div class="d-flex gap-2 w-100 justify-content-between">Register Random Pokemon</div>
                 </a>
             </div>
         </div>

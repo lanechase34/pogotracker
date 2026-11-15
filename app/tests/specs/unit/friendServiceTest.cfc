@@ -2,21 +2,17 @@ component extends="tests.resources.baseTest" asyncAll="false" {
 
     function beforeAll() {
         super.beforeAll();
-        mockTrainer    = getInstance("tests.resources.mocktrainer");
-        mocktrainerids = []; // 1 - friend, 2 - trainer
+        mockTrainer = getInstance("tests.resources.mockTrainer");
 
-        // Set up trainer + friend that trainer will add
-        friend = mockTrainer.make(securityLevel = 10, autoLogin = false);
-        mocktrainerids.append(session.mocktrainerid);
-        trainer = mockTrainer.make(securityLevel = 10, autoLogin = true);
-        mocktrainerids.append(session.mocktrainerid);
+        // Set up trainer + friend that trainer will add, the trainer is logged in
+        friend  = mockTrainer.make(securityLevel = 10, autoLogin = false);
+        trainer = mockTrainer.makeSignedIn();
     }
 
     function afterAll() {
         super.afterAll();
-        mocktrainerids.each((id) => {
-            mockTrainer.delete(id);
-        });
+        mockTrainer.deleteTrainer(friend.id);
+        mockTrainer.deleteTrainer(trainer.id);
     }
 
     function run() {
@@ -28,13 +24,17 @@ component extends="tests.resources.baseTest" asyncAll="false" {
 
             describe("friendService.getFriendsToAdd", () => {
                 it("Can paginate through friends list to find friend to add", () => {
-                    found     = false;
-                    currPage  = 1;
-                    morePages = true;
+                    var found     = false;
+                    var currPage  = 1;
+                    var morePages = true;
 
                     while(morePages && !found) {
                         // Load the current page
-                        page = friendService.getFriendsToAdd(trainer = trainer, search = "", page = currPage);
+                        var page = friendService.getFriendsToAdd(
+                            trainerid = trainer.id,
+                            search    = "",
+                            page      = currPage
+                        );
 
                         expect(page).toBeStruct();
                         expect(page).toHaveKey("results");
@@ -42,14 +42,7 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                         expect(page).toHaveKey("pagination");
 
                         // Try to find friend
-                        page.results.each((row) => {
-                            if(row.id == friend.getId()) {
-                                found = true;
-                                break;
-                            }
-                        });
-
-                        if(found) break;
+                        found     = page.results.some((row) => row.id == friend.id);
                         morePages = page.pagination.more;
                         currPage++;
                     }
@@ -59,10 +52,10 @@ component extends="tests.resources.baseTest" asyncAll="false" {
 
                 it("Can search for friend to add", () => {
                     // Search for friend explicitly and expect only friend to be returned
-                    page = friendService.getFriendsToAdd(
-                        trainer = trainer,
-                        search  = friend.getUsername(),
-                        page    = 1
+                    var page = friendService.getFriendsToAdd(
+                        trainerid = trainer.id,
+                        search    = friend.username,
+                        page      = 1
                     );
                     expect(page).toBeStruct();
                     expect(page).toHaveKey("results");
@@ -75,14 +68,14 @@ component extends="tests.resources.baseTest" asyncAll="false" {
 
             it("friendService.checkFriend", () => {
                 // Check if they are friends
-                expect(friendService.checkFriend(trainerid = mocktrainerids[2], friendid = mocktrainerids[1])).toBeFalse();
+                expect(friendService.checkFriend(trainerid = trainer.id, friendid = friend.id)).toBeFalse();
             });
 
             describe("Friend request life cycle", () => {
                 it("Can send a friend request", () => {
-                    event = post(
+                    var event = post(
                         route  = "/friend/sendFriendRequest",
-                        params = {trainerid: mocktrainerids[2], friendid: mocktrainerids[1]}
+                        params = {trainerid: trainer.id, friendid: friend.id}
                     );
                     // Verify successful response
                     expect(event.getStatusCode()).toBe(200);
@@ -93,8 +86,8 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                     // Call check friends again, with accepted = false
                     expect(
                         friendService.checkFriend(
-                            trainerid = mocktrainerids[2],
-                            friendid  = mocktrainerids[1],
+                            trainerid = trainer.id,
+                            friendid  = friend.id,
                             accepted  = false
                         )
                     ).toBeTrue();
@@ -102,32 +95,33 @@ component extends="tests.resources.baseTest" asyncAll="false" {
 
                 it("Can load pending friend requests", () => {
                     // Load the friend requests as the friend and make sure we see one pending decision
-                    friendRequests = friendService.getFriendRequests(friend);
+                    var friendRequests = friendService.getFriendRequests(friend.id);
                     expect(friendRequests).toBeArray();
                     expect(friendRequests.len()).toBe(1);
 
-                    // returns trainer, id, created
-                    expect(friendRequests[1][1].getId()).toBe(mocktrainerids[2]);
-                    friendRequestId = friendRequests[1][2];
+                    // the sender's id plus the request's id and when it was sent
+                    expect(friendRequests[1].id).toBe(trainer.id);
+                    expect(friendRequests[1].username).toBe(trainer.username);
+                    expect(dateDiff("s", friendRequests[1].created, now())).toBeLT(30);
+                    friendRequestId = friendRequests[1].friendrequestid;
                 });
 
                 it("Can load sent friend requests", () => {
                     // Load the sent friend requests as the trainer and make sure we see one sent to friend
-                    sentFriendRequests = friendService.getFriendsList(trainer = trainer, accepted = false);
+                    var sentFriendRequests = friendService.getFriendsList(trainerid = trainer.id, accepted = false);
                     expect(sentFriendRequests).toBeArray();
                     expect(sentFriendRequests.len()).toBe(1);
 
-                    // returns friend, accepted
-                    expect(sentFriendRequests[1][1].getId()).toBe(mocktrainerids[1]);
-                    expect(sentFriendRequests[1][2]).toBeFalse();
+                    // the friend's id and the request's accepted flag
+                    expect(sentFriendRequests[1].id).toBe(friend.id);
+                    expect(sentFriendRequests[1].accepted).toBeFalse();
                 });
 
                 it("Can accept a friend request", () => {
-                    // Login as friend and accept the friend request
-                    mockTrainer.logout();
-                    mockTrainer.login(friend);
+                    // Act as friend and accept the friend request
+                    mockTrainer.actAs(friend);
 
-                    event = post(
+                    var event = post(
                         route  = "/friend/decideFriendRequest",
                         params = {friendrequestid: friendRequestId, accept: true}
                     );
@@ -140,8 +134,8 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                     // Check friendship status
                     expect(
                         friendService.checkFriend(
-                            trainerid = mocktrainerids[2],
-                            friendid  = mocktrainerids[1],
+                            trainerid = trainer.id,
+                            friendid  = friend.id,
                             accepted  = true
                         )
                     ).toBeTrue();
@@ -149,33 +143,30 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                     // Check two directional status
                     expect(
                         friendService.checkFriend(
-                            trainerid = mocktrainerids[1],
-                            friendid  = mocktrainerids[2],
+                            trainerid = friend.id,
+                            friendid  = trainer.id,
                             accepted  = true
                         )
                     ).toBeTrue();
                 });
 
                 it("Can load friends list", () => {
-                    // Login as trainer and load friends list
-                    mockTrainer.logout();
-                    mockTrainer.login(trainer);
-
                     // Verify friend is now accepted
-                    friendsList = friendService.getFriendsList(trainer = trainer, accepted = true);
+                    var friendsList = friendService.getFriendsList(trainerid = trainer.id, accepted = true);
                     expect(friendsList).toBeArray();
                     expect(friendsList.len()).toBe(1);
 
-                    // returns friend, accepted
-                    expect(friendsList[1][1].getId()).toBe(mocktrainerids[1]);
-                    expect(friendsList[1][2]).toBeTrue();
+                    // the friend's id and the request's accepted flag
+                    expect(friendsList[1].id).toBe(friend.id);
+                    expect(friendsList[1].accepted).toBeTrue();
+                    expect(friendsList[1].iconpath).toInclude("/includes/images/icons/");
                 });
 
                 it("Can search friendslist for friend", () => {
-                    searchFriendsList = friendService.searchFriendsList(
-                        trainer = trainer,
-                        search  = friend.getUsername(),
-                        page    = 1
+                    var searchFriendsList = friendService.searchFriendsList(
+                        trainerid = trainer.id,
+                        search    = friend.username,
+                        page      = 1
                     );
 
                     expect(searchFriendsList).toBeStruct();

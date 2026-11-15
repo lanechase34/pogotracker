@@ -1,4 +1,4 @@
-component extends="coldbox.system.Interceptor" {
+component extends="baseInterceptor" {
 
     property name="auditService"     inject="provider:services.audit";
     property name="authService"      inject="provider:authenticationService@cbauth";
@@ -71,7 +71,7 @@ component extends="coldbox.system.Interceptor" {
         trainerService.updateLastLogin(data.user);
 
         // Settings added to settings.defaultSettings since the trainer last logged in
-        data.user.fillDefaultSettings();
+        data.user.setSettings(trainerService.fillDefaultSettings(data.user.getId(), data.user.getSettings()));
     }
 
     /**
@@ -83,7 +83,7 @@ component extends="coldbox.system.Interceptor" {
         data.processActions = false;
 
         if(utilService.isJsonRequest()) {
-            renderBlocked(event, 401, "Please log in.");
+            renderJsonError(event, 401, "Please log in.");
             return;
         }
 
@@ -100,41 +100,11 @@ component extends="coldbox.system.Interceptor" {
     }
 
     /**
-     * Logged in without the permission
-     * - unverified trainers finish verifying first
-     * - everyone else falls through to error.unauthorized (firewall default)
+     * Logged in without the permission - falls through to error.unauthorized (firewall default)
+     * Unverified trainers never get here, interceptors/guestOnly.cfc sends them to /verify before the firewall runs
      */
     function cbSecurity_onInvalidAuthorization(event, data, buffer, rc, prc) {
         prc.unauthorizedEvent = event.getCurrentEvent();
-
-        if(prc.oCurrentUser.getVerified()) {
-            return;
-        }
-
-        data.processActions = false;
-        if(utilService.isJsonRequest()) {
-            renderBlocked(event, 403, "Please verify your account.");
-            return;
-        }
-        relocate(uri = "/verify");
-    }
-
-    private void function renderBlocked(
-        required event,
-        required numeric statusCode,
-        required string message
-    ) {
-        arguments.event
-            .renderData(
-                type = "json",
-                data = {
-                    success   : false,
-                    message   : arguments.message,
-                    statusCode: arguments.statusCode
-                },
-                statusCode = arguments.statusCode
-            )
-            .noExecution();
     }
 
 }

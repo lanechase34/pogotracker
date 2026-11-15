@@ -3,14 +3,15 @@ component extends="tests.resources.baseTest" asyncAll="false" {
     function beforeAll() {
         super.beforeAll();
         adminService = getInstance("services.admin");
-        mockTrainer  = getInstance("tests.resources.mocktrainer");
+        mockTrainer  = getInstance("tests.resources.mockTrainer");
 
         // Make sure events needed during the tests are deleted before running
+        // Titles with a hardcoded year take it from the leekduck page title, not from the app
         eventNames = [
             "Psychic Spectacular: Taken Over",
             "Cozy Companions",
             "Steeled Resolve",
-            "Steeled Resolve 2026",
+            "Steeled Resolve #year(now())#",
             "Spring Marathon 2026",
             "Candela's Quest for Victory",
             "Frigibax Community Day",
@@ -20,10 +21,49 @@ component extends="tests.resources.baseTest" asyncAll="false" {
         eventNames.each((name) => {
             customHelperFunctions.deleteByName(name);
         });
+
+        // Serve leekduck pages from saved fixtures instead of the network
+        // adminService is a singleton shared with the app - the real scraper is put back in afterAll
+        originalScraper = adminService.getScraperService();
+        adminService.setScraperService(fixtureScraper());
     }
 
     function afterAll() {
+        if(!isNull(variables.originalScraper)) {
+            adminService.setScraperService(originalScraper);
+        }
         super.afterAll();
+    }
+
+    /**
+     * A scraper stub whose getData parses the saved leekduck page for the url instead of fetching it
+     * The fixture is tests/resources/fixtures/leekduck/{last url path segment}.html
+     * Any other url throws so a spec never silently falls back to a live fetch
+     */
+    private any function fixtureScraper() {
+        var jsoup      = getInstance("javaloader:org.jsoup.Jsoup");
+        var fixtureDir = expandPath("/tests/resources/fixtures/leekduck");
+        // Links that serve another link's page
+        var aliases    = {"steeled-resolve-rerun": "steeled-resolve"};
+
+        return createEmptyMock("models.services.scraper")
+            .$(method = "getData", preserveArguments = true)
+            .$callback((required string targetURL, boolean returnJSON = false) => {
+                var link = trim(arguments.targetURL);
+                var slug = listLast(link, "/");
+                slug     = aliases[slug] ?: slug;
+                var path = "#fixtureDir#/#slug#.html";
+
+                if(
+                    arguments.returnJSON
+                    || !reFindNoCase("^https://leekduck\.com/events/[^/]+/?$", link)
+                    || !fileExists(path)
+                ) {
+                    throw(type = "MissingFixture", message = "No leekduck fixture for #arguments.targetURL#");
+                }
+
+                return jsoup.parse(fileRead(path, "utf-8"), link);
+            });
     }
 
     function run() {
@@ -32,34 +72,33 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                 setup();
 
                 customService = getInstance("services.custom");
-                trainer       = mockTrainer.make(50); // admin trainer
-                customid      = -1;
+                custom        = javacast("null", "");
             });
 
             it("Can create custom pokedex event with correct information from leekduck", () => {
                 eventLink   = "https://leekduck.com/events/cozy-companions/";
-                beforeCount = customHelperFunctions.count();
+                beforeCount = testData.countRows("custom");
 
                 adminService.createEvent(eventLink);
 
                 // Verify a custom pokedex was created for the event
-                afterCount = customHelperFunctions.count();
+                afterCount = testData.countRows("custom");
                 expect(afterCount).toBe(beforeCount + 1);
                 customid = customHelperFunctions.getMostRecentCreated();
                 custom   = customService.getFromId(customid);
-                expect(custom).toBeComponent();
+                expect(custom).toBeStruct();
 
                 // Verify the contents of the custom pokedex
-                expect(custom.getName()).toBe("Cozy Companions");
-                expect(custom.getPublic()).toBeTrue();
-                expect(custom.getCommday()).toBeFalse();
-                expect(custom.getTrainer().getId()).toBe(1); // defaults to administrator since this is a scheduled task typically
-                expect(custom.getLink()).toBe(eventLink);
-                expect(custom.getBegins()).toBe(createDate(2025, 8, 6));
-                expect(custom.getEnds()).toBe(createDate(2025, 8, 12));
+                expect(custom.name).toBe("Cozy Companions");
+                expect(custom.public).toBeTrue();
+                expect(custom.commday).toBeFalse();
+                expect(custom.trainerid).toBe(1); // defaults to administrator since this is a scheduled task typically
+                expect(custom.link).toBe(eventLink);
+                expect(custom.begins).toBe(createDate(2025, 8, 6));
+                expect(custom.ends).toBe(createDate(2025, 8, 12));
 
                 // Verify the pokedex for the custom pokedex
-                customPokedex  = custom.getCustomPokedex();
+                customPokedex  = customHelperFunctions.getMembers(custom.id);
                 // This is the list of expected spawns for the event
                 expectedSpawns = {
                     "Snom"                    : 1,
@@ -129,8 +168,8 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                 expect(customPokedex.len()).toBe(expectedSpawns.count());
 
                 customPokedex.each((entry) => {
-                    expect(expectedSpawns).toHaveKey(entry.getPokemon().getName());
-                    structDelete(expectedSpawns, entry.getPokemon().getName());
+                    expect(expectedSpawns).toHaveKey(entry.name);
+                    structDelete(expectedSpawns, entry.name);
                 });
 
                 expect(expectedSpawns.count()).toBe(0);
@@ -144,28 +183,28 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                 );
 
                 eventLink   = "https://leekduck.com/events/psychic-spectacular-taken-over-2025/ ";
-                beforeCount = customHelperFunctions.count();
+                beforeCount = testData.countRows("custom");
 
                 adminService.createEvent(eventLink);
 
                 // Verify a custom pokedex was created for the event
-                afterCount = customHelperFunctions.count();
+                afterCount = testData.countRows("custom");
                 expect(afterCount).toBe(beforeCount + 1);
                 customid = customHelperFunctions.getMostRecentCreated();
                 custom   = customService.getFromId(customid);
-                expect(custom).toBeComponent();
+                expect(custom).toBeStruct();
 
                 // Verify the contents of the custom pokedex
-                expect(custom.getName()).toBe("Psychic Spectacular: Taken Over");
-                expect(custom.getPublic()).toBeTrue();
-                expect(custom.getCommday()).toBeFalse();
-                expect(custom.getTrainer().getId()).toBe(1); // defaults to administrator since this is a scheduled task typically
-                expect(custom.getLink()).toBe(eventLink);
-                expect(custom.getBegins()).toBe(createDate(2025, 9, 16));
-                expect(custom.getEnds()).toBe(createDate(2025, 9, 21));
+                expect(custom.name).toBe("Psychic Spectacular: Taken Over");
+                expect(custom.public).toBeTrue();
+                expect(custom.commday).toBeFalse();
+                expect(custom.trainerid).toBe(1); // defaults to administrator since this is a scheduled task typically
+                expect(custom.link).toBe(eventLink);
+                expect(custom.begins).toBe(createDate(2025, 9, 16));
+                expect(custom.ends).toBe(createDate(2025, 9, 21));
 
                 // Verify the pokedex for the custom pokedex
-                customPokedex  = custom.getCustomPokedex();
+                customPokedex  = customHelperFunctions.getMembers(custom.id);
                 // This is the list of expected spawns for the event
                 // This list has no shadow pokemon
                 expectedSpawns = {
@@ -207,14 +246,9 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                 expect(customPokedex.len()).toBe(expectedSpawns.count());
 
                 customPokedex.each((entry) => {
-                    currName = entry.getPokemon().getName();
-                    if(
-                        entry
-                            .getPokemon()
-                            .getGender()
-                            .len()
-                    ) {
-                        currName = "#entry.getPokemon().getName()# #entry.getPokemon().getGender()#";
+                    currName = entry.name;
+                    if(entry.gender.len()) {
+                        currName = "#entry.name# #entry.gender#";
                     }
                     expect(expectedSpawns).toHaveKey(currName);
                     structDelete(expectedSpawns, currName);
@@ -225,38 +259,38 @@ component extends="tests.resources.baseTest" asyncAll="false" {
 
             it("Will append current year to event name if same name already exists", () => {
                 var firstLink  = "https://leekduck.com/events/steeled-resolve/";
-                var secondLink = "https://leekduck.com/events/steeled-resolve-2026/";
-                var customid2  = -1;
-                var custom2    = javacast("null", "");
+                // Same page under a new link, like leekduck reusing a title for a rerun (served by the steeled-resolve fixture)
+                var secondLink = "https://leekduck.com/events/steeled-resolve-rerun/";
 
-                beforeCount = customHelperFunctions.count();
+                beforeCount = testData.countRows("custom");
 
                 // Create the first event
                 adminService.createEvent(firstLink);
 
-                afterCount = customHelperFunctions.count();
+                afterCount = testData.countRows("custom");
                 expect(afterCount).toBe(beforeCount + 1);
 
                 customid = customHelperFunctions.getMostRecentCreated();
                 custom   = customService.getFromId(customid);
-                expect(custom).toBeComponent();
-                expect(custom.getName()).toBe("Steeled Resolve");
-                expect(custom.getCommday()).toBeFalse();
+                expect(custom).toBeStruct();
+                expect(custom.name).toBe("Steeled Resolve");
+                expect(custom.commday).toBeFalse();
 
                 // Create the second event with the same name - should have year appended
                 adminService.createEvent(secondLink);
 
-                afterCount = customHelperFunctions.count();
+                afterCount = testData.countRows("custom");
                 expect(afterCount).toBe(beforeCount + 2);
 
-                customid2 = customHelperFunctions.getMostRecentCreated();
-                custom2   = customService.getFromId(customid2);
-                expect(custom2).toBeComponent();
-                expect(custom2.getName()).toBe("Steeled Resolve 2026");
-                expect(custom2.getCommday()).toBeFalse();
+                var customid2 = customHelperFunctions.getMostRecentCreated();
+                var custom2   = customService.getFromId(customid2);
+                expect(custom2).toBeStruct();
+                expect(custom2.name).toBe("Steeled Resolve #year(now())#");
+                expect(custom2.link).toBe(secondLink);
+                expect(custom2.commday).toBeFalse();
 
                 // Clean up second event - first is handled by afterEach
-                customService.delete(custom2);
+                customService.deleteCustom(custom2);
             });
 
             it("Can create custom pokedex event with normal and costume pokemon from leekduck", () => {
@@ -275,28 +309,28 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                 );
 
                 eventLink   = "https://leekduck.com/events/spring-marathon-2026/";
-                beforeCount = customHelperFunctions.count();
+                beforeCount = testData.countRows("custom");
 
                 adminService.createEvent(eventLink);
 
                 // Verify a custom pokedex was created for the event
-                afterCount = customHelperFunctions.count();
+                afterCount = testData.countRows("custom");
                 expect(afterCount).toBe(beforeCount + 1);
                 customid = customHelperFunctions.getMostRecentCreated();
                 custom   = customService.getFromId(customid);
-                expect(custom).toBeComponent();
+                expect(custom).toBeStruct();
 
                 // Verify the contents of the custom pokedex
-                expect(custom.getName()).toBe("Spring Marathon 2026");
-                expect(custom.getPublic()).toBeTrue();
-                expect(custom.getCommday()).toBeFalse();
-                expect(custom.getTrainer().getId()).toBe(1); // defaults to administrator since this is a scheduled task typically
-                expect(custom.getLink()).toBe(eventLink);
-                expect(custom.getBegins()).toBe(createDate(2026, 5, 12));
-                expect(custom.getEnds()).toBe(createDate(2026, 5, 18));
+                expect(custom.name).toBe("Spring Marathon 2026");
+                expect(custom.public).toBeTrue();
+                expect(custom.commday).toBeFalse();
+                expect(custom.trainerid).toBe(1); // defaults to administrator since this is a scheduled task typically
+                expect(custom.link).toBe(eventLink);
+                expect(custom.begins).toBe(createDate(2026, 5, 12));
+                expect(custom.ends).toBe(createDate(2026, 5, 18));
 
                 // Verify the pokedex for the custom pokedex
-                customPokedex  = custom.getCustomPokedex();
+                customPokedex  = customHelperFunctions.getMembers(custom.id);
                 // This is the list of expected spawns for the event
                 expectedSpawns = {
                     "Flower Crown Blissey"   : 1,
@@ -330,9 +364,9 @@ component extends="tests.resources.baseTest" asyncAll="false" {
 
                 customPokedex.each((entry) => {
                     // Build the pokemon key using costumetype too
-                    var curr = entry.getPokemon().getName();
-                    if(entry.getPokemon().getCostume()) {
-                        curr = "#entry.getPokemon().getCostumeType()# #curr#";
+                    var curr = entry.name;
+                    if(entry.costume) {
+                        curr = "#entry.costumetype# #curr#";
                     }
                     expect(expectedSpawns).toHaveKey(curr);
                     structDelete(expectedSpawns, curr);
@@ -349,28 +383,28 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                 );
 
                 eventLink   = "https://leekduck.com/events/candelas-quest-for-victory/";
-                beforeCount = customHelperFunctions.count();
+                beforeCount = testData.countRows("custom");
 
                 adminService.createEvent(eventLink);
 
                 // Verify a custom pokedex was created for the event
-                afterCount = customHelperFunctions.count();
+                afterCount = testData.countRows("custom");
                 expect(afterCount).toBe(beforeCount + 1);
                 customid = customHelperFunctions.getMostRecentCreated();
                 custom   = customService.getFromId(customid);
-                expect(custom).toBeComponent();
+                expect(custom).toBeStruct();
 
                 // Verify the contents of the custom pokedex
-                expect(custom.getName()).toBe("Candela's Quest for Victory");
-                expect(custom.getPublic()).toBeTrue();
-                expect(custom.getCommday()).toBeFalse();
-                expect(custom.getTrainer().getId()).toBe(1); // defaults to administrator since this is a scheduled task typically
-                expect(custom.getLink()).toBe(eventLink);
-                expect(custom.getBegins()).toBe(createDate(2026, 6, 9));
-                expect(custom.getEnds()).toBe(createDate(2026, 6, 15));
+                expect(custom.name).toBe("Candela's Quest for Victory");
+                expect(custom.public).toBeTrue();
+                expect(custom.commday).toBeFalse();
+                expect(custom.trainerid).toBe(1); // defaults to administrator since this is a scheduled task typically
+                expect(custom.link).toBe(eventLink);
+                expect(custom.begins).toBe(createDate(2026, 6, 9));
+                expect(custom.ends).toBe(createDate(2026, 6, 15));
 
                 // Verify the pokedex for the custom pokedex
-                customPokedex = custom.getCustomPokedex();
+                customPokedex = customHelperFunctions.getMembers(custom.id);
 
                 // Only check the base + costume variant (from battle pass)
                 expectedSpawns = {
@@ -382,9 +416,9 @@ component extends="tests.resources.baseTest" asyncAll="false" {
 
                 customPokedex.each((entry) => {
                     // Build the pokemon key using costumetype too
-                    var curr = entry.getPokemon().getName();
-                    if(entry.getPokemon().getCostume()) {
-                        curr = "#entry.getPokemon().getCostumeType()# #curr#";
+                    var curr = entry.name;
+                    if(entry.costume) {
+                        curr = "#entry.costumetype# #curr#";
                     }
                     structDelete(expectedSpawns, curr);
                 });
@@ -394,29 +428,29 @@ component extends="tests.resources.baseTest" asyncAll="false" {
 
             it("Can create community day event and flags it as commday", () => {
                 eventLink   = "https://leekduck.com/events/june-communityday2026/";
-                beforeCount = customHelperFunctions.count();
+                beforeCount = testData.countRows("custom");
 
                 adminService.createEvent(eventLink);
 
                 // Verify a custom pokedex was created for the event
-                afterCount = customHelperFunctions.count();
+                afterCount = testData.countRows("custom");
                 expect(afterCount).toBe(beforeCount + 1);
                 customid = customHelperFunctions.getMostRecentCreated();
                 custom   = customService.getFromId(customid);
-                expect(custom).toBeComponent();
+                expect(custom).toBeStruct();
 
                 // Verify the contents of the custom pokedex
-                expect(custom.getName()).toBe("Frigibax Community Day");
-                expect(custom.getPublic()).toBeTrue();
+                expect(custom.name).toBe("Frigibax Community Day");
+                expect(custom.public).toBeTrue();
                 // Community day events are flagged so they can be excluded from user pokedex lists
-                expect(custom.getCommday()).toBeTrue();
-                expect(custom.getTrainer().getId()).toBe(1); // defaults to administrator since this is a scheduled task typically
-                expect(custom.getLink()).toBe(eventLink);
-                expect(custom.getBegins()).toBe(createDate(2026, 6, 20));
-                expect(custom.getEnds()).toBe(createDate(2026, 6, 20));
+                expect(custom.commday).toBeTrue();
+                expect(custom.trainerid).toBe(1); // defaults to administrator since this is a scheduled task typically
+                expect(custom.link).toBe(eventLink);
+                expect(custom.begins).toBe(createDate(2026, 6, 20));
+                expect(custom.ends).toBe(createDate(2026, 6, 20));
 
                 // Verify the pokedex for the custom pokedex
-                customPokedex  = custom.getCustomPokedex();
+                customPokedex  = customHelperFunctions.getMembers(custom.id);
                 // This is the list of expected spawns for the event
                 expectedSpawns = {
                     "Frigibax"  : 1,
@@ -427,8 +461,8 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                 expect(customPokedex.len()).toBe(expectedSpawns.count());
 
                 customPokedex.each((entry) => {
-                    expect(expectedSpawns).toHaveKey(entry.getPokemon().getName());
-                    structDelete(expectedSpawns, entry.getPokemon().getName());
+                    expect(expectedSpawns).toHaveKey(entry.name);
+                    structDelete(expectedSpawns, entry.name);
                 });
 
                 expect(expectedSpawns.count()).toBe(0);
@@ -436,29 +470,29 @@ component extends="tests.resources.baseTest" asyncAll="false" {
 
             it("Can create community day classic event and flags it as commday", () => {
                 eventLink   = "https://leekduck.com/events/may-communitydayclassic2026/";
-                beforeCount = customHelperFunctions.count();
+                beforeCount = testData.countRows("custom");
 
                 adminService.createEvent(eventLink);
 
                 // Verify a custom pokedex was created for the event
-                afterCount = customHelperFunctions.count();
+                afterCount = testData.countRows("custom");
                 expect(afterCount).toBe(beforeCount + 1);
                 customid = customHelperFunctions.getMostRecentCreated();
                 custom   = customService.getFromId(customid);
-                expect(custom).toBeComponent();
+                expect(custom).toBeStruct();
 
                 // Verify the contents of the custom pokedex
-                expect(custom.getName()).toBe("Deino Community Day Classic");
-                expect(custom.getPublic()).toBeTrue();
+                expect(custom.name).toBe("Deino Community Day Classic");
+                expect(custom.public).toBeTrue();
                 // Community day classic events are flagged so they can be excluded from user pokedex lists
-                expect(custom.getCommday()).toBeTrue();
-                expect(custom.getTrainer().getId()).toBe(1); // defaults to administrator since this is a scheduled task typically
-                expect(custom.getLink()).toBe(eventLink);
-                expect(custom.getBegins()).toBe(createDate(2026, 5, 16));
-                expect(custom.getEnds()).toBe(createDate(2026, 5, 16));
+                expect(custom.commday).toBeTrue();
+                expect(custom.trainerid).toBe(1); // defaults to administrator since this is a scheduled task typically
+                expect(custom.link).toBe(eventLink);
+                expect(custom.begins).toBe(createDate(2026, 5, 16));
+                expect(custom.ends).toBe(createDate(2026, 5, 16));
 
                 // Verify the pokedex for the custom pokedex
-                customPokedex  = custom.getCustomPokedex();
+                customPokedex  = customHelperFunctions.getMembers(custom.id);
                 // This is the list of expected spawns for the event
                 expectedSpawns = {
                     "Deino"    : 1,
@@ -469,8 +503,8 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                 expect(customPokedex.len()).toBe(expectedSpawns.count());
 
                 customPokedex.each((entry) => {
-                    expect(expectedSpawns).toHaveKey(entry.getPokemon().getName());
-                    structDelete(expectedSpawns, entry.getPokemon().getName());
+                    expect(expectedSpawns).toHaveKey(entry.name);
+                    structDelete(expectedSpawns, entry.name);
                 });
 
                 expect(expectedSpawns.count()).toBe(0);
@@ -478,29 +512,29 @@ component extends="tests.resources.baseTest" asyncAll="false" {
 
             it("Can create multi-day event using first and last day schedule rows", () => {
                 eventLink   = "https://leekduck.com/events/pokemon-go-wild-area-2026-global/";
-                beforeCount = customHelperFunctions.count();
+                beforeCount = testData.countRows("custom");
 
                 adminService.createEvent(eventLink);
 
                 // Verify a custom pokedex was created for the event
-                afterCount = customHelperFunctions.count();
+                afterCount = testData.countRows("custom");
                 expect(afterCount).toBe(beforeCount + 1);
                 customid = customHelperFunctions.getMostRecentCreated();
                 custom   = customService.getFromId(customid);
-                expect(custom).toBeComponent();
+                expect(custom).toBeStruct();
 
                 // Schedule renders one data-kind=day row per day - begins is day 1 start, ends is day 2 end
-                expect(custom.getName()).toBe("Pokémon GO Wild Area 2026: Global");
-                expect(custom.getLink()).toBe(eventLink);
-                expect(custom.getBegins()).toBe(createDate(2026, 11, 14));
-                expect(custom.getEnds()).toBe(createDate(2026, 11, 15));
+                // The year is part of the leekduck page title
+                expect(custom.name).toBe("Pokémon GO Wild Area 2026: Global");
+                expect(custom.link).toBe(eventLink);
+                expect(custom.begins).toBe(createDate(2026, 11, 14));
+                expect(custom.ends).toBe(createDate(2026, 11, 15));
             });
 
             afterEach(() => {
                 if(!isNull(custom)) {
-                    customService.delete(custom);
+                    customService.deleteCustom(custom);
                 }
-                mockTrainer.delete();
             });
         });
 
@@ -508,7 +542,7 @@ component extends="tests.resources.baseTest" asyncAll="false" {
             beforeEach(() => {
                 setup();
                 customService = getInstance("services.custom");
-                trainer       = mockTrainer.make();
+                trainer       = mockTrainer.make(autoLogin = false);
             });
 
             it("Excludes community day events but includes normal custom pokedexes", () => {
@@ -516,30 +550,30 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                 var commdayName = "Commday Custom #createUUID()#";
 
                 var normalId = customService.create(
-                    trainer = trainer,
-                    name    = normalName,
-                    public  = false,
-                    commday = false
+                    trainerid = trainer.id,
+                    name      = normalName,
+                    isPublic  = false,
+                    commday   = false
                 );
                 var commdayId = customService.create(
-                    trainer = trainer,
-                    name    = commdayName,
-                    public  = false,
-                    commday = true
+                    trainerid = trainer.id,
+                    name      = commdayName,
+                    isPublic  = false,
+                    commday   = true
                 );
 
-                var results = customService.getMine(trainer = trainer);
-                var ids     = results.map((entry) => entry.getId());
+                var results = customService.getMine(trainerid = trainer.id);
+                var ids     = results.map((entry) => entry.id);
 
                 expect(ids).toContain(normalId);
                 expect(ids).notToContain(commdayId);
 
-                customService.delete(customService.getFromId(normalId));
-                customService.delete(customService.getFromId(commdayId));
+                customService.deleteCustom(customService.getFromId(normalId));
+                customService.deleteCustom(customService.getFromId(commdayId));
             });
 
             afterEach(() => {
-                mockTrainer.delete();
+                mockTrainer.deleteTrainer();
             });
         });
 
@@ -547,7 +581,7 @@ component extends="tests.resources.baseTest" asyncAll="false" {
             beforeEach(() => {
                 setup();
                 customService = getInstance("services.custom");
-                trainer       = mockTrainer.make();
+                trainer       = mockTrainer.make(autoLogin = false);
             });
 
             it("Excludes community day events but includes normal custom pokedexes", () => {
@@ -556,30 +590,34 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                 var commdayName = "#searchTerm# Commday";
 
                 var normalId = customService.create(
-                    trainer = trainer,
-                    name    = normalName,
-                    public  = false,
-                    commday = false
+                    trainerid = trainer.id,
+                    name      = normalName,
+                    isPublic  = false,
+                    commday   = false
                 );
                 var commdayId = customService.create(
-                    trainer = trainer,
-                    name    = commdayName,
-                    public  = false,
-                    commday = true
+                    trainerid = trainer.id,
+                    name      = commdayName,
+                    isPublic  = false,
+                    commday   = true
                 );
 
-                var results = customService.searchMyCustom(trainer = trainer, search = searchTerm, page = 1);
-                var ids     = results.results.map((entry) => entry.id);
+                var results = customService.searchMyCustom(
+                    trainerid = trainer.id,
+                    search    = searchTerm,
+                    page      = 1
+                );
+                var ids = results.results.map((entry) => entry.id);
 
                 expect(ids).toContain(normalId);
                 expect(ids).notToContain(commdayId);
 
-                customService.delete(customService.getFromId(normalId));
-                customService.delete(customService.getFromId(commdayId));
+                customService.deleteCustom(customService.getFromId(normalId));
+                customService.deleteCustom(customService.getFromId(commdayId));
             });
 
             afterEach(() => {
-                mockTrainer.delete();
+                mockTrainer.deleteTrainer();
             });
         });
 
@@ -588,11 +626,11 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                 setup();
                 customService  = getInstance("services.custom");
                 pokemonService = getInstance("services.pokemon");
-                trainer        = mockTrainer.make();
+                trainer        = mockTrainer.make(autoLogin = false);
             });
 
             it("Includes community day events without a link but excludes user-made pokedexes", () => {
-                var targetPokemon = pokemonService.get({
+                var targetPokemon = pokemonService.findPokemon({
                     number : 1,
                     name   : "Bulbasaur",
                     gender : "",
@@ -604,23 +642,23 @@ component extends="tests.resources.baseTest" asyncAll="false" {
 
                 // Community day events are not guaranteed to have a leekduck link
                 var commdayId = customService.create(
-                    trainer = trainer,
-                    name    = commdayName,
-                    public  = true,
-                    link    = "",
-                    commday = true
+                    trainerid = trainer.id,
+                    name      = commdayName,
+                    isPublic  = true,
+                    link      = "",
+                    commday   = true
                 );
                 // A normal user-made pokedex also has no link and must not show up as a "previous event"
                 var userId = customService.create(
-                    trainer = trainer,
-                    name    = userName,
-                    public  = true,
-                    link    = "",
-                    commday = false
+                    trainerid = trainer.id,
+                    name      = userName,
+                    isPublic  = true,
+                    link      = "",
+                    commday   = false
                 );
 
-                customService.createCustomPokedex(customService.getFromId(commdayId), [targetPokemon.getId()]);
-                customService.createCustomPokedex(customService.getFromId(userId), [targetPokemon.getId()]);
+                customService.createCustomPokedex(customService.getFromId(commdayId), [targetPokemon.id]);
+                customService.createCustomPokedex(customService.getFromId(userId), [targetPokemon.id]);
 
                 var events = pokemonService.getPreviousEvents(pokemon = targetPokemon, limit = 1000);
                 var names  = events.map((entry) => entry.name);
@@ -628,12 +666,12 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                 expect(names).toContain(commdayName);
                 expect(names).notToContain(userName);
 
-                customService.delete(customService.getFromId(commdayId));
-                customService.delete(customService.getFromId(userId));
+                customService.deleteCustom(customService.getFromId(commdayId));
+                customService.deleteCustom(customService.getFromId(userId));
             });
 
             afterEach(() => {
-                mockTrainer.delete();
+                mockTrainer.deleteTrainer();
             });
         });
     }

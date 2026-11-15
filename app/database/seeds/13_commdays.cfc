@@ -1,12 +1,12 @@
 component extends="base" {
 
     function run(qb, mockdata) {
-        var pastCommunityDays = deserializeJSON(fileRead("resources/commdays.json"));
+        var pastCommunityDays = deserializeJSON(fileRead("resources/commdays.json", "UTF-8"));
 
         pastCommunityDays.each((commDay) => {
             // 1. Get the comm day featured pokemon
             var pokemonid = getByNameAndGender(
-                name   = toUTF8(commDay.name),
+                name   = commDay.name,
                 gender = commDay.keyExists("gender") ? commDay.gender : ""
             );
 
@@ -67,9 +67,9 @@ component extends="base" {
 
                 UNION ALL
 
-                SELECT e.evolutionid, e.special
-                FROM evolution e
-                INNER JOIN evolution_chain ec ON e.pokemonid = ec.evolutionid
+                SELECT evolution.evolutionid, evolution.special
+                FROM evolution
+                INNER JOIN evolution_chain ON evolution.pokemonid = evolution_chain.evolutionid
             )
             SELECT DISTINCT evolutionid
             FROM evolution_chain
@@ -96,10 +96,10 @@ component extends="base" {
     ) {
         var result = queryExecute(
             "
-        INSERT INTO custom (name, public, begins, ends, trainerid, created, updated, commday)
-        VALUES (:name, true, :begins, :ends, :trainerid, now(), now(), true)
-        RETURNING id
-        ",
+            INSERT INTO custom (name, public, begins, ends, trainerid, commday)
+            VALUES (:name, true, :begins, :ends, :trainerid, true)
+            RETURNING id
+            ",
             {
                 name     : {value: name, cfsqltype: "varchar"},
                 begins   : {value: begins, cfsqltype: "timestamp"},
@@ -121,12 +121,12 @@ component extends="base" {
         pokemon.each((pokemonid) => {
             queryExecute(
                 "
-                INSERT INTO custompokedex (customid, pokemonid, created, updated)
-                SELECT :customid, :pokemonid, now(), now()
+                INSERT INTO custompokedex (customid, pokemonid)
+                SELECT :customid, :pokemonid
                 WHERE NOT EXISTS (
                     SELECT 1 FROM custompokedex
                     WHERE customid = :customid
-                    AND pokemonid = :pokemonid
+                        AND pokemonid = :pokemonid
                 )
                 ",
                 {customid: {value: customid, cfsqltype: "integer"}, pokemonid: {value: pokemonid, cfsqltype: "integer"}}

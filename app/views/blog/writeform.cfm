@@ -6,13 +6,13 @@
         <div class="row mt-3">
             <label for="blogheader" class="col-sm-3 col-xl-1 col-form-label">Header</label>
             <div class="col-sm-9 col-xl-11">
-                <input type="text" class="form-control" id="blogheader" name="blogheader" value="<cfif args.editing>#args.blog.getHeader()#</cfif>" required>
+                <input type="text" class="form-control" id="blogheader" name="blogheader" value="<cfif args.editing>#args.blog.header#</cfif>" required>
             </div>
         </div>
         <div class="row mt-3">
             <label for="blogmeta" class="col-sm-3 col-xl-1 col-form-label">Meta</label>
             <div class="col-sm-9 col-xl-11">
-                <input type="text" class="form-control" id="blogmeta" name="blogmeta" value="<cfif args.editing>#args.blog.getMeta()#</cfif>" min="1" max="150" required>
+                <input type="text" class="form-control" id="blogmeta" name="blogmeta" value="<cfif args.editing>#args.blog.meta#</cfif>" min="1" max="150" required>
             </div>
         </div>
         <div class="row mt-3">
@@ -24,7 +24,7 @@
         <div class="row mt-3">
             <label for="blogimagealt" class="col-sm-3 col-xl-1 col-form-label">Image Alt</label>
             <div class="col-sm-9 col-xl-11">
-                <input type="text" class="form-control" id="blogimagealt" name="blogimagealt" value="<cfif args.editing>#args.blog.getAltText()#</cfif>" min="1" max="100" required>
+                <input type="text" class="form-control" id="blogimagealt" name="blogimagealt" value="<cfif args.editing>#args.blog.alttext#</cfif>" min="1" max="100" required>
             </div>
         </div>
         <div class="row mt-3">
@@ -35,7 +35,7 @@
             </div>
         </div>
         <cfif args.editing>
-            <input type="hidden" name="blogid" value="#encodeForHTML(args.blog.getId())#"/>
+            <input type="hidden" name="blogid" value="#encodeForHTML(args.blog.id)#"/>
         </cfif>
     </div>
 </form>

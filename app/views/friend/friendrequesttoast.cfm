@@ -12,7 +12,7 @@
                 <cfloop index="i" item="curr" array="#args.friendRequests#">
                     <cfif i GT 3><cfbreak></cfif>
                     <p>
-                        <strong>#curr[1].getUsername()#</strong> sent you a friend request!
+                        <strong>#encodeForHTML(curr.username)#</strong> sent you a friend request!
                     </p>
                 </cfloop>
             </div>

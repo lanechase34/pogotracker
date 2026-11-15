@@ -1,3 +1,4 @@
+import { appendHtml } from 'display';
 import { getWrapper } from 'fetch';
 
 export async function getFriendRequestToast() {
@@ -6,9 +7,7 @@ export async function getFriendRequestToast() {
         $loadingDiv: null,
         loading: '',
         dataHandler: (data) => {
-            const newDiv = document.createElement('div');
-            newDiv.innerHTML = data;
-            document.getElementById('toastsDiv').appendChild(newDiv);
+            appendHtml(document.getElementById('toastsDiv'), data);
 
             const $friendRequestToast = document.getElementById('friendRequestToast');
             if ($friendRequestToast) {
@@ -16,6 +15,8 @@ export async function getFriendRequestToast() {
                 friendToast.show();
             }
         },
+        // Background check on every page - a failure isn't worth interrupting the trainer for
+        errorHandler: () => {},
     });
 }
 

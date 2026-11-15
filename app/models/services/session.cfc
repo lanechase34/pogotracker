@@ -10,10 +10,10 @@ component singleton accessors="true" {
      * Remember the trainer's current sessionversion in this session
      * Called on every login, and after a trainer changes their own password so this session stays signed in
      *
-     * @trainer trainer entity
+     * @sessionVersion the trainer's current sessionversion
      */
-    public void function keepVersion(required component trainer) {
-        sessionStorage.set(variables.SESSION_VERSION_KEY, val(arguments.trainer.getSessionVersion()));
+    public void function keepVersion(required numeric sessionVersion) {
+        sessionStorage.set(variables.SESSION_VERSION_KEY, val(arguments.sessionVersion));
         return;
     }
 
@@ -21,10 +21,10 @@ component singleton accessors="true" {
      * True if this session was started under the trainer's current sessionversion
      * Sessions from before versions were kept count as version 0
      *
-     * @trainer trainer entity
+     * @sessionVersion the trainer's current sessionversion
      */
-    public boolean function isCurrentVersion(required component trainer) {
-        return sessionStorage.get(variables.SESSION_VERSION_KEY, 0) == val(arguments.trainer.getSessionVersion());
+    public boolean function isCurrentVersion(required numeric sessionVersion) {
+        return sessionStorage.get(variables.SESSION_VERSION_KEY, 0) == val(arguments.sessionVersion);
     }
 
     /**

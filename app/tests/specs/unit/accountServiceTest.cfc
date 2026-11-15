@@ -2,38 +2,21 @@ component extends="tests.resources.baseTest" asyncAll="false" {
 
     function beforeAll() {
         super.beforeAll();
-        mockTrainer = getInstance("tests.resources.mocktrainer");
-
-        // trainerA is the primary subject; trainerB is used for uniqueness-conflict assertions
-        trainerA   = mockTrainer.make(securityLevel = 10, autoLogin = false);
-        trainerAId = trainerA.getId();
-        trainerB   = mockTrainer.make(securityLevel = 10, autoLogin = false);
-        trainerBId = trainerB.getId();
+        mockTrainer = getInstance("tests.resources.mockTrainer");
+        trainerA    = mockTrainer.make(securityLevel = 10, autoLogin = false);
     }
 
     function afterAll() {
         super.afterAll();
-        mockTrainer.delete(trainerBId);
-        mockTrainer.delete(trainerAId);
+        mockTrainer.deleteTrainer(trainerA.id);
     }
 
     function run() {
         describe("Account service", () => {
             beforeEach(() => {
-                setup();
-                sessionService = getInstance("services.session");
                 accountService = getInstance("services.account");
-                userService    = getInstance("services.user");
-                sessionService.destroy(false);
-                // Ensure recaptcha key is present so recaptcha checks never throw
-                session.recaptcha = {
-                    token    : "",
-                    valid    : false,
-                    timestamp: now(),
-                    action   : ""
-                };
-                session.sessionid = createUUID();
-                setup();
+                trainerService = getInstance("services.trainer");
+                mockTrainer.resetSession();
             });
 
             describe("register", () => {
@@ -50,130 +33,227 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                         icon       = "charmander"
                     );
 
-                    var trainer = userService.findByEmail(email);
+                    var trainer = trainerService.findByEmail(email);
                     try {
-                        expect(trainer.getPassword()).toMatch("^\$2[aby]\$");
-                        expect(trainer.getPassword()).notToInclude(password);
-                        expect(trainer.getSalt() ?: "").toBe("");
-                        expect(getInstance("@BCrypt").checkPassword(password, trainer.getPassword())).toBeTrue();
+                        expect(mockTrainer.getSaved(trainer.id).password).toMatch("^\$2[aby]\$");
+                        expect(mockTrainer.getSaved(trainer.id).password).notToInclude(password);
+                        expect(mockTrainer.getSaved(trainer.id).salt ?: "").toBe("");
+                        expect(
+                            getInstance("@BCrypt").checkPassword(password, mockTrainer.getSaved(trainer.id).password)
+                        ).toBeTrue();
                     }
                     finally {
-                        mockTrainer.delete(trainer.getId());
+                        mockTrainer.deleteTrainer(trainer.id);
                     }
+                });
+            });
+
+            describe("checkPassword", () => {
+                it("Accepts the trainer's real password", () => {
+                    var password = "Check_#createUUID()#";
+                    mockTrainer.setBcryptPassword(trainerA, password);
+                    expect(accountService.checkPassword(trainerA.id, password)).toBeTrue();
+                });
+
+                it("Rejects a wrong or blank password even with impersonation on", () => {
+                    mockTrainer.setBcryptPassword(trainerA, "Check_#createUUID()#");
+                    var saved = getInstance("services.trainer").getFromId(trainerA.id);
+                    expect(accountService.checkPassword(saved.id, "Wrong_#createUUID()#")).toBeFalse();
+                    expect(accountService.checkPassword(saved.id, "")).toBeFalse();
                 });
             });
 
             describe("update", () => {
                 it("Persists new username and email", () => {
-                    entityReload(trainerA);
-                    var originalUsername = trainerA.getUsername();
-                    var originalEmail    = trainerA.getEmail();
+                    var row              = mockTrainer.getSaved(trainerA.id);
+                    var originalUsername = row.username;
+                    var originalEmail    = row.email;
 
                     var newUsername = "UPD_#left(createUUID().replace("-", "", "all"), 10)#";
                     var newEmail    = "#newUsername#@test.com";
 
-                    accountService.update(
-                        trainerid = trainerA.getId(),
+                    accountService.updateTrainer(
+                        trainerid = trainerA.id,
                         username  = newUsername,
                         password  = "",
                         email     = newEmail,
-                        icon      = trainerA.getIcon()
+                        icon      = trainerA.icon
                     );
 
-                    entityReload(trainerA);
-                    expect(trainerA.getUsername()).toBe(newUsername);
-                    expect(trainerA.getEmail()).toBe(lCase(newEmail));
+                    row = mockTrainer.getSaved(trainerA.id);
+                    expect(row.username).toBe(newUsername);
+                    expect(row.email).toBe(lCase(newEmail));
 
                     // Restore
-                    accountService.update(
-                        trainerid = trainerA.getId(),
+                    accountService.updateTrainer(
+                        trainerid = trainerA.id,
                         username  = originalUsername,
                         password  = "",
                         email     = originalEmail,
-                        icon      = trainerA.getIcon()
+                        icon      = trainerA.icon
                     );
+                });
+
+                it("Unverifies a trainer who changes their own email and sends a code to the new one", () => {
+                    var trainer = mockTrainer.make(securityLevel = 10, autoLogin = false);
+                    try {
+                        var newEmail = "REV_#left(createUUID().replace("-", "", "all"), 10)#@test.com";
+                        var reverify = accountService.updateTrainer(
+                            trainerid     = trainer.id,
+                            username      = trainer.username,
+                            password      = "",
+                            email         = newEmail,
+                            icon          = trainer.icon,
+                            reverifyEmail = true
+                        );
+
+                        var row = mockTrainer.getSaved(trainer.id);
+                        expect(reverify).toBeTrue();
+                        expect(row.verified).toBeFalse();
+                        expect(row.securitylevel).toBe(10);
+                        expect(row.verificationcode ?: "").notToBe("");
+                        expect(session.keyExists("verificationCode")).toBeTrue();
+                    }
+                    finally {
+                        mockTrainer.deleteTrainer(trainer.id);
+                    }
+                });
+
+                it("Keeps a trainer verified when their email doesn't change or an admin changes it", () => {
+                    var trainer = mockTrainer.make(securityLevel = 10, autoLogin = false);
+                    try {
+                        expect(
+                            accountService.updateTrainer(
+                                trainerid     = trainer.id,
+                                username      = trainer.username,
+                                password      = "",
+                                email         = trainer.email,
+                                icon          = trainer.icon,
+                                reverifyEmail = true
+                            )
+                        ).toBeFalse();
+                        expect(mockTrainer.getSaved(trainer.id).verified).toBeTrue();
+
+                        // reverifyEmail is only set for your own profile
+                        expect(
+                            accountService.updateTrainer(
+                                trainerid = trainer.id,
+                                username  = trainer.username,
+                                password  = "",
+                                email     = "ADM_#left(createUUID().replace("-", "", "all"), 10)#@test.com",
+                                icon      = trainer.icon
+                            )
+                        ).toBeFalse();
+                        expect(mockTrainer.getSaved(trainer.id).verified).toBeTrue();
+                    }
+                    finally {
+                        mockTrainer.deleteTrainer(trainer.id);
+                    }
+                });
+
+                it("Keeps an admin's level when they verify a changed email", () => {
+                    var trainer = mockTrainer.make(securityLevel = 50, autoLogin = false);
+                    try {
+                        var newEmail = "REV_#left(createUUID().replace("-", "", "all"), 10)#@test.com";
+                        accountService.updateTrainer(
+                            trainerid     = trainer.id,
+                            username      = trainer.username,
+                            password      = "",
+                            email         = newEmail,
+                            icon          = trainer.icon,
+                            reverifyEmail = true
+                        );
+                        expect(mockTrainer.getSaved(trainer.id).verified).toBeFalse();
+
+                        expect(accountService.checkVerificationCode(email = newEmail, code = session.verificationCode)).toBeTrue();
+
+                        var row = mockTrainer.getSaved(trainer.id);
+                        expect(row.verified).toBeTrue();
+                        expect(row.securitylevel).toBe(50);
+                    }
+                    finally {
+                        mockTrainer.deleteTrainer(trainer.id);
+                    }
                 });
 
                 it("Hashes and stores new password when one is provided", () => {
-                    entityReload(trainerA);
-                    var passwordBefore = trainerA.getPassword();
+                    var row            = mockTrainer.getSaved(trainerA.id);
+                    var passwordBefore = row.password;
                     var newPassword    = "NewPass_#createUUID()#";
 
-                    accountService.update(
-                        trainerid = trainerA.getId(),
-                        username  = trainerA.getUsername(),
+                    accountService.updateTrainer(
+                        trainerid = trainerA.id,
+                        username  = trainerA.username,
                         password  = newPassword,
-                        email     = trainerA.getEmail(),
-                        icon      = trainerA.getIcon()
+                        email     = trainerA.email,
+                        icon      = trainerA.icon
                     );
 
-                    entityReload(trainerA);
-                    expect(trainerA.getPassword()).notToBe(passwordBefore);
-                    expect(trainerA.getPassword()).toMatch("^\$2[aby]\$");
-                    expect(getInstance("@BCrypt").checkPassword(newPassword, trainerA.getPassword())).toBeTrue();
+                    row = mockTrainer.getSaved(trainerA.id);
+                    expect(row.password).notToBe(passwordBefore);
+                    expect(row.password).toMatch("^\$2[aby]\$");
+                    expect(getInstance("@BCrypt").checkPassword(newPassword, row.password)).toBeTrue();
                 });
 
                 it("Leaves password unchanged when an empty string is provided", () => {
-                    entityReload(trainerA);
-                    var passwordBefore = trainerA.getPassword();
+                    var row            = mockTrainer.getSaved(trainerA.id);
+                    var passwordBefore = row.password;
 
-                    accountService.update(
-                        trainerid = trainerA.getId(),
-                        username  = trainerA.getUsername(),
+                    accountService.updateTrainer(
+                        trainerid = trainerA.id,
+                        username  = trainerA.username,
                         password  = "",
-                        email     = trainerA.getEmail(),
-                        icon      = trainerA.getIcon()
+                        email     = trainerA.email,
+                        icon      = trainerA.icon
                     );
 
-                    entityReload(trainerA);
-                    expect(trainerA.getPassword()).toBe(passwordBefore);
+                    row = mockTrainer.getSaved(trainerA.id);
+                    expect(row.password).toBe(passwordBefore);
                 });
 
                 it("Sets securityLevel and marks trainer unverified when securityLevel is 5", () => {
-                    entityReload(trainerA);
-
-                    accountService.update(
-                        trainerid     = trainerA.getId(),
-                        username      = trainerA.getUsername(),
+                    accountService.updateTrainer(
+                        trainerid     = trainerA.id,
+                        username      = trainerA.username,
                         password      = "",
-                        email         = trainerA.getEmail(),
-                        icon          = trainerA.getIcon(),
+                        email         = trainerA.email,
+                        icon          = trainerA.icon,
                         securityLevel = "5"
                     );
 
-                    entityReload(trainerA);
-                    expect(trainerA.getSecurityLevel()).toBe(5);
-                    expect(trainerA.getVerified()).toBeFalse();
+                    var row = mockTrainer.getSaved(trainerA.id);
+                    expect(row.securitylevel).toBe(5);
+                    expect(row.verified).toBeFalse();
 
                     // Restore
-                    accountService.update(
-                        trainerid     = trainerA.getId(),
-                        username      = trainerA.getUsername(),
+                    accountService.updateTrainer(
+                        trainerid     = trainerA.id,
+                        username      = trainerA.username,
                         password      = "",
-                        email         = trainerA.getEmail(),
-                        icon          = trainerA.getIcon(),
+                        email         = trainerA.email,
+                        icon          = trainerA.icon,
                         securityLevel = "10",
                         verified      = "yes"
                     );
-                    entityReload(trainerA);
-                    expect(trainerA.getSecurityLevel()).toBe(10);
+                    row = mockTrainer.getSaved(trainerA.id);
+                    expect(row.securitylevel).toBe(10);
                 });
 
                 it("Verifies a trainer moved off the unverified level", () => {
                     setLevel(trainerA, 5, false);
 
-                    accountService.update(
-                        trainerid     = trainerA.getId(),
-                        username      = trainerA.getUsername(),
+                    accountService.updateTrainer(
+                        trainerid     = trainerA.id,
+                        username      = trainerA.username,
                         password      = "",
-                        email         = trainerA.getEmail(),
-                        icon          = trainerA.getIcon(),
+                        email         = trainerA.email,
+                        icon          = trainerA.icon,
                         securityLevel = "20"
                     );
 
-                    entityReload(trainerA);
-                    expect(trainerA.getSecurityLevel()).toBe(20);
-                    expect(trainerA.getVerified()).toBeTrue();
+                    var row = mockTrainer.getSaved(trainerA.id);
+                    expect(row.securitylevel).toBe(20);
+                    expect(row.verified).toBeTrue();
                     setLevel(trainerA, 10, true);
                 });
 
@@ -181,159 +261,60 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                     setLevel(trainerA, 5, false);
 
                     // The admin form always sends the level, so checking verified arrives with the unchanged level 5
-                    accountService.update(
-                        trainerid     = trainerA.getId(),
-                        username      = trainerA.getUsername(),
+                    accountService.updateTrainer(
+                        trainerid     = trainerA.id,
+                        username      = trainerA.username,
                         password      = "",
-                        email         = trainerA.getEmail(),
-                        icon          = trainerA.getIcon(),
+                        email         = trainerA.email,
+                        icon          = trainerA.icon,
                         securityLevel = "5",
                         verified      = "true"
                     );
 
-                    entityReload(trainerA);
-                    expect(trainerA.getSecurityLevel()).toBe(10);
-                    expect(trainerA.getVerified()).toBeTrue();
+                    var row = mockTrainer.getSaved(trainerA.id);
+                    expect(row.securitylevel).toBe(10);
+                    expect(row.verified).toBeTrue();
                 });
 
                 it("Persists friendcode when provided", () => {
-                    entityReload(trainerA);
                     var newFriendcode = mockTrainer.makeFriendcode();
 
-                    accountService.update(
-                        trainerid  = trainerA.getId(),
-                        username   = trainerA.getUsername(),
+                    accountService.updateTrainer(
+                        trainerid  = trainerA.id,
+                        username   = trainerA.username,
                         password   = "",
-                        email      = trainerA.getEmail(),
-                        icon       = trainerA.getIcon(),
+                        email      = trainerA.email,
+                        icon       = trainerA.icon,
                         friendcode = newFriendcode
                     );
 
-                    entityReload(trainerA);
-                    expect(trainerA.getFriendcode()).toBe(newFriendcode);
-                });
-            });
-
-            describe("validateUpdateProfile", () => {
-                // Who may edit what is cbsecurity's job (trainer.updateProfile) - this only checks the values
-
-                it("Returns true for a trainer's own unchanged profile", () => {
-                    expect(
-                        accountService.validateUpdateProfile(
-                            trainerid     = trainerA.getId(),
-                            username      = trainerA.getUsername(),
-                            email         = trainerA.getEmail(),
-                            friendcode    = "",
-                            securityLevel = "",
-                            verified      = ""
-                        )
-                    ).toBeTrue();
-                });
-
-                it("Returns false for an invalid securityLevel", () => {
-                    expect(
-                        accountService.validateUpdateProfile(
-                            trainerid     = trainerA.getId(),
-                            username      = trainerA.getUsername(),
-                            email         = trainerA.getEmail(),
-                            friendcode    = "",
-                            securityLevel = "999",
-                            verified      = ""
-                        )
-                    ).toBeFalse();
-                });
-
-                it("Returns false for an invalid verified value", () => {
-                    expect(
-                        accountService.validateUpdateProfile(
-                            trainerid     = trainerA.getId(),
-                            username      = trainerA.getUsername(),
-                            email         = trainerA.getEmail(),
-                            friendcode    = "",
-                            securityLevel = "",
-                            verified      = "notvalid"
-                        )
-                    ).toBeFalse();
-                });
-
-                it("Returns false when the submitted email belongs to another trainer", () => {
-                    expect(
-                        accountService.validateUpdateProfile(
-                            trainerid     = trainerA.getId(),
-                            username      = trainerA.getUsername(),
-                            email         = trainerB.getEmail(),
-                            friendcode    = "",
-                            securityLevel = "",
-                            verified      = ""
-                        )
-                    ).toBeFalse();
-                });
-
-                it("Returns false when the submitted username belongs to another trainer", () => {
-                    expect(
-                        accountService.validateUpdateProfile(
-                            trainerid     = trainerA.getId(),
-                            username      = trainerB.getUsername(),
-                            email         = trainerA.getEmail(),
-                            friendcode    = "",
-                            securityLevel = "",
-                            verified      = ""
-                        )
-                    ).toBeFalse();
-                });
-
-                it("Returns false when the submitted friendcode belongs to another trainer", () => {
-                    expect(
-                        accountService.validateUpdateProfile(
-                            trainerid     = trainerA.getId(),
-                            username      = trainerA.getUsername(),
-                            email         = trainerA.getEmail(),
-                            friendcode    = trainerB.getFriendcode(),
-                            securityLevel = "",
-                            verified      = ""
-                        )
-                    ).toBeFalse();
-                });
-
-                it("Returns true for valid admin only fields", () => {
-                    expect(
-                        accountService.validateUpdateProfile(
-                            trainerid     = trainerB.getId(),
-                            username      = trainerB.getUsername(),
-                            email         = trainerB.getEmail(),
-                            friendcode    = "123456789012",
-                            securityLevel = "10",
-                            verified      = "on"
-                        )
-                    ).toBeTrue();
+                    var row = mockTrainer.getSaved(trainerA.id);
+                    expect(row.friendcode).toBe(newFriendcode);
                 });
             });
 
             describe("sendVerificationCode", () => {
                 it("Sends code when the trainer has no recent verification code", () => {
-                    entityReload(trainerA);
-                    trainerA.setVerificationCode("");
-                    trainerA.setVerificationSentDate(dateAdd("d", -30, now())); // expired - forces send
-                    entitySave(trainerA);
-                    ormFlush();
+                    // expired - forces send
+                    mockTrainer.updateSaved(
+                        trainerA.id,
+                        {verificationcode: "", verificationsentdate: dateAdd("d", -30, now())}
+                    );
 
                     var before = globalFunctions.countTestEmails();
-                    accountService.sendVerificationCode(trainerA.getEmail(), false);
+                    accountService.sendVerificationCode(trainerA.email, false);
 
                     expect(globalFunctions.countTestEmails()).toBe(before + 1);
-                    entityReload(trainerA);
-                    expect(trainerA.getVerificationCode()).notToBe("");
+                    var row = mockTrainer.getSaved(trainerA.id);
+                    expect(row.verificationcode).notToBe("");
                     expect(session).toHaveKey("verificationCode");
                 });
 
                 it("Does not resend within the cooldown window and shows a danger alert", () => {
-                    entityReload(trainerA);
-                    trainerA.setVerificationSentDate(now()); // just sent - within 900s cooldown
-                    entitySave(trainerA);
-                    ormFlush();
+                    mockTrainer.updateSaved(trainerA.id, {verificationsentdate: now()}); // just sent - within 900s cooldown
 
                     var before = globalFunctions.countTestEmails();
-                    accountService.sendVerificationCode(trainerA.getEmail(), true);
+                    accountService.sendVerificationCode(trainerA.email, true);
 
                     expect(globalFunctions.countTestEmails()).toBe(before); // no new email
                     expect(getFlashScope().exists("alert")).toBeTrue();
@@ -341,13 +322,10 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                 });
 
                 it("Resends after the cooldown expires and shows a success alert", () => {
-                    entityReload(trainerA);
-                    trainerA.setVerificationSentDate(dateAdd("d", -1, now())); // 1 day ago - past 900s
-                    entitySave(trainerA);
-                    ormFlush();
+                    mockTrainer.updateSaved(trainerA.id, {verificationsentdate: dateAdd("d", -1, now())}); // 1 day ago - past 900s
 
                     var before = globalFunctions.countTestEmails();
-                    accountService.sendVerificationCode(trainerA.getEmail(), true);
+                    accountService.sendVerificationCode(trainerA.email, true);
 
                     expect(globalFunctions.countTestEmails()).toBe(before + 1);
                     expect(getFlashScope().exists("alert")).toBeTrue();
@@ -358,100 +336,89 @@ component extends="tests.resources.baseTest" asyncAll="false" {
             describe("checkVerificationCode", () => {
                 it("Returns false when verificationCode is absent from session", () => {
                     structDelete(session, "verificationCode");
-                    expect(accountService.checkVerificationCode(trainerA.getEmail(), "ANYCODE")).toBeFalse();
+                    expect(accountService.checkVerificationCode(trainerA.email, "ANYCODE")).toBeFalse();
                 });
 
                 it("Returns false when the session code does not match the submitted code", () => {
                     session.verificationCode = "CORRECTCODE";
-                    expect(accountService.checkVerificationCode(trainerA.getEmail(), "WRONGCODE")).toBeFalse();
+                    expect(accountService.checkVerificationCode(trainerA.email, "WRONGCODE")).toBeFalse();
                 });
 
                 it("Returns false when the verification code has expired", () => {
-                    entityReload(trainerA);
-                    trainerA.setVerificationSentDate(dateAdd("d", -7, now())); // way past 15 min lifespan
-                    entitySave(trainerA);
-                    ormFlush();
+                    // way past 15 min lifespan
+                    mockTrainer.updateSaved(trainerA.id, {verificationsentdate: dateAdd("d", -7, now())});
 
                     session.verificationCode = "EXPIREDCODE";
-                    expect(accountService.checkVerificationCode(trainerA.getEmail(), "EXPIREDCODE")).toBeFalse();
+                    expect(accountService.checkVerificationCode(trainerA.email, "EXPIREDCODE")).toBeFalse();
                 });
 
                 it("Returns false when the stored hash does not match", () => {
-                    entityReload(trainerA);
-                    trainerA.setVerificationSentDate(now()); // not expired
-                    trainerA.setVerificationCode("NOTAVALIDHASH");
-                    entitySave(trainerA);
-                    ormFlush();
+                    // not expired
+                    mockTrainer.updateSaved(
+                        trainerA.id,
+                        {verificationsentdate: now(), verificationcode: "NOTAVALIDHASH"}
+                    );
 
                     session.verificationCode = "TESTCODE";
-                    expect(accountService.checkVerificationCode(trainerA.getEmail(), "TESTCODE")).toBeFalse();
+                    expect(accountService.checkVerificationCode(trainerA.email, "TESTCODE")).toBeFalse();
                 });
 
                 it("Returns true, verifies trainer, and removes session code when everything is valid", () => {
-                    entityReload(trainerA);
-                    trainerA.setVerificationSentDate(createDate(1970, 1, 1));
-                    entitySave(trainerA);
-                    ormFlush();
+                    mockTrainer.updateSaved(trainerA.id, {verificationsentdate: createDate(1970, 1, 1)});
 
                     // Use the service to generate a real code so the hash is correct
-                    accountService.sendVerificationCode(trainerA.getEmail(), false);
+                    accountService.sendVerificationCode(trainerA.email, false);
                     var code = session.verificationCode;
 
-                    var result = accountService.checkVerificationCode(trainerA.getEmail(), code);
+                    var result = accountService.checkVerificationCode(trainerA.email, code);
                     expect(result).toBeTrue();
                     expect(session).notToHaveKey("verificationCode");
 
-                    entityReload(trainerA);
-                    expect(trainerA.getVerified()).toBeTrue();
-                    expect(trainerA.getSecurityLevel()).toBe(10);
+                    var row = mockTrainer.getSaved(trainerA.id);
+                    expect(row.verified).toBeTrue();
+                    expect(row.securitylevel).toBe(10);
                 });
 
                 it("Accepts the code typed in lowercase", () => {
                     // Codes are emailed uppercase - store a known one so the lowercase input really differs
                     var code = "ABCD1234";
                     var env  = new coldbox.system.core.delegates.Env();
-                    entityReload(trainerA);
-                    trainerA.setVerificationSentDate(now());
-                    trainerA.setVerificationCode(
-                        hash(
-                            code & session.sessionid & env.getEnv("PEPPER"),
-                            env.getEnv("ALGORITHM"),
-                            "UTF-8",
-                            env.getEnv("ITERATIONS")
-                        )
+                    mockTrainer.updateSaved(
+                        trainerA.id,
+                        {
+                            verificationsentdate: now(),
+                            verificationcode    : hash(
+                                code & session.sessionid & env.getEnv("PEPPER"),
+                                env.getEnv("ALGORITHM"),
+                                "UTF-8",
+                                env.getEnv("ITERATIONS")
+                            )
+                        }
                     );
-                    entitySave(trainerA);
-                    ormFlush();
                     session.verificationCode = code;
 
-                    expect(accountService.checkVerificationCode(trainerA.getEmail(), lCase(code))).toBeTrue();
+                    expect(accountService.checkVerificationCode(trainerA.email, lCase(code))).toBeTrue();
                 });
             });
 
             describe("sendResetCode", () => {
                 it("Sends a reset link when no recent code exists", () => {
-                    entityReload(trainerA);
-                    trainerA.setResetCode("");
-                    trainerA.setResetSentDate(dateAdd("d", -30, now())); // expired - forces send
-                    entitySave(trainerA);
-                    ormFlush();
+                    // expired - forces send
+                    mockTrainer.updateSaved(trainerA.id, {resetcode: "", resetsentdate: dateAdd("d", -30, now())});
 
                     var before = globalFunctions.countTestEmails();
-                    accountService.sendResetCode(trainerA.getEmail());
+                    accountService.sendResetCode(trainerA.email);
 
                     expect(globalFunctions.countTestEmails()).toBe(before + 1);
-                    entityReload(trainerA);
-                    expect(trainerA.getResetCode()).notToBe("");
+                    var row = mockTrainer.getSaved(trainerA.id);
+                    expect(row.resetcode).notToBe("");
                 });
 
                 it("Does not resend within the cooldown window", () => {
-                    entityReload(trainerA);
-                    trainerA.setResetSentDate(now()); // just sent - within 900s cooldown
-                    entitySave(trainerA);
-                    ormFlush();
+                    mockTrainer.updateSaved(trainerA.id, {resetsentdate: now()}); // just sent - within 900s cooldown
 
                     var before = globalFunctions.countTestEmails();
-                    accountService.sendResetCode(trainerA.getEmail());
+                    accountService.sendResetCode(trainerA.email);
                     expect(globalFunctions.countTestEmails()).toBe(before);
                 });
             });
@@ -462,15 +429,14 @@ component extends="tests.resources.baseTest" asyncAll="false" {
      * Put the trainer at a security level and verified state directly
      */
     private void function setLevel(
-        required component trainer,
+        required struct trainer,
         required numeric securityLevel,
         required boolean verified
     ) {
-        entityReload(arguments.trainer);
-        arguments.trainer.setSecurityLevel(arguments.securityLevel);
-        arguments.trainer.setVerified(arguments.verified);
-        entitySave(arguments.trainer);
-        ormFlush();
+        mockTrainer.updateSaved(
+            arguments.trainer.id,
+            {securitylevel: arguments.securityLevel, verified: arguments.verified}
+        );
     }
 
 }

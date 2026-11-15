@@ -12,14 +12,14 @@ component extends="tests.resources.baseTest" asyncAll="false" {
 
         ses = "1"; // Bulbasaur
 
-        mockTrainer = getInstance("tests.resources.mocktrainer");
+        mockTrainer = getInstance("tests.resources.mockTrainer");
         admin       = mockTrainer.make(securityLevel = 50, autoLogin = false);
     }
 
     function afterAll() {
-        mockTrainer.delete(admin.getId());
+        mockTrainer.deleteTrainer(admin.id);
         getController().setSetting("eventCaching", originalEventCaching);
-        pokemonService.clearDetailCache(ses = ses);
+        pokemonService.clearAllDetailCaches();
         super.afterAll();
     }
 
@@ -52,7 +52,7 @@ component extends="tests.resources.baseTest" asyncAll="false" {
             beforeEach(() => {
                 setup();
                 mockTrainer.actAsGuest();
-                pokemonService.clearDetailCache(ses = ses);
+                pokemonService.clearAllDetailCaches();
             });
 
             afterEach(() => {
@@ -66,6 +66,12 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                 expect(event.getStatusCode()).toBe(200);
                 expect(getMainContent(event.getRenderedContent())).toInclude("128 HP");
                 expect(getViewletKeys("public")).toHaveLength(1);
+            });
+
+            it("Keeps the cached body until its timeout, not the 30 minute idle default", () => {
+                getDetailPage();
+                var metadata = templateCache.getCachedObjectMetadata(getViewletKeys("public")[1]);
+                expect(metadata.lastAccessTimeout).toBe(metadata.timeout);
             });
 
             it("Serves the cached body without running the viewlet", () => {
@@ -83,13 +89,8 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                 expect(html).toInclude("Bulbasaur");
             });
 
-            it("Does not show the admin form to the public", () => {
-                var html = getDetailPage().getRenderedContent();
-                expect(html).notToInclude("pokemonDetailForm");
-            });
-
             it("Caches a separate admin copy containing the update form", () => {
-                getDetailPage();
+                expect(getDetailPage().getRenderedContent()).notToInclude("pokemonDetailForm");
 
                 mockTrainer.actAs(admin);
                 var html = getDetailPage().getRenderedContent();
@@ -101,7 +102,7 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                 expect(getDetailPage().getRenderedContent()).notToInclude("pokemonDetailForm");
             });
 
-            it("clearDetailCache removes the cached info and rendered pages", () => {
+            it("clearAllDetailCaches removes the cached info and rendered pages", () => {
                 getDetailPage();
                 mockTrainer.actAs(admin);
                 getDetailPage();
@@ -109,7 +110,7 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                 expect(getViewletKeys("admin")).toHaveLength(1);
                 expect(appCache.get("pokemon.getDetail|pokemonses=#ses#")).notToBeNull();
 
-                pokemonService.clearDetailCache(ses = ses);
+                pokemonService.clearAllDetailCaches();
 
                 expect(getViewletKeys("public")).toBeEmpty();
                 expect(getViewletKeys("admin")).toBeEmpty();
@@ -117,52 +118,45 @@ component extends="tests.resources.baseTest" asyncAll="false" {
             });
 
             it("Returns 404 for an unknown pokemon", () => {
-                setup();
                 var event = get(route = "/pokemon/not-a-real-pokemon");
                 expect(event.getStatusCode()).toBe(404);
             });
         });
 
-        describe("Pokemon detail across ORM sessions", () => {
+        describe("Pokemon detail data", () => {
             beforeEach(() => {
                 setup();
-                pokemonService.clearDetailCache(ses = ses);
+                pokemonService.clearAllDetailCaches();
             });
 
-            it("Cached detail info holds no entities", () => {
+            it("Cached detail info holds no objects", () => {
                 var info = pokemonService.getDetailInfo(ses = ses);
                 expect(info).notToBeEmpty();
                 info.each((key, value) => {
-                    expect(isObject(value)).toBeFalse("detail info key [#key#] is an entity");
+                    expect(isObject(value)).toBeFalse("detail info key [#key#] is an object");
                 });
             });
 
-            it("getDetail entities lazy load after the ORM session that cached the detail is closed", () => {
-                // Populate the cache, then end the session like a request ending
+            it("getDetail returns the moves, evolution chain and costumes when the detail info is cached", () => {
+                // Populate the cache, then read the detail again on top of it
                 pokemonService.getDetail(ses = ses);
-                ormCloseSession();
 
-                var detail    = pokemonService.getDetail(ses = ses);
-                var fastMoves = detail.pokemon.getMoves("fast", "normal");
-                expect(fastMoves).notToBeEmpty();
-                fastMoves.each((move) => {
-                    expect(move.getMove().getName()).notToBeEmpty();
+                var detail = pokemonService.getDetail(ses = ses);
+                expect(detail.moves.fast).notToBeEmpty();
+                detail.moves.fast.each((move) => {
+                    expect(move.name).notToBeEmpty();
                 });
-                expect(detail.pokemon.getMoves("charge", "normal")).notToBeEmpty();
-                expect(detail.baseStage.getEvolution()).notToBeEmpty();
+                expect(detail.moves.charge).notToBeEmpty();
+                expect(detail.evolutionChain).notToBeEmpty();
                 expect(detail.costumes).notToBeEmpty();
             });
 
             it("Detail page renders after previous events are loaded first", () => {
-                // Loading more events first used to cache the detail with entities bound to this, soon closed, session
+                // Loading more events first caches the detail info before the page itself renders
                 var eventsResponse = get(route = "/pokemon/getPreviousEvents", params = {ses: ses, offset: 5});
                 expect(eventsResponse.getStatusCode()).toBe(200);
-                ormCloseSession();
 
-                var expectedMove = pokemonService.getFromSes(ses = ses).getMoves("fast", "normal")[1]
-                    .getMove()
-                    .getName();
-                ormCloseSession();
+                var expectedMove = pokemonService.getMovesByKind(pokemonService.getFromSes(ses = ses), "normal").fast[1].name;
 
                 var event = getDetailPage();
                 expect(event.getStatusCode()).toBe(200);

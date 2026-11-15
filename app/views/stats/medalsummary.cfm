@@ -8,11 +8,11 @@
             <cfloop index="i" item="currMedal" array="#args.medalProgress#">
                 <div class="m-0 p-0">
                     <img
-                        id="#currMedal[1].getId()#icon"
-                        alt="#currMedal[1].getAltText()#"
-                        src="/includes/images/medals/#currMedal[1].getName()##getSetting('imageExtension')#"
+                        id="#currMedal.id#icon"
+                        alt="#currMedal.alttext#"
+                        src="/includes/images/medals/#currMedal.name##getSetting('imageExtension')#"
                         loading="lazy"
-                        class="medalIcon <cfif!isNull(currMedal[2])>#currMedal[2].getCurrentMedal()#Medal</cfif>"
+                        class="medalIcon <cfif currMedal.tracked>#currMedal.tier#Medal</cfif>"
                     />
                 </div>
             </cfloop>

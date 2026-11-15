@@ -35,7 +35,7 @@ component extends="base" {
     /**
      * Viewlet rendering the body of the Pokedex index, cached in the template cache by views/pokemon/index
      */
-    private function indexContent(event, rc, prc) {
+    private string function indexContent(event, rc, prc) {
         prc.pokedexIndex = pokemonService.getIndex();
         prc.costumeIndex = pokemonService.getCostumeIndex();
         return view(view = "/views/pokemon/fragment/indexcontent", nolayout = true);
@@ -88,7 +88,7 @@ component extends="base" {
      *
      * @ses SES url that is a unique key for a pokemon
      */
-    private function detailContent(event, rc, prc, required string ses) {
+    private string function detailContent(event, rc, prc, required string ses) {
         prc.detail = pokemonService.getDetail(ses = arguments.ses);
         return view(view = "/views/pokemon/fragment/detailcontent", nolayout = true);
     }
@@ -109,7 +109,7 @@ component extends="base" {
             return;
         }
 
-        prc.pokemon = pokemonService.getFromId(rc.pokemonid);
+        prc.pokemon = pokemonService.getFromId(pokemonid = parseNumber(rc.pokemonid));
 
         pokemonService.updateDetail(
             pokemon     = prc.pokemon,
@@ -120,7 +120,7 @@ component extends="base" {
             tradable    = (rc?.tradableSwitch ?: "off") == "on"
         );
 
-        relocate(uri = "/pokemon/#prc.pokemon.getSes()#");
+        relocate(uri = "/pokemon/#prc.pokemon.ses#");
     }
 
     /**

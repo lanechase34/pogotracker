@@ -17,13 +17,13 @@ component {
                         table_schema,
                         table_name,
                         column_name,
-                        pg_get_serial_sequence(format('%I.%I', table_schema, table_name), column_name) AS seq
+                        PG_GET_SERIAL_SEQUENCE(FORMAT('%I.%I', table_schema, table_name), column_name) AS seq
                     FROM information_schema.columns
                     WHERE table_schema = 'public'
                 LOOP
                     IF col.seq IS NOT NULL THEN
                         -- is_called = false: the next nextval() returns exactly max + 1 (1 for an empty table)
-                        EXECUTE format(
+                        EXECUTE FORMAT(
                             'SELECT setval(%L, COALESCE((SELECT MAX(%I) FROM %I.%I), 0) + 1, false)',
                             col.seq,
                             col.column_name,

@@ -4,14 +4,14 @@
         <td>
             <cfif NOT currEvent.commday>
                 <a href="/mycustompokedex/#currEvent.id#" rel="nofollow" class="link-dark fw-medium link-underline-opacity-0 link-underline-opacity-100-hover">
-                    #currEvent.name#
+                    #encodeForHTML(currEvent.name)#
                 </a>
             <cfelse>
-                #currEvent.name#
+                #encodeForHTML(currEvent.name)#
             </cfif>
             
             <cfloop index="j" item="costumetype" array="#currEvent.costumes#">
-                <span class="ms-2 badge bg-secondary text-capitalize">#costumetype#</span>
+                <span class="ms-2 badge bg-secondary text-capitalize">#encodeForHTML(costumetype)#</span>
             </cfloop>
         </td>
         <td class="text-muted small text-nowrap">

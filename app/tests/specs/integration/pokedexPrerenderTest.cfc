@@ -2,13 +2,13 @@ component extends="tests.resources.baseTest" asyncAll="false" {
 
     function beforeAll() {
         super.beforeAll();
-        mockTrainer = getInstance("tests.resources.mocktrainer");
+        mockTrainer = getInstance("tests.resources.mockTrainer");
         trainer     = mockTrainer.make(); // read-only specs, one trainer is enough
     }
 
     function afterAll() {
         super.afterAll();
-        mockTrainer.delete();
+        mockTrainer.deleteTrainer();
     }
 
     function run() {

@@ -55,18 +55,10 @@ component {
                         reapFrequency                 : 5,
                         evictionPolicy                : "LRU",
                         evictCount                    : 2,
-                        maxObjects                    : 2000,
+                        maxObjects                    : 3000,
                         objectStore                   : "ConcurrentSoftReferenceStore" // memory sensitive
                     }
                 },
-                /**
-				 * --------------------------------------------------------------------------
-				 * Application Cache
-				 * --------------------------------------------------------------------------
-				 * Dedicated cache region for all application data (pokemon, pokedex, stats,
-				 * blog, trainer data, etc). Isolated from the default and template caches.
-				 * All timeouts are in minutes.
-				 */
                 /**
 				 * --------------------------------------------------------------------------
 				 * Rate Limit Storage
@@ -109,6 +101,14 @@ component {
                         objectStore                   : "ConcurrentStore"
                     }
                 },
+                /**
+				 * --------------------------------------------------------------------------
+				 * Application Cache
+				 * --------------------------------------------------------------------------
+				 * Shared application data (pokemon, pokedex, stats, blog, etc). Per trainer
+				 * data lives in trainerCache. Isolated from the default and template caches.
+				 * All timeouts are in minutes.
+				 */
                 appCache: {
                     provider  : "coldbox.system.cache.providers.CacheBoxColdBoxProvider",
                     properties: {

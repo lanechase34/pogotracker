@@ -4,18 +4,20 @@
     data-bs-backdrop="static"
     data-bs-keyboard="false" 
     tabindex="-1"
+    aria-labelledby="addFriendModalLabel"
+    aria-hidden="true"
 >
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title fs-5" id="addFriendModalLabel">Add Friend</h5>
-                <span type="button" class="btn-close" data-bs-dismiss="modal"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <form name="addFriendForm" id="addFriendForm" class="needs-validation" novalidate autocomplete="off">
                     <input type="hidden" id="trainerid" name="trainerid" value="#EncodeForHTML(args.trainerid)#">
                     <div class="mb-3 row">
-                        <label for="inputFriend" class="col-2 col-form-label">Trainer</label>
+                        <label for="friendsToAddSearch" class="col-2 col-form-label">Trainer</label>
                         <div class="col-10">
                             <select id="friendsToAddSearch" class="form-select" name="friendid" required autocomplete="off"></select>
                         </div>

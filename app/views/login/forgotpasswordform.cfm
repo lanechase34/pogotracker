@@ -19,7 +19,7 @@
                         <div class="input-group has-validation">
                             <span class="input-group-text"><i class="bi bi-envelope" aria-hidden="true"></i></span>
                             <div class="form-floating">
-                                <input name="email" type="email" class="form-control" id="inputEmail" placeholder="Email address" value="" minlength="1" maxlength="100" autocomplete="email" data-invalidfeedback="validationEmailFeedback" required>
+                                <input name="email" type="email" class="form-control" id="inputEmail" placeholder="Email address" value="" minlength="1" maxlength="100" autocomplete="email" required>
                                 <label for="inputEmail">Email</label>
                             </div>
                             <div id="validationEmailFeedback" class="invalid-feedback">

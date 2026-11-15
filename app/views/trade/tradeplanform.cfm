@@ -30,7 +30,7 @@
                                 <select class="form-select optionalSelect" id="inputRegion" name="region">
                                     <option value=""></option>
                                     <cfloop index="i" item="currGen" array="#prc.generations#">
-                                        <option value="#currGen.getRegion()#">#currGen.getRegion()#</option>
+                                        <option value="#currGen.region#">#currGen.region#</option>
                                     </cfloop>
                                 </select>
                             </div>

@@ -1,13 +1,22 @@
 component extends="base" secured="developer" {
 
-    property name="adminService"      inject="services.admin";
-    property name="blogService"       inject="services.blog";
-    property name="emailService"      inject="services.email";
-    property name="pokemonService"    inject="services.pokemon";
-    property name="pokedexService"    inject="services.pokedex";
-    property name="generationService" inject="services.generation";
-    property name="scraperService"    inject="services.scraper";
-    property name="trainerService"    inject="services.trainer";
+    this.allowedMethods = {
+        index                 : "GET",
+        createRandomBlogs     : "GET",
+        forceError            : "GET",
+        sendTestEmail         : "GET",
+        viewEmail             : "GET",
+        testEventTask         : "GET",
+        createUnownJson       : "GET",
+        createCPMultiplierJSON: "GET",
+        testJsoup             : "GET",
+        downloadImage         : "POST",
+        debugInfo             : "GET"
+    };
+
+    property name="adminService"   inject="services.admin";
+    property name="emailService"   inject="services.email";
+    property name="scraperService" inject="services.scraper";
 
     function preHandler(event, rc, prc, action, eventArguments) {
         // These functions only available in develop
@@ -19,93 +28,30 @@ component extends="base" secured="developer" {
     function index(event, rc, prc) {
     }
 
-    // Create test trainer user
-    function createTestTrainer(event, rc, prc) {
-        prc.name        = rc?.name ?: left(createUUID(), 30);
-        var testTrainer = entityNew("trainer", {"username": prc.name});
-        entitySave(testTrainer);
-        ormFlush();
-        renderJson(event = event, response = {"response": "success #now()#"});
-    }
-
-    // Admin endpoint to populate a trainer's pokedex
-    function registerRandomPokemon(event, rc, prc) {
-        prc.register = rc?.register ?: 10;
-        prc.region   = rc?.region ?: "Kanto";
-        prc.trainer  = trainerService.getFromId(rc?.trainer ?: prc.oCurrentUser.getId());
-
-        // Get list of pokemon from the region
-        prc.regionPokemon = pokemonService.get(
-            {"generation": generationService.getFromRegion(prc.region), "form": false},
-            "number asc"
-        );
-
-        // Randomly register pokemon from this region list
-        for(var i = 0; i < prc.register; i++) {
-            var rand = randRange(1, prc.regionPokemon.len());
-
-            pokedexService.register(
-                prc.trainer,
-                prc.regionPokemon[rand],
-                true,
-                randRange(1, 10) > 8,
-                false
-            );
-        }
-
-        renderJson(event = event, response = {"response": "success #now()#"});
-    }
-
     function createRandomBlogs(event, rc, prc) {
-        prc.create  = rc?.create ?: 3;
-        prc.trainer = prc.oCurrentUser;
+        prc.create    = rc?.create ?: 3;
+        prc.trainerid = prc.oCurrentUser.getId();
         for(var i = 1; i <= prc.create; i++) {
             var theText = "Placeholder text. ";
             var body    = theText;
-            var rand    = randRange(10, 50);
-            for(var j = 1; j <= rand; j++) {
+            var repeats = randRange(10, 50);
+            for(var j = 1; j <= repeats; j++) {
                 body &= theText;
             }
 
-            var newBlog = entityNew(
-                "blog",
+            queryExecute(
+                "INSERT INTO blog (header, body, trainerid) VALUES (:header, :body, :trainerid)",
                 {
-                    "header" : createUUID().replace("-", "_", "all"),
-                    "body"   : body,
-                    "trainer": prc.trainer
+                    header   : {value: createUUID().replace("-", "_", "all"), cfsqltype: "varchar"},
+                    body     : {value: body, cfsqltype: "varchar"},
+                    trainerid: {value: prc.trainerid, cfsqltype: "integer"}
                 }
             );
-            entitySave(newBlog);
-            ormFlush();
         }
 
         renderJson(event = event, response = {"response": "success #now()#"});
     }
 
-
-    function createBlog(event, rc, prc) {
-        prc.trainer = prc.oCurrentUser;
-
-        var header = "POGO Tracker Dev Update";
-        var body   = "<p>From the latest github commit:</p><p>Working on layout.</p><p>Add freinds.</p><p>Can I make this blog one of those fancy text entry boxes? That would be cool</p>";
-
-        blogService.create(header, body, prc.trainer);
-        renderJson(event = event, response = {"response": "success #now()#"});
-    }
-
-    function ormReload(event, rc, prc) {
-        ormReload();
-        flash.put(
-            name  = "alert",
-            value = {
-                "type"       : "success",
-                "dismissible": true,
-                "icon"       : "bi-check-square-fill",
-                "message"    : "Success!"
-            }
-        );
-        relocate("dev.index");
-    }
 
     function forceError(event, rc, prc) {
         // this will not work
@@ -115,80 +61,6 @@ component extends="base" secured="developer" {
     function sendTestEmail(event, rc, prc) {
         emailService.sendTestEmail();
         renderJson(event = event, response = {"response": "success #now()#"});
-    }
-
-    function createRandomTeam(event, rc, prc) {
-        param name="rc.teamid" default="";
-
-        if(rc.teamid.len()) {
-            prc.teamid = parseNumber(rc.teamid);
-            prc.team   = entityLoadByPK("team", prc.teamid);
-        }
-        else {
-            var pokemon = pokemonService.getAll();
-            var team    = [];
-            // 3 pokemon on a team
-            while(team.len() < 3) {
-                var curr = {
-                    pokemon: "",
-                    fast   : "",
-                    charge1: "",
-                    charge2: ""
-                };
-
-                // select random pokemon
-                curr.pokemon = pokemon[randRange(1, pokemon.len())];
-
-                // select random fastmove
-                var fastmoves = curr.pokemon.getMoves("fast", "normal");
-
-                if(!fastMoves.len()) continue;
-
-                curr.fast = fastmoves[randRange(1, fastmoves.len())];
-
-                // select 2 random charge moves
-                var chargemoves = curr.pokemon.getMoves("charge", "normal");
-
-                if(chargemoves.len() < 2) continue;
-                var charge1rand = randRange(1, chargemoves.len())
-                curr.charge1    = chargemoves[charge1rand];
-
-                if(chargemoves.len() > 1) {
-                    var charge2rand = randRange(1, chargemoves.len());
-                    while(charge2rand == charge1rand) {
-                        charge2rand = randRange(1, chargemoves.len()); // make sure to select a different move
-                    }
-                    curr.charge2 = chargeMoves[charge2rand];
-                }
-
-
-                team.append(curr);
-            }
-
-            prc.team = entityNew(
-                "team",
-                {
-                    p1       : team[1].pokemon,
-                    p1fast   : team[1].fast,
-                    p1charge1: team[1].charge1,
-                    p1charge2: team[1].charge2,
-                    p2       : team[2].pokemon,
-                    p2fast   : team[2].fast,
-                    p2charge1: team[2].charge1,
-                    p2charge2: team[2].charge2,
-                    p3       : team[3].pokemon,
-                    p3fast   : team[3].fast,
-                    p3charge1: team[3].charge1,
-                    p3charge2: team[3].charge2,
-                    trainer  : prc.oCurrentUser,
-                    name     : left(createUUID(), 50)
-                }
-            );
-            entitySave(prc.team);
-            ormFlush();
-        }
-
-        prc.header = "#prc.team.getName()#";
     }
 
     function viewEmail(event, rc, prc) {
@@ -206,7 +78,7 @@ component extends="base" secured="developer" {
             var safeFilename = reReplace(rc.filename, "[^a-zA-Z0-9._-]", "", "all");
             var fullPath     = "#getSetting("testEmailPath")#/#safeFilename#.html";
             if(fileExists(fullPath)) {
-                prc.mailContent = fileRead(fullPath);
+                prc.mailContent = fileRead(fullPath, "UTF-8");
             }
         }
 
@@ -266,8 +138,8 @@ component extends="base" secured="developer" {
         renderJson(event = event, response = {"response": serializeJSON(result)});
     }
 
-    function createCPMultiplierJson(event, rc, prc) {
-        var cpDoc       = scraperService.getData("https://pokemongo.fandom.com/wiki/Combat_Power");
+    function createCPMultiplierJSON(event, rc, prc) {
+        var cpDoc       = scraperService.getData(targetURL = "https://pokemongo.fandom.com/wiki/Combat_Power");
         var cpTableData = cpDoc
             .body()
             .select("##Level_Scalar")
@@ -276,7 +148,7 @@ component extends="base" secured="developer" {
         var multiplierJson = {};
 
         cpTableData.each((tr, trindex) => {
-            if(trindex == 1) continue; // first row is 'header'
+            if(trindex == 1) return; // first row is 'header'
 
             var currLevel = -1;
             var rowData   = tr.select("td");
@@ -298,7 +170,7 @@ component extends="base" secured="developer" {
 
     function testJsoup(event, rc, prc) {
         prc.userAgent = scraperService
-            .getData("https://httpbin.io/user-agent")
+            .getData(targetURL = "https://httpbin.io/user-agent")
             .body()
             .text();
         renderJson(event = event, response = {"response": prc.userAgent});
@@ -322,7 +194,7 @@ component extends="base" secured="developer" {
         }
 
         var destination = "/includes/#createUUID()##getSetting("imageExtension")#";
-        scraperService.downloadImage(url = rc.imageUrl, destination = destination);
+        scraperService.downloadImage(targetURL = rc.imageUrl, destination = destination);
 
         flash.put(
             name  = "alert",

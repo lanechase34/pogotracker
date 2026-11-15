@@ -5,7 +5,7 @@ component {
     /**
      * Accept: application/json (fetch/ajax callers)
      */
-    any function asJsonRequest(required any fn) {
+    public any function asJsonRequest(required any fn) {
         return stubbed("isJsonRequest", true, arguments.fn);
     }
 

@@ -4,6 +4,33 @@
         .getSession()
         .invalidate();
     sessionInvalidate();
+
+    /**
+     * Start every run with an empty test outbox - the whole run is this one request
+     * Only the files directly inside testEmailPath are deleted, never the folder itself
+     */
+    function clearTestEmails() {
+        var controller = request.coldBoxVirtualApp.getController();
+        var testEmailPath = controller.getSetting("testEmailPath");
+        if(!directoryExists(testEmailPath)) {
+            return;
+        }
+
+        directoryList(
+            path     = testEmailPath,
+            recurse  = false,
+            listInfo = "path",
+            type     = "file"
+        ).each((path) => {
+            try {
+                fileDelete(arguments.path);
+            }
+            catch(any e) {
+                // Still held by a mail write - leave it
+            }
+        });
+    }
+    clearTestEmails();
 </cfscript>
 
 <cfsetting showDebugOutput="false">

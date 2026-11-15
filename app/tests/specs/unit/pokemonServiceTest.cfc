@@ -20,20 +20,21 @@ component extends="tests.resources.baseTest" asyncAll="true" {
                 var allPokemon = pokemonService.getAll(); // Costume forms aren't included as unique pokemon in getAll()
                 expect(allPokemon).toBeArray();
 
-                var countPokemon = queryExecute("select count(id) as count from pokemon where costume = false");
-                expect(allPokemon.len()).toBe(countPokemon.count);
+                expect(allPokemon.len()).toBe(testData.countRows("pokemon", {costume: false}));
             });
 
             describe("Retrieve pokemon", () => {
                 it("Retrieve all Kanto Pokemon", () => {
                     var generation   = generationService.getFromRegion("Kanto");
-                    var kantoPokemon = pokemonService.get({generation: generation, costume: false});
+                    var kantoPokemon = pokemonService.findPokemon({generation: generation, costume: false});
                     expect(kantoPokemon).toBeArray();
 
                     var countKantoPokemon = queryExecute("
-                        select count(p.id) as count
-                        from pokemon p inner join generation g on p.generation = g.generation
-                        where g.region = 'Kanto' and p.costume = false
+                        SELECT COUNT(pokemon.id) AS count
+                        FROM pokemon
+                        INNER JOIN generation ON generation.generation = pokemon.generation
+                        WHERE generation.region = 'Kanto'
+                            AND pokemon.costume = false
                     ");
 
                     expect(kantoPokemon.len()).toBe(countKantoPokemon.count);
@@ -72,65 +73,30 @@ component extends="tests.resources.baseTest" asyncAll="true" {
                 });
             });
 
-            describe("Retrieve evolutions", () => {
-                it("Retrieve Bulbasaur's Evolutions", () => {
-                    var bulbasaur = pokemonService.get({
-                        number : 1,
-                        name   : "Bulbasaur",
-                        gender : "",
-                        costume: false
-                    });
-                    expect(bulbasaur).toBeArray();
-                    expect(bulbasaur.len()).toBe(1);
-                    bulbasaur = bulbasaur[1];
-                    expect(bulbasaur).toBeComponent();
-
-                    var evolutions = pokemonService.getEvolution(bulbasaur);
-                    expect(evolutions).toBeArray();
-                    expect(evolutions.len()).toBe(1);
-
-                    expect(evolutions[1].getEvolution().getName()).toBe("Ivysaur");
-                });
-            });
-
             describe("getSearchArray()", () => {
-                it("Returns a non-empty array", () => {
-                    var arr = pokemonService.getSearchArray();
+                it("Has one entry per non-costume pokemon in the database", () => {
+                    var arr           = pokemonService.getSearchArray(); // Costume pokemon excluded from search array
+                    var expectedCount = testData.countRows("pokemon", {costume: false});
                     expect(arr).toBeArray();
                     expect(arr.len()).toBeGT(0);
-                });
-
-                it("Array length matches the total pokemon count in the database", () => {
-                    var arr   = pokemonService.getSearchArray(); // Costume pokemon excluded from search array
-                    var count = queryExecute("select count(id) as c from pokemon where costume = false").c;
-                    expect(arr.len()).toBe(count);
+                    expect(arr.len()).toBe(expectedCount);
                 });
 
                 it("Each entry has the five fields required by select2 (id, text, image, alt, ses)", () => {
-                    var arr   = pokemonService.getSearchArray();
-                    var entry = arr[1];
+                    var entry = pokemonService.getSearchArray()[1];
                     expect(entry).toHaveKey("id");
                     expect(entry).toHaveKey("text");
                     expect(entry).toHaveKey("image");
                     expect(entry).toHaveKey("alt");
                     expect(entry).toHaveKey("ses");
-                });
 
-                it("id is numeric", () => {
-                    var arr = pokemonService.getSearchArray();
-                    expect(arr[1].id).toBeNumeric();
-                });
+                    expect(entry.id).toBeNumeric();
+                    expect(entry.text).toBeString();
+                    expect(entry.text.len()).toBeGT(0);
 
-                it("text is a non-empty string", () => {
-                    var arr = pokemonService.getSearchArray();
-                    expect(arr[1].text).toBeString();
-                    expect(arr[1].text.len()).toBeGT(0);
-                });
-
-                it("ses is a non-empty string (used to build the detail URL)", () => {
-                    var arr = pokemonService.getSearchArray();
-                    expect(arr[1].ses).toBeString();
-                    expect(arr[1].ses.len()).toBeGT(0);
+                    // Used to build the detail URL
+                    expect(entry.ses).toBeString();
+                    expect(entry.ses.len()).toBeGT(0);
                 });
 
                 it("Returns the same data on a second call (cached)", () => {
@@ -142,84 +108,53 @@ component extends="tests.resources.baseTest" asyncAll="true" {
             });
 
             describe("searchPokemon()", () => {
-                describe("Return structure", () => {
-                    it("Always returns a struct with results and pagination keys", () => {
-                        var result = pokemonService.searchPokemon(search = "Bulbasaur", page = 1);
-                        expect(result).toBeStruct();
-                        expect(result).toHaveKey("results");
-                        expect(result).toHaveKey("pagination");
-                        expect(result.results).toBeArray();
-                        expect(result.pagination).toBeStruct();
-                        expect(result.pagination).toHaveKey("more");
+                it("Finds Bulbasaur by its exact name in a single page of select2 results", () => {
+                    var result = pokemonService.searchPokemon(search = "Bulbasaur", page = 1);
+                    expect(result).toBeStruct();
+                    expect(result).toHaveKey("results");
+                    expect(result).toHaveKey("pagination");
+                    expect(result.results).toBeArray();
+                    expect(result.pagination).toBeStruct();
+                    expect(result.pagination).toHaveKey("more");
+
+                    // Each entry carries all five select2 fields
+                    expect(result.results.len()).toBeGT(0);
+                    var entry = result.results[1];
+                    expect(entry).toHaveKey("id");
+                    expect(entry).toHaveKey("text");
+                    expect(entry).toHaveKey("image");
+                    expect(entry).toHaveKey("alt");
+                    expect(entry).toHaveKey("ses");
+
+                    // ses is needed for client-side navigation
+                    result.results.each((r) => {
+                        expect(r.ses.len()).toBeGT(0);
                     });
 
-                    it("Each result entry carries all five select2 fields", () => {
-                        var result = pokemonService.searchPokemon(search = "Bulbasaur", page = 1);
-                        expect(result.results.len()).toBeGT(0);
-                        var entry = result.results[1];
-                        expect(entry).toHaveKey("id");
-                        expect(entry).toHaveKey("text");
-                        expect(entry).toHaveKey("image");
-                        expect(entry).toHaveKey("alt");
-                        expect(entry).toHaveKey("ses");
-                    });
+                    var matched = result.results.filter((r) => r.text == "Bulbasaur");
+                    expect(matched.len()).toBe(1);
 
-                    it("ses is non-empty on every result (needed for client-side navigation)", () => {
-                        var result = pokemonService.searchPokemon(search = "Bulbasaur", page = 1);
-                        result.results.each((r) => {
-                            expect(r.ses.len()).toBeGT(0);
-                        });
-                    });
+                    // The full result set fits on one page
+                    expect(result.pagination.more).toBeFalse();
                 });
 
-                describe("Exact name match", () => {
-                    it("Finds Bulbasaur by its exact name", () => {
-                        var result  = pokemonService.searchPokemon(search = "Bulbasaur", page = 1);
-                        var matched = result.results.filter((r) => r.text == "Bulbasaur");
-                        expect(matched.len()).toBe(1);
-                    });
-
-                    it("pagination.more is false when the full result set fits on one page", () => {
-                        var result = pokemonService.searchPokemon(search = "Bulbasaur", page = 1);
-                        expect(result.pagination.more).toBeFalse();
-                    });
-                });
-
-                describe("No-match search", () => {
-                    it("Returns an empty results array for a nonexistent name", () => {
-                        var result = pokemonService.searchPokemon(search = "NotARealPokemon", page = 1);
+                it("Returns empty results with more:false when nothing matches", () => {
+                    for(var search in ["NotARealPokemon", "xQzJkWpLmN"]) {
+                        var result = pokemonService.searchPokemon(search = search, page = 1);
                         expect(result.results).toBeArray();
                         expect(result.results.len()).toBe(0);
-                    });
-
-                    it("pagination.more is false when there are no results", () => {
-                        var result = pokemonService.searchPokemon(search = "NotARealPokemon", page = 1);
                         expect(result.pagination.more).toBeFalse();
-                    });
-
-                    it("Random gibberish returns no results", () => {
-                        var result = pokemonService.searchPokemon(search = "xQzJkWpLmN", page = 1);
-                        expect(result.results.len()).toBe(0);
-                        expect(result.pagination.more).toBeFalse();
-                    });
+                    }
                 });
 
-                describe("Broad match (generic term)", () => {
-                    it("Returns results for the generic term 'a'", () => {
-                        var result = pokemonService.searchPokemon(search = "a", page = 1);
-                        expect(result.results).toBeArray();
-                        expect(result.results.len()).toBeGT(0);
-                    });
+                it("A generic term 'a' returns at most the default page size of 20 and has more", () => {
+                    var result = pokemonService.searchPokemon(search = "a", page = 1);
+                    expect(result.results).toBeArray();
+                    expect(result.results.len()).toBeGT(0);
+                    expect(result.results.len()).toBeLTE(20);
 
-                    it("pagination.more is true because hundreds of pokemon contain 'a'", () => {
-                        var result = pokemonService.searchPokemon(search = "a", page = 1);
-                        expect(result.pagination.more).toBeTrue();
-                    });
-
-                    it("Default page size returns at most 20 results", () => {
-                        var result = pokemonService.searchPokemon(search = "a", page = 1);
-                        expect(result.results.len()).toBeLTE(20);
-                    });
+                    // Hundreds of pokemon contain 'a'
+                    expect(result.pagination.more).toBeTrue();
                 });
 
                 describe("Case insensitivity", () => {
@@ -227,11 +162,8 @@ component extends="tests.resources.baseTest" asyncAll="true" {
                         var upper = pokemonService.searchPokemon(search = "BULBASAUR", page = 1);
                         var lower = pokemonService.searchPokemon(search = "bulbasaur", page = 1);
                         expect(upper.results.len()).toBe(lower.results.len());
-                    });
 
-                    it("Uppercase result confirms Bulbasaur is found", () => {
-                        var result  = pokemonService.searchPokemon(search = "BULBASAUR", page = 1);
-                        var matched = result.results.filter((r) => r.text == "Bulbasaur");
+                        var matched = upper.results.filter((r) => r.text == "Bulbasaur");
                         expect(matched.len()).toBe(1);
                     });
 
@@ -254,7 +186,7 @@ component extends="tests.resources.baseTest" asyncAll="true" {
                     });
 
                     it("Search term at the end of a name still matches", () => {
-                        // ''zard'' is the suffix of Charizard and Charmeleon-adjacent, but definitely Charizard
+                        // 'zard' is the suffix of Charizard
                         var result  = pokemonService.searchPokemon(search = "zard", page = 1);
                         var matched = result.results.filter((r) => r.text == "Charizard");
                         expect(matched.len()).toBe(1);
@@ -338,14 +270,14 @@ component extends="tests.resources.baseTest" asyncAll="true" {
                     // Check each individual costume form
                     var loadedCostumes = {};
                     costumes.each((costume) => {
-                        loadedCostumes[costume.getCostumeType()] = true;
+                        loadedCostumes[costume.costumetype] = true;
 
                         validatePokemonRecord(
                             number      = 4,
                             name        = "Charmander",
                             gender      = "",
                             costume     = true,
-                            costumeType = costume.getCostumeType()
+                            costumeType = costume.costumetype
                         );
                     });
 
@@ -371,8 +303,8 @@ component extends="tests.resources.baseTest" asyncAll="true" {
                     var evolvers = pokemonService.getEvolvers(persian);
                     expect(evolvers).toBeArray();
                     expect(evolvers.len()).toBe(1);
-                    expect(evolvers[1].getName()).toBe("Meowth");
-                    expect(evolvers[1].getNumber()).toBe(52);
+                    expect(evolvers[1].name).toBe("Meowth");
+                    expect(evolvers[1].number).toBe(52);
                 });
 
                 it("Can retrieve Gigantamax Meowth's evolvers", () => {
@@ -385,8 +317,8 @@ component extends="tests.resources.baseTest" asyncAll="true" {
                     var evolvers = pokemonService.getEvolvers(gmaxMeowth);
                     expect(evolvers).toBeArray();
                     expect(evolvers.len()).toBe(1);
-                    expect(evolvers[1].getName()).toBe("Meowth");
-                    expect(evolvers[1].getNumber()).toBe(52);
+                    expect(evolvers[1].name).toBe("Meowth");
+                    expect(evolvers[1].number).toBe(52);
                 });
 
                 it("Can retrieve Mega Charizard Y evolvers", () => {
@@ -399,26 +331,8 @@ component extends="tests.resources.baseTest" asyncAll="true" {
                     var evolvers = pokemonService.getEvolvers(megaZard);
                     expect(evolvers).toBeArray();
                     expect(evolvers.len()).toBe(1);
-                    expect(evolvers[1].getName()).toBe("Charizard");
-                    expect(evolvers[1].getNumber()).toBe(6);
-                });
-
-                it("Can ensure Pikachu's evolves", () => {
-                    var pikachu = validatePokemonRecord(number = 25, name = "Pikachu", gender = "");
-
-                    // gmax, raichu
-                    expect(pikachu.getEvolution().len()).toBe(2);
-
-                    var expected = {"Raichu": true, "Gigantamax Pikachu": true};
-
-                    pikachu
-                        .getEvolution()
-                        .each((evolution) => {
-                            expect(expected).toHaveKey(evolution.getEvolution().getName());
-                            expected.delete(evolution.getEvolution().getName());
-                        });
-
-                    expect(expected.count()).toBe(0);
+                    expect(evolvers[1].name).toBe("Charizard");
+                    expect(evolvers[1].number).toBe(6);
                 });
             });
         });
@@ -433,17 +347,17 @@ component extends="tests.resources.baseTest" asyncAll="true" {
     ) {
         return queryExecute(
             "
-            select id
-            from pokemon
-            where name = :name
-            and number = :number
-            and gender = :gender
-            and costume = :costume
-            and costumetype = :costumetype
+            SELECT id
+            FROM pokemon
+            WHERE name = :name
+                AND number = :number
+                AND gender = :gender
+                AND costume = :costume
+                AND costumetype = :costumetype
             ",
             {
                 name       : {value: arguments.name, cfsqltype: "varchar"},
-                number     : {value: arguments.number, cfsqltype: "numeric"},
+                number     : {value: arguments.number, cfsqltype: "integer"},
                 gender     : {value: arguments.gender, cfsqltype: "varchar"},
                 costume    : {value: arguments.costume, cfsqltype: "boolean"},
                 costumetype: {value: arguments.costumetype, cfsqltype: "varchar"}
@@ -451,25 +365,25 @@ component extends="tests.resources.baseTest" asyncAll="true" {
         );
     }
 
-    // Validate our orm function pulls a record that matches the db
-    private component function validatePokemonRecord(
+    // Validate the service pulls a record that matches the db
+    private struct function validatePokemonRecord(
         required numeric number,
         required string name,
         required string gender,
         boolean costume    = false,
         string costumeType = ""
     ) {
-        var pokemonCfc = pokemonService.get(params = arguments);
-        expect(pokemonCfc).toBeArray();
-        expect(pokemonCfc.len()).toBe(1);
-        pokemonCfc = pokemonCfc[1];
+        var matches = pokemonService.findPokemon(params = arguments);
+        expect(matches).toBeArray();
+        expect(matches.len()).toBe(1);
 
-        expect(pokemonCfc).toBeComponent();
+        var pokemon = matches[1];
+        expect(pokemon).toBeStruct();
         var pokemonQuery = queryPokemon(argumentCollection = arguments);
         expect(pokemonQuery.recordCount()).toBe(1);
-        expect(pokemonCfc.getId()).toBe(pokemonQuery.id);
+        expect(pokemon.id).toBe(pokemonQuery.id);
 
-        return pokemonCfc;
+        return pokemon;
     }
 
 }

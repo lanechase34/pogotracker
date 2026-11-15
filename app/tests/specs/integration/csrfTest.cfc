@@ -2,7 +2,7 @@ component extends="tests.resources.baseTest" asyncAll="false" {
 
     function beforeAll() {
         super.beforeAll();
-        mockTrainer    = getInstance("tests.resources.mocktrainer");
+        mockTrainer    = getInstance("tests.resources.mockTrainer");
         requestStub    = getInstance("tests.resources.requestStub");
         auth           = getInstance("authenticationService@cbauth");
         cbcsrf         = getInstance("@cbcsrf");
@@ -11,7 +11,7 @@ component extends="tests.resources.baseTest" asyncAll="false" {
 
     function afterAll() {
         super.afterAll();
-        if(session.keyExists("mocktrainerid")) mockTrainer.delete();
+        if(session.keyExists("mocktrainerid")) mockTrainer.deleteTrainer();
     }
 
     /**
@@ -20,10 +20,10 @@ component extends="tests.resources.baseTest" asyncAll="false" {
     private any function fakeEvent(
         string method       = "POST",
         string currentEvent = "home.contact",
-        struct form         = {},
+        struct formFields   = {},
         struct headers      = {}
     ) {
-        var formValues   = arguments.form;
+        var formValues   = arguments.formFields;
         var headerValues = arguments.headers;
         var httpMethod   = arguments.method;
         var eventName    = arguments.currentEvent;
@@ -103,7 +103,7 @@ component extends="tests.resources.baseTest" asyncAll="false" {
 
             it("Rejects a post with the wrong token", () => {
                 cbcsrf.generate();
-                expect(() => verify(fakeEvent(form = {csrf: "not-the-token"}))).toThrow("TokenMismatchException");
+                expect(() => verify(fakeEvent(formFields = {csrf: "not-the-token"}))).toThrow("TokenMismatchException");
                 expect(() => verify(fakeEvent(headers = {"x-csrf-token": "not-the-token"}))).toThrow(
                     "TokenMismatchException"
                 );
@@ -111,7 +111,7 @@ component extends="tests.resources.baseTest" asyncAll="false" {
 
             it("Accepts the session's token as a form field or header", () => {
                 var token = cbcsrf.generate();
-                expect(() => verify(fakeEvent(form = {csrf: token}))).notToThrow();
+                expect(() => verify(fakeEvent(formFields = {csrf: token}))).notToThrow();
                 expect(() => verify(fakeEvent(headers = {"x-csrf-token": token}))).notToThrow();
             });
 
@@ -128,7 +128,7 @@ component extends="tests.resources.baseTest" asyncAll="false" {
 
         describe("Token rotation", () => {
             afterEach(() => {
-                if(session.keyExists("mocktrainerid")) mockTrainer.delete();
+                if(session.keyExists("mocktrainerid")) mockTrainer.deleteTrainer();
             });
 
             it("Invalidates tokens issued before a login", () => {
@@ -136,7 +136,7 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                 var token   = cbcsrf.generate();
                 expect(cbcsrf.verify(token)).toBeTrue();
 
-                auth.login(trainerService.getFromId(trainer.getId()));
+                auth.login(getInstance("services.user").retrieveUserById(trainer.id));
 
                 expect(cbcsrf.verify(token)).toBeFalse();
                 expect(cbcsrf.verify(cbcsrf.generate())).toBeTrue(); // the new page gets a fresh one
@@ -145,6 +145,7 @@ component extends="tests.resources.baseTest" asyncAll="false" {
 
         describe("Security exceptions in error.onException", () => {
             it("Turns a csrf failure into a 403 without a bug email", () => {
+                var emailsBefore = globalFunctions.countTestEmails();
                 for(
                     var type in [
                         "TokenNotFoundException",
@@ -152,8 +153,7 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                         "NotAuthorized"
                     ]
                 ) {
-                    var emailsBefore = globalFunctions.countTestEmails();
-                    var event        = handleException(type);
+                    var event = handleException(type);
 
                     expect(event.getStatusCode()).toBe(403, type);
                     expect(event.getCurrentView()).toBe("/views/fragment/unauthorized", type);

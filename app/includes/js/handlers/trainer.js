@@ -1,8 +1,10 @@
 import { createAlert } from 'alert';
+import { delegate } from 'display';
 import { encodePath, escapeHtml } from 'escape';
-import { getWrapper, postWrapper } from 'fetch';
+import { getWrapper, postWrapper, RequestError, requestErrorMessage } from 'fetch';
+import { validatedPacket } from 'form';
 import { $loadingCard, $submitBtn } from 'loading';
-import { resetHandler, submitHandler } from 'modals';
+import { appendLoadedModal, openLoadedModal, resetHandler, submitHandler, toggleCurrentPassword } from 'modals';
 import { createAddFriendSearch } from 'search';
 import { getMedalSummary, getPokedexStats, getSummaryStats, getTopDeltas, initStatsTracker } from 'stats';
 
@@ -16,14 +18,8 @@ const trainerid = document.getElementById('mainProfileUsername').dataset.trainer
 const $editProfile = document.getElementById('editProfile');
 const $topDeltasDiv = document.getElementById('topDeltasDiv');
 
-const $trainerLoading = {
-    editProfile: false,
-    addFriend: false,
-};
-
 /**
- * Note: callers currently pass the click event, which is ignored.
- * @type {(evt?: Event) => Promise<boolean>}
+ * @returns {Promise<boolean>} whether the add friend modal loaded
  */
 async function getFriendsToAdd() {
     return await getWrapper({
@@ -31,11 +27,7 @@ async function getFriendsToAdd() {
         $loadingDiv: null,
         loading: '',
         dataHandler: (data) => {
-            const newDiv = document.createElement('div');
-            newDiv.innerHTML = data;
-            document.getElementById('loadedModal').appendChild(newDiv);
-
-            const $addFriendModal = document.getElementById('addFriendModal');
+            const $addFriendModal = appendLoadedModal(data, 'addFriendModal');
             globalModals.$addFriendModal = new bootstrap.Modal($addFriendModal, {});
 
             createAddFriendSearch('friendsToAddSearch');
@@ -44,23 +36,18 @@ async function getFriendsToAdd() {
             const $submitAddFriendForm = document.getElementById('submitAddFriendForm');
 
             $submitAddFriendForm.addEventListener('click', async (event) => {
-                const valid = $addFriendForm.checkValidity();
-                $addFriendForm.classList.add('was-validated');
-
-                if (!valid) {
-                    event.preventDefault();
-                    event.stopPropagation();
-                    return;
-                }
+                const packet = validatedPacket($addFriendForm, event);
+                if (!packet) return;
 
                 const temp = $submitAddFriendForm.innerHTML;
                 submitHandler($addFriendModal, $submitAddFriendForm);
 
-                const formData = new FormData($addFriendForm);
-                const packet = Object.fromEntries(formData.entries());
-                await sendFriendRequest(packet, $submitAddFriendForm);
+                const sent = await sendFriendRequest(packet, $submitAddFriendForm);
 
                 resetHandler($addFriendModal, $submitAddFriendForm, temp);
+                // The wrapper toasts why it failed - keep the modal open so the trainer can retry
+                if (!sent) return;
+
                 globalModals.$addFriendModal.hide();
                 document.getElementById('addFriendModal').remove();
             });
@@ -77,27 +64,18 @@ async function getFriendsList($div) {
             $div.innerHTML = data;
 
             const $addFriendBtn = document.getElementById('addFriendBtn');
-            $addFriendBtn.addEventListener('click', async (evt) => {
-                if ($trainerLoading.addFriend) return;
-
-                if (!document.getElementById('addFriendModal')) {
-                    $trainerLoading.addFriend = true;
-                    await getFriendsToAdd(evt);
-                }
-                globalModals.$addFriendModal.show();
-                $trainerLoading.addFriend = false;
-            });
+            $addFriendBtn.addEventListener('click', () => openLoadedModal('addFriendModal', getFriendsToAdd));
 
             // One listener for every row - the list reloads into the same div, so only bind it once
-            if ($div.dataset.rowsBound !== 'true') {
-                $div.dataset.rowsBound = 'true';
-                $div.addEventListener('click', (evt) => {
-                    const $row = /** @type {HTMLElement | null} */ (
-                        /** @type {HTMLElement} */ (evt.target).closest('.trainerRow')
-                    );
-                    if ($row && $div.contains($row)) window.location.href = $row.dataset.profilelink;
-                });
-            }
+            delegate(
+                $div,
+                'click',
+                '.trainerRow',
+                (evt, $row) => {
+                    window.location.href = $row.dataset.profilelink;
+                },
+                'rowsBound'
+            );
         },
     });
 }
@@ -111,20 +89,36 @@ async function getFriendRequests($div) {
             $div.innerHTML = data;
 
             // One listener for every accept/decline button - the requests reload into the same div, so only bind it once
-            if ($div.dataset.decideBound !== 'true') {
-                $div.dataset.decideBound = 'true';
-                $div.addEventListener('click', async (evt) => {
-                    const $btn = /** @type {HTMLButtonElement | null} */ (
-                        /** @type {HTMLElement} */ (evt.target).closest('.decideRequest')
+            delegate(
+                $div,
+                'click',
+                '.decideRequest',
+                async (evt, $match) => {
+                    const $btn = /** @type {HTMLButtonElement} */ ($match);
+
+                    // Accept and deny are decided once - both buttons stay disabled while the request runs
+                    const $choices = /** @type {NodeListOf<HTMLButtonElement>} */ (
+                        $btn.parentElement.querySelectorAll('.decideRequest')
                     );
-                    if (!$btn || !$div.contains($btn)) return;
+                    if (Array.from($choices).some(($choice) => $choice.disabled)) return;
+                    $choices.forEach(($choice) => {
+                        $choice.disabled = true;
+                    });
 
                     const packet = {};
                     packet.friendrequestid = $btn.parentElement.dataset.friendrequestid;
                     packet.accept = $btn.dataset.accept;
-                    await decideFriendRequest(packet, $btn);
-                });
-            }
+                    const decided = await decideFriendRequest(packet, $btn);
+
+                    // On success the cards reload - on failure let the trainer try again
+                    if (!decided) {
+                        $choices.forEach(($choice) => {
+                            $choice.disabled = false;
+                        });
+                    }
+                },
+                'decideBound'
+            );
         },
     });
 }
@@ -135,27 +129,16 @@ async function getEditProfile() {
         $loadingDiv: null,
         loading: '',
         dataHandler: (data) => {
-            const newDiv = document.createElement('div');
-            newDiv.innerHTML = data;
-            document.getElementById('loadedModal').appendChild(newDiv);
-            const $editProfileModal = document.getElementById('editProfileModal');
+            const $editProfileModal = appendLoadedModal(data, 'editProfileModal');
             globalModals.$editProfileModal = new bootstrap.Modal($editProfileModal, {});
 
             const $editProfileForm = /** @type {HTMLFormElement} */ (document.getElementById('editProfileForm'));
             const $submitEditProfileForm = document.getElementById('submitEditProfileForm');
+            toggleCurrentPassword($editProfileForm);
 
             $submitEditProfileForm.addEventListener('click', async (evt) => {
-                const valid = $editProfileForm.checkValidity();
-                $editProfileForm.classList.add('was-validated');
-
-                if (!valid) {
-                    evt.preventDefault();
-                    evt.stopPropagation();
-                    return;
-                }
-
-                const formData = new FormData($editProfileForm);
-                const packet = Object.fromEntries(formData.entries());
+                const packet = validatedPacket($editProfileForm, evt);
+                if (!packet) return;
                 await updateProfile(packet, $submitEditProfileForm, $editProfileModal);
             });
         },
@@ -195,7 +178,7 @@ async function decideFriendRequest(packet, $btn) {
         responseType: 'json',
         dataHandler: (data) => {
             if (!data.success) {
-                throw new Error(data.message);
+                throw new RequestError(data.message);
             }
             loadFriendCards();
         },
@@ -211,7 +194,7 @@ async function sendFriendRequest(packet, $btn) {
         responseType: 'json',
         dataHandler: (data) => {
             if (!data.success) {
-                throw new Error(data.message);
+                throw new RequestError(data.message);
             }
             loadFriendCards();
         },
@@ -238,6 +221,9 @@ async function updateProfile(packet, $btn, $modal) {
                     escapeHtml(data.message),
                     0
                 );
+            } else if (data.reverify) {
+                // A new email has to be verified before the account can be used again
+                location.href = '/verify';
             } else {
                 // Update the profile fields
                 document.getElementById('profileUsername').textContent = packet.username;
@@ -253,6 +239,17 @@ async function updateProfile(packet, $btn, $modal) {
                 document.getElementById('editProfileModal').remove();
             }
         },
+        errorHandler: (error) => {
+            // Unlock the modal so the trainer can retry or close it
+            resetHandler($modal, $btn, temp);
+            createAlert(
+                document.getElementById('editProfileAlertDiv'),
+                'danger',
+                'bi-exclamation-diamond-fill',
+                escapeHtml(requestErrorMessage(error)),
+                0
+            );
+        },
     });
 }
 
@@ -267,17 +264,7 @@ export const runtime = {
         loadProfileCards();
 
         if ($editProfile) {
-            $editProfile.addEventListener('click', async () => {
-                if ($trainerLoading.editProfile) return;
-
-                if (!document.getElementById('editProfileModal')) {
-                    $trainerLoading.editProfile = true;
-                    await getEditProfile();
-                }
-
-                globalModals.$editProfileModal.show();
-                $trainerLoading.editProfile = false;
-            });
+            $editProfile.addEventListener('click', () => openLoadedModal('editProfileModal', getEditProfile));
         }
     },
 };

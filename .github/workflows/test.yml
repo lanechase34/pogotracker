@@ -3,6 +3,8 @@ name: Test Suite
 permissions:
   contents: read
   checks: write
+  # The results comment on pull requests
+  pull-requests: write
 
 on:
   push:
@@ -187,6 +189,8 @@ jobs:
           check_name: "TestBox Report"
           include_passed: false
           fail_on_failure: true
+          # No report means the run crashed, not that it passed
+          require_tests: true
           detailed_summary: true
 
       - name: TestBox Results Comment
@@ -273,3 +277,9 @@ jobs:
         run: |
           box server stop --force
         continue-on-error: true
+
+      - name: Fail On Test Run Failure
+        if: env.TESTS_FAILED == 'true'
+        run: |
+          echo "box testbox run exited non-zero - see Run TestBox Tests and Dump Lucee Logs"
+          exit 1

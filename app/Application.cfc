@@ -19,23 +19,7 @@ component extends="coldbox.system.Bootstrap" {
     this.mappings["/layouts"]      = COLDBOX_APP_ROOT_PATH & "layouts";
     this.mappings["/views"]        = COLDBOX_APP_ROOT_PATH & "views";
 
-    this.datasource  = "pogotracker";
-    this.ormEnabled  = true;
-    this.ormSettings = {
-        autoGenMap           : true,
-        autoManageSession    : false,
-        cacheProvider        : "ehcache",
-        cfclocation          : "/models/orm",
-        datasource           : "pogotracker",
-        dbcreate             : "none",
-        dialect              : "PostgreSQL",
-        eventHandling        : true,
-        eventHandler         : "models.orm.handler",
-        flushAtRequestEnd    : false,
-        logSQL               : false,
-        secondaryCacheEnabled: true,
-        useDBForMapping      : true
-    };
+    this.datasource = "pogotracker";
 
     function onError(struct exception, string eventName) {
         writeLog(

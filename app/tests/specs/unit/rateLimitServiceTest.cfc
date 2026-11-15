@@ -26,7 +26,7 @@ component extends="tests.resources.baseTest" {
                 rateLimitService.hit(key = key, limit = 1, window = 15);
                 expect(rateLimitService.hit(key = key, limit = 1, window = 15)).toBeFalse();
 
-                rateLimitService.clear(key = key);
+                rateLimitService.clearCounter(key = key);
                 expect(rateLimitService.hit(key = key, limit = 1, window = 15)).toBeTrue();
             });
 
@@ -132,6 +132,39 @@ component extends="tests.resources.baseTest" {
                             context = {email: "b@gmail.com"}
                         )
                     ).toBeTrue();
+                });
+
+                it("Counts afterRecaptcha rules only when asked to", () => {
+                    var context = {email: "a@gmail.com"};
+                    withRules([
+                        {
+                            by            : "email",
+                            limit         : 1,
+                            window        : 15,
+                            afterRecaptcha: true
+                        }
+                    ]);
+
+                    // The pre-recaptcha pass never touches the rule, so junk posts can't lock the email out
+                    expect(service.allow(name = name, ip = ip, context = context)).toBeTrue();
+                    expect(service.allow(name = name, ip = ip, context = context)).toBeTrue();
+
+                    expect(
+                        service.allow(
+                            name           = name,
+                            ip             = ip,
+                            context        = context,
+                            afterRecaptcha = true
+                        )
+                    ).toBeTrue();
+                    expect(
+                        service.allow(
+                            name           = name,
+                            ip             = ip,
+                            context        = context,
+                            afterRecaptcha = true
+                        )
+                    ).toBeFalse();
                 });
 
                 it("Skips a rule whose key cannot be built", () => {

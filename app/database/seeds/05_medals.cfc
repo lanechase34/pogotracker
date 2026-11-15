@@ -1,15 +1,15 @@
 component extends="base" {
 
     function run(qb, mockdata) {
-        var medalData = deserializeJSON(fileRead("resources/medals.json"));
+        var medalData = deserializeJSON(fileRead("resources/medals.json", "UTF-8"));
         qb.table("medal")
             .insert(
                 medalData
                     .keyArray()
                     .map((name) => (
                         {
-                            "name"        : toUTF8(name),
-                            "description" : toUTF8(medalData[name].description),
+                            "name"        : name,
+                            "description" : medalData[name].description,
                             "bronze"      : medalData[name].bronze,
                             "silver"      : medalData[name].silver,
                             "gold"        : medalData[name].gold,

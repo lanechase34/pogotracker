@@ -1,8 +1,7 @@
 component singleton accessors="true" {
 
-    property name="pagination"     inject="services.pagination";
-    property name="trainerService" inject="services.trainer";
-    property name="utilService"    inject="services.util";
+    property name="pagination"  inject="services.pagination";
+    property name="utilService" inject="services.util";
 
     property name="datatableCols"        type="array";
     property name="requestDatatableCols" type="array";
@@ -33,6 +32,10 @@ component singleton accessors="true" {
 
     /**
      * Insert a new audit record
+     * Values are cut to their column widths here
+     * Fire and forget - the insert runs in the background and a failure is only logged
+     *
+     * @wait insert on this thread instead, for callers that read the audit table straight after
      */
     public void function audit(
         required string ip,
@@ -40,52 +43,83 @@ component singleton accessors="true" {
         required string referer,
         required string detail,
         required string agent,
-        numeric trainerid = -1
+        numeric trainerid = -1,
+        boolean wait      = false
     ) {
-        var audit = entityNew(
-            "audit",
-            {
-                "ip"     : arguments.ip,
-                "event"  : arguments.event,
-                "referer": arguments.referer,
-                "detail" : arguments.detail,
-                "agent"  : arguments.agent
+        var params = {
+            ip       : {value: left(arguments.ip, 45), cfsqltype: "varchar"},
+            event    : {value: left(arguments.event, 250), cfsqltype: "varchar"},
+            referer  : {value: left(arguments.referer, 250), cfsqltype: "varchar"},
+            detail   : {value: left(arguments.detail, 250), cfsqltype: "varchar"},
+            agent    : {value: left(arguments.agent, 250), cfsqltype: "varchar"},
+            trainerid: {
+                value    : arguments.trainerid,
+                cfsqltype: "integer",
+                null     : arguments.trainerid <= 0
             }
-        );
+        };
 
-        if(arguments.trainerid > 0) {
-            var trainer = trainerService.getFromId(arguments.trainerid);
-            audit.setTrainer(trainer);
+        var insertAudit = () => {
+            queryExecute(
+                "
+                INSERT INTO audit (ip, event, referer, detail, agent, trainerid)
+                VALUES (:ip, :event, :referer, :detail, :agent, (SELECT id FROM trainer WHERE id = :trainerid))
+                ",
+                params
+            );
+        };
+
+        if(arguments.wait) {
+            insertAudit();
+            return;
         }
 
-        entitySave(audit);
-        ormFlush();
+        utilService.runInBackground(task = insertAudit, failure = "Failed to audit #params.event.value#");
+        return;
+    }
+
+    /**
+     * Audit work the app does itself (scraper, admin jobs) - there is no request, so no ip, referer or agent to record
+     *
+     * @event  where it happened, e.g. scraperService.getData
+     * @detail what happened
+     */
+    public void function auditSystem(required string event, required string detail) {
+        audit(
+            ip      = "localhost",
+            event   = arguments.event,
+            referer = "",
+            detail  = arguments.detail,
+            agent   = ""
+        );
         return;
     }
 
     /**
      * Datatable GET for audit table
      */
-    public struct function get(
+    public struct function getTable(
         required numeric records,
         required numeric offset,
         required string search   = "",
         required string orderCol = "",
-        required string orderDir = ""
+        required string orderDir = "",
+        string range             = "all"
     ) {
-        var fromSQL     = "FROM audit LEFT JOIN trainer ON trainer.id = audit.trainerid";
-        var whereSQL    = "";
-        var whereParams = {};
-        if(search.len()) {
-            whereSQL = "WHERE #pagination.searchSQL([
+        var fromSQL = "FROM audit LEFT JOIN trainer ON trainer.id = audit.trainerid";
+        var filters = pagination.buildFilters(
+            searchColumns = [
                 "audit.event",
                 "audit.referer",
                 "audit.detail",
                 "audit.agent",
                 "trainer.username"
-            ])#";
-            whereParams.search = {value: utilService.likeContains(search), cfsqltype: "varchar"};
-        }
+            ],
+            search     = search,
+            dateColumn = "audit.created",
+            range      = range
+        );
+        var whereSQL = filters.whereSQL;
 
         var orderBy = pagination.orderBy(
             columns     = getDatatableCols(),
@@ -98,10 +132,11 @@ component singleton accessors="true" {
             records       = records,
             offset        = offset,
             fromSQL       = fromSQL,
-            baseWhere     = "",
+            baseWhere     = filters.baseWhere,
             whereSQL      = whereSQL,
-            whereParams   = whereParams,
-            totalCacheKey = "audit.totalRecords",
+            baseParams    = filters.baseParams,
+            whereParams   = filters.whereParams,
+            totalCacheKey = pagination.rangeCacheKey("audit.totalRecords", range),
             cacheMinutes  = 5,
             fetchRows     = (pageParams) => queryExecute(
                 "
@@ -115,7 +150,7 @@ component singleton accessors="true" {
                 OFFSET :offset
                 ",
                 pageParams,
-                {returntype: "array"}
+                {returnType: "array"}
             )
         );
 
@@ -138,6 +173,8 @@ component singleton accessors="true" {
 
     /**
      * Insert a new record detailing a request's information
+     * Values are cut to their column widths here
+     * Fire and forget - the insert runs in the background and a failure is only logged
      */
     public void function logRequest(
         required string ip,
@@ -150,26 +187,38 @@ component singleton accessors="true" {
         numeric trainerid  = -1,
         numeric delta      = -1
     ) {
-        var requestLog = entityNew(
-            "requestlog",
-            {
-                "ip"        : ip,
-                "urlpath"   : urlpath,
-                "method"    : method,
-                "agent"     : agent,
-                "referer"   : referer,
-                "response"  : response,
-                "statuscode": statuscode,
-                "delta"     : delta
+        var params = {
+            ip        : {value: left(arguments.ip, 100), cfsqltype: "varchar"},
+            urlpath   : {value: left(arguments.urlpath, 500), cfsqltype: "varchar"},
+            method    : {value: left(arguments.method, 10), cfsqltype: "varchar"},
+            agent     : {value: left(arguments.agent, 250), cfsqltype: "varchar"},
+            referer   : {value: left(arguments.referer, 250), cfsqltype: "varchar"},
+            response  : {value: arguments.response, cfsqltype: "varchar"},
+            statuscode: {
+                value    : arguments.statuscode,
+                cfsqltype: "decimal",
+                scale    : 0
+            },
+            delta    : {value: arguments.delta, cfsqltype: "integer"},
+            trainerid: {
+                value    : arguments.trainerid,
+                cfsqltype: "integer",
+                null     : arguments.trainerid <= 0
             }
+        };
+
+        utilService.runInBackground(
+            task = () => {
+                queryExecute(
+                    "
+                    INSERT INTO request_log (ip, urlpath, method, agent, referer, response, statuscode, delta, trainerid)
+                    VALUES (:ip, :urlpath, :method, :agent, :referer, :response, :statuscode, :delta, (SELECT id FROM trainer WHERE id = :trainerid))
+                    ",
+                    params
+                );
+            },
+            failure = "Failed to log request #params.urlpath.value#"
         );
-
-        if(trainerid > 0) {
-            requestLog.setTrainer(trainerService.getFromId(trainerid));
-        }
-
-        entitySave(requestLog);
-        ormFlush();
         return;
     }
 
@@ -181,13 +230,12 @@ component singleton accessors="true" {
         required numeric offset,
         required string search   = "",
         required string orderCol = "",
-        required string orderDir = ""
+        required string orderDir = "",
+        string range             = "all"
     ) {
-        var fromSQL     = "FROM request_log AS requestlog LEFT JOIN trainer ON trainer.id = requestlog.trainerid";
-        var whereSQL    = "";
-        var whereParams = {};
-        if(search.len()) {
-            whereSQL = "WHERE #pagination.searchSQL([
+        var fromSQL = "FROM request_log AS requestlog LEFT JOIN trainer ON trainer.id = requestlog.trainerid";
+        var filters = pagination.buildFilters(
+            searchColumns = [
                 "requestlog.ip",
                 "requestlog.urlpath",
                 "requestlog.method",
@@ -196,9 +244,12 @@ component singleton accessors="true" {
                 "requestlog.referer",
                 "CAST(requestlog.statuscode AS varchar)",
                 "trainer.username"
-            ])#";
-            whereParams.search = {value: utilService.likeContains(search), cfsqltype: "varchar"};
-        }
+            ],
+            search     = search,
+            dateColumn = "requestlog.created",
+            range      = range
+        );
+        var whereSQL = filters.whereSQL;
 
         var orderBy = pagination.orderBy(
             columns     = getRequestDatatableCols(),
@@ -211,10 +262,11 @@ component singleton accessors="true" {
             records       = records,
             offset        = offset,
             fromSQL       = fromSQL,
-            baseWhere     = "",
+            baseWhere     = filters.baseWhere,
             whereSQL      = whereSQL,
-            whereParams   = whereParams,
-            totalCacheKey = "audit.totalRequestRecords",
+            baseParams    = filters.baseParams,
+            whereParams   = filters.whereParams,
+            totalCacheKey = pagination.rangeCacheKey("audit.totalRequestRecords", range),
             cacheMinutes  = 5,
             fetchRows     = (pageParams) => queryExecute(
                 "
@@ -229,7 +281,7 @@ component singleton accessors="true" {
                 OFFSET :offset
                 ",
                 pageParams,
-                {returntype: "array"}
+                {returnType: "array"}
             )
         );
 
@@ -262,10 +314,10 @@ component singleton accessors="true" {
     ) {
         return {
             ip       : utilService.getRequestIP(),
-            event    : left(event, 250),
-            referer  : left(arguments?.referer ?: utilService.getReferer(), 250),
+            event    : event,
+            referer  : arguments?.referer ?: utilService.getReferer(),
             detail   : "",
-            agent    : left(utilService.getUserAgent(), 250),
+            agent    : utilService.getUserAgent(),
             trainerid: trainerid
         }
     }

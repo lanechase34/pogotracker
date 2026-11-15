@@ -37,7 +37,7 @@ component {
 
         // trainer - usernames are unique ignoring case, emails are stored trimmed + lowercase
         // The lower() index replaces both case sensitive username indexes - nothing looks a username up by exact case
-        queryExecute("CREATE UNIQUE INDEX unq_trainer_lower_username ON trainer (lower(username))");
+        queryExecute("CREATE UNIQUE INDEX unq_trainer_lower_username ON trainer (LOWER(username))");
         queryExecute("DROP INDEX IF EXISTS idx_trainer_username");
         dropUniqueConstraint("trainer", "username");
         renameUniqueConstraint("trainer", "email", "unq_trainer_email");
@@ -46,8 +46,8 @@ component {
             "friendcode",
             "unq_trainer_friendcode"
         );
-        queryExecute("ALTER TABLE trainer ADD CONSTRAINT chk_trainer_username CHECK (username = btrim(username) AND username <> '')");
-        queryExecute("ALTER TABLE trainer ADD CONSTRAINT chk_trainer_email CHECK (email = lower(btrim(email)) AND email <> '')");
+        queryExecute("ALTER TABLE trainer ADD CONSTRAINT chk_trainer_username CHECK (username = BTRIM(username) AND username <> '')");
+        queryExecute("ALTER TABLE trainer ADD CONSTRAINT chk_trainer_email CHECK (email = LOWER(BTRIM(email)) AND email <> '')");
         queryExecute("ALTER TABLE trainer ADD CONSTRAINT chk_trainer_friendcode CHECK (friendcode ~ '^[0-9]{12}$')");
         queryExecute("ALTER TABLE trainer ADD CONSTRAINT chk_trainer_securitylevel CHECK (securitylevel IN (0, 5, 10, 20, 50, 60))");
 
@@ -76,7 +76,7 @@ component {
         // Natural keys the code already treats as unique
         queryExecute("CREATE UNIQUE INDEX unq_pokemon_ses ON pokemon (ses)");
         queryExecute("CREATE UNIQUE INDEX unq_pokemon_identity ON pokemon (number, name, gender, costume, costumetype)");
-        queryExecute("CREATE UNIQUE INDEX unq_blog_lower_header ON blog (lower(header))");
+        queryExecute("CREATE UNIQUE INDEX unq_blog_lower_header ON blog (LOWER(header))");
         queryExecute("CREATE UNIQUE INDEX unq_overrides_name ON overrides (name)");
         queryExecute("CREATE UNIQUE INDEX unq_medal_name ON medal (name)");
 
@@ -106,7 +106,7 @@ component {
             CREATE OR REPLACE FUNCTION set_updated() RETURNS trigger AS $$
             BEGIN
                 IF NEW.updated IS NOT DISTINCT FROM OLD.updated THEN
-                    NEW.updated = date_trunc('milliseconds', localtimestamp);
+                    NEW.updated = DATE_TRUNC('milliseconds', LOCALTIMESTAMP);
                 END IF;
                 RETURN NEW;
             END;
@@ -199,15 +199,15 @@ component {
     ) {
         var result = queryExecute(
             "
-                SELECT c.conname
-                FROM pg_constraint c
-                JOIN pg_class t ON t.oid = c.conrelid
-                JOIN pg_attribute a ON a.attrelid = t.oid AND a.attnum = c.conkey[1]
-                WHERE c.contype = :type
-                    AND cardinality(c.conkey) = 1
-                    AND pg_table_is_visible(t.oid)
-                    AND t.relname = :table
-                    AND a.attname = :column
+                SELECT pg_constraint.conname
+                FROM pg_constraint
+                INNER JOIN pg_class ON pg_class.oid = pg_constraint.conrelid
+                INNER JOIN pg_attribute ON pg_attribute.attrelid = pg_class.oid AND pg_attribute.attnum = pg_constraint.conkey[1]
+                WHERE pg_constraint.contype = :type
+                    AND CARDINALITY(pg_constraint.conkey) = 1
+                    AND PG_TABLE_IS_VISIBLE(pg_class.oid)
+                    AND pg_class.relname = :table
+                    AND pg_attribute.attname = :column
                 LIMIT 1
             ",
             {

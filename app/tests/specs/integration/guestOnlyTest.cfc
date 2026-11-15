@@ -1,14 +1,8 @@
-/**
- * interceptors/guestonly.cfc
- *  - logged in trainers are kept out of the guest-only events (settings.guestOnlyEvents)
- *  - unverified trainers can only verify their account or log out
- * firewallTest has the access matrix, this covers the edges - posts, json callers, switching accounts, logout
- */
 component extends="tests.resources.baseTest" asyncAll="false" {
 
     function beforeAll() {
         super.beforeAll();
-        mockTrainer = getInstance("tests.resources.mocktrainer");
+        mockTrainer = getInstance("tests.resources.mockTrainer");
         requestStub = getInstance("tests.resources.requestStub");
         auth        = getInstance("authenticationService@cbauth");
 
@@ -28,7 +22,7 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                 // Switching accounts - the tests below check the trainer is still logged in as themselves
                 method: "post",
                 route : "/login/doLogin",
-                params: {email: personas.other.getEmail(), password: createUUID()}
+                params: {email: personas.other.email, password: createUUID()}
             },
             {
                 method: "post",
@@ -44,7 +38,7 @@ component extends="tests.resources.baseTest" asyncAll="false" {
             {
                 method: "post",
                 route : "/login/forgotPassword",
-                params: {email: personas.other.getEmail()}
+                params: {email: personas.other.email}
             },
             {
                 method: "post",
@@ -55,7 +49,7 @@ component extends="tests.resources.baseTest" asyncAll="false" {
     }
 
     function afterAll() {
-        personas.each((name, trainer) => mockTrainer.delete(trainer.getId()));
+        personas.each((name, trainer) => mockTrainer.deleteTrainer(trainer.id));
         super.afterAll();
     }
 
@@ -66,10 +60,12 @@ component extends="tests.resources.baseTest" asyncAll="false" {
          : post(route = arguments.guestRoute.route, params = arguments.guestRoute.params);
     }
 
-    private numeric function countTrainers() {
-        return ormExecuteQuery("select count(id) from trainer", true);
-    }
-
+    /**
+     * interceptors/guestOnly.cfc
+     *  - logged in trainers are kept out of the guest-only events (settings.guestOnlyEvents)
+     *  - unverified trainers can only verify their account or log out
+     * firewallTest has the access matrix, this covers the edges - posts, json callers, switching accounts, logout
+     */
     function run() {
         describe("Guest-only events setting", () => {
             it("Lists every login action except verifying and logging out", () => {
@@ -130,13 +126,13 @@ component extends="tests.resources.baseTest" asyncAll="false" {
             });
 
             it("Are sent home from every guest-only page and form post", () => {
-                var trainersBefore = countTrainers();
+                var trainersBefore = testData.countRows("trainer");
                 for(var guestRoute in guestRoutes) {
                     var event = submitRoute(guestRoute);
                     expect(event.getValue("relocate_uri")).toBe("/", guestRoute.route);
-                    expect(auth.getUserId()).toBe(personas.verified.getId(), guestRoute.route);
+                    expect(auth.getUserId()).toBe(personas.verified.id, guestRoute.route);
                 }
-                expect(countTrainers()).toBe(trainersBefore); // the registration post never ran
+                expect(testData.countRows("trainer")).toBe(trainersBefore); // the registration post never ran
             });
 
             it("Are sent home from the verify post", () => {
@@ -167,13 +163,13 @@ component extends="tests.resources.baseTest" asyncAll="false" {
             });
 
             it("Are sent to verify from every guest-only page and form post", () => {
-                var trainersBefore = countTrainers();
+                var trainersBefore = testData.countRows("trainer");
                 for(var guestRoute in guestRoutes) {
                     var event = submitRoute(guestRoute);
                     expect(event.getValue("relocate_uri")).toBe("/verify", guestRoute.route);
-                    expect(auth.getUserId()).toBe(personas.unverified.getId(), guestRoute.route);
+                    expect(auth.getUserId()).toBe(personas.unverified.id, guestRoute.route);
                 }
-                expect(countTrainers()).toBe(trainersBefore);
+                expect(testData.countRows("trainer")).toBe(trainersBefore);
             });
 
             it("Can reach the verify form, with a way to log out", () => {
@@ -183,6 +179,7 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                 expect(event.getCurrentEvent()).toBe("login.verifyForm");
                 expect(event.getRenderedContent()).toInclude("data-action=verifyform");
                 expect(event.getRenderedContent()).toInclude("action=""/logout""");
+                expect(event.getRenderedContent()).notToInclude("id=""contactBtn""");
             });
 
             it("Can submit a verification code", () => {
@@ -199,6 +196,20 @@ component extends="tests.resources.baseTest" asyncAll="false" {
 
                 expect(event.getValue("relocate_uri")).toBe("/");
                 expect(auth.isLoggedIn()).toBeFalse();
+            });
+
+            it("Are sent to verify from the contact form", () => {
+                var event = execute(route = "/contact");
+
+                expect(event.getValue("relocate_uri")).toBe("/verify");
+            });
+
+            it("Get a 403 when submitting the contact form", () => {
+                var event = requestStub.asJsonRequest(() => post(route = "/home/contact", params = {}));
+                var data  = event.getPrivateValue("cbox_renderdata");
+
+                expect(data.statusCode).toBe(403);
+                expect(data.data.message).toBe("Please verify your account.");
             });
 
             it("Can still see error pages", () => {

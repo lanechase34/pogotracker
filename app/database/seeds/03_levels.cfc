@@ -1,7 +1,7 @@
 component extends="base" {
 
     function run(qb, mockdata) {
-        var levelMap = deserializeJSON(fileRead("../../includes/assets/levels.json"));
+        var levelMap = deserializeJSON(fileRead("../../includes/assets/levels.json", "UTF-8"));
 
         qb.table("level")
             .insert(

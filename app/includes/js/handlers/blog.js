@@ -1,13 +1,15 @@
 import { createAlert } from 'alert';
-import { isMobileDisplay } from 'display';
+import { appendHtml, delegate, isMobileDisplay } from 'display';
 import { escapeHtml } from 'escape';
-import { csrfToken, getWrapper, postWrapper } from 'fetch';
+import { csrfToken, getWrapper, HandledError, postWrapper, RequestError, requestErrorMessage } from 'fetch';
 import { resizeHomeCards } from 'home';
-import { $loading, $submitBtn } from 'loading';
+import { $loading, $submitBtn, addLoadMoreButton } from 'loading';
+import { confirmModal } from 'modals';
+import { createToast } from 'toast';
 
 export const $blogListDiv = document.getElementById('blogList');
-const $submitBlogCommentBtn = document.getElementById('submitBlogComment');
-const $blogComment = document.getElementById('blogComment');
+const $submitBlogCommentBtn = /** @type {HTMLButtonElement} */ (document.getElementById('submitBlogComment'));
+const $blogComment = /** @type {HTMLTextAreaElement} */ (document.getElementById('blogComment'));
 const $blogData = document.getElementById('blogData');
 const $blogBodyDiv = document.getElementById('blogDiv');
 const blogFetchStruct = {
@@ -21,46 +23,26 @@ const blogFetchStruct = {
     observer: null,
 };
 
+/**
+ * Load More fetches blogFetchStruct.count more cards per click, until a batch comes back short
+ */
 function showLoadMoreButton($div, { showImage, exclude, sidebar }) {
-    document.getElementById('blogLoadMoreBtn')?.remove();
-
-    const $btn = document.createElement('button');
-    $btn.id = 'blogLoadMoreBtn';
-    $btn.type = 'button';
-    $btn.className = 'btn btn-outline-dark w-100 mt-2';
-    $btn.innerHTML = '<i class="bi bi-arrow-down-circle me-2"></i>Load More';
-
-    $btn.addEventListener('click', async () => {
-        $btn.disabled = true;
-        $btn.innerHTML =
-            '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Loading...';
-
-        const offset = blogFetchStruct.currOffset;
-
-        await getWrapper({
-            url: `/blog/get/count/${blogFetchStruct.count}/offset/${offset}/showimage/${showImage}/exclude/${exclude}/sidebar/${sidebar}`,
-            dataHandler: (data) => {
-                const newDiv = document.createElement('div');
-                newDiv.innerHTML = data;
-                $div.appendChild(newDiv);
-                blogFetchStruct.currOffset = offset + blogFetchStruct.count;
-
-                if (document.getElementById('homeCards')) {
-                    resizeHomeCards();
-                }
-
-                // Only show load more button if we retrieved the maximum count for the current offset back
-                if (newDiv.querySelectorAll('.blogCard').length === blogFetchStruct.count) {
-                    $btn.disabled = false;
-                    $btn.innerHTML = '<i class="bi bi-arrow-down-circle me-2"></i>Load More';
-                } else {
-                    $btn.remove();
-                }
-            },
-        });
-    });
-
-    $div.after($btn);
+    addLoadMoreButton(
+        $div,
+        async () => {
+            const loaded = await fetchBlogBatch({
+                $div,
+                count: blogFetchStruct.count,
+                offset: blogFetchStruct.currOffset,
+                showImage,
+                exclude,
+                sidebar,
+            });
+            // A failed batch keeps the button for a retry
+            return !loaded || blogFetchStruct.hasMore;
+        },
+        { id: 'blogLoadMoreBtn' }
+    );
 }
 
 /**
@@ -68,7 +50,7 @@ function showLoadMoreButton($div, { showImage, exclude, sidebar }) {
  */
 async function fetchBlogBatch({ $div, count, offset, showImage, exclude, sidebar }) {
     return await getWrapper({
-        url: `/blog/get/count/${count}/offset/${offset}/showimage/${showImage}/exclude/${exclude}/sidebar/${sidebar}`,
+        url: `/blog/getBlogs/count/${count}/offset/${offset}/showimage/${showImage}/exclude/${exclude}/sidebar/${sidebar}`,
         $loadingDiv: offset === 0 ? $div : null,
         loading: $loading,
         dataHandler: (data) => {
@@ -77,9 +59,7 @@ async function fetchBlogBatch({ $div, count, offset, showImage, exclude, sidebar
                 document.getElementById('blogLoadMoreBtn')?.remove();
             }
 
-            const newDiv = document.createElement('div');
-            newDiv.innerHTML = data;
-            $div.appendChild(newDiv);
+            const newDiv = appendHtml($div, data);
 
             if (document.getElementById('homeCards')) {
                 resizeHomeCards();
@@ -196,7 +176,7 @@ async function submitBlog($blogDivEditor, $blogSubmitBtn, submitUrl) {
                     'bi-exclamation-diamond-fill',
                     'Invalid Blog Add'
                 );
-                throw new Error(data.message);
+                throw new HandledError();
             } else {
                 window.location.href = '/';
             }
@@ -204,34 +184,139 @@ async function submitBlog($blogDivEditor, $blogSubmitBtn, submitUrl) {
     });
 }
 
-async function submitBlogComment($blogCommentSubmit, $submitBlogCommentBtnClicked) {
-    if (!$blogCommentSubmit.value.length) return;
+const COMMENT_MAX_LENGTH = 1000;
+const ADD_COMMENT_LABEL = '<i class="bi bi-chat-left-text me-1"></i>Add Comment';
+
+/**
+ * Show the comment count, and the empty message when there are none
+ *
+ * @param {number} change - comments added (+) or removed (-)
+ */
+function setCommentCount(change) {
+    const $count = document.getElementById('commentCount');
+    const total = Math.max(0, Number($count.textContent) + change);
+    $count.textContent = String(total);
+    document.getElementById('noComments').classList.toggle('d-none', total > 0);
+}
+
+/**
+ * Character counter under the comment box - the button only enables with something to post
+ */
+function updateCommentCounter() {
+    const length = $blogComment.value.length;
+    const $counter = document.getElementById('blogCommentCount');
+    $counter.textContent = `${length} / ${COMMENT_MAX_LENGTH}`;
+    $counter.classList.toggle('text-danger', length >= COMMENT_MAX_LENGTH);
+    $submitBlogCommentBtn.disabled = !$blogComment.value.trim().length;
+}
+
+async function submitBlogComment() {
+    const comment = $blogComment.value.trim();
+    if (!comment.length || $submitBlogCommentBtn.disabled) return;
 
     const packet = new FormData();
-    packet.append('comment', $blogCommentSubmit.value.trim());
+    packet.append('comment', comment);
     packet.append('blogid', $blogData.dataset.blogid);
 
     return await postWrapper({
         url: '/blog/addComment',
-        $loadingBtn: $submitBlogCommentBtnClicked,
+        $loadingBtn: $submitBlogCommentBtn,
         loading: $submitBtn,
         packet,
         responseType: 'json',
         dataHandler: (data) => {
-            if (!data.success) {
-                $submitBlogCommentBtnClicked.disabled = false;
-                $submitBlogCommentBtnClicked.innerHTML = 'Add Comment';
-                createAlert(
-                    document.getElementById('commentAlert'),
-                    'danger',
-                    'bi-exclamation-diamond-fill',
-                    'Error adding comment. Please try again in a few minutes.'
-                );
-                throw new Error(data.message);
-            } else {
-                $blogCommentSubmit.value = '';
-                window.location.reload();
+            // Just banned (or already) - the comment box goes, leaving the notice
+            if (data.banned) {
+                document.getElementById('commentAlert').innerHTML = '';
+                document.getElementById('commentCompose').outerHTML =
+                    `<p class="text-muted small mb-0">${escapeHtml(data.message)}</p>`;
+                throw new HandledError();
             }
+            // The server's message says what to fix (too long, banned words, rate limited)
+            if (!data.success) throw new RequestError(data.message);
+
+            const $commentList = document.getElementById('commentList');
+            document.getElementById('commentAlert').innerHTML = '';
+            $commentList.insertAdjacentHTML('beforeend', data.data.html);
+            setCommentCount(1);
+
+            $blogComment.value = '';
+            $submitBlogCommentBtn.innerHTML = ADD_COMMENT_LABEL;
+            updateCommentCounter();
+            $commentList.lastElementChild?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        },
+        errorHandler: (error) => {
+            if (error instanceof HandledError) return;
+            createAlert(
+                document.getElementById('commentAlert'),
+                'danger',
+                'bi-exclamation-diamond-fill',
+                escapeHtml(requestErrorMessage(error))
+            );
+            updateCommentCounter();
+        },
+    });
+}
+
+/**
+ * Put the page of comments before the oldest one shown above the list
+ *
+ * @param {HTMLButtonElement} $btn - the show older comments button, holding the oldest shown id
+ */
+async function loadOlderComments($btn) {
+    if ($btn.disabled) return;
+    $btn.disabled = true;
+
+    const params = new URLSearchParams({ blogid: $blogData.dataset.blogid, beforeid: $btn.dataset.beforeid });
+    await getWrapper({
+        url: `/blog/getComments?${params}`,
+        $loadingDiv: null,
+        loading: '',
+        responseType: 'json',
+        dataHandler: (data) => {
+            if (!data.success) throw new RequestError(data.message);
+
+            document.getElementById('commentList').insertAdjacentHTML('afterbegin', data.data.html);
+            $btn.dataset.beforeid = String(data.data.oldestid);
+            document.getElementById('olderCommentCount').textContent = String(data.data.remaining);
+            $btn.classList.toggle('d-none', data.data.remaining <= 0);
+        },
+    });
+    $btn.disabled = false;
+}
+
+/**
+ * @param {HTMLButtonElement} $btn - the comment's delete button
+ */
+function deleteCommentConfirm($btn) {
+    confirmModal(
+        'Delete this comment? Its author will be banned from commenting.',
+        '<i class="bi bi-trash me-1"></i>Delete',
+        async () => {
+            await deleteComment($btn);
+        }
+    );
+}
+
+/**
+ * @param {HTMLButtonElement} $btn - the comment's delete button
+ */
+async function deleteComment($btn) {
+    const packet = new FormData();
+    packet.append('commentid', $btn.dataset.commentid);
+
+    return await postWrapper({
+        url: '/blog/deleteComment',
+        $loadingBtn: $btn,
+        loading: $submitBtn,
+        packet,
+        responseType: 'json',
+        dataHandler: (data) => {
+            if (!data.success) throw new RequestError(data.message);
+
+            document.getElementById(`comment${$btn.dataset.commentid}`)?.remove();
+            setCommentCount(-1);
+            createToast('Comment deleted. Its author can no longer comment.', 'success', 'bi-check-square-fill');
         },
     });
 }
@@ -305,9 +390,28 @@ export const runtime = {
     },
     read: () => {
         if ($submitBlogCommentBtn) {
-            $submitBlogCommentBtn.addEventListener('click', () => {
-                submitBlogComment($blogComment, $submitBlogCommentBtn);
+            updateCommentCounter();
+            $blogComment.addEventListener('input', updateCommentCounter);
+            $blogComment.addEventListener('keydown', (evt) => {
+                if (evt.key === 'Enter' && (evt.ctrlKey || evt.metaKey)) {
+                    evt.preventDefault();
+                    submitBlogComment();
+                }
             });
+            $submitBlogCommentBtn.addEventListener('click', () => {
+                submitBlogComment();
+            });
+        }
+
+        const $olderComments = /** @type {HTMLButtonElement | null} */ (document.getElementById('olderComments'));
+        $olderComments?.addEventListener('click', () => loadOlderComments($olderComments));
+
+        // One listener for every delete button, including comments added after load
+        const $commentList = document.getElementById('commentList');
+        if ($commentList) {
+            delegate($commentList, 'click', '.deleteComment', (evt, $btn) =>
+                deleteCommentConfirm(/** @type {HTMLButtonElement} */ ($btn))
+            );
         }
     },
 };
