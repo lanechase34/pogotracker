@@ -2,6 +2,7 @@ component extends="tests.resources.baseTest" asyncAll="false" {
 
     function beforeAll() {
         super.beforeAll();
+        inlineBackgroundLogs();
         mockTrainer    = getInstance("tests.resources.mockTrainer");
         auth           = getInstance("authenticationService@cbauth");
         persistService = getInstance("services.persist");
@@ -17,6 +18,7 @@ component extends="tests.resources.baseTest" asyncAll="false" {
     function afterAll() {
         persistService.deleteCookie();
         mockTrainer.deleteTrainer(trainer.id);
+        restoreBackgroundLogs();
         super.afterAll();
     }
 
