@@ -207,7 +207,7 @@ component extends="tests.resources.baseTest" asyncAll="false" {
         describe("Post forms", () => {
             it("Every post form in the views carries a csrf field", () => {
                 // Cached fragments can't hold a per-session token - form.js adds one from the csrf-token meta tag
-                var cachedFragments = ["views/pokemon/fragment/detailcontent.cfm"];
+                var cachedFragments = ["views/pokemon/fragment/detailContent.cfm"];
                 var viewsPath       = expandPath("/views");
                 var missing         = [];
 

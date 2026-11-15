@@ -135,7 +135,7 @@ component singleton accessors="true" {
             .newMail(to: arguments.email, subject: "Reset POGO Tracker Password")
             .setAdditionalInfoItem("audit", getAuditContext(event = "email.resetPassword"))
             .setView(
-                view  : "email/resetpassword",
+                view  : "email/resetPassword",
                 layout: "email",
                 args  : {
                     title    : "Reset Your Password",
@@ -165,7 +165,7 @@ component singleton accessors="true" {
             .newMail(to: arguments.email, subject: "POGO Tracker Verification Code")
             .setAdditionalInfoItem("audit", getAuditContext(event = "email.verificationCode"))
             .setView(
-                view  : "email/verificationcode",
+                view  : "email/verificationCode",
                 layout: "email",
                 args  : {
                     title           : "Verify Your Email",

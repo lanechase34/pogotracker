@@ -66,7 +66,7 @@
 
     <!--- Delta table (body populated by renderDeltaTable() in stats.js) --->
     <div class="col-12 col-xl-4 mt-3 statCard" id="deltaDiv">
-        #view(view="/views/stats/deltatable", nolayout=true)#
+        #view(view="/views/stats/deltaTable", nolayout=true)#
     </div>
 
     <!--- Leaderboard --->

@@ -180,7 +180,7 @@ component extends="base" {
         prc.missingShinyString = results[3];
 
         event.setView(
-            view     = "/views/stats/pokedexstats",
+            view     = "/views/stats/pokedexStats",
             nolayout = true,
             args     = {
                 pokedexstats      : prc.pokedexStats,
@@ -209,7 +209,7 @@ component extends="base" {
         prc.medalProgress = medalService.getProgress(trainerid = prc.trainerid);
 
         event.setView(
-            view     = "/views/stats/medalsummary",
+            view     = "/views/stats/medalSummary",
             nolayout = true,
             args     = {medalProgress: prc.medalProgress}
         );
@@ -234,7 +234,7 @@ component extends="base" {
         prc.medalProgress = medalService.getProgress(trainerid = prc.trainerid);
 
         event.setView(
-            view     = "/views/stats/medalprogress",
+            view     = "/views/stats/medalProgress",
             nolayout = true,
             // A friend's medals are shown, not edited
             args     = {medalProgress: prc.medalProgress, editable: prc.trainerid == prc.oCurrentUser.getId()}
@@ -284,7 +284,7 @@ component extends="base" {
         prc.topDeltas = statsService.getTopDeltas(trainerid = prc.trainerid);
 
         event.setView(
-            view     = "/views/stats/topdeltas",
+            view     = "/views/stats/topDeltas",
             nolayout = true,
             args     = {topDeltas: prc.topDeltas}
         );

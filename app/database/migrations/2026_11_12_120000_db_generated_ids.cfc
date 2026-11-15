@@ -1,7 +1,7 @@
 component {
 
     /**
-     * The database hands out primary keys (models/orm/base.cfc generator="identity")
+     * The database hands out primary keys
      * Hibernate's increment generator supplied the ids itself, so the SERIAL sequences weren't kept in step with the data -
      * set every sequence in public so its next id is the table's highest id + 1 (1 for an empty table)
      * Tables created after this get their ids from the sequence from the first insert, so they never need it
@@ -22,9 +22,9 @@ component {
                     WHERE table_schema = 'public'
                 LOOP
                     IF col.seq IS NOT NULL THEN
-                        -- is_called = false: the next nextval() returns exactly max + 1 (1 for an empty table)
+                        -- is_called = false: the next NEXTVAL() returns exactly max + 1 (1 for an empty table)
                         EXECUTE FORMAT(
-                            'SELECT setval(%L, COALESCE((SELECT MAX(%I) FROM %I.%I), 0) + 1, false)',
+                            'SELECT SETVAL(%L, COALESCE((SELECT MAX(%I) FROM %I.%I), 0) + 1, false)',
                             col.seq,
                             col.column_name,
                             col.table_schema,

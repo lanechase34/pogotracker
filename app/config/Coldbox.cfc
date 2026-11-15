@@ -47,7 +47,7 @@ component {
             invalidHTTPMethodHandler: "error.invalidHTTPMethod",
             exceptionHandler        : "error.onException",
             invalidEventHandler     : "error.notFound",
-            customErrorTemplate     : "/views/fragment/errortemplate.cfm",
+            customErrorTemplate     : "/views/fragment/errorTemplate.cfm",
             // Application Aspects
             handlerCaching          : true,
             eventCaching            : true,

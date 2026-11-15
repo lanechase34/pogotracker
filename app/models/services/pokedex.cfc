@@ -191,7 +191,7 @@ component singleton accessors="true" {
                 scale    : 1
             }
         };
-        // Same set of pokemon as getRegistered(region) - only live shinies when registering shiny
+        // Same set of pokemon as getRegistered(region) - registering shiny also skips pokemon whose shiny is not released
         var eligibleWhere = "
             pokemon.generation = :generation
             AND pokemon.costume = false

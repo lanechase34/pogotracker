@@ -53,7 +53,7 @@ component singleton accessors="true" {
     // Vendored modules, full web path served as is - rendered into the import map
     variables.vendorModules = ["@stomp/stompjs": "/includes/js/vendor/stompjs-7.0.0.esm.js"];
 
-    // Entry modules loaded by a <script src> in a layout - preloadable but left out of the import map
+    // Entry modules loaded by a script src tag in a layout - preloadable but left out of the import map
     variables.entryModules = ["global": "/global"];
 
     public any function init() {
@@ -99,7 +99,7 @@ component singleton accessors="true" {
     }
 
     /**
-     * The import map JSON for <script type="importmap"> - our modules plus vendored ones
+     * The import map JSON for the script type="importmap" tag - our modules plus vendored ones
      */
     public string function getImportMapJSON() {
         return variables.importMapJSON;
@@ -143,7 +143,7 @@ component singleton accessors="true" {
     }
 
     /**
-     * Module URLs to <link rel="modulepreload"> - the entry module, the current handler's module and everything they statically import
+     * Module URLs to link rel="modulepreload" - the entry module, the current handler's module and everything they statically import
      * Dynamic import() calls are left alone so lazy modules stay lazy
      * URLs are the same ones getImportMapJSON serves so the browser reuses the preloaded copy
      *

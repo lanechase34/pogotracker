@@ -55,7 +55,7 @@
 <!--- Global styles --->
 <link rel="stylesheet" type="text/css" href="#getSetting('cssPath')#/global#getSetting('minifiedCSS')#.css#getSetting('cacheBuster')#"/>
 
-#view(view="/views/fragment/importmap")#
+#view(view="/views/fragment/importMap")#
 
 <!--- Fetch the whole module tree up front instead of one import level at a time --->
 <cfif len(args.moduleEntry ?: "")>

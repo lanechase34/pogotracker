@@ -44,14 +44,14 @@ component extends="base" {
         }
         else {
             event.setHTTPHeader(statusCode = 405);
-            event.setView(view = "/views/fragment/invalidmethod", layout = "basic");
+            event.setView(view = "/views/fragment/invalidMethod", layout = "basic");
         }
     }
 
     /**
      * Exception handler - ColdBox runs it for any exception the request didn't handle
      * ColdBox discards what an exception handler renders, so every outcome either relocates or sets renderData / a view
-     * for views/fragment/errortemplate.cfm to send
+     * for views/fragment/errorTemplate.cfm to send
      */
     function onException(event, rc, prc) {
         // Security outcomes thrown mid request are not bugs

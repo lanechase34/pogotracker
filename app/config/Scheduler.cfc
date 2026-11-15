@@ -147,7 +147,7 @@ component {
             .everyHour();
     }
 
-    function callbackOnFailure(required struct task, struct exception = {}) {
+    public void function callbackOnFailure(required struct task, struct exception = {}) {
         task.overviewStruct.detail = "Task Failure";
         auditService.audit(argumentCollection = task.overviewStruct);
 
@@ -158,7 +158,7 @@ component {
         emailService.sendBug(error = exception, requestContext = {task: task.overviewStruct, detail: "Task Failure"});
     }
 
-    function callbackOnSuccess(required struct task) {
+    public void function callbackOnSuccess(required struct task) {
         task.overviewStruct.detail = "Task Success";
         auditService.audit(argumentCollection = task.overviewStruct);
     }
@@ -168,7 +168,7 @@ component {
 	 *
 	 * @task The task about to be executed
 	 */
-    function beforeAnyTask(required task) {
+    public void function beforeAnyTask(required any task) {
         task.overviewStruct = {
             ip     : "localhost",
             event  : "",

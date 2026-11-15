@@ -1413,7 +1413,6 @@ component singleton accessors="true" {
                             stats         : task.task.getStats(),
                             group         : task.task.getGroup(),
                             debug         : task.task.getDebug(),
-                            meta          : task.task.getMeta(),
                             dayOfWeek     : task.task.getDayOfTheWeek(),
                             onTaskSuccess : task.task.getOnTaskSuccess(),
                             onTaskFailure : task.task.getOnTaskFailure(),

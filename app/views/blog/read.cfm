@@ -19,7 +19,7 @@
             <div class="card-body p-4">
                 <h1 class="mb-3">#prc.blog.header#</h1>
                 <div class="pb-3 mb-3 border-bottom">
-                    #view(view="/views/blog/fragment/trainerinfo", args={author: prc.blog.author, date: dateFormat(prc.blog.created, "mmm d, yyyy")})#
+                    #view(view="/views/blog/fragment/trainerInfo", args={author: prc.blog.author, date: dateFormat(prc.blog.created, "mmm d, yyyy")})#
                 </div>
                 <div class="blog-body">
                     #prc.blog.body#

@@ -246,7 +246,7 @@ component extends="base" {
      */
     function writeForm(event, rc, prc) secured="admin" {
         prc.header = "New Blog";
-        event.setView(view = "/views/blog/writeform", args = {editing: false, submit: "/blog/write"});
+        event.setView(view = "/views/blog/writeForm", args = {editing: false, submit: "/blog/write"});
     }
 
     /**
@@ -348,7 +348,7 @@ component extends="base" {
         prc.header   = "Editing Blog";
 
         event.setView(
-            view = "/views/blog/writeform",
+            view = "/views/blog/writeForm",
             args = {
                 editing : true,
                 blog    : prc.blog,
@@ -424,7 +424,7 @@ component extends="base" {
 
         // Load more requests only need the news items to append to the existing card
         event.setView(
-            view     = prc.offset ? "/views/blog/fragment/newsitems" : "/views/blog/news",
+            view     = prc.offset ? "/views/blog/fragment/newsItems" : "/views/blog/news",
             nolayout = true,
             args     = {news: prc.news, count: prc.count}
         );
@@ -445,7 +445,7 @@ component extends="base" {
 
         // Load more requests only need the event items to append to the existing card
         event.setView(
-            view     = prc.offset ? "/views/blog/fragment/eventitems" : "/views/blog/events",
+            view     = prc.offset ? "/views/blog/fragment/eventItems" : "/views/blog/events",
             nolayout = true,
             args     = {events: prc.events, count: prc.count}
         );

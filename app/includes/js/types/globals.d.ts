@@ -1,5 +1,5 @@
 /**
- * Libraries loaded from CDN <script> tags in layouts/default.cfm and views/blog/writeform.cfm
+ * Libraries loaded from CDN <script> tags in layouts/default.cfm and views/blog/writeForm.cfm
  */
 declare const bootstrap: any;
 declare const $: any;
@@ -21,7 +21,7 @@ declare const Quote: any;
 declare const CodeTool: any;
 declare const edjsHTML: any;
 
-// Inline page data (layouts/default.cfm, views/stats/overview.cfm, views/blog/writeform.cfm)
+// Inline page data (layouts/default.cfm, views/stats/overview.cfm, views/blog/writeForm.cfm)
 declare let globalModals: Record<string, any>;
 declare const statDataset: any;
 declare const bodyJson: any;

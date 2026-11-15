@@ -891,17 +891,14 @@ component singleton accessors="true" {
      */
     private boolean function isLocationSpecific(required string link) {
         var eventLink = arguments.link;
-        return cache.getOrSet(
-            "#variables.EVENT_LOCATION_KEY#|link=#eventLink#",
-            () => !scraperService
-                .getData(eventLink)
-                .body()
-                .select("div.page-tags")
-                .select("div.tag.location-specific")
-                .isEmpty(),
-            720,
-            720
-        );
+        return cache.getOrSet("#variables.EVENT_LOCATION_KEY#|link=#eventLink#", () => !scraperService
+            .getData(eventLink)
+            .body()
+            .select("div.page-tags")
+            .select("div.tag.location-specific")
+            .isEmpty(),
+        720,
+        720);
     }
 
     /**

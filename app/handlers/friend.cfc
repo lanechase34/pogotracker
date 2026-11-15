@@ -58,7 +58,7 @@ component extends="base" secured="user" {
      */
     function getFriendsToAdd(event, rc, prc) {
         event.setView(
-            view     = "/views/friend/modal/addfriend",
+            view     = "/views/friend/modal/addFriend",
             nolayout = true,
             args     = {trainerid: prc.oCurrentUser.getId()}
         );

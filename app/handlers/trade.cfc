@@ -99,7 +99,7 @@ component extends="base" secured="user" {
                 prc.header           = "#prc.shiny ? "Shiny - " : ""##rc.region.len() ? rc.region : encodeForHTML(prc.custom.name)# Trade Plan";
                 prc.loop             = prc.tradePlan.trainerOnly.len() > prc.tradePlan.friendOnly.len() ? prc.tradePlan.trainerOnly.len() : prc.tradePlan.friendOnly.len();
                 prc.responseObj.data = view(
-                    view = "/views/trade/tradeplan",
+                    view = "/views/trade/tradePlan",
                     args = {
                         header   : prc.header,
                         loop     : prc.loop,

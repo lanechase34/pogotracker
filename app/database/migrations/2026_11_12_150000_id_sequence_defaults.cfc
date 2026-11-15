@@ -23,10 +23,10 @@ component {
                     seq := col.table_name || '_id_seq';
                     EXECUTE FORMAT('CREATE SEQUENCE IF NOT EXISTS %I.%I', col.table_schema, seq);
                     EXECUTE FORMAT('ALTER SEQUENCE %I.%I OWNED BY %I.%I.%I', col.table_schema, seq, col.table_schema, col.table_name, col.column_name);
-                    EXECUTE FORMAT('ALTER TABLE %I.%I ALTER COLUMN %I SET DEFAULT nextval(%L)', col.table_schema, col.table_name, col.column_name, col.table_schema || '.' || seq);
-                    -- is_called = false: the next nextval() returns exactly max + 1 (1 for an empty table)
+                    EXECUTE FORMAT('ALTER TABLE %I.%I ALTER COLUMN %I SET DEFAULT NEXTVAL(%L)', col.table_schema, col.table_name, col.column_name, col.table_schema || '.' || seq);
+                    -- is_called = false: the next NEXTVAL() returns exactly max + 1 (1 for an empty table)
                     EXECUTE FORMAT(
-                        'SELECT setval(%L, COALESCE((SELECT MAX(%I) FROM %I.%I), 0) + 1, false)',
+                        'SELECT SETVAL(%L, COALESCE((SELECT MAX(%I) FROM %I.%I), 0) + 1, false)',
                         col.table_schema || '.' || seq,
                         col.column_name,
                         col.table_schema,

@@ -23,6 +23,6 @@
     data-region="#encodeForHTMLAttribute(rc.region)#"
     data-shiny="#encodeForHTMLAttribute(rc.shiny)#"
 >
-    #view(view="/views/pokedex/pokedextable", args=prc.pokedexTableArgs)#
+    #view(view="/views/pokedex/pokedexTable", args=prc.pokedexTableArgs)#
 </div>
 </cfoutput>

@@ -3,7 +3,7 @@
 <cfloop item="currComment" array="#args.comments#">
 <div class="blogComment" id="comment#currComment.id#">
     <div class="d-flex align-items-start">
-        #view(view="/views/blog/fragment/trainerinfo", args={author: currComment.author, date: dateTimeFormat(currComment.created, "mmm d, yyyy h:nn tt")})#
+        #view(view="/views/blog/fragment/trainerInfo", args={author: currComment.author, date: dateTimeFormat(currComment.created, "mmm d, yyyy h:nn tt")})#
         <cfif args.canDelete>
             <button
                 type="button"

@@ -126,22 +126,22 @@
             <div class="card-body">
                 <div class="pt-1">
                     #view(
-                        view="/views/pokemon/fragment/statrow",
+                        view="/views/pokemon/fragment/statRow",
                         nolayout=true,
                         args={stat: "Max CP", value: "#prc.detail.cp.lvl50[2]# CP", color: "bg-primary", percent: prc.detail.statPercentages.cp}
                     )#
                     #view(
-                        view="/views/pokemon/fragment/statrow",
+                        view="/views/pokemon/fragment/statRow",
                         nolayout=true,
                         args={stat: "Attack", value: "#prc.detail.pokemon.attack# ATK", color: "bg-danger", percent: prc.detail.statPercentages.attack}
                     )#
                     #view(
-                        view="/views/pokemon/fragment/statrow",
+                        view="/views/pokemon/fragment/statRow",
                         nolayout=true,
                         args={stat: "Defense", value: "#prc.detail.pokemon.defense# DEF", color: "bg-warning", percent: prc.detail.statPercentages.defense}
                     )#
                     #view(
-                        view="/views/pokemon/fragment/statrow",
+                        view="/views/pokemon/fragment/statRow",
                         nolayout=true,
                         args={stat: "Stamina", value: "#prc.detail.pokemon.hp# HP", color: "bg-success", percent: prc.detail.statPercentages.hp}
                     )#
@@ -171,7 +171,7 @@
                     </thead>
                     <tbody>
                         <cfloop index="i" item="currEvolution" array="#prc.detail.evolutionChain#">
-                            #view(view="/views/pokemon/fragment/evolutionrow", nolayout=true, args={evolution: currEvolution})#
+                            #view(view="/views/pokemon/fragment/evolutionRow", nolayout=true, args={evolution: currEvolution})#
                         </cfloop>
                     </tbody>
                 </table>
@@ -205,7 +205,7 @@
                     </thead>
                     <tbody>
                         <cfloop index="i" item="currMove" array="#moves#">
-                            #view(view="/views/pokemon/fragment/moverow", nolayout=true, args={move: currMove})#
+                            #view(view="/views/pokemon/fragment/moveRow", nolayout=true, args={move: currMove})#
                         </cfloop>
                     </tbody>
                 </table>
@@ -237,7 +237,7 @@
                                 </tr>
                             </thead>
                             <tbody id="eventRows">
-                                #view(view='/views/pokemon/fragment/eventrows', args={
+                                #view(view='/views/pokemon/fragment/eventRows', args={
                                     events: prc.detail.events,
                                     ses   : prc.detail.pokemon.ses,
                                     offset: 5,

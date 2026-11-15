@@ -5,7 +5,7 @@
             <i class="bi bi-newspaper fs-5"></i>Latest News
         </div>
         <div class="list-group list-group-flush" id="newsList" data-count="#args.count#">
-            #view(view = '/views/blog/fragment/newsitems', args = {news: args.news})#
+            #view(view = '/views/blog/fragment/newsItems', args = {news: args.news})#
         </div>
     </div>
 </div>

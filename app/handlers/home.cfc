@@ -32,7 +32,7 @@ component extends="base" {
      * Contact Form Modal
      */
     function contactForm(event, rc, prc) secured="user" {
-        event.setView(view = "/views/modal/contactform", nolayout = true);
+        event.setView(view = "/views/modal/contactForm", nolayout = true);
     }
 
     /**

@@ -136,7 +136,7 @@ component extends="base" secured="user" {
         prc.trainerid = parseNumber(rc.trainerid);
 
         event.setView(
-            view     = "/views/pokedex/pokedextable",
+            view     = "/views/pokedex/pokedexTable",
             nolayout = true,
             args     = buildPokedexTableArgs(
                 trainerid      = prc.trainerid,
@@ -151,7 +151,7 @@ component extends="base" secured="user" {
     }
 
     /**
-     * Build the args for /views/pokedex/pokedextable
+     * Build the args for /views/pokedex/pokedexTable
      * Shared by getPokedex (region/view switches) and the pokedex pages, which render the first grid server side
      */
     private struct function buildPokedexTableArgs(
@@ -265,7 +265,7 @@ component extends="base" secured="user" {
         prc.name      = prc.custom.name;
 
         event.setView(
-            view     = "/views/pokedex/pokedextable",
+            view     = "/views/pokedex/pokedexTable",
             nolayout = true,
             args     = buildCustomPokedexTableArgs(
                 trainerid = prc.trainerid,
@@ -277,7 +277,7 @@ component extends="base" secured="user" {
     }
 
     /**
-     * Build the args for /views/pokedex/pokedextable from a custom pokedex
+     * Build the args for /views/pokedex/pokedexTable from a custom pokedex
      * Shared by myCustomPokedex (first render) and getCustomPokedex (shiny toggle)
      */
     private struct function buildCustomPokedexTableArgs(
@@ -318,7 +318,7 @@ component extends="base" secured="user" {
         );
 
         event.setView(
-            view     = "/views/pokedex/custompokedexlist",
+            view     = "/views/pokedex/customPokedexList",
             nolayout = prc.offset > 0,
             args     = {
                 trainerid      : prc.trainerid,
@@ -336,7 +336,7 @@ component extends="base" secured="user" {
         prc.pokemon = pokemonService.getAll();
         prc.header  = "Add Custom Pokedex";
         event.setView(
-            view     = "/views/pokedex/modal/custompokedexform",
+            view     = "/views/pokedex/modal/customPokedexForm",
             nolayout = true,
             args     = {
                 edit   : false,
@@ -363,7 +363,7 @@ component extends="base" secured="user" {
         prc.customPokedex = customService.getCustomPokedexIds(customid = prc.custom.id);
         prc.header        = "Editing #encodeForHTML(prc.custom.name)#";
         event.setView(
-            view     = "/views/pokedex/modal/custompokedexform",
+            view     = "/views/pokedex/modal/customPokedexForm",
             nolayout = true,
             args     = {
                 edit         : true,

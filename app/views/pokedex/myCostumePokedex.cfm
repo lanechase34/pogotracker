@@ -1,11 +1,10 @@
 <cfoutput>
 <div 
-    id="shadowPokedexTable" 
+    id="costumePokedexTable" 
     class="mt-3" 
     data-trainerid="#encodeForHTMLAttribute(prc.trainerid)#" 
-    data-shadow="true"
     data-shiny="#encodeForHTMLAttribute(rc.shiny)#"
 >
-    #view(view="/views/pokedex/pokedextable", args=prc.pokedexTableArgs)#
+    #view(view="/views/pokedex/pokedexTable", args=prc.pokedexTableArgs)#
 </div>  
 </cfoutput>

@@ -238,7 +238,7 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                 });
             });
 
-            describe("trainerService.get", () => {
+            describe("trainerService.getTable", () => {
                 it("Pages every trainer", () => {
                     var total  = testData.countRows("trainer");
                     var result = table(
@@ -296,7 +296,7 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                 });
             });
 
-            describe("bugService.get", () => {
+            describe("bugService.getTable", () => {
                 it("Pages every bug", () => {
                     var total  = testData.countRows("bug");
                     var result = table(bugService, "getTable", {records: 10, offset: 0});
@@ -337,7 +337,7 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                 });
             });
 
-            describe("auditService.get", () => {
+            describe("auditService.getTable", () => {
                 it("Pages every audit", () => {
                     var total  = testData.countRows("audit");
                     var result = table(

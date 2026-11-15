@@ -614,7 +614,7 @@ component extends="base" secured="admin" {
         prc.overridesJSON = serializeJSON(adminService.getOverride(name = "enveventoverrides"));
         prc.submitAction  = "admin.saveEventOverrides";
 
-        event.setView(view = "/views/admin/readoverrides");
+        event.setView(view = "/views/admin/readOverrides");
     }
 
     function saveEventOverrides(event, rc, prc) {
@@ -656,7 +656,7 @@ component extends="base" secured="admin" {
         prc.overridesJSON = serializeJSON(adminService.getOverride(name = "leekducknamemap"));
         prc.submitAction  = "admin.saveNameOverrides";
 
-        event.setView(view = "/views/admin/readoverrides");
+        event.setView(view = "/views/admin/readOverrides");
     }
 
     function saveNameOverrides(event, rc, prc) {

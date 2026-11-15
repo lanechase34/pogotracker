@@ -38,7 +38,7 @@ component extends="base" {
     private string function indexContent(event, rc, prc) {
         prc.pokedexIndex = pokemonService.getIndex();
         prc.costumeIndex = pokemonService.getCostumeIndex();
-        return view(view = "/views/pokemon/fragment/indexcontent", nolayout = true);
+        return view(view = "/views/pokemon/fragment/indexContent", nolayout = true);
     }
 
     /**
@@ -90,7 +90,7 @@ component extends="base" {
      */
     private string function detailContent(event, rc, prc, required string ses) {
         prc.detail = pokemonService.getDetail(ses = arguments.ses);
-        return view(view = "/views/pokemon/fragment/detailcontent", nolayout = true);
+        return view(view = "/views/pokemon/fragment/detailContent", nolayout = true);
     }
 
     /**
@@ -148,7 +148,7 @@ component extends="base" {
         );
 
         event.setView(
-            view     = "/views/pokemon/fragment/eventrows",
+            view     = "/views/pokemon/fragment/eventRows",
             nolayout = true,
             args     = {
                 events: prc.events,
