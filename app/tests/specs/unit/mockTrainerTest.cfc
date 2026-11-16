@@ -2,12 +2,14 @@ component extends="tests.resources.baseTest" asyncAll="false" {
 
     function beforeAll() {
         super.beforeAll();
+        inlineBackgroundLogs();
         mockTrainer = getInstance("tests.resources.mockTrainer");
     }
 
     function afterAll() {
-        super.afterAll();
         if(session.keyExists("mocktrainerid")) mockTrainer.deleteTrainer();
+        restoreBackgroundLogs();
+        super.afterAll();
     }
 
     function run() {
