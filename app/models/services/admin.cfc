@@ -779,9 +779,6 @@ component singleton accessors="true" {
      * Updates the database using json pokedex
      */
     public void function updatePokemonData(required struct jsonPokedex) {
-        // Stop before writing anything if the scrape looks broken
-        checkScrapeRemovals(arguments.jsonPokedex);
-
         // Create missing generations
         generationService.createAll();
 
