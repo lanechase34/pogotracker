@@ -86,6 +86,9 @@
                 <button type="submit" formaction="/admin/buildPokemonData" class="list-group-item list-group-item-action d-flex align-items-center gap-3 py-3">
                     <i class="bi bi-hammer text-center text-body-secondary adminNavIcon"></i><span class="flex-grow-1">Build Pokemon</span><i class="bi bi-play-fill small text-body-secondary" title="Runs immediately"></i>
                 </button>
+                <button type="submit" formaction="/admin/buildShadowData" class="list-group-item list-group-item-action d-flex align-items-center gap-3 py-3">
+                    <i class="bi bi-hammer text-center text-body-secondary adminNavIcon"></i><span class="flex-grow-1">Build Shadow Data</span><i class="bi bi-play-fill small text-body-secondary" title="Runs immediately"></i>
+                </button>
             </form>
             <div class="card-footer d-flex flex-wrap gap-2 mt-auto">
                 <span class="badge rounded-pill #getSetting('signups') ? 'text-bg-success' : 'text-bg-secondary'#">Signups #getSetting('signups') ? 'On' : 'Off'#</span>

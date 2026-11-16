@@ -39,6 +39,7 @@ component extends="base" secured="admin" {
         getRequests       : "GET",
         updateSiteMap     : "POST",
         buildCostumeData  : "POST",
+        buildShadowData   : "POST",
         getCacheData      : "GET"
     };
 
@@ -711,6 +712,22 @@ component extends="base" secured="admin" {
         cfsetting(requestTimeout = 600);
         adminService.buildCostumeData();
         relocate(event = "admin.listPokemon");
+    }
+
+    function buildShadowData(event, rc, prc) {
+        cfsetting(requestTimeout = 600);
+        adminService.buildShadowData();
+
+        flash.put(
+            name  = "alert",
+            value = {
+                "type"       : "success",
+                "dismissible": true,
+                "icon"       : "bi bi-file-earmark-check",
+                "message"    : "Shadow data updated. Build Pokemon to apply it."
+            }
+        );
+        relocate(event = "admin");
     }
 
 }

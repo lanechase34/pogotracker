@@ -109,14 +109,14 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                     ip      = repeatString("1", 60),
                     event   = marker,
                     referer = repeatString("r", 300),
-                    detail  = repeatString("d", 300),
+                    detail  = repeatString("d", 10050),
                     agent   = repeatString("a", 300)
                 );
 
                 var row = testData.findRow("audit", {event: marker});
                 expect(len(row.ip)).toBe(45);
                 expect(len(row.referer)).toBe(250);
-                expect(len(row.detail)).toBe(250);
+                expect(len(row.detail)).toBe(10000);
                 expect(len(row.agent)).toBe(250);
             });
 

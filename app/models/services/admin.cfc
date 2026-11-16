@@ -32,6 +32,19 @@ component singleton accessors="true" {
 
     property name="regionalForms" type="array";
 
+    // The pokemon fields upsertPokemon updates on an existing pokemon - the ones a build can change
+    variables.POKEMON_DIFF_FIELDS = [
+        "live",
+        "shiny",
+        "sprite",
+        "tradable",
+        "shadow",
+        "shadowshiny",
+        "giga",
+        "formtype",
+        "ses"
+    ];
+
     public void function init() {
         setRegionalForms(["Alolan", "Galarian", "Hisuian", "Paldean"]);
     }
@@ -53,8 +66,7 @@ component singleton accessors="true" {
                     return scraperService.getData("https://pokemondb.net/go/shiny");
                 },
                 () => {
-                    return getShadowData() ? scraperService.getData("https://bulbapedia.bulbagarden.net/wiki/List_of_Shadow_Pok%C3%A9mon_in_Pok%C3%A9mon_GO")
-                     : "";
+                    return getShadowData() ? buildShadowData() : readShadowData();
                 },
                 () => {
                     return scraperService.getData("https://pokemondb.net/go/evolution");
@@ -64,7 +76,7 @@ component singleton accessors="true" {
 
         var pokedexDoc   = scrapes[1];
         var shinyDoc     = scrapes[2];
-        var shadowDoc    = scrapes[3];
+        var shadowData   = scrapes[3];
         var evolutionDoc = scrapes[4];
 
         // Build the pokedex
@@ -214,75 +226,6 @@ component singleton accessors="true" {
             true,
             getMaxThreads()
         );
-
-        var shadowData = deserializeJSON(fileRead("/includes/assets/shadowdata.json", "UTF-8"));
-        // Web scraper is blocked in prod
-        if(getShadowData()) {
-            var savedShadowCount = shadowData.count();
-            shadowData           = {};
-            var shadowTable      = shadowDoc
-                .body()
-                .select("table.roundy.sortable")
-                .select("tbody > tr");
-            shadowTable.each((tr, trindex) => {
-                var rowData = tr.select("td");
-                if(!rowData.len()) return;
-                var curr = {};
-
-                rowData.each((td, tdindex) => {
-                    if(tdindex > 3) return;
-
-                    // number
-                    if(tdindex == 1) {
-                        curr.number = parseNumber(td.text(), "dec");
-                    }
-                    // shiny available check
-                    else if(tdindex == 2) {
-                        var isShiny = td.select("span > a > img[alt=Shiny]");
-                        curr.shiny  = isShiny.len() ? true : false;
-                        curr.img    = td.select("span > span > a > img").attr("src");
-                    }
-                    // name
-                    else {
-                        // have to check if this is a regional form
-                        var check  = listToArray(listToArray(listToArray(listLast(curr.img, "/"), "-")[2], ".")[1], "");
-                        curr.check = check[check.len()];
-
-                        if(isNumeric(curr.check)) {
-                            curr.name = td.text();
-                        }
-                        else {
-                            // A - alolan, G - galarian, H - hisuian, P - paldean
-                            if(curr.check == "A") {
-                                curr.name = "Alolan #td.text()#";
-                            }
-                            else if(curr.check == "G") {
-                                curr.name = "Galarian #td.text()#";
-                            }
-                            else if(curr.check == "H") {
-                                curr.name = "Hisuian #td.text()#";
-                            }
-                            else if(curr.check == "P") {
-                                curr.name = "Paldean #td.text()#";
-                            }
-                        }
-                    }
-                });
-
-                if(!shadowData.keyExists(curr.name)) {
-                    shadowData.insert(curr.name, curr);
-                }
-                else {
-                    shadowData.insert("SKIPPED#curr.name#", curr);
-                }
-            });
-
-            utilService.writeJsonFile(
-                path: "/includes/assets/shadowdata.json",
-                data: shadowData,
-                name: "shadowdata"
-            );
-        }
 
         // Build the evolution data
         var evolutionData = {}; // map name -> stage, evolution, cost
@@ -575,9 +518,113 @@ component singleton accessors="true" {
             );
         }
 
+        // Snapshot the current pokemon before the update so the audit can report what changed
+        var pokemonDiff = utilService.diffRecords(
+            keyPokemonRecords(pokemonService.findPokemon({costume: false})),
+            keyPokemonRecords(jsonPokedex.keyArray().map((key) => jsonPokedex[key])),
+            variables.POKEMON_DIFF_FIELDS
+        );
+
         // Update the data
         updatePokemonData(jsonPokedex);
+
+        auditService.auditSystem(
+            event  = "adminService.buildPokemonData",
+            detail = "Pulled #jsonPokedex.count()# pokemon (shadow data #getShadowData() ? "scraped" : "skipped"#). #describeDiff(pokemonDiff)#"
+        );
         return;
+    }
+
+    /**
+     * Scrapes the bulbapedia shadow pokemon list, saves it to shadowdata.json and audits the counts
+     * On its own this only refreshes the json - buildPokemonData applies it to the pokemon
+     *
+     * @return {name: {number, shiny, img, check, name}}
+     */
+    public struct function buildShadowData() {
+        var shadowDoc = scraperService.getWikiPage(
+            host    = "bulbapedia.bulbagarden.net",
+            page    = "List_of_Shadow_Pokémon_in_Pokémon_GO",
+            apiPath = "/w/api.php"
+        );
+
+        var savedShadowCount = readShadowData().count();
+        var shadowData       = {};
+        var shadowTable      = shadowDoc
+            .body()
+            .select("table.roundy.sortable")
+            .select("tbody > tr");
+        shadowTable.each((tr, trindex) => {
+            var rowData = tr.select("td");
+            if(!rowData.len()) return;
+            var curr = {};
+
+            rowData.each((td, tdindex) => {
+                if(tdindex > 3) return;
+
+                // number
+                if(tdindex == 1) {
+                    curr.number = parseNumber(td.text(), "dec");
+                }
+                // shiny available check
+                else if(tdindex == 2) {
+                    var isShiny = td.select("span > a > img[alt=Shiny]");
+                    curr.shiny  = isShiny.len() ? true : false;
+                    curr.img    = td.select("span > span > a > img").attr("src");
+                }
+                // name
+                else {
+                    // have to check if this is a regional form
+                    var check  = listToArray(listToArray(listToArray(listLast(curr.img, "/"), "-")[2], ".")[1], "");
+                    curr.check = check[check.len()];
+
+                    if(isNumeric(curr.check)) {
+                        curr.name = td.text();
+                    }
+                    else {
+                        // A - alolan, G - galarian, H - hisuian, P - paldean
+                        if(curr.check == "A") {
+                            curr.name = "Alolan #td.text()#";
+                        }
+                        else if(curr.check == "G") {
+                            curr.name = "Galarian #td.text()#";
+                        }
+                        else if(curr.check == "H") {
+                            curr.name = "Hisuian #td.text()#";
+                        }
+                        else if(curr.check == "P") {
+                            curr.name = "Paldean #td.text()#";
+                        }
+                    }
+                }
+            });
+
+            if(!shadowData.keyExists(curr.name)) {
+                shadowData.insert(curr.name, curr);
+            }
+            else {
+                shadowData.insert("SKIPPED#curr.name#", curr);
+            }
+        });
+
+        utilService.writeJsonFile(
+            path: "/includes/assets/shadowdata.json",
+            data: shadowData,
+            name: "shadowdata"
+        );
+
+        auditService.auditSystem(
+            event  = "adminService.buildShadowData",
+            detail = "Saved #shadowData.count()# shadow pokemon to shadowdata.json (was #savedShadowCount#)."
+        );
+        return shadowData;
+    }
+
+    /**
+     * The shadow data last saved to shadowdata.json, keyed by pokemon name
+     */
+    private struct function readShadowData() {
+        return deserializeJSON(fileRead("/includes/assets/shadowdata.json", "UTF-8"));
     }
 
     /**
@@ -863,6 +910,10 @@ component singleton accessors="true" {
         var levelMap   = deserializeJSON(fileRead("/includes/assets/levels.json", "UTF-8"));
         var levelCount = queryExecute("SELECT COUNT(*) AS total FROM level").total;
         if(levelCount == levelMap.count()) {
+            auditService.auditSystem(
+                event  = "adminService.buildLevels",
+                detail = "Levels unchanged, #levelCount# levels in the database match levels.json."
+            );
             return;
         }
 
@@ -876,6 +927,11 @@ component singleton accessors="true" {
                 );
             });
         }
+
+        auditService.auditSystem(
+            event  = "adminService.buildLevels",
+            detail = "Replaced #levelCount# levels with #levelMap.count()# levels from levels.json."
+        );
         return;
     }
 
@@ -884,11 +940,8 @@ component singleton accessors="true" {
      */
     public void function buildMedalData() {
         var jsonMedals = {};
-        var medalDoc   = scraperService.getData("https://pokemongo.fandom.com/wiki/Medals");
-        var medalTable = medalDoc
-            .body()
-            .select("##content")
-            .select("table.pogo-legacy-table");
+        var medalDoc   = scraperService.getWikiPage(host = "pokemongo.fandom.com", page = "Medals");
+        var medalTable = medalDoc.body().select("table.pogo-legacy-table");
 
         // Map wanted fields to the correct column indices
         var wantedFields = [
@@ -912,8 +965,9 @@ component singleton accessors="true" {
         });
 
         // Build the table body data
-        var order     = 1; // track the order to display
-        var tableData = medalTable.select("tbody");
+        var imageStats = {fetched: 0, skipped: 0};
+        var order      = 1; // track the order to display
+        var tableData  = medalTable.select("tbody");
         tableData.each((tbody, bodyindex) => {
             if(bodyindex == 2) return; // unreleased medals
 
@@ -928,7 +982,10 @@ component singleton accessors="true" {
                     if(tdindex == 3) {
                         // Select the image src url
                         var imgSrc = td.select("a").attr("href");
-                        if(!imgSrc.contains("https")) return;
+                        if(!imgSrc.contains("https")) {
+                            imageStats.skipped++;
+                            return;
+                        }
 
                         // Fetch the image through the scraper
                         // The scraped name becomes the file name - path characters are stripped
@@ -936,6 +993,7 @@ component singleton accessors="true" {
                             targetURL   = imgSrc,
                             destination = "/includes/images/medals/#reReplace(curr.name, "[\\/:*?""<>|]|\.\.", "", "all")#.webp"
                         );
+                        imageStats.fetched++;
                     }
                     // catch medals are all set values
                     else if(bodyIndex == 3 && tdindex > 3) {
@@ -978,9 +1036,74 @@ component singleton accessors="true" {
             );
         }
 
+        // Snapshot the current medals before the update so the audit can report what changed
+        var currentMedals = {};
+        medalService
+            .getAll()
+            .each((medal) => {
+                currentMedals[medal.name] = medal;
+            });
+        var scrapedMedals = jsonMedals.map((name, medal) => {
+            return {
+                description : medal.description ?: "",
+                bronze      : medal.bronze ?: 0,
+                silver      : medal.silver ?: 0,
+                gold        : medal.gold ?: 0,
+                platinum    : medal.platinum ?: 0,
+                displayorder: medal.order
+            };
+        });
+        var medalDiff = utilService.diffRecords(
+            currentMedals,
+            scrapedMedals,
+            [
+                "description",
+                "bronze",
+                "silver",
+                "gold",
+                "platinum",
+                "displayorder"
+            ]
+        );
+
         // Update the medal data
         updateMedalData(jsonMedals);
+
+        auditService.auditSystem(
+            event  = "adminService.buildMedalData",
+            detail = "Pulled #jsonMedals.count()# medals, fetched #imageStats.fetched# images (#imageStats.skipped# skipped). #describeDiff(medalDiff)#"
+        );
         return;
+    }
+
+    /**
+     * Audit text for a utilService.diffRecords result - counts first, then the keys in each group
+     */
+    private string function describeDiff(required struct diff) {
+        var detail = "Added #arguments.diff.added.len()#, changed #arguments.diff.changed.len()#, missing from source #arguments.diff.missing.len()#.";
+        if(arguments.diff.added.len()) detail &= " Added: #arguments.diff.added.toList(", ")#.";
+        if(arguments.diff.changed.len()) detail &= " Changed: #arguments.diff.changed.toList(", ")#.";
+        if(arguments.diff.missing.len()) detail &= " Missing: #arguments.diff.missing.toList(", ")#.";
+        return detail;
+    }
+
+    /**
+     * Pokemon records keyed by their natural key (number, name, gender, costume type), for diffRecords
+     *
+     * @pokemon array of pokemon
+     */
+    private struct function keyPokemonRecords(required array pokemon) {
+        var keyed = {};
+        arguments.pokemon.each((mon) => {
+            var key = reReplace(
+                trim("###mon.number# #mon.name# #mon.gender ?: ""# #mon.costumetype ?: ""#"),
+                "\s+",
+                " ",
+                "all"
+            );
+            keyed[key] = mon;
+        });
+        return keyed;
     }
 
     /**
@@ -1038,8 +1161,33 @@ component singleton accessors="true" {
             );
         }
 
+        // Snapshot the current moves before the update so the audit can report what changed
+        var scrapedMoves = {};
+        jsonMoves.each((move) => {
+            scrapedMoves[move.nameid] = move;
+        });
+        var moveDiff = utilService.diffRecords(
+            moveService.getMovesByNameId(),
+            scrapedMoves,
+            [
+                "name",
+                "type",
+                "damage",
+                "energy",
+                "turns",
+                "buffself",
+                "buffchance",
+                "buffeffect"
+            ]
+        );
+
         // Update move data
         updateMoveData(jsonMoves);
+
+        auditService.auditSystem(
+            event  = "adminService.buildMoveData",
+            detail = "Pulled #jsonMoves.len()# moves. #describeDiff(moveDiff)#"
+        );
         return;
     }
 
@@ -2264,17 +2412,28 @@ component singleton accessors="true" {
         lines.append("</urlset>");
 
         fileWrite(filePath, lines.toList(chr(10)), "UTF-8");
+
+        auditService.auditSystem(
+            event  = "adminService.updateSiteMap",
+            detail = "Sitemap updated with #entries.len()# urls"
+        );
+        return;
     }
 
     /**
      * Builds the costume data
      */
     public void function buildCostumeData() {
-        var costumes = deserializeJSON(fileRead("/includes/assets/costumes.json", "UTF-8"));
+        var costumes   = deserializeJSON(fileRead("/includes/assets/costumes.json", "UTF-8"));
+        var imageStats = {
+            fetched     : 0,
+            shinyFetched: 0,
+            existing    : 0
+        };
 
         if(getCostumeData()) {
             costumes = {};
-            var doc  = scraperService.getData("https://pokemongo.fandom.com/wiki/Event_Pok%C3%A9mon");
+            var doc  = scraperService.getWikiPage(host = "pokemongo.fandom.com", page = "Event_Pokémon");
 
             // The page holds both tables in one poketab widget
             // First content pane is the regular
@@ -2341,6 +2500,8 @@ component singleton accessors="true" {
 
             // Delete keys
             costumes.delete("150-2017-Yokohama-Stadium-1");
+            costumes.delete("26-Detective-2023");
+            costumes.delete("25-Detective-2023");
 
             // Download images
             costumes.each((key, costume) => {
@@ -2349,12 +2510,14 @@ component singleton accessors="true" {
 
                 // Normal sprite
                 var spritePath = "/includes/images/sprites/#costume.sprite##getImageExtension()#";
-                if(
-                    len(normalSprite)
-                    && normalSprite.startsWith("http")
-                    && !fileExists("#getRootPath()##spritePath#")
-                ) {
-                    scraperService.downloadImage(targetURL = normalSprite, destination = spritePath);
+                if(len(normalSprite) && normalSprite.startsWith("http")) {
+                    if(fileExists("#getRootPath()##spritePath#")) {
+                        imageStats.existing++;
+                    }
+                    else {
+                        scraperService.downloadImage(targetURL = normalSprite, destination = spritePath);
+                        imageStats.fetched++;
+                    }
                 }
 
                 // Determine if this has a shiny
@@ -2367,13 +2530,14 @@ component singleton accessors="true" {
 
                 // Shiny sprite
                 var shinySpritePath = "/includes/images/shinysprites/#costume.sprite##getImageExtension()#";
-                if(
-                    costume.shiny
-                    && len(shinySprite)
-                    && shinySprite.startsWith("http")
-                    && !fileExists("#getRootPath()##shinySpritePath#")
-                ) {
-                    scraperService.downloadImage(targetURL = shinySprite, destination = shinySpritePath);
+                if(costume.shiny && len(shinySprite) && shinySprite.startsWith("http")) {
+                    if(fileExists("#getRootPath()##shinySpritePath#")) {
+                        imageStats.existing++;
+                    }
+                    else {
+                        scraperService.downloadImage(targetURL = shinySprite, destination = shinySpritePath);
+                        imageStats.shinyFetched++;
+                    }
                 }
 
                 costume.delete("spriteSrc");
@@ -2429,6 +2593,16 @@ component singleton accessors="true" {
                     });
                 });
             });
+
+            // Stable evolution order - name, then gender, then costume type
+            costumes.each((key, costume) => {
+                costume.evolutions.sort((a, b) => {
+                    var nameCompare = compareNoCase(a.name, b.name);
+                    if(nameCompare != 0) return nameCompare;
+                    var genderCompare = compareNoCase(a.gender, b.gender);
+                    return genderCompare != 0 ? genderCompare : compareNoCase(a.costumetype, b.costumetype);
+                });
+            });
         }
 
         if(getWriteJson()) {
@@ -2439,7 +2613,20 @@ component singleton accessors="true" {
             );
         }
 
+        // Snapshot the current costumes before the update so the audit can report what changed
+        var costumeDiff = utilService.diffRecords(
+            keyPokemonRecords(pokemonService.findPokemon({costume: true})),
+            keyPokemonRecords(costumes.keyArray().map((key) => costumes[key])),
+            variables.POKEMON_DIFF_FIELDS
+        );
+
         updatePokemonData(costumes);
+
+        var source = getCostumeData() ? "scraped from wiki" : "read from costumes.json";
+        auditService.auditSystem(
+            event  = "adminService.buildCostumeData",
+            detail = "Pulled #costumes.count()# costumes (#source#), fetched #imageStats.fetched# sprites and #imageStats.shinyFetched# shiny sprites (#imageStats.existing# already on disk). #describeDiff(costumeDiff)#"
+        );
         return;
     }
 

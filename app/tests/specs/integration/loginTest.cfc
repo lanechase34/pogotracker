@@ -55,8 +55,8 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                 it("Can get the login form", () => {
                     var event = get(route = "/login");
                     expect(event.getResponse().getStatusCode()).toBe(200);
-                    expect(event.getRenderedContent()).toInclude("data-handler=login");
-                    expect(event.getRenderedContent()).toInclude("data-action=loginform");
+                    expect(event.getRenderedContent()).toInclude("data-handler=""login""");
+                    expect(event.getRenderedContent()).toInclude("data-action=""loginform""");
                 });
 
                 it("Rejects registering with an icon that is not a base icon", () => {
@@ -149,8 +149,8 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                 it("Can get to forgot password form", () => {
                     var event = get(route = "/forgot");
                     expect(event.getResponse().getStatusCode()).toBe(200);
-                    expect(event.getRenderedContent()).toInclude("data-handler=login");
-                    expect(event.getRenderedContent()).toInclude("data-action=forgotpasswordform");
+                    expect(event.getRenderedContent()).toInclude("data-handler=""login""");
+                    expect(event.getRenderedContent()).toInclude("data-action=""forgotpasswordform""");
                 });
 
                 it("Can request a reset password email and reset password", () => {
@@ -174,8 +174,8 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                     // Get the reset password form using the link emailed
                     event = get(route = uri, params = {});
                     expect(event.getResponse().getStatusCode()).toBe(200);
-                    expect(event.getRenderedContent()).toInclude("data-handler=login");
-                    expect(event.getRenderedContent()).toInclude("data-action=resetpasswordform");
+                    expect(event.getRenderedContent()).toInclude("data-handler=""login""");
+                    expect(event.getRenderedContent()).toInclude("data-action=""resetpasswordform""");
 
                     // A password that fails validation is rejected without using up the link
                     event = post(route = "/login/resetPassword", params = {resetCode: code, password: "short"});

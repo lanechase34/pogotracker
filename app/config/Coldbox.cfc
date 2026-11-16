@@ -302,6 +302,7 @@ component {
             title               : "POGO Tracker - Track Your Pokémon GO Progress",
             useRateLimiter      : true,
             useRecaptcha        : true,
+            skipRecaptcha       : false, // only set in development when the reCAPTCHA keys are missing
             verificationLifespan: 15, // time in minutes the verification link is valid for
             verificationCooldown: 900, // time in seconds to wait for a new verification code
             // Ordered struct, maps value -> display
@@ -510,7 +511,9 @@ component {
 
         // Development settings
         settings.title          = "[DEV #ucFirst(getSystemSetting("OS"))#] POGO Tracker";
-        settings.useRecaptcha   = false;
+        // Skip reCAPTCHA only when the dev keys are missing - recaptchaService logs an error each time it's skipped
+        settings.skipRecaptcha  = !len(settings.reCaptchaSiteKey) || !len(settings.reCaptchaSecretKey);
+        settings.useRecaptcha   = !settings.skipRecaptcha;
         settings.useRateLimiter = getSystemSetting("RATE_LIMITER", false);
         settings.scraperHosts.append("httpbin.io"); // dev.cfc user agent check
         settings.writeJson   = true;

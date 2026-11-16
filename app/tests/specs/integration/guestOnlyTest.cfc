@@ -177,7 +177,7 @@ component extends="tests.resources.baseTest" asyncAll="false" {
 
                 expect(event.getValue("relocate_uri", "")).toBe("");
                 expect(event.getCurrentEvent()).toBe("login.verifyForm");
-                expect(event.getRenderedContent()).toInclude("data-action=verifyform");
+                expect(event.getRenderedContent()).toInclude("data-action=""verifyform""");
                 expect(event.getRenderedContent()).toInclude("action=""/logout""");
                 expect(event.getRenderedContent()).notToInclude("id=""contactBtn""");
             });

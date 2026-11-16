@@ -1257,21 +1257,70 @@ export const runtime = {
         initLogViewer();
     },
     auditlog: () => {
-        logTable($auditLog, {
+        const auditModal = new bootstrap.Modal(document.getElementById('auditModal'));
+        const $auditModalCopy = document.getElementById('auditModalCopy');
+        const auditModalFields = {
+            event: document.getElementById('auditModalEvent'),
+            timestamp: document.getElementById('auditModalTimestamp'),
+            ip: document.getElementById('auditModalIp'),
+            username: document.getElementById('auditModalTrainer'),
+            referer: document.getElementById('auditModalReferer'),
+            agent: document.getElementById('auditModalAgent'),
+            detail: document.getElementById('auditModalDetail'),
+        };
+        const detailPreviewLength = 250;
+        let currentAudit = null;
+
+        // Audit data (agent, referer, path) is attacker controlled - always render as text
+        const dt = logTable($auditLog, {
             ajax: {
                 url: '/admin/getAudits',
                 type: 'GET',
                 dataSrc: 'data',
             },
-            // Audit data (agent, referer, path) is attacker controlled - always render as text
-            columnDefs: [
-                { searchable: false, targets: 0 },
-                { render: DataTable.render.text(), targets: '_all' },
+            columns: [
+                {
+                    data: null,
+                    orderable: false,
+                    searchable: false,
+                    className: 'text-center',
+                    render: () => `
+                        <button type="button" class="viewAudit btn btn-sm btn-outline-secondary" title="View details">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                    `,
+                },
+                { data: 'timestamp', searchable: false, className: 'text-nowrap' },
+                { data: 'ip', render: DataTable.render.text() },
+                { data: 'event', render: DataTable.render.text() },
+                { data: 'referer', render: DataTable.render.text() },
+                {
+                    data: 'detail',
+                    className: 'text-break',
+                    render: (data, type) => {
+                        if (type !== 'display' || data.length <= detailPreviewLength) return escapeHtml(data);
+                        return `${escapeHtml(data.slice(0, detailPreviewLength))}&hellip;`;
+                    },
+                },
+                { data: 'agent', render: DataTable.render.text() },
+                { data: 'username', render: DataTable.render.text() },
             ],
-            order: [[0, 'desc']],
+            order: [[1, 'desc']],
             serverSide: true,
             pageLength: 50,
             scrollY: 'calc(100vh - 250px)',
+        });
+
+        delegate($auditLog, 'click', '.viewAudit', (evt, $btn) => {
+            currentAudit = dt.row($btn.closest('tr')).data();
+            Object.entries(auditModalFields).forEach(([key, $el]) => {
+                $el.textContent = currentAudit[key] || '--';
+            });
+            auditModal.show();
+        });
+
+        $auditModalCopy.addEventListener('click', () => {
+            if (currentAudit) copyString([$auditModalCopy], currentAudit.detail);
         });
     },
     buglog: () => {

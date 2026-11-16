@@ -11,6 +11,11 @@ export const $forms = /** @type {NodeListOf<HTMLFormElement>} */ (document.query
 const siteKey = document.getElementById('currentEvent').dataset.sitekey;
 
 /**
+ * Development only - set when the reCAPTCHA keys are missing, forms submit without a token
+ */
+const skipRecaptcha = document.getElementById('currentEvent').dataset.skiprecaptcha === 'true';
+
+/**
  * Validates a form, optionally running a reCAPTCHA check before submission.
  *
  * Workflow:
@@ -78,7 +83,7 @@ export async function checkFormValidity(form, event, submit = true) {
             submitter.disabled = true;
         }
 
-        if (form.classList.contains('verifyRecaptcha')) {
+        if (form.classList.contains('verifyRecaptcha') && !skipRecaptcha) {
             let token = null;
 
             try {

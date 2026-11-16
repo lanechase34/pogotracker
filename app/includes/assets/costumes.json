@@ -1754,7 +1754,7 @@
         "ses": "25-Detective-hat",
         "shadow": false,
         "shadowshiny": false,
-        "shiny": true,
+        "shiny": false,
         "sprite": "25_Pikachu_Detective-hat",
         "tradable": true,
         "type": ["Normal"]
@@ -2957,7 +2957,7 @@
         "ses": "25-Ph-D",
         "shadow": false,
         "shadowshiny": false,
-        "shiny": true,
+        "shiny": false,
         "sprite": "25_Pikachu_Ph-D",
         "tradable": true,
         "type": ["Normal"]
@@ -4177,7 +4177,7 @@
         "ses": "26-Detective-hat",
         "shadow": false,
         "shadowshiny": false,
-        "shiny": true,
+        "shiny": false,
         "sprite": "26_Raichu_Detective-hat",
         "tradable": true,
         "type": ["Normal"]
@@ -5569,26 +5569,6 @@
                 "costume": true,
                 "costumetype": "Cherry Blossom",
                 "gender": "",
-                "name": "Glaceon",
-                "number": 471,
-                "special": false
-            },
-            {
-                "condition": "",
-                "cost": 25,
-                "costume": true,
-                "costumetype": "Cherry Blossom",
-                "gender": "",
-                "name": "Leafeon",
-                "number": 470,
-                "special": false
-            },
-            {
-                "condition": "",
-                "cost": 25,
-                "costume": true,
-                "costumetype": "Cherry Blossom",
-                "gender": "",
                 "name": "Espeon",
                 "number": 196,
                 "special": false
@@ -5609,18 +5589,8 @@
                 "costume": true,
                 "costumetype": "Cherry Blossom",
                 "gender": "",
-                "name": "Sylveon",
-                "number": 700,
-                "special": false
-            },
-            {
-                "condition": "",
-                "cost": 25,
-                "costume": true,
-                "costumetype": "Cherry Blossom",
-                "gender": "",
-                "name": "Vaporeon",
-                "number": 134,
+                "name": "Glaceon",
+                "number": 471,
                 "special": false
             },
             {
@@ -5639,8 +5609,38 @@
                 "costume": true,
                 "costumetype": "Cherry Blossom",
                 "gender": "",
+                "name": "Leafeon",
+                "number": 470,
+                "special": false
+            },
+            {
+                "condition": "",
+                "cost": 25,
+                "costume": true,
+                "costumetype": "Cherry Blossom",
+                "gender": "",
+                "name": "Sylveon",
+                "number": 700,
+                "special": false
+            },
+            {
+                "condition": "",
+                "cost": 25,
+                "costume": true,
+                "costumetype": "Cherry Blossom",
+                "gender": "",
                 "name": "Umbreon",
                 "number": 197,
+                "special": false
+            },
+            {
+                "condition": "",
+                "cost": 25,
+                "costume": true,
+                "costumetype": "Cherry Blossom",
+                "gender": "",
+                "name": "Vaporeon",
+                "number": 134,
                 "special": false
             }
         ],
@@ -5678,26 +5678,6 @@
                 "costume": true,
                 "costumetype": "Explorer",
                 "gender": "",
-                "name": "Glaceon",
-                "number": 471,
-                "special": false
-            },
-            {
-                "condition": "",
-                "cost": 25,
-                "costume": true,
-                "costumetype": "Explorer",
-                "gender": "",
-                "name": "Leafeon",
-                "number": 470,
-                "special": false
-            },
-            {
-                "condition": "",
-                "cost": 25,
-                "costume": true,
-                "costumetype": "Explorer",
-                "gender": "",
                 "name": "Espeon",
                 "number": 196,
                 "special": false
@@ -5718,18 +5698,8 @@
                 "costume": true,
                 "costumetype": "Explorer",
                 "gender": "",
-                "name": "Sylveon",
-                "number": 700,
-                "special": false
-            },
-            {
-                "condition": "",
-                "cost": 25,
-                "costume": true,
-                "costumetype": "Explorer",
-                "gender": "",
-                "name": "Vaporeon",
-                "number": 134,
+                "name": "Glaceon",
+                "number": 471,
                 "special": false
             },
             {
@@ -5748,8 +5718,38 @@
                 "costume": true,
                 "costumetype": "Explorer",
                 "gender": "",
+                "name": "Leafeon",
+                "number": 470,
+                "special": false
+            },
+            {
+                "condition": "",
+                "cost": 25,
+                "costume": true,
+                "costumetype": "Explorer",
+                "gender": "",
+                "name": "Sylveon",
+                "number": 700,
+                "special": false
+            },
+            {
+                "condition": "",
+                "cost": 25,
+                "costume": true,
+                "costumetype": "Explorer",
+                "gender": "",
                 "name": "Umbreon",
                 "number": 197,
+                "special": false
+            },
+            {
+                "condition": "",
+                "cost": 25,
+                "costume": true,
+                "costumetype": "Explorer",
+                "gender": "",
+                "name": "Vaporeon",
+                "number": 134,
                 "special": false
             }
         ],
@@ -5787,26 +5787,6 @@
                 "costume": true,
                 "costumetype": "Flower Crown",
                 "gender": "",
-                "name": "Glaceon",
-                "number": 471,
-                "special": false
-            },
-            {
-                "condition": "",
-                "cost": 25,
-                "costume": true,
-                "costumetype": "Flower Crown",
-                "gender": "",
-                "name": "Leafeon",
-                "number": 470,
-                "special": false
-            },
-            {
-                "condition": "",
-                "cost": 25,
-                "costume": true,
-                "costumetype": "Flower Crown",
-                "gender": "",
                 "name": "Espeon",
                 "number": 196,
                 "special": false
@@ -5827,18 +5807,8 @@
                 "costume": true,
                 "costumetype": "Flower Crown",
                 "gender": "",
-                "name": "Sylveon",
-                "number": 700,
-                "special": false
-            },
-            {
-                "condition": "",
-                "cost": 25,
-                "costume": true,
-                "costumetype": "Flower Crown",
-                "gender": "",
-                "name": "Vaporeon",
-                "number": 134,
+                "name": "Glaceon",
+                "number": 471,
                 "special": false
             },
             {
@@ -5857,8 +5827,38 @@
                 "costume": true,
                 "costumetype": "Flower Crown",
                 "gender": "",
+                "name": "Leafeon",
+                "number": 470,
+                "special": false
+            },
+            {
+                "condition": "",
+                "cost": 25,
+                "costume": true,
+                "costumetype": "Flower Crown",
+                "gender": "",
+                "name": "Sylveon",
+                "number": 700,
+                "special": false
+            },
+            {
+                "condition": "",
+                "cost": 25,
+                "costume": true,
+                "costumetype": "Flower Crown",
+                "gender": "",
                 "name": "Umbreon",
                 "number": 197,
+                "special": false
+            },
+            {
+                "condition": "",
+                "cost": 25,
+                "costume": true,
+                "costumetype": "Flower Crown",
+                "gender": "",
+                "name": "Vaporeon",
+                "number": 134,
                 "special": false
             }
         ],
@@ -5896,26 +5896,6 @@
                 "costume": true,
                 "costumetype": "Holiday Hat",
                 "gender": "",
-                "name": "Glaceon",
-                "number": 471,
-                "special": false
-            },
-            {
-                "condition": "",
-                "cost": 25,
-                "costume": true,
-                "costumetype": "Holiday Hat",
-                "gender": "",
-                "name": "Leafeon",
-                "number": 470,
-                "special": false
-            },
-            {
-                "condition": "",
-                "cost": 25,
-                "costume": true,
-                "costumetype": "Holiday Hat",
-                "gender": "",
                 "name": "Espeon",
                 "number": 196,
                 "special": false
@@ -5936,18 +5916,8 @@
                 "costume": true,
                 "costumetype": "Holiday Hat",
                 "gender": "",
-                "name": "Sylveon",
-                "number": 700,
-                "special": false
-            },
-            {
-                "condition": "",
-                "cost": 25,
-                "costume": true,
-                "costumetype": "Holiday Hat",
-                "gender": "",
-                "name": "Vaporeon",
-                "number": 134,
+                "name": "Glaceon",
+                "number": 471,
                 "special": false
             },
             {
@@ -5966,8 +5936,38 @@
                 "costume": true,
                 "costumetype": "Holiday Hat",
                 "gender": "",
+                "name": "Leafeon",
+                "number": 470,
+                "special": false
+            },
+            {
+                "condition": "",
+                "cost": 25,
+                "costume": true,
+                "costumetype": "Holiday Hat",
+                "gender": "",
+                "name": "Sylveon",
+                "number": 700,
+                "special": false
+            },
+            {
+                "condition": "",
+                "cost": 25,
+                "costume": true,
+                "costumetype": "Holiday Hat",
+                "gender": "",
                 "name": "Umbreon",
                 "number": 197,
+                "special": false
+            },
+            {
+                "condition": "",
+                "cost": 25,
+                "costume": true,
+                "costumetype": "Holiday Hat",
+                "gender": "",
+                "name": "Vaporeon",
+                "number": 134,
                 "special": false
             }
         ],
@@ -7955,7 +7955,7 @@
         "ses": "282-Meloetta-hat",
         "shadow": false,
         "shadowshiny": false,
-        "shiny": true,
+        "shiny": false,
         "sprite": "282_Gardevoir_Meloetta-hat",
         "tradable": true,
         "type": ["Normal"]

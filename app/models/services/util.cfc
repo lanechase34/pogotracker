@@ -338,6 +338,65 @@ component singleton accessors="true" {
         return isSimpleValue(arguments.value) ? """#arguments.value#""" : serializeJSON(orderJson(arguments.value));
     }
 
+    /**
+     * Compares the records in the database against freshly built records
+     * Returns the keys of records that are new, changed, or no longer in the source
+     *
+     * @currentRecords database records keyed the same way as scrapedRecords
+     * @scrapedRecords built records keyed by a natural key / display label
+     * @fields         fields compared to decide a record changed
+     *
+     * @return {added, changed, missing} - sorted arrays of keys
+     */
+    public struct function diffRecords(
+        required struct currentRecords,
+        required struct scrapedRecords,
+        required array fields
+    ) {
+        var result  = {added: [], changed: [], missing: []};
+        var current = arguments.currentRecords;
+        var scraped = arguments.scrapedRecords;
+        var fields  = arguments.fields;
+
+        scraped.each((key, record) => {
+            if(!current.keyExists(key)) {
+                result.added.append(key);
+                return;
+            }
+
+            var existing  = current[key];
+            var isChanged = fields.some((field) => {
+                return valuesDiffer(existing[field] ?: "", record[field] ?: "");
+            });
+            if(isChanged) result.changed.append(key);
+        });
+
+        current.each((key) => {
+            if(!scraped.keyExists(key)) result.missing.append(key);
+        });
+
+        result.added.sort("textnocase");
+        result.changed.sort("textnocase");
+        result.missing.sort("textnocase");
+        return result;
+    }
+
+    /**
+     * Whether a database value and a built value differ
+     * Numbers compare by value (10 vs 10.0) and booleans by truthiness (true vs "yes"), anything else exactly
+     */
+    private boolean function valuesDiffer(required any currentValue, required any scrapedValue) {
+        if(!isSimpleValue(arguments.currentValue) || !isSimpleValue(arguments.scrapedValue)) {
+            return compare(serializeJSON(arguments.currentValue), serializeJSON(arguments.scrapedValue)) != 0;
+        }
+        if(isNumeric(arguments.currentValue) && isNumeric(arguments.scrapedValue)) {
+            return val(arguments.currentValue) != val(arguments.scrapedValue);
+        }
+        if(isBoolean(arguments.currentValue) && isBoolean(arguments.scrapedValue)) {
+            return arguments.currentValue != arguments.scrapedValue;
+        }
+        return compare(toString(arguments.currentValue), toString(arguments.scrapedValue)) != 0;
+    }
 
     /**
      * Get the IP of incoming request

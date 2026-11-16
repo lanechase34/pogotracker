@@ -347,8 +347,8 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                     );
 
                     expectDatatable(result, total);
-                    expect(result.data[1]).toBeArray();
-                    expect(result.data[1]).toHaveLength(7);
+                    expect(result.data[1]).toBeStruct();
+                    expect(result.data[1]).toHaveKey("timestamp,ip,event,referer,detail,agent,username");
                 });
 
                 it("Finds an audit by detail with its trainer's username", () => {
@@ -360,9 +360,9 @@ component extends="tests.resources.baseTest" asyncAll="false" {
 
                     expect(result.recordsFiltered).toBe(1);
                     var row = result.data[1];
-                    expect(row[3]).toBe("#marker#.event");
-                    expect(row[5]).toBe("#marker# detail");
-                    expect(row[7]).toBe(trainer.username);
+                    expect(row.event).toBe("#marker#.event");
+                    expect(row.detail).toBe("#marker# detail");
+                    expect(row.username).toBe(trainer.username);
                 });
             });
 

@@ -8,6 +8,7 @@ component singleton accessors="true" {
 
     public void function init() {
         setDatatableCols([
+            "audit.id",
             "audit.created",
             "audit.ip",
             "audit.event",
@@ -50,7 +51,7 @@ component singleton accessors="true" {
             ip       : {value: left(arguments.ip, 45), cfsqltype: "varchar"},
             event    : {value: left(arguments.event, 250), cfsqltype: "varchar"},
             referer  : {value: left(arguments.referer, 250), cfsqltype: "varchar"},
-            detail   : {value: left(arguments.detail, 250), cfsqltype: "varchar"},
+            detail   : {value: left(arguments.detail, 10000), cfsqltype: "varchar"},
             agent    : {value: left(arguments.agent, 250), cfsqltype: "varchar"},
             trainerid: {
                 value    : arguments.trainerid,
@@ -156,15 +157,15 @@ component singleton accessors="true" {
 
         return {
             data: page.rows.map((row) => {
-                return [
-                    dateTimeFormat(row.created, "short"),
-                    row.ip,
-                    row.event,
-                    row.referer,
-                    row.detail,
-                    row.agent,
-                    row.username
-                ];
+                return {
+                    "timestamp": dateTimeFormat(row.created, "short"),
+                    "ip"       : row.ip,
+                    "event"    : row.event,
+                    "referer"  : row.referer,
+                    "detail"   : row.detail,
+                    "agent"    : row.agent,
+                    "username" : row.username
+                };
             }),
             recordsTotal   : page.recordsTotal,
             recordsFiltered: page.recordsFiltered

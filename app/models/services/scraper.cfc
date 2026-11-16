@@ -3,6 +3,8 @@ component singleton accessors="true" {
     property name="auditService" inject="services.audit";
     property name="jsoup"        inject="javaloader:org.jsoup.Jsoup";
     property name="scraperHosts" inject="coldbox:setting:scraperHosts";
+    property name="appName"      inject="coldbox:setting:appName";
+    property name="domainProd"   inject="coldbox:setting:domainProd";
 
     property name="retryCount" type="numeric";
     property name="userAgents" type="array";
@@ -83,15 +85,20 @@ component singleton accessors="true" {
      * Uses json to fetch doc
      *
      * If returnJSON is true, return the format as json, otherwise jsoup object
+     * If userAgent is blank, a random browser user agent is used
      */
-    public any function getData(required string targetURL, boolean returnJSON = false) {
+    public any function getData(
+        required string targetURL,
+        boolean returnJSON = false,
+        string userAgent   = ""
+    ) {
         checkAllowedURL(arguments.targetURL);
 
         var attempts = 0;
         var response = javacast("null", "");
         while(attempts < getRetryCount() && isNull(response)) {
             try {
-                var userAgent = getRandUserAgent();
+                var userAgent = len(arguments.userAgent) ? arguments.userAgent : getRandUserAgent();
                 var headers   = getRealisticHeaders(userAgent);
 
                 var doc = jsoup
@@ -123,6 +130,52 @@ component singleton accessors="true" {
         }
 
         return response;
+    }
+
+    /**
+     * Fetches a rendered wiki page as a jsoup document
+     * Tries the MediaWiki parse api first, then falls back to the action=render page
+     * Neither includes the site skin, so select page content directly (no #content wrapper)
+     *
+     * @host    wiki host, ex: pokemongo.fandom.com
+     * @page    page title, ex: Medals
+     * @apiPath where the wiki serves api.php - fandom at the root, bulbapedia under /w/
+     */
+    public any function getWikiPage(
+        required string host,
+        required string page,
+        string apiPath = "/api.php"
+    ) {
+        var botUserAgent = "#reReplace(getAppName(), "\s+", "", "all")#/1.0 (+#getDomainProd()#)";
+        var baseURI      = "https://#arguments.host#/wiki/";
+        var encodedPage  = encodeForURL(arguments.page);
+
+        try {
+            var apiURL  = "https://#arguments.host##arguments.apiPath#?action=parse&page=#encodedPage#&prop=text&format=json&formatversion=2&disablelimitreport=1";
+            var payload = deserializeJSON(
+                getData(
+                    targetURL  = apiURL,
+                    returnJSON = true,
+                    userAgent  = botUserAgent
+                )
+            );
+            if(!isStruct(payload) || !payload.keyExists("parse")) {
+                throw(
+                    type    = "ScraperWikiParseFailed",
+                    message = "Wiki parse api returned no page for #arguments.page#: #serializeJSON(payload.error ?: {})#"
+                );
+            }
+            return jsoup.parse(payload.parse.text, baseURI);
+        }
+        catch(any e) {
+            auditService.auditSystem(
+                event  = "scraperService.getWikiPage",
+                detail = "Wiki parse api failed for #arguments.page#, falling back to action=render: #e.message# - #e.detail#"
+            );
+        }
+
+        var renderURL = "#baseURI##encodedPage#?action=render";
+        return getData(targetURL = renderURL, userAgent = botUserAgent);
     }
 
     /**

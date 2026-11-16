@@ -1,8 +1,10 @@
 component singleton accessors="true" {
 
-    property name="secretKey"    inject="coldbox:setting:reCaptchaSecretKey";
-    property name="useRecaptcha" inject="coldbox:setting:useRecaptcha";
-    property name="utilService"  inject="services.util";
+    property name="secretKey"     inject="coldbox:setting:reCaptchaSecretKey";
+    property name="useRecaptcha"  inject="coldbox:setting:useRecaptcha";
+    property name="skipRecaptcha" inject="coldbox:setting:skipRecaptcha";
+    property name="utilService"   inject="services.util";
+    property name="logger"        inject="logbox:logger:{this}";
 
     /**
      * Submit the user's recaptcha token to google to verify
@@ -79,6 +81,10 @@ component singleton accessors="true" {
         );
 
         session.recaptcha = blankResult();
+
+        if(getSkipRecaptcha()) {
+            logger.error("reCAPTCHA skipped for '#arguments.expectedAction#' - RECAPTCHASITEKEY/RECAPTCHASECRETKEY are not set in development");
+        }
 
         return !getUseRecaptcha() ? true : valid;
     }

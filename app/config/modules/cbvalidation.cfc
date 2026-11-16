@@ -1032,7 +1032,7 @@ component {
                     required: false,
                     type    : "integer",
                     min     : 0,
-                    max     : 6
+                    max     : 7
                 },
                 "order[0][dir]": {
                     required: false,
