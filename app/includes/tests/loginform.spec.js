@@ -313,6 +313,36 @@ test.describe('Login page', () => {
             const sitekey = await page.locator('#currentEvent').getAttribute('data-sitekey');
             expect(sitekey).toBeTruthy();
         });
+
+        test('Follows the redirect when remember me logs the trainer in on the recaptcha check', async ({ page }) => {
+            // A working reCAPTCHA stub - registered after beforeEach's abort, so it takes precedence
+            await page.route('**/recaptcha/**', (route) =>
+                route.fulfill({
+                    contentType: 'text/javascript',
+                    body: 'window.grecaptcha = { ready: (cb) => cb(), execute: async () => "test-token" };',
+                })
+            );
+            // What guestOnly.cfc answers once the persist cookie logged the trainer in on this request
+            await page.route('**/verifyrecaptcha', (route) =>
+                route.fulfill({
+                    status: 400,
+                    contentType: 'application/json',
+                    body: JSON.stringify({
+                        success: false,
+                        message: 'You are already logged in.',
+                        statusCode: 400,
+                        redirect: '/',
+                    }),
+                })
+            );
+            await page.goto('/login', { waitUntil: 'load' });
+
+            await page.locator('#inputEmail').fill('test@example.com');
+            await page.locator('#inputPassword').fill('validpassword123!');
+            await page.locator('#submitForm').click();
+
+            await expect(page).toHaveURL('/');
+        });
     });
 
     test.describe('Accessibility', () => {

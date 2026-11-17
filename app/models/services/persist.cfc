@@ -30,7 +30,8 @@ component singleton accessors="true" {
 
     /**
      * Send the persist cookie to the browser with a raw Set-Cookie header
-     * SameSite=strict - the browser only sends the cookie on requests that originate from our domain
+     * SameSite=Lax - sent on top level navigations from other sites (links from other apps, home screen shortcuts),
+     * held back on cross site posts and background requests
      *
      * @persistCookie value to set
      * @maxAge        days until it expires, 0 to delete it
@@ -39,7 +40,7 @@ component singleton accessors="true" {
         var duration = arguments.maxAge * 24 * 60 * 60;
         cfheader(
             name  = "Set-Cookie",
-            value = "#getPersistCookieName()#=#arguments.persistCookie#; Path=/; Max-Age=#duration#; Secure; HttpOnly; SameSite=Strict"
+            value = "#getPersistCookieName()#=#arguments.persistCookie#; Path=/; Max-Age=#duration#; Secure; HttpOnly; SameSite=Lax"
         );
 
         // cfheader doesn't touch the cookie scope - track the value for the rest of this request ("" = deleted)

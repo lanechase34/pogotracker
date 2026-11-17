@@ -39,7 +39,9 @@ component extends="baseInterceptor" {
     }
 
     /**
-     * Json requests get a json error, page requests are redirected
+     * Json requests get a json error carrying where to go, page requests are redirected
+     * A guest form's json call can be the request remember me logs the trainer in on (interceptors/security.cfc),
+     * the redirect lets the page follow instead of failing
      */
     private void function block(
         required event,
@@ -51,7 +53,8 @@ component extends="baseInterceptor" {
             renderJsonError(
                 arguments.event,
                 arguments.statusCode,
-                arguments.message
+                arguments.message,
+                arguments.redirectUri
             );
             return;
         }

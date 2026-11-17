@@ -8,6 +8,7 @@ component extends="tests.resources.baseTest" asyncAll="false" {
         persistService = getInstance("services.persist");
         accountService = getInstance("services.account");
         trainerService = getInstance("services.trainer");
+        requestStub    = getInstance("tests.resources.requestStub");
         cookieName     = getController().getSetting("persistCookieName");
         persistDays    = getController().getSetting("persistDuration");
 
@@ -174,6 +175,21 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                 execute(route = "/");
 
                 expect(countAudits("Successful Persist Login%")).toBe(before + 1);
+            });
+
+            it("Sends the login form home when the cookie first arrives on its recaptcha check", () => {
+                // The login page loaded without the cookie, its fetch to /verifyrecaptcha is the first request carrying it
+                guestWithCookie(trainer);
+                session.delete("recaptcha");
+
+                setup();
+                var event = requestStub.asJsonRequest(() => post(route = "/verifyrecaptcha", params = {recaptchaToken: "test-token"}));
+                var data  = event.getPrivateValue("cbox_renderdata");
+
+                expect(auth.getUserId()).toBe(trainer.id);
+                expect(data.statusCode).toBe(400);
+                expect(data.data.redirect).toBe("/");
+                expect(session).notToHaveKey("recaptcha");
             });
         });
 

@@ -147,6 +147,7 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                 expect(data.statusCode).toBe(400);
                 expect(data.data.success).toBeFalse();
                 expect(data.data.message).toBe("You are already logged in.");
+                expect(data.data.redirect).toBe("/"); // form.js follows it instead of failing the form
                 expect(event.getValue("relocate_uri", "")).toBe("");
                 expect(session).notToHaveKey("recaptcha"); // the action never ran
             });
@@ -227,6 +228,7 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                 expect(data.statusCode).toBe(403);
                 expect(data.data.success).toBeFalse();
                 expect(data.data.message).toBe("Please verify your account.");
+                expect(data.data.redirect).toBe("/verify");
                 expect(event.getValue("relocate_uri", "")).toBe("");
                 expect(session).notToHaveKey("recaptcha");
             });

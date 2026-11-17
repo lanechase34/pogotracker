@@ -193,7 +193,8 @@ window.addEventListener('pageshow', (event) => {
  *                          Used by Google to score bot-like behaviour per action.
  * @returns {Promise<string | null>} Resolves with the reCAPTCHA token if the
  *                                   server-side verification passed, or `null`
- *                                   if it failed. Rejects if the `grecaptcha`
+ *                                   if it failed or the server sent a redirect
+ *                                   (already logged in). Rejects if the `grecaptcha`
  *                                   SDK is unavailable or the network request fails.
  *
  * @throws {Error} If the `fetch` to `/verifyrecaptcha` fails or returns
@@ -216,11 +217,19 @@ async function executeRecaptcha(action) {
         body: JSON.stringify({ recaptchaToken: token }),
     });
 
-    if (!response.ok) {
-        throw new Error(`Server responded with status ${response.status}`);
+    const data = await response.json().catch(() => null);
+
+    // Remember me logged the trainer in on this request (the page itself loaded without the cookie)
+    // The form no longer applies - go where the server sends a logged in trainer
+    const redirect = data?.redirect;
+    if (typeof redirect === 'string' && redirect.startsWith('/') && !redirect.startsWith('//')) {
+        location.href = redirect;
+        return null;
     }
 
-    const data = await response.json();
+    if (!response.ok || !data) {
+        throw new Error(`Server responded with status ${response.status}`);
+    }
 
     if (!data.success) {
         createAlert(

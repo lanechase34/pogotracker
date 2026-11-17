@@ -135,6 +135,19 @@ component extends="tests.resources.baseTest" {
                 persistService.deleteCookie();
             });
 
+            it("Sends the cookie SameSite=Lax so links from other sites still carry it", () => {
+                persistService.addCookie(trainer.id);
+                var header = lastPersistHeader();
+
+                expect(header).toInclude("=#persistService.getCookie()#;");
+                expect(header).toInclude("SameSite=Lax");
+                expect(header).notToInclude("SameSite=Strict");
+                expect(header).toInclude("Secure");
+                expect(header).toInclude("HttpOnly");
+
+                persistService.deleteCookie();
+            });
+
             describe("Persist cookie task tests", () => {
                 it("Can delete cookies that have expired", () => {
                     var keep  = testData.countRows("persist");
@@ -200,6 +213,22 @@ component extends="tests.resources.baseTest" {
         var row = testData.findRow("persist", {trainerid: arguments.trainer.id});
         expect(row).notToBeEmpty();
         return row;
+    }
+
+    /**
+     * The most recent persist Set-Cookie header added to this request's response
+     */
+    private string function lastPersistHeader() {
+        var prefix  = persistService.getPersistCookieName() & "=";
+        var headers = [];
+        for(var header in getPageContext().getResponse().getHeaders("Set-Cookie")) {
+            if(left(header, prefix.len()) == prefix) {
+                headers.append(header);
+            }
+        }
+
+        expect(headers).notToBeEmpty();
+        return headers.last();
     }
 
 }
