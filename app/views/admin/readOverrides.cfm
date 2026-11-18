@@ -1,5 +1,5 @@
 <cfoutput>
-<div class="container-fluid mt-4">
+<div class="container-fluid">
     <div class="row justify-content-center">
         <div class="col-12 col-xl-10">
             <div class="d-flex align-items-center justify-content-between mb-3">

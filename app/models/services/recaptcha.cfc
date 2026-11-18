@@ -17,7 +17,8 @@ component singleton accessors="true" {
             token    : arguments.token,
             valid    : !getUseRecaptcha(),
             timestamp: now(),
-            action   : ""
+            action   : "",
+            reason   : ""
         };
 
         if(getUseRecaptcha()) {
@@ -50,14 +51,29 @@ component singleton accessors="true" {
                  ? deserializeJSON(local.result.filecontent)
                  : {};
 
-                if(isStruct(recaptchaResponse)) {
-                    recaptchaResult.valid = (recaptchaResponse?.success ?: false) == true
-                    && val(recaptchaResponse?.score ?: 0) > 0.5;
+                if(isStruct(recaptchaResponse) && !recaptchaResponse.isEmpty()) {
+                    var success = (recaptchaResponse?.success ?: false) == true;
+                    var score   = val(recaptchaResponse?.score ?: 0);
+
+                    recaptchaResult.valid  = success && score > 0.5;
                     recaptchaResult.action = recaptchaResponse?.action ?: "";
+
+                    var context = "action: #recaptchaResult.action#, hostname: #recaptchaResponse?.hostname ?: ""#";
+                    if(!success) {
+                        var errorCodes         = recaptchaResponse?.keyExists("error-codes") ? recaptchaResponse["error-codes"] : [];
+                        recaptchaResult.reason = "Rejected by Google (error-codes: #isArray(errorCodes) ? errorCodes.toList(", ") : ""#, #context#)";
+                    }
+                    else if(!recaptchaResult.valid) {
+                        recaptchaResult.reason = "Score too low (score: #score#, threshold: 0.5, #context#)";
+                    }
+                }
+                else {
+                    recaptchaResult.reason = "Unexpected response from Google (status: #local.result?.statuscode ?: "none"#)";
                 }
             }
             catch(any e) {
-                recaptchaResult.valid = false;
+                recaptchaResult.valid  = false;
+                recaptchaResult.reason = "Request to Google failed (#e.message#)";
             }
         }
 
@@ -94,7 +110,8 @@ component singleton accessors="true" {
             token    : "",
             valid    : false,
             timestamp: now(),
-            action   : ""
+            action   : "",
+            reason   : ""
         };
     }
 

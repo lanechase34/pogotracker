@@ -1,8 +1,8 @@
 <cfoutput>
-<cfif prc.offset EQ 0><div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 row-cols-xxl-5 mt-3"></cfif>
+<cfif prc.offset EQ 0><div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 row-cols-xxl-5 gy-3"></cfif>
 <cfif args.customPokedexes.len()>
     <cfloop index="i" item="currCustom" array="#args.customPokedexes#">
-        <div class="d-flex justify-content-center col mb-3 ">
+        <div class="d-flex justify-content-center col">
             <div class="card h-100 w-100 shadow-sm">        
                 <div class="d-flex flex-column card-body">
                     <h5 class="card-title">
@@ -15,7 +15,8 @@
                         </p>
                         <p class="text-muted">
                             <i class="bi bi-calendar3 me-1"></i>
-                            #currCustom.formattedbegins#<cfif isDate(currCustom.ends ?: "")> - #currCustom.formattedends#</cfif>
+                            <!--- A range only when it ends on a different day - trainer made pokedexes begin and end together --->
+                            #currCustom.formattedbegins#<cfif isDate(currCustom.ends ?: "") AND currCustom.formattedends NEQ currCustom.formattedbegins> - #currCustom.formattedends#</cfif>
                         </p>
                         <div class="row p-0">
                             <div class="btn-group" role="group">
@@ -32,7 +33,7 @@
             </div>
         </div>
     </cfloop>
-    <div id="nextGroup#args.nextOffset#">
+    <div id="nextGroup#args.nextOffset#" class="w-100 mt-0">
     </div>
 </cfif>
 <cfif prc.offset EQ 0></div></cfif>

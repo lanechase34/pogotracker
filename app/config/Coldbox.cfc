@@ -513,7 +513,7 @@ component {
         settings.title          = "[DEV #ucFirst(getSystemSetting("OS"))#] POGO Tracker";
         // Skip reCAPTCHA only when the dev keys are missing - recaptchaService logs an error each time it's skipped
         settings.skipRecaptcha  = !len(settings.reCaptchaSiteKey) || !len(settings.reCaptchaSecretKey);
-        settings.useRecaptcha   = !settings.skipRecaptcha;
+        settings.useRecaptcha   = false;
         settings.useRateLimiter = getSystemSetting("RATE_LIMITER", false);
         settings.scraperHosts.append("httpbin.io"); // dev.cfc user agent check
         settings.writeJson   = true;

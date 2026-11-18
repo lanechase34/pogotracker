@@ -1,5 +1,5 @@
 <cfoutput>
-<div class="row mb-3 g-3 mt-0">
+<div class="row g-3">
     <div class="col-12 col-md-4">
         <div class="card h-100">
             <div class="card-header fw-semibold text-uppercase text-body-secondary adminNavHeader">Data</div>

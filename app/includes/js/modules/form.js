@@ -213,7 +213,11 @@ async function executeRecaptcha(action) {
 
     const response = await fetch('/verifyrecaptcha', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-csrf-token': csrfToken() },
+        headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+            'x-csrf-token': csrfToken(),
+        },
         body: JSON.stringify({ recaptchaToken: token }),
     });
 

@@ -1,4 +1,5 @@
 import { $blogListDiv, getBlogs } from 'blog';
+import { layoutMasonry } from 'display';
 import { getWrapper } from 'fetch';
 import { $loading, addLoadMoreButton } from 'loading';
 import { createPokemonSearch } from 'search';
@@ -9,7 +10,7 @@ const $eventsDiv = document.getElementById('eventsDiv');
 const scrapeMaxOffset = 25;
 
 export function resizeHomeCards() {
-    new Masonry('.homeCards', {
+    layoutMasonry('.homeCards', {
         itemSelector: '.homeCard',
         columnWidth: '.col-md-4',
     });

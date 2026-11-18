@@ -3,7 +3,7 @@
 <cfset totalShiny = prc.pokedexIndex.reduce((sum, group) => sum + group.pokemon.filter((mon) => mon.shiny).len(), 0)>
 
 <!--- Banner - matches the home page hero --->
-<div class="pokedex-hero mt-3">
+<div class="pokedex-hero">
     <h1 class="pokedex-hero-title mb-0">Pokémon GO Database</h1>
     <p class="pokedex-hero-subtitle">
         Every Pokémon in Pokémon GO, grouped by generation. Pick a Pokémon to see its max CP,
@@ -94,8 +94,8 @@
     })>
 </cfif>
 
-<cfloop array="#sections#" item="section">
-    <section class="pokedex-section mb-4" id="#encodeForHTMLAttribute(section.id)#" aria-labelledby="#encodeForHTMLAttribute(section.id)#-title">
+<cfloop index="s" item="section" array="#sections#">
+    <section class="pokedex-section<cfif s LT sections.len()> mb-4</cfif>" id="#encodeForHTMLAttribute(section.id)#" aria-labelledby="#encodeForHTMLAttribute(section.id)#-title">
         <div class="card shadow-sm">
             <h2 class="card-header card-header-pokemon" id="#encodeForHTMLAttribute(section.id)#-title">
                 #encodeForHTML(section.title)#

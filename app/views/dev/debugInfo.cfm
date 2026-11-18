@@ -1,5 +1,5 @@
 <cfoutput>
-<div class="row mt-3">
+<div class="row">
     <div class="accordion" id="sessionAccordion">
         <div class="accordion-item">
             <h2 class="accordion-header">

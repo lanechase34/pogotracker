@@ -2,7 +2,7 @@
 <div
     id="pokedexGrid"
     data-view="#encodeForHTMLAttribute(args.pokedexView)#"
-    class="row mb-3 align-items-stretch gx-0"
+    class="row align-items-stretch gx-0"
 >
     <cfset registered = 0/>
     <cfset total = 0/>

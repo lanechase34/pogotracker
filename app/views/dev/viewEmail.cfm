@@ -1,5 +1,5 @@
 <cfoutput>
-<div class="row mt-3">
+<div class="row">
     <div class="col-2 d-flex align-items-start">
         <div class="list-group w-100">
             <cfloop query="#prc.testEmails#" startRow="1" endRow="20">

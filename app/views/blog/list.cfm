@@ -1,12 +1,12 @@
 <cfoutput>
 <cfif args.sidebar>
-    <div class="row row-cols-1">
+    <div class="row row-cols-1 gy-3">
 <cfelse>
-    <div class="row row-cols-1 row-cols-lg-2">
+    <div class="row row-cols-1 row-cols-lg-2 gy-3">
 </cfif>
 <cfloop index="i" item="currBlog" array="#args.blogs#">
     <cfif args.exclude EQ currBlog.id><cfcontinue></cfif>
-    <div class="d-flex justify-content-center col mb-3">
+    <div class="d-flex justify-content-center col">
         <a href="#encodeForHTMLAttribute(currBlog.readpath)#" class="h-100 w-100 link-underline link-underline-opacity-0">
         <div class="card h-100 w-100 blogCard">
             <cfif args.showImage>

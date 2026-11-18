@@ -187,7 +187,6 @@ pre:has(code) {
 
 #bodyHeader {
     display: block;
-    margin-top: 1rem !important;
 }
 
 .smallDisplayOnly {
@@ -356,6 +355,19 @@ body {
 
 .dt-scroll-body {
     scrollbar-width: thin;
+}
+
+/* DataTables' Bootstrap 5 layout tops every row and stacked cell with mt-2 - drop it on the first visible ones so tables
+   start flush with the layout's top spacing. A row with every cell empty (no length / search control) is hidden */
+.dt-container > .row:not(:has(> :not(:empty))) {
+    display: none;
+}
+.dt-container > .row:first-child,
+.dt-container > .row:first-child:not(:has(> :not(:empty))) + .row,
+.dt-container > .row:first-child:not(:has(> :not(:empty))) + .row > :first-child,
+.dt-container > .row:first-child > :first-child,
+.dt-container > .row:first-child > :empty + * {
+    margin-top: 0 !important;
 }
 
 .cbd-debugger {

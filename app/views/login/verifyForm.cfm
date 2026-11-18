@@ -1,5 +1,5 @@
 <cfoutput>
-<div class="row align-items-center mt-4 mt-lg-0 flex-grow-1">
+<div class="row align-items-center flex-grow-1">
     <div class="col-sm-12 col-md-8 offset-md-2 col-lg-6 offset-lg-3 col-xxl-4 offset-xxl-4">
         <article class="card border-0 overflow-hidden shadow">
             #view(view="/views/login/fragment/hero", args={heading: "Verify Your Account", subtitle: "Enter the code sent to your email"})#

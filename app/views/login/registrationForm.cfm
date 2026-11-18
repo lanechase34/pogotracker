@@ -1,5 +1,5 @@
 <cfoutput>
-<div class="row align-items-center mt-4 mt-lg-0 flex-grow-1">
+<div class="row align-items-center flex-grow-1">
     <div class="col-sm-12 col-md-10 offset-md-1 col-lg-8 offset-lg-2 col-xxl-6 offset-xxl-3">
         <article class="card border-0 overflow-hidden shadow">
             #view(view="/views/login/fragment/hero", args={heading: "Create Account", subtitle: "Start tracking your Pokémon GO journey"})#

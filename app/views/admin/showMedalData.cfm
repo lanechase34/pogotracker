@@ -1,5 +1,5 @@
 <cfoutput>
-<div class="mt-3">
+<div>
 <table id="medalData" class="table table-bordered table-hover">
     <thead>
         <tr>

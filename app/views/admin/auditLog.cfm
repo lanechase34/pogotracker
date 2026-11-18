@@ -1,6 +1,6 @@
 <cfoutput>
 #view("/views/admin/fragment/logRange")#
-<div class="mt-3">
+<div>
 <table id="auditLog" class="table table-striped table-bordered align-middle">
     <thead>
         <tr>

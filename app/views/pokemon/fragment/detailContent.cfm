@@ -24,7 +24,7 @@
 </cfsavecontent>
 
 <!--- Breadcrumb - mirrors the BreadcrumbList structured data --->
-<div class="pokemon-topbar mt-3">
+<div class="pokemon-topbar">
     <nav aria-label="Breadcrumb">
         <ol class="breadcrumb pokemon-breadcrumb mb-0">
             <li class="breadcrumb-item">
@@ -397,5 +397,5 @@
     </cfif>
 </div>
 <!--- Bottom previous / next --->
-<nav class="pokemon-adjacent-nav pokemon-adjacent-nav-bottom mb-4" aria-label="Previous and next Pokémon (bottom)">#adjacentNav#</nav>
+<nav class="pokemon-adjacent-nav pokemon-adjacent-nav-bottom" aria-label="Previous and next Pokémon (bottom)">#adjacentNav#</nav>
 </cfoutput>

@@ -5,7 +5,7 @@
         <option value="#currBlog.id#"<cfif currBlog.id == prc.blogid> selected</cfif>>#encodeForHTML(currBlog.header)#</option>
     </cfloop>
 </select>
-<div class="mt-3">
+<div>
 <table id="commentsTable" class="table table-striped table-bordered">
     <thead>
         <tr>

@@ -1,5 +1,5 @@
 <cfoutput>
-<div class="row mt-3" id="statRow">
+<div class="row" id="statRow">
     <form id="statsOverviewForm" name="statsOverviewForm" action="/overview" method="GET" novalidate>
         <input type="hidden" id="startDate" name="startDate" value="#dateFormat(prc.startDate, "mm/dd/yyyy")#">
         <input type="hidden" id="endDate" name="endDate" value="#dateFormat(prc.endDate, "mm/dd/yyyy")#">
@@ -19,9 +19,9 @@
     </div>
 </div>
 
-<div class="row statCards">
+<div class="row gy-3 mt-0 statCards">
     <!--- Main line chart --->
-    <div class="col-12 col-xl-8 mt-3 statCard" id="chartDiv">
+    <div class="col-12 col-xl-8 statCard" id="chartDiv">
         <div class="card shadow-sm h-100">
             <div class="card-body p-3">
                 <div class="home-section-label">
@@ -33,7 +33,7 @@
     </div>
 
     <!--- Summary Table --->
-    <div class="col-12 col-xl-4 mt-3 statCard" id="summaryDiv">
+    <div class="col-12 col-xl-4 statCard" id="summaryDiv">
         <div class="card shadow-sm h-100">
             <div class="card-body p-3">
                 <div class="home-section-label">
@@ -62,15 +62,15 @@
     </div>
 
     <!--- Medal progress --->
-    <div class="col-12 col-xl-8 mt-3 statCard" id="medalProgressDiv"></div>
+    <div class="col-12 col-xl-8 statCard" id="medalProgressDiv"></div>
 
     <!--- Delta table (body populated by renderDeltaTable() in stats.js) --->
-    <div class="col-12 col-xl-4 mt-3 statCard" id="deltaDiv">
+    <div class="col-12 col-xl-4 statCard" id="deltaDiv">
         #view(view="/views/stats/deltaTable", nolayout=true)#
     </div>
 
     <!--- Leaderboard --->
-    <div class="col-12 col-xl-4 mt-3 statCard" id="leaderboardDiv"></div>
+    <div class="col-12 col-xl-4 statCard" id="leaderboardDiv"></div>
 </div>
 <script>
     const statDataset = #serializeJSON(prc.stats)#;

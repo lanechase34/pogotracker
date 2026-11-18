@@ -6,7 +6,8 @@
     <script>let globalModals = {'init': true};</script>
 </head>
 <body class="d-flex flex-column min-vh-100">
-    <div class="container-fluid flex-grow-1 d-flex flex-column">
+    <!--- The layout owns the space above and below the page, so page views start and end flush --->
+    <div class="container-fluid pt-3 pb-3 flex-grow-1 d-flex flex-column">
         #view()#
     </div>
 

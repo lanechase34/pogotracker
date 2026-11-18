@@ -1,5 +1,5 @@
 <cfoutput>
-<div class="mt-auto pt-3">
+<div class="mt-auto">
 <footer class="container-fluid text-secondary border-top border-secondary py-3">
     <div class="mx-lg-3">
         <nav aria-label="Footer" class="mb-2 small text-center">

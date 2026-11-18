@@ -1,5 +1,5 @@
 import { createAlert } from 'alert';
-import { delegate } from 'display';
+import { delegate, layoutMasonry } from 'display';
 import { encodePath, escapeHtml } from 'escape';
 import { getWrapper, postWrapper, RequestError, requestErrorMessage } from 'fetch';
 import { validatedPacket } from 'form';
@@ -146,7 +146,7 @@ async function getEditProfile() {
 }
 
 function resizeProfileCards() {
-    new Masonry('.profileCards', {
+    layoutMasonry('.profileCards', {
         itemSelector: '.profileCard',
     });
 }

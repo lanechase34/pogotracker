@@ -1,5 +1,5 @@
 <cfoutput>
-<div class="row mt-3">
+<div class="row">
     <table id="taskInfo" class="table table-striped table-bordered text-center">
         <thead>
             <tr>

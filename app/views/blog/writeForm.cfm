@@ -3,7 +3,7 @@
     <input type="hidden" name="csrf" value="#csrfToken()#">
     <div class="col-sm-12 col-lg-10 col-xl-8">
         <div id="blogAlert"></div>
-        <div class="row mt-3">
+        <div class="row">
             <label for="blogheader" class="col-sm-3 col-xl-1 col-form-label">Header</label>
             <div class="col-sm-9 col-xl-11">
                 <input type="text" class="form-control" id="blogheader" name="blogheader" value="<cfif args.editing>#args.blog.header#</cfif>" required>

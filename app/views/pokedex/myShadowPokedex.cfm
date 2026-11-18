@@ -1,7 +1,6 @@
 <cfoutput>
 <div 
     id="shadowPokedexTable" 
-    class="mt-3" 
     data-trainerid="#encodeForHTMLAttribute(prc.trainerid)#" 
     data-shadow="true"
     data-shiny="#encodeForHTMLAttribute(rc.shiny)#"

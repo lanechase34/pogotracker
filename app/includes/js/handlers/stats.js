@@ -1,6 +1,6 @@
 import { createAlert } from 'alert';
 import { copyString } from 'copy';
-import { delegate } from 'display';
+import { delegate, layoutMasonry } from 'display';
 import { escapeHtml } from 'escape';
 import { getWrapper, HandledError, postWrapper, RequestError, requestErrorMessage } from 'fetch';
 import { validatedPacket } from 'form';
@@ -295,7 +295,7 @@ function changeStat(stat) {
 }
 
 function resizeStatCards() {
-    const msnry = new Masonry('.statCards', {
+    const msnry = layoutMasonry('.statCards', {
         itemSelector: '.statCard',
         columnWidth: '.col-xl-4', // define min column width if not all card columns have same width
     });

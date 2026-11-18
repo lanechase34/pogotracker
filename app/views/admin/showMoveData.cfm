@@ -1,5 +1,5 @@
 <cfoutput>
-<div class="row mt-3">
+<div class="row">
     <div class="col">
         <ul class="nav nav-tabs">
             <li class="nav-item">

@@ -1,6 +1,6 @@
 <cfoutput>
-<div class="row">
-    <div class="col-12 col-lg-6 col-xxxl-4 mt-3">
+<div class="row gy-3">
+    <div class="col-12 col-lg-6 col-xxxl-4">
         <div class="card h-100 w-100 shadow-sm">
             <div class="card-body">
                 <h5 class="card-title text-center">
@@ -74,7 +74,7 @@
             </div>
         </div>
     </div>
-    <div class="col-12 col-lg-6 col-xxxl-8 mt-3">
+    <div class="col-12 col-lg-6 col-xxxl-8">
         <div class="card h-100 w-100 shadow-sm">
             <div class="card-body">
                 <div id="tradePlanAlert"></div>

@@ -1,7 +1,7 @@
 <cfoutput>
-<div class="row d-flex">
-    <div class="col-12 col-lg-8 mt-3">
-        <article class="card shadow-sm mb-3" id="blogData" data-blogid="#prc.blog.id#">
+<div class="row gy-3">
+    <div class="col-12 col-lg-8 d-flex flex-column gap-3">
+        <article class="card shadow-sm" id="blogData" data-blogid="#prc.blog.id#">
             <div class="px-4 pt-4">
                 <img
                     src="/includes/uploads/full/#prc.blog.image#"
@@ -27,7 +27,7 @@
             </div>
         </article>
 
-        <div class="card shadow-sm mb-3">
+        <div class="card shadow-sm">
             <div class="card-body p-3">
                 <div class="home-section-label">
                     <i class="bi bi-chat-left-text fs-5"></i>Comments (<span id="commentCount">#prc.commentPage.total#</span>)
@@ -51,7 +51,7 @@
             </div>
         </div>
 
-        <div class="card shadow-sm mb-3">
+        <div class="card shadow-sm">
             <div class="card-body p-3">
                 <div class="home-section-label">
                     <i class="bi bi-pencil-square fs-5"></i>Write A Comment
@@ -83,11 +83,11 @@
             </div>
         </div>
     </div>
-    <aside class="col col-lg-4 mt-3">
+    <aside class="col-12 col-lg-4">
         <div class="home-section-label">
             <i class="bi bi-book-half fs-5"></i>Recent Blogs
         </div>
-        <div id="blogList" data-blogid="#prc.blog.id#"></div>
+        <div id="blogList" class="d-flex flex-column gap-3" data-blogid="#prc.blog.id#"></div>
     </aside>
 </div>
 </cfoutput>

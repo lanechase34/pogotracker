@@ -288,7 +288,8 @@
     <main class="container-fluid flex-grow-1 d-flex flex-column">
         <div class="row flex-grow-1">
             <div id="mainSection" class="col-12 d-flex flex-column">
-                <div class="mx-sm-1 mx-lg-3 flex-grow-1 d-flex flex-column">
+                <!--- The layout owns the space above and below the page, so page views start and end flush --->
+                <div class="mx-sm-1 mx-lg-3 pt-3 pb-3 flex-grow-1 d-flex flex-column">
                     <cfif prc.keyExists('header') AND prc.header.len()>
                         <h1 class="text-center hfs-5 m-0 p-0 fw-bold" id="bodyHeader">
                             #prc?.header ?: ''#

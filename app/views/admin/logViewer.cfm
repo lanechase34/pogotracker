@@ -1,7 +1,7 @@
 <cfoutput>
 <cfset hasSelected = !prc.selected.isEmpty()/>
 <cfset utilService = getInstance("services.util")/>
-<div id="logViewer" class="logViewer row gx-3 mt-2 mb-3" data-filename="#encodeForHTMLAttribute(hasSelected ? prc.selected.name : '')#">
+<div id="logViewer" class="logViewer row gx-3" data-filename="#encodeForHTMLAttribute(hasSelected ? prc.selected.name : '')#">
     <!--- File list - large screens --->
     <aside class="logSidebar col-lg-4 col-xl-3 col-xxl-2 d-none d-lg-flex flex-column">
         <div class="input-group input-group-sm mb-2">

@@ -1,5 +1,5 @@
 <cfoutput>
-<div class="mt-3 d-flex flex-wrap justify-content-center gap-1 px-2">
+<div class="d-flex flex-wrap justify-content-center gap-1 px-2">
     <cfloop index="g" item="currGen" array="#prc.generations#">
         <cfif currGen.region EQ "Unown"><cfcontinue></cfif>
         <button

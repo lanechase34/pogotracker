@@ -357,6 +357,9 @@ component extends="base" {
 
         prc.responseObj.success = prc.verifyRecaptcha;
         if(!prc.verifyRecaptcha) {
+            prc.auditInfo.detail = "Recaptcha Verification Failed: #session?.recaptcha?.reason ?: ""#";
+            auditService.audit(argumentCollection = prc.auditInfo);
+
             prc.responseObj.message    = "Please try again.";
             prc.responseObj.statusCode = 400;
         }

@@ -1,5 +1,5 @@
 <cfoutput>
-<div class="mt-3">
+<div>
 <table id="listTrainers" class="table table-striped table-bordered">
     <thead>
         <tr>

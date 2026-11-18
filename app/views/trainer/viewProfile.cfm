@@ -1,12 +1,12 @@
 <cfoutput>
 <div
-    class="row"
+    class="row gy-3"
     id="profilerow"
     data-myprofile="#encodeForHTML(prc.myProfile)#"
     data-startdate="#encodeForHTML(prc.startDate)#"
     data-enddate="#encodeForHTML(prc.endDate)#"
 >
-    <div class="d-flex col-lg-4 mt-3">
+    <div class="d-flex col-lg-4">
         <div class="h-100 w-100 card shadow-sm">
             <div class="card-body text-center p-4">
                 <img class="profileAvatar mb-3" id="profileIcon" src="#encodeForHTMLAttribute(prc.trainer.iconpath)#" alt="#encodeForHTMLAttribute(prc.trainer.iconalttext)#">
@@ -26,7 +26,7 @@
             </div>
         </div>
     </div>
-    <div class="d-flex col-lg-8 mt-3">
+    <div class="d-flex col-lg-8">
         <div class="h-100 w-100 card shadow-sm">
             <div class="card-body p-3">
                 <div class="home-section-label">
@@ -66,14 +66,14 @@
         </div>
     </div>
 </div>
-<div class="row profileCards">
+<div class="row gy-3 mt-0 profileCards">
     <cfif prc.myProfile>
-        <div class="col-12 col-xl-6 mt-3 profileCard" id="friendRequestsDiv"></div>
-        <div class="col-12 col-xl-6 mt-3 profileCard" id="friendsListDiv"></div>
+        <div class="col-12 col-xl-6 profileCard" id="friendRequestsDiv"></div>
+        <div class="col-12 col-xl-6 profileCard" id="friendsListDiv"></div>
     </cfif>
-    <div class="col-12 col-xl-6 mt-3 profileCard" id="summaryStatsDiv"></div>
-    <div class="col-12 col-xl-6 mt-3 profileCard" id="pokedexStatsDiv"></div>
-    <div class="col-12 col-xl-6 mt-3 profileCard" id="medalSummaryDiv"></div>
-    <div class="col-12 col-xl-6 mt-3 profileCard" id="topDeltasDiv"></div>
+    <div class="col-12 col-xl-6 profileCard" id="summaryStatsDiv"></div>
+    <div class="col-12 col-xl-6 profileCard" id="pokedexStatsDiv"></div>
+    <div class="col-12 col-xl-6 profileCard" id="medalSummaryDiv"></div>
+    <div class="col-12 col-xl-6 profileCard" id="topDeltasDiv"></div>
 </div>
 </cfoutput>
