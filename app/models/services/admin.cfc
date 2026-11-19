@@ -2344,10 +2344,7 @@ component singleton accessors="true" {
                 lastmod   : w3cDate(row.lastmod),
                 changefreq: "monthly",
                 priority  : "0.8",
-                image     : {
-                    loc  : "#domain#/includes/images/sprites/#encodeForURL(row.sprite)##getImageExtension()#",
-                    title: row.name
-                }
+                image     : {loc: "#domain#/includes/images/sprites/#encodeForURL(row.sprite)##getImageExtension()#"}
             };
         });
 
@@ -2403,7 +2400,6 @@ component singleton accessors="true" {
             if(entry.keyExists("image")) {
                 lines.append("    <image:image>");
                 lines.append("      <image:loc>#encodeForXML(entry.image.loc)#</image:loc>");
-                lines.append("      <image:title>#encodeForXML(entry.image.title)#</image:title>");
                 lines.append("    </image:image>");
             }
             lines.append("  </url>");

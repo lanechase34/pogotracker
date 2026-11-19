@@ -90,13 +90,20 @@ component extends="base" {
         prc.canonicalURL = "#getSetting("domain")##prc.blog.readpath#";
         prc.imageSize    = blogService.getImageSize(path = "#getSetting("uploadPath")#/full/#prc.blog.image#");
 
-        prc.header          = "";
-        prc.title           = "#prc.blog.header# | #getSetting("siteName")#";
-        prc.metaDescription = !isNull(prc.blog.meta) && prc.blog.meta.len() ? prc.blog.meta : prc.title;
-        prc.metaRobots      = "index, follow";
-        prc.ogImage         = prc.blog.ogimage;
-        prc.suppressH1      = true; // article provides its own h1 inside the card
-        prc.structuredData  = seoService.getBlogPosting(blog = prc.blog, pageURL = prc.canonicalURL);
+        prc.header           = "";
+        prc.title            = "#prc.blog.header# | #getSetting("siteName")#";
+        prc.metaDescription  = !isNull(prc.blog.meta) && prc.blog.meta.len() ? prc.blog.meta : prc.title;
+        prc.metaRobots       = "index, follow";
+        prc.ogType           = "article";
+        prc.ogImage          = prc.blog.ogimage;
+        prc.ogImageSize      = prc.imageSize;
+        prc.articlePublished = dateTimeFormat(prc.blog.created, "iso");
+        prc.articleModified  = dateTimeFormat(
+            isDate(prc.blog.updated ?: "") ? prc.blog.updated : prc.blog.created,
+            "iso"
+        );
+        prc.suppressH1     = true; // article provides its own h1 inside the card
+        prc.structuredData = seoService.getBlogPosting(blog = prc.blog, pageURL = prc.canonicalURL);
 
         // The newest page of comments
         prc.commentPage = blogService.getCommentPage(blogid = prc.blog.id);

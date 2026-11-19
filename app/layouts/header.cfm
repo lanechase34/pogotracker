@@ -21,20 +21,30 @@
 <meta property="og:description" content="#encodeForHTMLAttribute(prc.metaDescription.len() ? prc.metaDescription : getSetting('metaDescription'))#">
 <meta property="og:url" content="#encodeForHTMLAttribute(prc.canonicalURL)#">
 <meta property="og:type" content="#prc.keyExists('ogType') ? encodeForHTMLAttribute(prc.ogType) : 'website'#">
-<meta property="og:site_name" content="POGO Tracker">
+<meta property="og:site_name" content="#encodeForHTMLAttribute(getSetting('siteName'))#">
+<meta property="og:locale" content="en_US">
 <cfif prc.keyExists('ogImage')>
     <meta property="og:image" content="#encodeForHTMLAttribute(prc.ogImage)#">
+    <cfif prc.keyExists('ogImageSize') AND prc.ogImageSize.keyExists('width')>
+        <meta property="og:image:width" content="#prc.ogImageSize.width#">
+        <meta property="og:image:height" content="#prc.ogImageSize.height#">
+    </cfif>
     <cfelse>
-    <meta property="og:image" content="https://pogotracker.app/includes/images/og-default.png">
+    <meta property="og:image" content="#getSetting('domain')#/includes/images/og-default.png">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
+</cfif>
+<!--- Article pages (blog posts) set ISO 8601 published/modified times --->
+<cfif prc.keyExists('articlePublished')>
+    <meta property="article:published_time" content="#prc.articlePublished#">
+    <meta property="article:modified_time" content="#prc.articleModified#">
 </cfif>
 
 <!--- Twitter Card --->
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="#encodeForHTMLAttribute(prc.title.len() ? prc.title : getSetting('title'))#">
 <meta name="twitter:description" content="#encodeForHTMLAttribute(prc.metaDescription.len() ? prc.metaDescription : getSetting('metaDescription'))#">
-<meta name="twitter:image" content="#prc.keyExists('ogImage') ? encodeForHTMLAttribute(prc.ogImage) : 'https://pogotracker.app/includes/images/og-default.png'#">
+<meta name="twitter:image" content="#encodeForHTMLAttribute(prc.keyExists('ogImage') ? prc.ogImage : '#getSetting('domain')#/includes/images/og-default.png')#">
 
 <!--- Structured Data --->
 <!--- Handlers may override prc.structuredData (struct), otherwise the site wide graph is used --->

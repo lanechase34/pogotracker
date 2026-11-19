@@ -1,6 +1,18 @@
 <cfoutput>
 <div class="row gy-3">
     <div class="col-12 col-lg-8 d-flex flex-column gap-3">
+        <!--- Breadcrumb - mirrors the BreadcrumbList structured data --->
+        <nav aria-label="Breadcrumb">
+            <ol class="breadcrumb site-breadcrumb mb-0">
+                <li class="breadcrumb-item">
+                    <a href="/"><i class="bi bi-house-door-fill" aria-hidden="true"></i>Home</a>
+                </li>
+                <li class="breadcrumb-item active" aria-current="page">
+                    <span>#encodeForHTML(prc.blog.header)#</span>
+                </li>
+            </ol>
+        </nav>
+
         <article class="card shadow-sm" id="blogData" data-blogid="#prc.blog.id#">
             <div class="px-4 pt-4">
                 <img

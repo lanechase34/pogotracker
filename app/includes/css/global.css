@@ -544,3 +544,98 @@ body {
     pointer-events: none;
     user-select: none;
 }
+
+/*  Breadcrumb - pokemon detail + blog posts  */
+/* Pill shaped trail with chevron separators - same height/border as the prev/next buttons */
+.site-breadcrumb {
+    display: inline-flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    max-width: 100%;
+    min-height: 50px;
+    padding: 0.35rem 1rem;
+    font-size: 0.85rem;
+    background: #fff;
+    border: 1px solid #dee2e6;
+    border-radius: 2rem;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.05);
+}
+
+.site-breadcrumb .breadcrumb-item {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    white-space: nowrap;
+}
+
+/* CSS drawn chevron - no reliance on font glyphs or file encoding */
+.site-breadcrumb .breadcrumb-item + .breadcrumb-item {
+    padding-left: 0;
+}
+
+.site-breadcrumb .breadcrumb-item + .breadcrumb-item::before {
+    content: '';
+    float: none;
+    flex-shrink: 0;
+    width: 0.4rem;
+    height: 0.4rem;
+    margin: 0 0.75rem 0 0.6rem;
+    padding: 0;
+    border-top: 2px solid #adb5bd;
+    border-right: 2px solid #adb5bd;
+    transform: rotate(45deg);
+}
+
+.site-breadcrumb a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    color: #6c757d;
+    font-weight: 600;
+    text-decoration: none;
+    transition: color 0.15s ease;
+}
+
+.site-breadcrumb a:hover,
+.site-breadcrumb a:focus-visible {
+    color: var(--bs-dark);
+}
+
+/* Line-height 1 on items + icons so glyphs and text share the same center line */
+.site-breadcrumb .breadcrumb-item,
+.site-breadcrumb a {
+    line-height: 1;
+}
+
+.site-breadcrumb .bi {
+    display: inline-flex;
+    font-size: 0.95rem;
+    line-height: 1;
+}
+
+/* Bootstrap icons nudge glyphs down with vertical-align: -0.125em - undo it inside the flex row */
+.site-breadcrumb .bi::before {
+    vertical-align: 0;
+}
+
+.site-breadcrumb .breadcrumb-item.active {
+    gap: 0.3rem;
+    font-weight: 700;
+    color: var(--bs-dark);
+    flex-shrink: 1;
+    min-width: 0;
+}
+
+/* Long names truncate with an ellipsis - the text span is the box that clips, the flex item just shrinks */
+.site-breadcrumb .breadcrumb-item.active > span:last-child {
+    min-width: 0;
+    /* Clip horizontally only - vertical clipping cuts off descenders (g, p, y) at line-height 1 */
+    overflow: clip visible;
+    text-overflow: ellipsis;
+}
+
+.site-breadcrumb-number {
+    flex-shrink: 0;
+    color: #6c757d;
+    font-weight: 600;
+}

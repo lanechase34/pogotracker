@@ -134,7 +134,7 @@ component extends="tests.resources.baseTest" asyncAll="false" {
 
             it("Has valid site wide structured data with an unescaped description", () => {
                 var jsonLd = getJsonLd(anonymousPage("/").getRenderedContent());
-                expect(globalFunctions.getGraphTypes(jsonLd)).toBe(["WebSite", "WebApplication"]);
+                expect(globalFunctions.getGraphTypes(jsonLd)).toBe(["WebSite", "WebApplication", "Organization"]);
                 expect(globalFunctions.getGraphNode(jsonLd, "WebApplication").description).toBe(
                     getController().getSetting("metaDescription")
                 );
@@ -153,11 +153,11 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                 expect(event.getRenderedContent()).toInclude("og-default.png");
             });
 
-            it("Has a visible breadcrumb back to the Pokedex", () => {
+            it("Has a visible breadcrumb back to the Database", () => {
                 var html = anonymousPage("/pokemon/1").getRenderedContent();
                 expect(html).toInclude("<nav aria-label=""Breadcrumb"">");
                 expect(html).toInclude(
-                    "<a href=""/pokemon""><i class=""bi bi-grid-3x3-gap-fill"" aria-hidden=""true""></i>Pokédex</a>"
+                    "<a href=""/pokemon""><i class=""bi bi-grid-3x3-gap-fill"" aria-hidden=""true""></i>Database</a>"
                 );
             });
 
@@ -171,8 +171,8 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                 expect(page.primaryImageOfPage.contentUrl).toInclude("/includes/images/sprites/");
 
                 var crumb = globalFunctions.getGraphNode(jsonLd, "BreadcrumbList");
-                expect(crumb.itemListElement.map((item) => item.name)).toBe(["Home", "Pokédex", "Bulbasaur"]);
-                expect(crumb.itemListElement.map((item) => item.position)).toBe([1, 2, 3]);
+                expect(crumb.itemListElement.map((item) => item.name)).toBe(["Database", "Bulbasaur"]);
+                expect(crumb.itemListElement.map((item) => item.position)).toBe([1, 2]);
             });
         });
 
@@ -181,6 +181,14 @@ component extends="tests.resources.baseTest" asyncAll="false" {
                 var blog = getTestBlog();
                 expect(blog.event.getStatusCode()).toBe(200);
                 expect(blog.event.getPrivateValue("title")).toBe("#blog.header# | #siteName#");
+            });
+
+            it("Has a visible breadcrumb back to Home", () => {
+                var html = getTestBlog().event.getRenderedContent();
+                expect(html).toInclude("<nav aria-label=""Breadcrumb"">");
+                expect(html).toInclude(
+                    "<a href=""/""><i class=""bi bi-house-door-fill"" aria-hidden=""true""></i>Home</a>"
+                );
             });
 
             it("Has BlogPosting structured data", () => {

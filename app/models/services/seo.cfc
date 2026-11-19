@@ -13,17 +13,21 @@ component singleton accessors="true" {
     }
 
     /**
-     * Default site wide graph - WebSite + WebApplication
+     * Default site wide graph - WebSite + WebApplication + Organization (brand name and logo for search results)
      */
     public struct function getSiteGraph() {
         return [
             "@context": "https://schema.org",
-            "@graph"  : [getWebSite(), getWebApplication()]
+            "@graph"  : [
+                getWebSite(),
+                getWebApplication(),
+                getOrganization()
+            ]
         ];
     }
 
     /**
-     * Pokemon detail page - WebPage with the sprite as its primary image + breadcrumb
+     * Pokemon detail page - WebPage with the sprite as its primary image + breadcrumb (mirrors the visible Database > Pokemon trail)
      *
      * @name        pokemon's full name
      * @description page meta description
@@ -56,8 +60,7 @@ component singleton accessors="true" {
                 getBreadcrumb(
                     id    = "#arguments.pageURL###breadcrumb",
                     items = [
-                        {name: "Home", url: "#getDomain()#/"},
-                        {name: "Pokédex", url: "#getDomain()#/pokemon"},
+                        {name: "Database", url: "#getDomain()#/pokemon"},
                         {name: arguments.name, url: arguments.pageURL}
                     ]
                 ),
@@ -94,7 +97,7 @@ component singleton accessors="true" {
                     id    = "#arguments.pageURL###breadcrumb",
                     items = [
                         {name: "Home", url: "#getDomain()#/"},
-                        {name: "Pokédex", url: arguments.pageURL}
+                        {name: "Database", url: arguments.pageURL}
                     ]
                 ),
                 getWebSite()
@@ -176,7 +179,8 @@ component singleton accessors="true" {
             "@id"          : getWebSiteId(),
             "name"         : getSiteName(),
             "alternateName": ["PogoTracker", "pogotracker.app"],
-            "url"          : "#getDomain()#/"
+            "url"          : "#getDomain()#/",
+            "publisher"    : ["@id": getOrganizationId()]
         ];
     }
 
@@ -188,6 +192,7 @@ component singleton accessors="true" {
             "description"        : getMetaDescription(),
             "applicationCategory": "GameApplication",
             "operatingSystem"    : "Web",
+            "publisher"          : ["@id": getOrganizationId()],
             "offers"             : [
                 "@type"        : "Offer",
                 "price"        : "0",

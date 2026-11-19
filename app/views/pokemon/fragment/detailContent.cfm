@@ -23,18 +23,15 @@
 </cfloop>
 </cfsavecontent>
 
-<!--- Breadcrumb - mirrors the BreadcrumbList structured data --->
+<!--- Breadcrumb --->
 <div class="pokemon-topbar">
     <nav aria-label="Breadcrumb">
-        <ol class="breadcrumb pokemon-breadcrumb mb-0">
+        <ol class="breadcrumb site-breadcrumb mb-0">
             <li class="breadcrumb-item">
-                <a href="/"><i class="bi bi-house-door-fill" aria-hidden="true"></i>Home</a>
-            </li>
-            <li class="breadcrumb-item">
-                <a href="/pokemon"><i class="bi bi-grid-3x3-gap-fill" aria-hidden="true"></i>Pokédex</a>
+                <a href="/pokemon"><i class="bi bi-grid-3x3-gap-fill" aria-hidden="true"></i>Database</a>
             </li>
             <li class="breadcrumb-item active" aria-current="page">
-                <span class="pokemon-breadcrumb-number">###prc.detail.number#</span><span>#prc.detail.fullname#</span>
+                <span class="site-breadcrumb-number">###prc.detail.number#</span><span>#prc.detail.fullname#</span>
             </li>
         </ol>
     </nav>

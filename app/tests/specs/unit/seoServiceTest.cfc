@@ -46,10 +46,10 @@ component extends="tests.resources.baseTest" asyncAll="true" {
             });
 
             describe("getSiteGraph", () => {
-                it("Contains the WebSite and WebApplication nodes", () => {
+                it("Contains the WebSite, WebApplication and Organization nodes", () => {
                     var parsed = roundTrip(seoService.getSiteGraph());
                     expect(parsed["@context"]).toBe("https://schema.org");
-                    expect(globalFunctions.getGraphTypes(parsed)).toBe(["WebSite", "WebApplication"]);
+                    expect(globalFunctions.getGraphTypes(parsed)).toBe(["WebSite", "WebApplication", "Organization"]);
                 });
 
                 it("Keeps the meta description intact (no javascript escapes)", () => {
@@ -83,7 +83,7 @@ component extends="tests.resources.baseTest" asyncAll="true" {
             });
 
             describe("getPokemonDetail", () => {
-                it("Builds a WebPage with the sprite and a 3 level breadcrumb", () => {
+                it("Builds a WebPage with the sprite and a 2 level breadcrumb", () => {
                     var pageURL = "#domain#/pokemon/1";
                     var parsed  = roundTrip(
                         seoService.getPokemonDetail(
@@ -103,7 +103,7 @@ component extends="tests.resources.baseTest" asyncAll="true" {
                     expect(page.breadcrumb["@id"]).toBe("#pageURL###breadcrumb");
 
                     var crumb = globalFunctions.getGraphNode(parsed, "BreadcrumbList");
-                    expect(crumb.itemListElement.map((item) => item.item)).toBe(["#domain#/", "#domain#/pokemon", pageURL]);
+                    expect(crumb.itemListElement.map((item) => item.item)).toBe(["#domain#/pokemon", pageURL]);
                 });
             });
 
